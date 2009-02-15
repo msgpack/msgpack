@@ -3,6 +3,56 @@ MessagePack
 Binary-based efficient data interchange format.
 
 
+*Requirements
+
+  MessagePack is only tested on Linux and Mac OS X, but it may run on other
+  UNIX-like platforms.
+
+  Following programs is required to build:
+    - gcc >= 4.0 with C++ support
+    - ruby >= 1.8   (ruby is used as a preprocessor)
+
+
+*Installation
+
+  Simply run ./configure && make && make install to install C and C++ binding.
+
+  $ ./configure --prefix=path/to/prefix
+  $ make
+  $ make install
+
+  To install Ruby binding, run ./gengem.sh script in ruby/ directory and install
+  generated gem package.
+
+  $ cd ruby
+  $ ./gengem.sh
+  $ gem install gem/pkg/msgpack-*.gem
+
+
+*Usage
+
+  C++:
+    #include <msgpack.hpp>
+	// TODO
+
+
+  C:
+    #include <msgpack.h>
+	/* TODO */
+
+
+  Ruby:
+    require 'msgpack'
+
+    # serialize
+	buf = [1, 2, 3].to_msgpack
+
+    # deserialize
+    p MessagePack::unpack(buf)
+
+    # TODO
+
+
 
 Copyright (C) 2008 FURUHASHI Sadayuki
 
