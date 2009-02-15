@@ -63,8 +63,8 @@ inline packer<Stream>& operator<< (packer<Stream>& o, const type::assoc_vector<K
 	o.pack_map(v.size());
 	for(typename type::assoc_vector<K,V>::const_iterator it(v.begin()), it_end(v.end());
 			it != it_end; ++it) {
-		pack(it->first, o);
-		pack(it->second, o);
+		pack(o, it->first);
+		pack(o, it->second);
 	}
 	return o;
 }
@@ -97,8 +97,8 @@ inline packer<Stream>& operator<< (packer<Stream>& o, const std::map<K,V>& v)
 	o.pack_map(v.size());
 	for(typename std::map<K,V>::const_iterator it(v.begin()), it_end(v.end());
 			it != it_end; ++it) {
-		pack(it->first, o);
-		pack(it->second, o);
+		pack(o, it->first);
+		pack(o, it->second);
 	}
 	return o;
 }
@@ -125,8 +125,8 @@ inline packer<Stream>& operator<< (packer<Stream>& o, const std::multimap<K,V>& 
 	o.pack_multimap(v.size());
 	for(typename std::multimap<K,V>::const_iterator it(v.begin()), it_end(v.end());
 			it != it_end; ++it) {
-		pack(it->first, o);
-		pack(it->second, o);
+		pack(o, it->first);
+		pack(o, it->second);
 	}
 	return o;
 }

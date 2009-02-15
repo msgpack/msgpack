@@ -22,12 +22,11 @@
 #include <vector>
 
 namespace msgpack {
-namespace type {
 
 
 inline bool& operator>> (object o, bool& v)
 {
-	if(o.type != BOOLEAN) { throw type_error(); }
+	if(o.type != type::BOOLEAN) { throw type_error(); }
 	v = o.via.boolean;
 	return v;
 }
@@ -42,7 +41,6 @@ inline packer<Stream>& operator<< (packer<Stream>& o, const bool& v)
 }
 
 
-}  // namespace type
 }  // namespace msgpack
 
 #endif /* msgpack/type/bool.hpp */

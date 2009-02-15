@@ -26,7 +26,7 @@ public:
 
 			try {
 				std::stringstream s;
-				pack(should, s);
+				pack(s, should);
 				std::string str(s.str());
 				object ro = unpack(str.data(), str.size(), m_zone);
 				std::cout << ro << std::endl;
@@ -139,7 +139,7 @@ int main(void)
 	// send message
 	{
 		for(unsigned i=0; i < TASK_REPEAT; ++i) {
-			pack(task, stream);
+			pack(stream, task);
 		}
 		std::cout << "send " << stream.str().size() << " bytes" << std::endl;
 	}

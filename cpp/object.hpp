@@ -83,51 +83,44 @@ packer<Stream>& operator<< (packer<Stream>& o, const object& v);
 
 	
 
-namespace type {
-	template <typename T>
-	inline T& operator>> (object o, T& v)
-	{
-		v.msgpack_unpack(o);
-		return v;
-	}
-	
-	template <typename Stream, typename T>
-	inline packer<Stream>& operator<< (packer<Stream>& o, const T& v)
-	{
-		pack_copy(v.msgpack_pack(), o);
-		return o;
-	}
+template <typename T>
+inline T& operator>> (object o, T& v)
+{
+	v.msgpack_unpack(o);
+	return v;
+}
+
+template <typename Stream, typename T>
+inline packer<Stream>& operator<< (packer<Stream>& o, const T& v)
+{
+	o << v.msgpack_pack();
+	return o;
 }
 
 
 template <typename T>
 inline void convert(T& v, object o)
 {
-	using namespace type;
 	o >> v;
 }
 
-
 template <typename Stream, typename T>
-inline void pack(T& v, packer<Stream>& o)
+inline void pack(packer<Stream>& o, const T& v)
 {
-	using namespace type;
 	o << v;
 }
 
-
 template <typename Stream, typename T>
-inline void pack(T& v, Stream& s)
+inline void pack(Stream& s, const T& v)
 {
 	packer<Stream> pk(s);
-	pack(v, pk);
+	pack(pk, v);
 }
 
-
 template <typename Stream, typename T>
-inline void pack_copy(T v, packer<Stream>& o)
+inline void pack_copy(packer<Stream>& o, T v)
 {
-	pack(v, o);
+	pack(o, v);
 }
 
 

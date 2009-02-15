@@ -70,19 +70,19 @@ namespace detail {
 
 	template <typename T, typename Stream>
 	struct pack_integer_size_sign<T, Stream, 1, true> {
-		static inline void pack(T v, packer<Stream>& o)
+		static inline void pack(packer<Stream>& o, T v)
 			{ o.pack_int8(v); }
 	};
 
 	template <typename T, typename Stream>
 	struct pack_integer_size_sign<T, Stream, 1, false> {
-		static inline void pack(T v, packer<Stream>& o)
+		static inline void pack(packer<Stream>& o, T v)
 			{ o.pack_uint8(v); }
 	};
 
 	template <typename T, typename Stream>
 	struct pack_integer_size_sign<T, Stream, 2, true> {
-		static inline void pack(T v, packer<Stream>& o) {
+		static inline void pack(packer<Stream>& o, T v) {
 			if( (int16_t)v <= (int16_t)std::numeric_limits<int8_t>::max() &&
 				(int16_t)v >= (int16_t)std::numeric_limits<int8_t>::min())
 				{ o.pack_int8(v); }
@@ -92,7 +92,7 @@ namespace detail {
 
 	template <typename T, typename Stream>
 	struct pack_integer_size_sign<T, Stream, 2, false> {
-		static inline void pack(T v, packer<Stream>& o) {
+		static inline void pack(packer<Stream>& o, T v) {
 			if( (uint16_t)v <= (uint16_t)std::numeric_limits<uint8_t>::max())
 				{ o.pack_uint8(v); }
 			else { o.pack_uint16(v); }
@@ -101,7 +101,7 @@ namespace detail {
 
 	template <typename T, typename Stream>
 	struct pack_integer_size_sign<T, Stream, 4, true> {
-		static inline void pack(T v, packer<Stream>& o) {
+		static inline void pack(packer<Stream>& o, T v) {
 			if( (int32_t)v <= (int32_t)std::numeric_limits<int8_t>::max() &&
 				(int32_t)v >= (int32_t)std::numeric_limits<int8_t>::min())
 				{ o.pack_int8(v); }
@@ -114,7 +114,7 @@ namespace detail {
 
 	template <typename T, typename Stream>
 	struct pack_integer_size_sign<T, Stream, 4, false> {
-		static inline void pack(T v, packer<Stream>& o) {
+		static inline void pack(packer<Stream>& o, T v) {
 			if( (uint32_t)v <= (uint32_t)std::numeric_limits<uint8_t>::max())
 				{ o.pack_uint8(v); }
 			else if( (uint32_t)v <= (uint32_t)std::numeric_limits<uint16_t>::max())
@@ -125,7 +125,7 @@ namespace detail {
 
 	template <typename T, typename Stream>
 	struct pack_integer_size_sign<T, Stream, 8, true> {
-		static inline void pack(T v, packer<Stream>& o) {
+		static inline void pack(packer<Stream>& o, T v) {
 			if( (int64_t)v <= (int64_t)std::numeric_limits<int8_t>::max() &&
 				(int64_t)v >= (int64_t)std::numeric_limits<int8_t>::min())
 				{ o.pack_int8(v); }
@@ -141,7 +141,7 @@ namespace detail {
 
 	template <typename T, typename Stream>
 	struct pack_integer_size_sign<T, Stream, 8, false> {
-		static inline void pack(T v, packer<Stream>& o) {
+		static inline void pack(packer<Stream>& o, T v) {
 			if( (uint64_t)v <= (uint64_t)std::numeric_limits<uint8_t>::max())
 				{ o.pack_uint8(v); }
 			else if( (uint64_t)v <= (uint64_t)std::numeric_limits<uint16_t>::max())
@@ -156,7 +156,7 @@ namespace detail {
 	template <typename T, typename Stream>
 	static inline void pack_integer(T v, packer<Stream>& o)
 	{
-		pack_integer_size_sign<T, Stream, sizeof(T), std::numeric_limits<T>::is_signed>::pack(v, o);
+		pack_integer_size_sign<T, Stream, sizeof(T), std::numeric_limits<T>::is_signed>::pack(o, v);
 	}
 
 }  // namespace detail

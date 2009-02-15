@@ -81,7 +81,7 @@ public:
 	//
 	//     // 2.
 	//     ssize_t bytes =
-	//         read(the_source, pac.buffer, pac.buffer_capacity());
+	//         read(the_source, pac.buffer(), pac.buffer_capacity());
 	//
 	//     // error handling ...
 	//

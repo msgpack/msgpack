@@ -142,7 +142,7 @@ const packer<Stream>& operator<< (
 		const type::tuple<A0<%1.upto(i) {|j|%>, A<%=j%><%}%>>& v) {
 	o.pack_array(<%=i+1%>);
 	<%0.upto(i) {|j|%>
-	pack(v.template get<<%=j%>>(), o);<%}%>
+	pack(o, v.template get<<%=j%>>());<%}%>
 	return o;
 }
 <%}%>
