@@ -85,8 +85,8 @@ void unpacker::expand_buffer(size_t len)
 		void* tmp = malloc(next_size);
 		if(!tmp) { throw std::bad_alloc(); }
 		memcpy(tmp, m_buffer, m_used);
-
 		free(m_buffer);
+
 		m_buffer = tmp;
 		m_free = next_size - m_used;
 
