@@ -100,7 +100,7 @@ private:
 	unpacker(const unpacker&);
 
 public:
-	static object unpack(const void* data, size_t len, zone& z);
+	static object unpack(const char* data, size_t len, zone& z);
 };
 
 
@@ -136,7 +136,7 @@ inline void unpacker::remove_nonparsed_buffer()
 	{ m_used = m_off; }
 
 
-inline object unpack(const void* data, size_t len, zone& z)
+inline object unpack(const char* data, size_t len, zone& z)
 {
 	return unpacker::unpack(data, len, z);
 }

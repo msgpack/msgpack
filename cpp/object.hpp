@@ -37,25 +37,25 @@ class positive_overflow_error : public overflow_error { };
 class negative_overflow_error : public overflow_error { };
 
 
-struct raw {
-	explicit raw() : ptr(NULL), len(0) {}
-	explicit raw(void* p, size_t l) : ptr(p), len(l) {}
+struct mutable_raw {
+	explicit mutable_raw() : ptr(NULL), len(0) {}
+	explicit mutable_raw(char* p, size_t l) : ptr(p), len(l) {}
 public:
-	void* ptr;
+	char* ptr;
 	size_t len;
 public:
-	std::string str() { return std::string((const char*)ptr, len); }
+	std::string str() { return std::string(ptr, len); }
 };
 
-struct const_raw {
-	explicit const_raw() : ptr(NULL), len(0) {}
-	explicit const_raw(const void* p, size_t l) : ptr(p), len(l) {}
-	const_raw(const raw& m) : ptr(m.ptr), len(m.len) {}
+struct raw {
+	explicit raw() : ptr(NULL), len(0) {}
+	explicit raw(const char* p, size_t l) : ptr(p), len(l) {}
+	raw(const mutable_raw& m) : ptr(m.ptr), len(m.len) {}
 public:
-	const void* ptr;
+	const char* ptr;
 	size_t len;
 public:
-	std::string str() { return std::string((const char*)ptr, len); }
+	std::string str() { return std::string(ptr, len); }
 };
 
 
@@ -81,10 +81,10 @@ struct object_class {
 	virtual int64_t  xi64   () const { throw cast_error(); }
 	virtual float    xfloat () const { throw cast_error(); }
 	virtual double   xdouble() const { throw cast_error(); }
-	virtual raw      xraw   () { throw cast_error(); }
-	virtual array&   xarray () { throw cast_error(); }
-	virtual map&     xmap   () { throw cast_error(); }
-	virtual const_raw    xraw  () const { throw cast_error(); }
+	//virtual mutable_raw xraw  () { throw cast_error(); }  // FIXME
+	virtual array&      xarray() { throw cast_error(); }
+	virtual map&        xmap  () { throw cast_error(); }
+	virtual raw          xraw  () const { throw cast_error(); }
 	virtual const array& xarray() const { throw cast_error(); }
 	virtual const map&   xmap  () const { throw cast_error(); }
 	virtual bool operator== (const object_class* x) const { return false; }
@@ -103,10 +103,10 @@ struct object_class {
 	operator  int64_t() const { return    xi64(); }
 	operator    float() const { return  xfloat(); }
 	operator   double() const { return xdouble(); }
-	operator    raw() { return   xraw(); }
-	operator array&() { return xarray(); }
-	operator   map&() { return   xmap(); }
-	operator    const_raw() const { return   xraw(); }
+	//operator mutable_raw() { return   xraw(); }  // FIXME
+	operator      array&() { return xarray(); }
+	operator        map&() { return   xmap(); }
+	operator          raw() const { return   xraw(); }
 	operator const array&() const { return xarray(); }
 	operator const   map&() const { return   xmap(); }
 	virtual const object_class* inspect(std::ostream& s) const
@@ -138,10 +138,10 @@ struct object {
 	int64_t  xi64   () const { return val->xi64();    }
 	float    xfloat () const { return val->xfloat();  }
 	double   xdouble() const { return val->xdouble(); }
-	raw      xraw   () { return val->xraw();   }
-	array&   xarray () { return val->xarray(); }
-	map&     xmap   () { return val->xmap();   }
-	const_raw    xraw  () const { return const_cast<const object_class*>(val)->xraw();   }
+	//mutable_raw xraw  () { return val->xraw();   }  // FIXME
+	array&      xarray() { return val->xarray(); }
+	map&        xmap  () { return val->xmap();   }
+	raw          xraw  () const { return const_cast<const object_class*>(val)->xraw();   }
 	const array& xarray() const { return const_cast<const object_class*>(val)->xarray(); }
 	const map&   xmap  () const { return const_cast<const object_class*>(val)->xmap();   }
 	bool operator== (object x) const { return val->operator== (x.val); }
@@ -149,6 +149,8 @@ struct object {
 	bool operator<  (object x) const { return val->operator<  (x.val); }
 	bool operator>  (object x) const { return val->operator>  (x.val); }
 	void pack(dynamic_packer& p) const { val->pack(p); }
+	template <typename Stream>
+		void pack(Stream& s) const { dynamic_packer p(s); pack(p); }
 	operator     bool() const { return val->operator bool();     }
 	operator  uint8_t() const { return val->operator uint8_t();  }
 	operator uint16_t() const { return val->operator uint16_t(); }
@@ -160,10 +162,10 @@ struct object {
 	operator  int64_t() const { return val->operator int64_t();  }
 	operator    float() const { return val->operator float();    }
 	operator   double() const { return val->operator double();   }
-	operator    raw() { return val->operator raw();    }
-	operator array&() { return val->operator array&(); }
-	operator   map&() { return val->operator map&();   }
-	operator    const_raw() const { return val->operator const_raw();    }
+	//operator mutable_raw() { return val->operator mutable_raw(); }  // FIXME
+	operator      array&() { return val->operator array&();      }
+	operator        map&() { return val->operator map&();        }
+	operator          raw() const { return val->operator raw();          }
 	operator const array&() const { return val->operator const array&(); }
 	operator const   map&() const { return val->operator const map&();   }
 	const object& inspect(std::ostream& s) const
@@ -275,8 +277,9 @@ private:																\
 	uint32_t len;														\
 };
 
-RAW_CLASS(raw_ref, void*, raw xraw(); const_raw xraw() const; )
-RAW_CLASS(const_raw_ref, const void*, const_raw xraw() const; )
+// FIXME
+RAW_CLASS(mutable_raw_ref, char*, /*mutable_raw xraw();*/ raw xraw() const; )
+RAW_CLASS(raw_ref, const char*, raw xraw() const; )
 
 #undef RAW_CLASS(NAME, TYPE, EXTRA)
 

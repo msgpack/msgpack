@@ -168,7 +168,7 @@ int msgpack_unpacker_execute(msgpack_unpacker* ctx, const char* data, size_t len
 	const unsigned char* const pe = (unsigned char*)data + len;
 	const void* n = NULL;
 
-	size_t trail = ctx->trail;
+	unsigned int trail = ctx->trail;
 	unsigned int cs = ctx->cs;
 	unsigned int top = ctx->top;
 	msgpack_unpacker_stack* stack = ctx->stack;
@@ -187,7 +187,7 @@ int msgpack_unpacker_execute(msgpack_unpacker* ctx, const char* data, size_t len
 	/*printf("obj %d\n",obj);*/ \
 	goto _push
 #define push_variable_value(func, base, pos, len) \
-	obj = func(user, (const void*)base, (const void*)pos, len); \
+	obj = func(user, (const char*)base, (const char*)pos, len); \
 	/*printf("obj %d\n",obj);*/ \
 	goto _push
 

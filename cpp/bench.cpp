@@ -10,7 +10,7 @@ static const unsigned int TASK_INT_NUM = 1<<24;
 static const unsigned int TASK_STR_LEN = 1<<15;
 //static const unsigned int TASK_INT_NUM = 1<<23;
 //static const unsigned int TASK_STR_LEN = 1<<14;
-static const void* TASK_STR_PTR;
+static const char* TASK_STR_PTR;
 
 
 class simple_timer {
@@ -49,7 +49,7 @@ public:
 	}
 
 public:
-	inline void write(const void* buf, size_t len)
+	inline void write(const char* buf, size_t len)
 	{
 		if(m_allocated - m_used < len) {
 			expand_buffer(len);
@@ -168,7 +168,7 @@ void bench_msgpack_str()
 
 int main(void)
 {
-	void* str = malloc(TASK_STR_LEN);
+	char* str = (char*)malloc(TASK_STR_LEN);
 	memset(str, 'a', TASK_STR_LEN);
 	TASK_STR_PTR = str;
 

@@ -4,7 +4,7 @@
 //#include <msgpack/pack.hpp>
 #include <msgpack.hpp>
 #include <sstream>
-#include <boost/scoped_ptr.hpp>
+#include <memory>
 
 class checker {
 public:
@@ -176,7 +176,7 @@ int main(void)
 
 			// 2. read data to buffer() up to buffer_capacity() bytes
 			size_t sz = stream.readsome(
-					(char*)upk.buffer(),
+					upk.buffer(),
 					upk.buffer_capacity());
 
 			total_bytes -= sz;
@@ -195,7 +195,7 @@ int main(void)
 				msgpack::object o = upk.data();
 
 				// 5.2. the parsed object is valid until the zone is deleted
-				boost::scoped_ptr<msgpack::zone> pz(upk.release_zone());
+				std::auto_ptr<msgpack::zone> pz(upk.release_zone());
 
 				std::cout << o << std::endl;
 				++num_msg;

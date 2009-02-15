@@ -320,29 +320,30 @@ FLOAT_OBJECT(double)
 EXTRA																			\
 bool object_##NAME::operator== (const object_class* x) const					\
 	try {																		\
-		const_raw xr(x->xraw());												\
+		raw xr(x->xraw());												\
 		return len == xr.len && (ptr == xr.ptr || memcmp(ptr, xr.ptr, len) == 0); \
 	} catch (type_error&) { return false; }										\
 bool object_##NAME::operator<  (const object_class* x) const {					\
-	const_raw xr(x->xraw());													\
+	raw xr(x->xraw());													\
 	if(len == xr.len) { return ptr != xr.ptr && memcmp(ptr, xr.ptr, len) < 0; }	\
 	else { return len < xr.len; } }												\
 bool object_##NAME::operator>  (const object_class* x) const {					\
-	const_raw xr(x->xraw());													\
+	raw xr(x->xraw());													\
 	if(len == xr.len) { return ptr != xr.ptr && memcmp(ptr, xr.ptr, len) > 0; }	\
 	else { return len > xr.len; } }												\
 void object_##NAME::pack(dynamic_packer& p) const								\
 	{ p.pack_raw(ptr, len); }													\
 const object_class* object_##NAME::inspect(std::ostream& s) const				\
-	{ (s << '"').write((const char*)ptr, len) << '"'; return this; }  // FIXME escape
+	{ (s << '"').write(ptr, len) << '"'; return this; }  // FIXME escape
 
+
+// FIXME
+RAW_OBJECT(mutable_raw_ref,
+	/*mutable_raw object_mutable_raw_ref::xraw() { return mutable_raw(ptr, len); }*/
+	raw object_mutable_raw_ref::xraw() const { return raw(ptr, len); } )
 
 RAW_OBJECT(raw_ref,
-	raw object_raw_ref::xraw() { return raw(ptr, len); }
-	const_raw object_raw_ref::xraw() const { return const_raw(ptr, len); } )
-
-RAW_OBJECT(const_raw_ref,
-	const_raw object_const_raw_ref::xraw() const { return const_raw(ptr, len); } )
+	raw object_raw_ref::xraw() const { return raw(ptr, len); } )
 
 #undef RAW_OBJECT(NAME, EXTRA)
 

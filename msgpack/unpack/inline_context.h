@@ -42,7 +42,7 @@ typedef struct {
 typedef struct {
 	msgpack_unpack_context user;  // must be first
 	unsigned int cs;
-	size_t trail;
+	unsigned int trail;
 	unsigned int top;
 	msgpack_unpacker_stack stack[MSG_STACK_SIZE];
 } msgpack_unpacker;

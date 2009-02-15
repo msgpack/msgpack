@@ -71,7 +71,7 @@ static inline void* msgpack_unpack_map_start(msgpack_unpack_t* x, unsigned int n
 static inline void msgpack_unpack_map_item(msgpack_unpack_t* x, void* c, void* k, void* v)
 { x->callback.unpack_map_item(x->data, c, k, v); }
 
-static inline void* msgpack_unpack_raw(msgpack_unpack_t* x, const void* b, const void* p, size_t l)
+static inline void* msgpack_unpack_raw(msgpack_unpack_t* x, const char* b, const char* p, unsigned int l)
 { return x->callback.unpack_raw(x->data, b, p, l); }
 
 

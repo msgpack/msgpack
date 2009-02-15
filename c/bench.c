@@ -55,7 +55,7 @@ static void* unpack_array_start(void* data, unsigned int n) { return NULL; }
 static void unpack_array_item(void* data, void* c, void* o) { }
 static void* unpack_map_start(void* data, unsigned int n) { return NULL; }
 static void unpack_map_item(void* data, void* c, void* k, void* v) { }
-static void* unpack_raw(void* data, const void* b, const void* p, size_t l) { /*printf("unpack raw %p %lu\n",p,l);*/ return NULL; }
+static void* unpack_raw(void* data, const char* b, const char* p, unsigned int l) { /*printf("unpack raw %p %lu\n",p,l);*/ return NULL; }
 
 typedef struct {
 	size_t allocated;

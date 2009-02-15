@@ -31,9 +31,9 @@ struct unpacker::context {
 
 	~context() { }
 
-	int execute(const void* data, size_t len, size_t* off)
+	int execute(const char* data, size_t len, size_t* off)
 	{
-		return msgpack_unpacker_execute(&m_ctx, (const char*)data, len, off);
+		return msgpack_unpacker_execute(&m_ctx, data, len, off);
 	}
 
 	object_class* data()
@@ -171,7 +171,7 @@ void unpacker::reset()
 }
 
 
-object unpacker::unpack(const void* data, size_t len, zone& z)
+object unpacker::unpack(const char* data, size_t len, zone& z)
 {
 	context ctx(&z);
 	size_t off = 0;

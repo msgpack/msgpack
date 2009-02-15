@@ -39,7 +39,7 @@ typedef struct {
 	 void (*unpack_array_item)(void* data, void* c, void* o);
 	void* (*unpack_map_start)(void* data, unsigned int n);
 	 void (*unpack_map_item)(void* data, void* c, void* k, void* v);
-	void* (*unpack_raw)(void* data, const void* b, const void* p, size_t l);
+	void* (*unpack_raw)(void* data, const char* b, const char* p, unsigned int l);
 } msgpack_unpack_callback;
 
 typedef struct {

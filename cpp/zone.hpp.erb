@@ -58,19 +58,20 @@ public:
 	object_float*  nfloat (float    v) { return new (alloc()) object_float(v);  }
 	object_double* ndouble(double   v) { return new (alloc()) object_double(v); }
 
-	object_raw_ref* nraw_ref(void* ptr, uint32_t len)
+
+	object_mutable_raw_ref* nraw_ref(char* ptr, uint32_t len)
+		{ return new (alloc()) object_mutable_raw_ref(ptr, len); }
+
+	object_raw_ref*         nraw_ref(const char* ptr, uint32_t len)
 		{ return new (alloc()) object_raw_ref(ptr, len); }
 
-	object_const_raw_ref* nraw_ref(const void* ptr, uint32_t len)
-		{ return new (alloc()) object_const_raw_ref(ptr, len); }
-
-	object_raw_ref* nraw_copy(const void* ptr, uint32_t len)
+	object_mutable_raw_ref* nraw_copy(const char* ptr, uint32_t len)
 		{
-			void* copy = malloc(len);
+			char* copy = (char*)malloc(len);
 			if(!copy) { throw std::bad_alloc(); }
-			object_raw_ref* o;
+			object_mutable_raw_ref* o;
 			try {
-				o = new (alloc()) object_raw_ref(copy, len);
+				o = new (alloc()) object_mutable_raw_ref(copy, len);
 				push_finalizer<void>(&zone::finalize_free, NULL, copy);
 			} catch (...) {
 				free(copy);
@@ -79,6 +80,17 @@ public:
 			memcpy(copy, ptr, len);
 			return o;
 		}
+
+
+	object_mutable_raw_ref* nraw_cstr_ref(char* str)
+		{ return nraw_ref(str, strlen(str)); }
+
+	object_raw_ref*         nraw_cstr_ref(const char* str)
+		{ return nraw_ref(str, strlen(str)); }
+
+	object_mutable_raw_ref* nraw_cstr_copy(const char* str)
+		{ return nraw_copy(str, strlen(str)); }
+
 
 	object_array* narray()
 		{ return new (alloc()) object_array(); }

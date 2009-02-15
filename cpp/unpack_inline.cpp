@@ -71,12 +71,12 @@ static inline void msgpack_unpack_array_item(zone** z, object_class* c, object_c
 { reinterpret_cast<object_array*>(c)->push_back(o); }
 
 static inline object_class* msgpack_unpack_map_start(zone** z, unsigned int n)
-{ return (*z)->narray(); }
+{ return (*z)->nmap(); }
 
 static inline void msgpack_unpack_map_item(zone** z, object_class* c, object_class* k, object_class* v)
 { reinterpret_cast<object_map*>(c)->store(k, v); }
 
-static inline object_class* msgpack_unpack_raw(zone** z, const void* b, const void* p, size_t l)
+static inline object_class* msgpack_unpack_raw(zone** z, const char* b, const char* p, unsigned int l)
 { return (*z)->nraw_ref(p, l); }
 
 

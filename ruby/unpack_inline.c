@@ -71,7 +71,7 @@ static inline VALUE msgpack_unpack_map_start(msgpack_unpack_context* x, unsigned
 static inline void msgpack_unpack_map_item(msgpack_unpack_context* x, VALUE c, VALUE k, VALUE v)
 { rb_hash_aset(c, k, v); }
 
-static inline VALUE msgpack_unpack_raw(msgpack_unpack_context* x, const void* b, const void* p, size_t l)
+static inline VALUE msgpack_unpack_raw(msgpack_unpack_context* x, const char* b, const char* p, unsigned int l)
 { return rb_str_new(p, l); }
 
 #include "msgpack/unpack/inline_impl.h"

@@ -20,5 +20,5 @@ msgpack_object msgpack_unpack_array_start(msgpack_unpack_context* x, unsigned in
 msgpack_object msgpack_unpack_map_start(msgpack_unpack_context* x, unsigned int n);
           void msgpack_unpack_map_item(msgpack_unpack_context* x, msgpack_object c, msgpack_object k, msgpack_object v);
 msgpack_object msgpack_unpack_string(msgpack_unpack_context* x, const void* b, size_t l);
-msgpack_object msgpack_unpack_raw(msgpack_unpack_context* x, const void* b, const void* p, size_t l);
+msgpack_object msgpack_unpack_raw(msgpack_unpack_context* x, const char* b, const char* p, unsigned int l);
 

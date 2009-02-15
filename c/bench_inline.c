@@ -56,8 +56,6 @@ static inline void* msgpack_unpack_signed_int_32(msgpack_unpack_context* x, int3
 static inline void* msgpack_unpack_signed_int_64(msgpack_unpack_context* x, int64_t d) { return NULL; }
 static inline void* msgpack_unpack_float(msgpack_unpack_context* x, float d) { return NULL; }
 static inline void* msgpack_unpack_double(msgpack_unpack_context* x, double d) { return NULL; }
-static inline void* msgpack_unpack_big_int(msgpack_unpack_context* x, const void* b, unsigned int l) { return NULL; }
-static inline void* msgpack_unpack_big_float(msgpack_unpack_context* x, const void* b, unsigned int l) { return NULL; }
 static inline void* msgpack_unpack_nil(msgpack_unpack_context* x) { return NULL; }
 static inline void* msgpack_unpack_true(msgpack_unpack_context* x) { return NULL; }
 static inline void* msgpack_unpack_false(msgpack_unpack_context* x) { return NULL; }

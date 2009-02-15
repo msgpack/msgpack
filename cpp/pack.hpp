@@ -50,7 +50,7 @@ public:
 	void pack_array(unsigned int n)			{ pack_array_impl(m_stream, n); }
 	void pack_map(unsigned int n)			{ pack_map_impl(m_stream, n); }
 	void pack_string(const char* b)			{ pack_string_impl(m_stream, b); }
-	void pack_raw(const void* b, size_t l)	{ pack_raw_impl(m_stream, b, l); }
+	void pack_raw(const char* b, size_t l)	{ pack_raw_impl(m_stream, (const void*)b, l); }
 
 private:
 	static void pack_int_impl(Stream& x, int d);
@@ -134,7 +134,7 @@ public:
 	void pack_array(unsigned int n)			{ pack_array_impl(m_stream, n); }
 	void pack_map(unsigned int n)			{ pack_map_impl(m_stream, n); }
 	void pack_string(const char* b)			{ pack_string_impl(m_stream, b); }
-	void pack_raw(const void* b, size_t l)	{ pack_raw_impl(m_stream, b, l); }
+	void pack_raw(const char* b, size_t l)	{ pack_raw_impl(m_stream, (const void*)b, l); }
 
 private:
 	static void pack_int_impl(dynamic_stream& x, int d);
