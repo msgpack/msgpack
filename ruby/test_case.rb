@@ -1,5 +1,6 @@
-require 'test/unit'
+#!/usr/bin/env ruby
 require 'msgpack'
+require 'test/unit'
 
 class MessagePackTestFormat < Test::Unit::TestCase
 	def self.it(name, &block)

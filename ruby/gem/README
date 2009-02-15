@@ -1,0 +1,29 @@
+
+= MessagePack
+
+
+== Description
+
+
+== Installation
+
+=== Archive Installation
+
+	rake install
+
+=== Gem Installation
+
+	gem install msgpack
+
+
+== Features/Problems
+
+
+== Synopsis
+
+
+== Copyright
+
+Author::    frsyuki <frsyuki@>
+Copyright:: Copyright (c) 2009 frsyuki
+License::   Apache License, Version 2.0

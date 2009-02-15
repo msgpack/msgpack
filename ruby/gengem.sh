@@ -6,6 +6,7 @@ cp pack.h           gem/ext/
 cp rbinit.c         gem/ext/
 cp unpack.c         gem/ext/
 cp unpack.h         gem/ext/
+cat test_case.rb | sed "s/require ['\"]msgpack['\"]/require File.dirname(__FILE__) + '\/test_helper.rb'/" > gem/test/msgpack_test.rb
 #cp ../README        gem/README.txt
 cp ../msgpack/pack_define.h     gem/msgpack/
 cp ../msgpack/pack_template.h   gem/msgpack/
