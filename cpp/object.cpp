@@ -258,7 +258,7 @@ INTEGER_OBJECT(i16)
 INTEGER_OBJECT(i32)
 INTEGER_OBJECT(i64)
 
-#undef INTEGER_OBJECT(NAME)
+#undef INTEGER_OBJECT
 
 
 #define FLOAT_OBJECT(NAME) \
@@ -313,7 +313,7 @@ const object_class* object_##NAME::inspect(std::ostream& s) const				\
 FLOAT_OBJECT(float)
 FLOAT_OBJECT(double)
 
-#undef FLOAT_OBJECT(NAME)
+#undef FLOAT_OBJECT
 
 
 #define RAW_OBJECT(NAME, EXTRA) \
@@ -345,7 +345,7 @@ RAW_OBJECT(mutable_raw_ref,
 RAW_OBJECT(raw_ref,
 	raw object_raw_ref::xraw() const { return raw(ptr, len); } )
 
-#undef RAW_OBJECT(NAME, EXTRA)
+#undef RAW_OBJECT
 
 
       array& object_array::xarray()       { return val; }

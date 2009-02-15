@@ -17,6 +17,12 @@ noinst_HEADERS = \
 		unpack_context.hpp \
 		msgpack/zone.hpp.erb
 
+# FIXME
+object.lo: msgpack/zone.hpp
+unpack.lo: msgpack/zone.hpp
+unpack_context.lo: msgpack/zone.hpp
+zone.lo: msgpack/zone.hpp
+
 msgpack/zone.hpp: msgpack/zone.hpp.erb
 	erb $< > $@
 
