@@ -28,9 +28,10 @@ public:
 			}
 
 			try {
-				std::string s;
+				std::stringstream s;
 				msgpack::pack(s, o);
-				object ro = msgpack::unpack(s.data(), s.size(), m_zone);
+				std::string str(s.str());
+				object ro = msgpack::unpack(str.data(), str.size(), m_zone);
 				if(ro != o) { throw std::runtime_error("NOT MATCH"); }
 			} catch (std::runtime_error& e) {
 				std::cout << "** REUNPACK FAILED **" << std::endl;

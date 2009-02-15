@@ -99,10 +99,10 @@ void unpacker::expand_buffer(size_t len)
 		else { next_size = UNPACKER_INITIAL_BUFFER_SIZE; }
 		while(next_size < len + m_used) { next_size *= 2; }
 
-		void* tmp = realloc(m_buffer, next_size);
+		char* tmp = (char*)realloc(m_buffer, next_size);
 		if(!tmp) { throw std::bad_alloc(); }
 		m_buffer = tmp;
-		//void* tmp = malloc(next_size);
+		//char* tmp = (char*)malloc(next_size);
 		//if(!tmp) { throw std::bad_alloc(); }
 		//memcpy(tmp, m_buffer, m_used);
 		//free(m_buffer);
@@ -114,9 +114,9 @@ void unpacker::expand_buffer(size_t len)
 		size_t next_size = UNPACKER_INITIAL_BUFFER_SIZE;
 		while(next_size < len + m_used - m_off) { next_size *= 2; }
 
-		void* tmp = malloc(next_size);
+		char* tmp = (char*)malloc(next_size);
 		if(!tmp) { throw std::bad_alloc(); }
-		memcpy(tmp, ((char*)m_buffer)+m_off, m_used-m_off);
+		memcpy(tmp, m_buffer+m_off, m_used-m_off);
 
 		try {
 			m_zone->push_finalizer<void>(&zone::finalize_free, NULL, m_buffer);

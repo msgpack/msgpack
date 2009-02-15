@@ -73,7 +73,7 @@ private:
 	static void pack_string_impl(Stream& x, const char* b);
 	static void pack_raw_impl(Stream& x, const void* b, size_t l);
 	static void append_buffer(Stream& x, const unsigned char* buf, unsigned int len)
-		{ x.append((const char*)buf, len); }
+		{ x.write((const char*)buf, len); }
 
 private:
 	Stream& m_stream;
@@ -100,14 +100,13 @@ public:
 	template <typename Stream>
 	dynamic_stream(Stream& s);
 public:
-	dynamic_stream& append(const char* buf, size_t len)
-		{ (*m_function)(m_object, buf, len); return *this; }
+	void write(const char* buf, size_t len)
+		{ (*m_function)(m_object, buf, len); }
 private:
 	void* m_object;
 	void (*m_function)(void* object, const char* buf, size_t len);
 private:
-	template <typename Stream, Stream& (Stream::*MemFun)(const char*, size_t)>
-	static void append_trampoline(void* object, const char* buf, size_t len);
+	struct write_trampoline;
 };
 
 
@@ -137,8 +136,6 @@ public:
 	void pack_string(const char* b)			{ pack_string_impl(m_stream, b); }
 	void pack_raw(const void* b, size_t l)	{ pack_raw_impl(m_stream, b, l); }
 
-public:
-
 private:
 	static void pack_int_impl(dynamic_stream& x, int d);
 	static void pack_unsigned_int_impl(dynamic_stream& x, unsigned int d);
@@ -160,7 +157,7 @@ private:
 	static void pack_string_impl(dynamic_stream& x, const char* b);
 	static void pack_raw_impl(dynamic_stream& x, const void* b, size_t l);
 	static void append_buffer(dynamic_stream& x, const unsigned char* buf, unsigned int len)
-		{ x.append((const char*)buf, len); }
+		{ x.write((const char*)buf, len); }
 
 private:
 	dynamic_stream m_stream;
@@ -181,17 +178,37 @@ private:
 template <typename Stream>
 dynamic_packer::dynamic_packer(Stream& s) : m_stream(s) { }
 
+struct dynamic_stream::write_trampoline {
+private:
+	template <typename R>
+	struct ret_type {
+		typedef R (*type)(void*, const char*, size_t);
+	};
+
+	template <typename Stream, typename R,
+			typename Ptr, typename Sz, R (Stream::*MemFun)(Ptr*, Sz)>
+	static R trampoline(void* obj, const char* buf, size_t len)
+	{
+		return (reinterpret_cast<Stream*>(obj)->*MemFun)(buf, len);
+	}
+
+public:
+	template <typename Stream, typename R, typename Ptr, typename Sz>
+	static typename ret_type<R>::type get(R (Stream::*func)(Ptr*, Sz))
+	{
+		R (*f)(void*, const char*, size_t) =
+			&trampoline<Stream, R, Ptr, Sz, &Stream::write>;
+		return f;
+	}
+};
+
 template <typename Stream>
 dynamic_stream::dynamic_stream(Stream& s)
 {
 	m_object = reinterpret_cast<void*>(&s);
-	m_function = &dynamic_stream::append_trampoline<Stream, &Stream::append>;
-}
-
-template <typename Stream, Stream& (Stream::*MemFun)(const char*, size_t)>
-void dynamic_stream::append_trampoline(void* object, const char* buf, size_t len)
-{
-	(reinterpret_cast<Stream*>(object)->*MemFun)(buf, len);
+	m_function = reinterpret_cast<void (*)(void*, const char*, size_t)>(
+			write_trampoline::get(&Stream::write)
+			);
 }
 
 

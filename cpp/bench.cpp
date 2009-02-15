@@ -49,14 +49,13 @@ public:
 	}
 
 public:
-	inline simple_buffer& append(const char* buf, size_t len)
+	inline void write(const void* buf, size_t len)
 	{
 		if(m_allocated - m_used < len) {
 			expand_buffer(len);
 		}
 		memcpy(m_storage + m_used, buf, len);
 		m_used += len;
-		return *this;
 	}
 
 	void clear()

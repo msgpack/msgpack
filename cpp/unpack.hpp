@@ -48,7 +48,7 @@ public:
 	void reserve_buffer(size_t len);
 
 	/*! 2. read data to the buffer() up to buffer_capacity() bytes */
-	void* buffer();
+	char* buffer();
 	size_t buffer_capacity() const;
 
 	/*! 3. specify the number of bytes actually copied */
@@ -74,7 +74,7 @@ public:
 	// Note that there are no parsed buffer when execute() returned true.
 
 	/*! get address of buffer that is not parsed */
-	void* nonparsed_buffer();
+	char* nonparsed_buffer();
 	size_t nonparsed_size() const;
 
 	/*! get the number of bytes that is already parsed */
@@ -90,7 +90,7 @@ private:
 	struct context;
 	context* m_ctx;
 
-	void* m_buffer;
+	char* m_buffer;
 	size_t m_used;
 	size_t m_free;
 	size_t m_off;
@@ -110,8 +110,8 @@ inline void unpacker::reserve_buffer(size_t len)
 	expand_buffer(len);
 }
 
-inline void* unpacker::buffer()
-	{ return (void*)(((char*)m_buffer)+m_used); }
+inline char* unpacker::buffer()
+	{ return m_buffer + m_used; }
 
 inline size_t unpacker::buffer_capacity() const
 	{ return m_free; }
@@ -123,8 +123,8 @@ inline void unpacker::buffer_consumed(size_t len)
 }
 
 
-inline void* unpacker::nonparsed_buffer()
-	{ return (void*)(((char*)m_buffer)+m_off); }
+inline char* unpacker::nonparsed_buffer()
+	{ return m_buffer + m_off; }
 
 inline size_t unpacker::nonparsed_size() const
 	{ return m_used - m_off; }
