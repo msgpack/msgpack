@@ -31,7 +31,7 @@ namespace msgpack {
 #define msgpack_unpack_callback(name) \
 	msgpack_unpack_##name
 
-#define msgpack_unpack_object object_class*
+#define msgpack_unpack_object object
 
 #define msgpack_unpack_user zone*
 
@@ -40,68 +40,88 @@ struct msgpack_unpacker_context;
 
 static void msgpack_unpacker_init(struct msgpack_unpacker_context* ctx);
 
-static object_class* msgpack_unpacker_data(struct msgpack_unpacker_context* ctx);
+static object msgpack_unpacker_data(struct msgpack_unpacker_context* ctx);
 
 static int msgpack_unpacker_execute(struct msgpack_unpacker_context* ctx,
 		const char* data, size_t len, size_t* off);
 
 
-static inline object_class* msgpack_unpack_init(zone** z)
-{ return NULL; }
+static inline object msgpack_unpack_init(zone** z)
+{ return object(); }
 
-static inline object_class* msgpack_unpack_uint8(zone** z, uint8_t d)
-{ return (*z)->nu8(d); }
+static inline object msgpack_unpack_uint8(zone** z, uint8_t d)
+{ object o; o.type = type::POSITIVE_INTEGER; o.via.u64 = d; return o; }
 
-static inline object_class* msgpack_unpack_uint16(zone** z, uint16_t d)
-{ return (*z)->nu16(d); }
+static inline object msgpack_unpack_uint16(zone** z, uint16_t d)
+{ object o; o.type = type::POSITIVE_INTEGER; o.via.u64 = d; return o; }
 
-static inline object_class* msgpack_unpack_uint32(zone** z, uint32_t d)
-{ return (*z)->nu32(d); }
+static inline object msgpack_unpack_uint32(zone** z, uint32_t d)
+{ object o; o.type = type::POSITIVE_INTEGER; o.via.u64 = d; return o; }
 
-static inline object_class* msgpack_unpack_uint64(zone** z, uint64_t d)
-{ return (*z)->nu64(d); }
+static inline object msgpack_unpack_uint64(zone** z, uint64_t d)
+{ object o; o.type = type::POSITIVE_INTEGER; o.via.u64 = d; return o; }
 
-static inline object_class* msgpack_unpack_int8(zone** z, int8_t d)
-{ return (*z)->ni8(d); }
+static inline object msgpack_unpack_int8(zone** z, int8_t d)
+{ if(d >= 0) { object o; o.type = type::POSITIVE_INTEGER; o.via.u64 = d; return o; }
+		else { object o; o.type = type::NEGATIVE_INTEGER; o.via.i64 = d; return o; } }
 
-static inline object_class* msgpack_unpack_int16(zone** z, int16_t d)
-{ return (*z)->ni16(d); }
+static inline object msgpack_unpack_int16(zone** z, int16_t d)
+{ if(d >= 0) { object o; o.type = type::POSITIVE_INTEGER; o.via.u64 = d; return o; }
+		else { object o; o.type = type::NEGATIVE_INTEGER; o.via.i64 = d; return o; } }
 
-static inline object_class* msgpack_unpack_int32(zone** z, int32_t d)
-{ return (*z)->ni32(d); }
+static inline object msgpack_unpack_int32(zone** z, int32_t d)
+{ if(d >= 0) { object o; o.type = type::POSITIVE_INTEGER; o.via.u64 = d; return o; }
+		else { object o; o.type = type::NEGATIVE_INTEGER; o.via.i64 = d; return o; } }
 
-static inline object_class* msgpack_unpack_int64(zone** z, int64_t d)
-{ return (*z)->ni64(d); }
+static inline object msgpack_unpack_int64(zone** z, int64_t d)
+{ if(d >= 0) { object o; o.type = type::POSITIVE_INTEGER; o.via.u64 = d; return o; }
+		else { object o; o.type = type::NEGATIVE_INTEGER; o.via.i64 = d; return o; } }
 
-static inline object_class* msgpack_unpack_float(zone** z, float d)
-{ return (*z)->nfloat(d); }
+static inline object msgpack_unpack_float(zone** z, float d)
+{ object o; o.type = type::DOUBLE; o.via.dec = d; return o; }
 
-static inline object_class* msgpack_unpack_double(zone** z, double d)
-{ return (*z)->ndouble(d); }
+static inline object msgpack_unpack_double(zone** z, double d)
+{ object o; o.type = type::DOUBLE; o.via.dec = d; return o; }
 
-static inline object_class* msgpack_unpack_nil(zone** z)
-{ return (*z)->nnil(); }
+static inline object msgpack_unpack_nil(zone** z)
+{ object o; o.type = type::NIL; return o; }
 
-static inline object_class* msgpack_unpack_true(zone** z)
-{ return (*z)->ntrue(); }
+static inline object msgpack_unpack_true(zone** z)
+{ object o; o.type = type::BOOLEAN; o.via.boolean = true; return o; }
 
-static inline object_class* msgpack_unpack_false(zone** z)
-{ return (*z)->nfalse(); }
+static inline object msgpack_unpack_false(zone** z)
+{ object o; o.type = type::BOOLEAN; o.via.boolean = false; return o; }
 
-static inline object_class* msgpack_unpack_array(zone** z, unsigned int n)
-{ return (*z)->narray(n); }
+static inline object msgpack_unpack_array(zone** z, unsigned int n)
+{
+	object o;
+	o.type = type::ARRAY;
+	o.via.container.size = 0;
+	o.via.container.ptr = (*z)->malloc_container(n);
+	return o;
+}
 
-static inline void msgpack_unpack_array_item(zone** z, object_class* c, object_class* o)
-{ reinterpret_cast<object_array*>(c)->push_back(o); }
+static inline void msgpack_unpack_array_item(zone** z, object* c, object o)
+{ c->via.container.ptr[ c->via.container.size++ ] = o; }
 
-static inline object_class* msgpack_unpack_map(zone** z, unsigned int n)
-{ return (*z)->nmap(); }
+static inline object msgpack_unpack_map(zone** z, unsigned int n)
+{
+	object o;
+	o.type = type::MAP;
+	o.via.container.size = 0;
+	o.via.container.ptr = (*z)->malloc_container(n*2);
+	return o;
+}
 
-static inline void msgpack_unpack_map_item(zone** z, object_class* c, object_class* k, object_class* v)
-{ reinterpret_cast<object_map*>(c)->store(k, v); }
+static inline void msgpack_unpack_map_item(zone** z, object* c, object k, object v)
+{
+	c->via.container.ptr[ c->via.container.size   ] = k;
+	c->via.container.ptr[ c->via.container.size+1 ] = v;
+	++c->via.container.size;
+}
 
-static inline object_class* msgpack_unpack_raw(zone** z, const char* b, const char* p, unsigned int l)
-{ return (*z)->nraw_ref(p, l); }
+static inline object msgpack_unpack_raw(zone** z, const char* b, const char* p, unsigned int l)
+{ object o; o.type = type::RAW; o.via.ref.ptr = p; o.via.ref.size = l; return o; }
 
 
 #include "msgpack/unpack_template.h"
@@ -121,7 +141,7 @@ struct unpacker::context {
 		return msgpack_unpacker_execute(&m_ctx, data, len, off);
 	}
 
-	object_class* data()
+	object data()
 	{
 		return msgpack_unpacker_data(&m_ctx);
 	}
@@ -158,9 +178,8 @@ private:
 };
 
 
-unpacker::unpacker() :
-	m_zone(new zone()),
-	m_ctx(new context(m_zone)),
+unpacker::unpacker(zone& z) :
+	m_ctx(new context(&z)),
 	m_buffer(NULL),
 	m_used(0),
 	m_free(0),
@@ -170,9 +189,7 @@ unpacker::unpacker() :
 
 unpacker::~unpacker()
 {
-	free(m_buffer);
 	delete m_ctx;
-	delete m_zone;
 }
 
 
@@ -184,31 +201,15 @@ void unpacker::expand_buffer(size_t len)
 		else { next_size = UNPACKER_INITIAL_BUFFER_SIZE; }
 		while(next_size < len + m_used) { next_size *= 2; }
 
-		char* tmp = (char*)realloc(m_buffer, next_size);
-		if(!tmp) { throw std::bad_alloc(); }
-		m_buffer = tmp;
-		//char* tmp = (char*)malloc(next_size);
-		//if(!tmp) { throw std::bad_alloc(); }
-		//memcpy(tmp, m_buffer, m_used);
-		//free(m_buffer);
-
-		m_buffer = tmp;
+		m_buffer = m_ctx->user()->realloc(m_buffer, next_size);
 		m_free = next_size - m_used;
 
 	} else {
 		size_t next_size = UNPACKER_INITIAL_BUFFER_SIZE;
 		while(next_size < len + m_used - m_off) { next_size *= 2; }
 
-		char* tmp = (char*)malloc(next_size);
-		if(!tmp) { throw std::bad_alloc(); }
+		char* tmp = m_ctx->user()->malloc(next_size);
 		memcpy(tmp, m_buffer+m_off, m_used-m_off);
-
-		try {
-			m_zone->push_finalizer<void>(&zone::finalize_free, NULL, m_buffer);
-		} catch (...) {
-			free(tmp);
-			throw;
-		}
 
 		m_buffer = tmp;
 		m_used = m_used - m_off;
@@ -230,29 +231,15 @@ bool unpacker::execute()
 	}
 }
 
-zone* unpacker::release_zone()
-{
-	zone* nz = new zone();
-	zone* z = m_zone;
-	m_zone = nz;
-	m_ctx->user(m_zone);
-	return z;
-}
-
 object unpacker::data()
 {
-	return object(m_ctx->data());
+	return m_ctx->data();
 }
 
-void unpacker::reset()
+void unpacker::reset(zone& z)
 {
 	if(m_off != 0) { expand_buffer(0); }
-	if(!m_zone->empty()) {
-		delete m_zone;
-		m_zone = NULL;
-		m_zone = new zone();
-	}
-	m_ctx->reset();
+	m_ctx->reset(&z);
 }
 
 

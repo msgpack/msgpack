@@ -94,14 +94,14 @@ static inline VALUE template_callback_false(msgpack_unpack_context* x)
 static inline VALUE template_callback_array(msgpack_unpack_context* x, unsigned int n)
 { return rb_ary_new2(n); }
 
-static inline void template_callback_array_item(msgpack_unpack_context* x, VALUE c, VALUE o)
-{ rb_ary_push(c, o); }  // FIXME set value directry RARRAY_PTR(obj)[RARRAY_LEN(obj)++]
+static inline void template_callback_array_item(msgpack_unpack_context* x, VALUE* c, VALUE o)
+{ rb_ary_push(*c, o); }  // FIXME set value directry RARRAY_PTR(obj)[RARRAY_LEN(obj)++]
 
 static inline VALUE template_callback_map(msgpack_unpack_context* x, unsigned int n)
 { return rb_hash_new(); }
 
-static inline void template_callback_map_item(msgpack_unpack_context* x, VALUE c, VALUE k, VALUE v)
-{ rb_hash_aset(c, k, v); }
+static inline void template_callback_map_item(msgpack_unpack_context* x, VALUE* c, VALUE k, VALUE v)
+{ rb_hash_aset(*c, k, v); }
 
 static inline VALUE template_callback_raw(msgpack_unpack_context* x, const char* b, const char* p, unsigned int l)
 { return rb_str_new(p, l); }

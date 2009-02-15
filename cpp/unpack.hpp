@@ -40,7 +40,7 @@ struct unpack_error : public std::runtime_error {
 
 class unpacker {
 public:
-	unpacker();
+	unpacker(zone& z);
 	~unpacker();
 
 public:
@@ -60,13 +60,8 @@ public:
 	/*! 5.1. if execute() returns true, take out the parsed object */
 	object data();
 
-	/*! 5.2. the parsed object is valid until the zone is deleted */
-	// Note that once release_zone() from unpacker, you must delete it
-	// otherwise the memrory will leak.
-	zone* release_zone();
-
-	/*! 5.3. after release_zone(), re-initialize unpacker */
-	void reset();
+	/*! 5.2. re-initialize unpacker with next zone */
+	void reset(zone& z);
 
 public:
 	// These functions are usable when non-MessagePack message follows after
@@ -85,8 +80,6 @@ public:
 	void remove_nonparsed_buffer();
 
 private:
-	zone* m_zone;
-
 	struct context;
 	context* m_ctx;
 
@@ -94,9 +87,12 @@ private:
 	size_t m_used;
 	size_t m_free;
 	size_t m_off;
+
+private:
 	void expand_buffer(size_t len);
 
 private:
+	unpacker();
 	unpacker(const unpacker&);
 
 public:

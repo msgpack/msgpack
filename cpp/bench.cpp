@@ -6,10 +6,10 @@
 #include <stdexcept>
 #include <string>
 
-//static const unsigned int TASK_INT_NUM = 1<<24;
-//static const unsigned int TASK_STR_LEN = 1<<15;
-static const unsigned int TASK_INT_NUM = 1<<22;
-static const unsigned int TASK_STR_LEN = 1<<13;
+static const unsigned int TASK_INT_NUM = 1<<24;
+static const unsigned int TASK_STR_LEN = 1<<15;
+//static const unsigned int TASK_INT_NUM = 1<<22;
+//static const unsigned int TASK_STR_LEN = 1<<13;
 static const char* TASK_STR_PTR;
 
 
@@ -104,6 +104,7 @@ void bench_msgpack_int()
 	}
 	timer.show_stat(buf.size());
 
+
 	std::cout << "----" << std::endl;
 	std::cout << "unpack integer" << std::endl;
 
@@ -116,6 +117,7 @@ void bench_msgpack_int()
 	}
 	timer.show_stat(buf.size());
 
+	/*
 	std::cout << "----" << std::endl;
 	std::cout << "dynamic pack integer" << std::endl;
 
@@ -124,6 +126,7 @@ void bench_msgpack_int()
 	timer.reset();
 	msgpack::pack(buf, obj);
 	timer.show_stat(buf.size());
+	*/
 }
 
 void bench_msgpack_str()
@@ -144,6 +147,7 @@ void bench_msgpack_str()
 	}
 	timer.show_stat(buf.size());
 
+
 	std::cout << "----" << std::endl;
 	std::cout << "unpack string" << std::endl;
 
@@ -156,6 +160,8 @@ void bench_msgpack_str()
 	}
 	timer.show_stat(buf.size());
 
+
+	/*
 	std::cout << "----" << std::endl;
 	std::cout << "dynamic pack string" << std::endl;
 
@@ -164,6 +170,7 @@ void bench_msgpack_str()
 	timer.reset();
 	msgpack::pack(buf, obj);
 	timer.show_stat(buf.size());
+	*/
 }
 
 int main(void)

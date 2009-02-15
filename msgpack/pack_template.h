@@ -146,7 +146,6 @@ msgpack_pack_inline_func(uint32)(msgpack_pack_user x, uint32_t d)
 
 msgpack_pack_inline_func(uint64)(msgpack_pack_user x, uint64_t d)
 {
-	// FIXME optimization
 	const unsigned char buf[9] = {0xcf, STORE_BE64(d)};
 	msgpack_pack_append_buffer(x, buf, 9);
 }
@@ -177,7 +176,6 @@ msgpack_pack_inline_func(int32)(msgpack_pack_user x, int32_t d)
 
 msgpack_pack_inline_func(int64)(msgpack_pack_user x, int64_t d)
 {
-	// FIXME optimization
 	const unsigned char buf[9] = {0xd3, STORE_BE64(d)};
 	msgpack_pack_append_buffer(x, buf, 9);
 }

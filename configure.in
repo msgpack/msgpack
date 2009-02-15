@@ -1,4 +1,4 @@
-AC_INIT(msgpack/unpack/inline_impl.h)
+AC_INIT(msgpack/unpack_template.h)
 AM_INIT_AUTOMAKE(msgpack, 0.1.0)
 AC_CONFIG_HEADER(config.h)
 

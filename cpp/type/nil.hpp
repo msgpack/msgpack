@@ -1,5 +1,5 @@
 //
-// MessagePack for C++ memory pool
+// MessagePack for C++ static resolution routine
 //
 // Copyright (C) 2008 FURUHASHI Sadayuki
 //
@@ -15,42 +15,33 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 //
-#include "msgpack/zone.hpp"
+#ifndef MSGPACK_TYPE_NIL_HPP__
+#define MSGPACK_TYPE_NIL_HPP__
+
+#include "msgpack/object.hpp"
 
 namespace msgpack {
+namespace type {
 
 
-zone::zone() { }
+struct nil { };
 
-zone::~zone() { clear(); }
-
-void zone::clear()
+inline nil& operator<< (nil& v, object o)
 {
-	for(std::vector<char*>::iterator it(m_ptrs.begin()), it_end(m_ptrs.end());
-			it != it_end; ++it) {
-		free(*it);
-	}
-	m_ptrs.clear();
+	if(o.type != NIL) { throw type_error(); }
+	return v;
 }
 
-char* zone::realloc(char* ptr, size_t count)
+template <typename Stream>
+inline const nil& operator>> (const nil& v, packer<Stream>& o)
 {
-	if(ptr == NULL) {
-		return zone::malloc(count);
-	} else {
-		for(std::vector<char*>::reverse_iterator it(m_ptrs.rbegin()), it_end(m_ptrs.rend());
-				it != it_end; ++it) {
-			if(*it == ptr) {
-				char* tmp = (char*)::realloc(ptr, count);
-				if(!tmp) { throw std::bad_alloc(); }
-				*it = tmp;
-				return tmp;
-			}
-		}
-		throw std::bad_alloc();
-	}
+	o.pack_nil();
+	return v;
 }
 
 
+}  // namespace type
 }  // namespace msgpack
+
+#endif /* msgpack/type/nil.hpp */
 

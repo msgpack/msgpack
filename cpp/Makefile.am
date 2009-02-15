@@ -10,20 +10,27 @@ nobase_include_HEADERS = \
 		msgpack/pack.hpp \
 		msgpack/unpack.hpp \
 		msgpack/object.hpp \
-		msgpack/zone.hpp
+		msgpack/zone.hpp \
+		msgpack/type.hpp \
+		msgpack/type/array.hpp \
+		msgpack/type/boolean.hpp \
+		msgpack/type/integer.hpp \
+		msgpack/type/map.hpp \
+		msgpack/type/nil.hpp \
+		msgpack/type/tuple.hpp
 
 noinst_HEADERS = \
-		msgpack/zone.hpp.erb
+		msgpack/type/tuple.hpp.erb
 
 # FIXME
-object.lo: msgpack/zone.hpp
-unpack.lo: msgpack/zone.hpp
-zone.lo: msgpack/zone.hpp
+object.lo: msgpack/type/tuple.hpp
+unpack.lo: msgpack/type/tuple.hpp
+zone.lo: msgpack/type/tuple.hpp
 
-msgpack/zone.hpp: msgpack/zone.hpp.erb
+msgpack/type/tuple.hpp: msgpack/type/tuple.hpp.erb
 	erb $< > $@
 
-MOSTLYCLEANFILES = zone.hpp
+MOSTLYCLEANFILES = msgpack/type/tuple.hpp
 
 libmsgpack_la_LDFLAGS = -version-info 0:0:0
 

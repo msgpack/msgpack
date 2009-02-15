@@ -279,7 +279,7 @@ _push:
 	c = &stack[top-1];
 	switch(c->ct) {
 	case CT_ARRAY_ITEM:
-		msgpack_unpack_callback(array_item)(user, c->obj, obj);
+		msgpack_unpack_callback(array_item)(user, &c->obj, obj);
 		if(--c->count == 0) {
 			obj = c->obj;
 			--top;
@@ -292,7 +292,7 @@ _push:
 		c->ct = CT_MAP_VALUE;
 		goto _header_again;
 	case CT_MAP_VALUE:
-		msgpack_unpack_callback(map_item)(user, c->obj, c->map_key, obj);
+		msgpack_unpack_callback(map_item)(user, &c->obj, c->map_key, obj);
 		if(--c->count == 0) {
 			obj = c->obj;
 			--top;

@@ -89,14 +89,14 @@ static inline void* template_callback_false(msgpack_unpack_t* x)
 static inline void* template_callback_array(msgpack_unpack_t* x, unsigned int n)
 { return x->callback.unpack_array(x->data, n); }
 
-static inline void template_callback_array_item(msgpack_unpack_t* x, void* c, void* o)
-{ x->callback.unpack_array_item(x->data, c, o); }
+static inline void template_callback_array_item(msgpack_unpack_t* x, void** c, void* o)
+{ x->callback.unpack_array_item(x->data, *c, o); }
 
 static inline void* template_callback_map(msgpack_unpack_t* x, unsigned int n)
 { return x->callback.unpack_map(x->data, n); }
 
-static inline void template_callback_map_item(msgpack_unpack_t* x, void* c, void* k, void* v)
-{ x->callback.unpack_map_item(x->data, c, k, v); }
+static inline void template_callback_map_item(msgpack_unpack_t* x, void** c, void* k, void* v)
+{ x->callback.unpack_map_item(x->data, *c, k, v); }
 
 static inline void* template_callback_raw(msgpack_unpack_t* x, const char* b, const char* p, unsigned int l)
 { return x->callback.unpack_raw(x->data, b, p, l); }

@@ -1,5 +1,5 @@
 //
-// MessagePack for C++ memory pool
+// MessagePack for C++ static resolution routine
 //
 // Copyright (C) 2008 FURUHASHI Sadayuki
 //
@@ -15,42 +15,35 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 //
-#include "msgpack/zone.hpp"
+#ifndef MSGPACK_TYPE_BOOLEAN_HPP__
+#define MSGPACK_TYPE_BOOLEAN_HPP__
+
+#include "msgpack/object.hpp"
+#include <vector>
 
 namespace msgpack {
+namespace type {
 
 
-zone::zone() { }
-
-zone::~zone() { clear(); }
-
-void zone::clear()
+inline bool& operator<< (bool& v, object o)
 {
-	for(std::vector<char*>::iterator it(m_ptrs.begin()), it_end(m_ptrs.end());
-			it != it_end; ++it) {
-		free(*it);
-	}
-	m_ptrs.clear();
-}
-
-char* zone::realloc(char* ptr, size_t count)
-{
-	if(ptr == NULL) {
-		return zone::malloc(count);
-	} else {
-		for(std::vector<char*>::reverse_iterator it(m_ptrs.rbegin()), it_end(m_ptrs.rend());
-				it != it_end; ++it) {
-			if(*it == ptr) {
-				char* tmp = (char*)::realloc(ptr, count);
-				if(!tmp) { throw std::bad_alloc(); }
-				*it = tmp;
-				return tmp;
-			}
-		}
-		throw std::bad_alloc();
-	}
+	if(o.type != BOOLEAN) { throw type_error(); }
+	v = o.via.boolean;
+	return v;
 }
 
 
+template <typename Stream>
+inline const bool& operator>> (const bool& v, packer<Stream> o)
+{
+	if(v) { o.pack_true(); }
+	else { o.pack_false(); }
+	return v;
+}
+
+
+}  // namespace type
 }  // namespace msgpack
+
+#endif /* msgpack/type/bool.hpp */
 

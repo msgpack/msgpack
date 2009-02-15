@@ -15,42 +15,56 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 //
-#include "msgpack/zone.hpp"
+#ifndef MSGPACK_ZONE_HPP__
+#define MSGPACK_ZONE_HPP__
+
+#include "msgpack/object.hpp"
+#include <cstdlib>
+#include <vector>
 
 namespace msgpack {
 
 
-zone::zone() { }
+class zone {
+public:
+	zone();
+	~zone();
 
-zone::~zone() { clear(); }
+public:
+	char* malloc(size_t count);
+	char* realloc(char* ptr, size_t count);
+	object* malloc_container(size_t count);
 
-void zone::clear()
+	void clear();
+
+private:
+	std::vector<char*> m_ptrs;
+
+private:
+	zone(const zone&);
+};
+
+
+inline char* zone::malloc(size_t count)
 {
-	for(std::vector<char*>::iterator it(m_ptrs.begin()), it_end(m_ptrs.end());
-			it != it_end; ++it) {
-		free(*it);
+	char* ptr = (char*)::malloc(count);
+	if(!ptr) { throw std::bad_alloc(); }
+	try {
+		m_ptrs.push_back(ptr);
+	} catch (...) {
+		free(ptr);
+		throw;
 	}
-	m_ptrs.clear();
+	return ptr;
 }
 
-char* zone::realloc(char* ptr, size_t count)
+inline object* zone::malloc_container(size_t count)
 {
-	if(ptr == NULL) {
-		return zone::malloc(count);
-	} else {
-		for(std::vector<char*>::reverse_iterator it(m_ptrs.rbegin()), it_end(m_ptrs.rend());
-				it != it_end; ++it) {
-			if(*it == ptr) {
-				char* tmp = (char*)::realloc(ptr, count);
-				if(!tmp) { throw std::bad_alloc(); }
-				*it = tmp;
-				return tmp;
-			}
-		}
-		throw std::bad_alloc();
-	}
+	return (object*)zone::malloc(sizeof(object)*count);
 }
 
 
 }  // namespace msgpack
+
+#endif /* msgpack/zone.hpp */
 

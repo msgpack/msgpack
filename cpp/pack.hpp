@@ -18,8 +18,6 @@
 #ifndef MSGPACK_PACK_HPP__
 #define MSGPACK_PACK_HPP__
 
-#include "msgpack/object.hpp"
-#include "msgpack/zone.hpp"
 #include <arpa/inet.h>  // __BYTE_ORDER
 #include <stdexcept>
 
@@ -44,9 +42,9 @@ public:
 	void pack_int64(uint64_t d)				{ pack_int64_impl(m_stream, d); }
 	void pack_float(float d)				{ pack_float_impl(m_stream, d); }
 	void pack_double(double d)				{ pack_double_impl(m_stream, d); }
-	void pack_nil()							{ pack_nil(m_stream); }
-	void pack_true()						{ pack_true(m_stream); }
-	void pack_false()						{ pack_false(m_stream); }
+	void pack_nil()							{ pack_nil_impl(m_stream); }
+	void pack_true()						{ pack_true_impl(m_stream); }
+	void pack_false()						{ pack_false_impl(m_stream); }
 	void pack_array(unsigned int n)			{ pack_array_impl(m_stream, n); }
 	void pack_map(unsigned int n)			{ pack_map_impl(m_stream, n); }
 	void pack_raw(const char* b, size_t l)	{ pack_raw_impl(m_stream, (const void*)b, l); }
@@ -92,6 +90,7 @@ template <typename Stream>
 packer<Stream>::packer(Stream& s) : m_stream(s) { }
 
 
+/*
 class dynamic_stream {
 public:
 	template <typename Stream>
@@ -212,6 +211,7 @@ inline void pack(Stream& s, object o)
 	dynamic_packer pk(s);
 	o.pack(pk);
 }
+*/
 
 
 }  // namespace msgpack
