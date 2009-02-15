@@ -48,96 +48,6 @@ typedef std::map<object, object> map;
 typedef std::vector<object> array;
 
 
-template <typename T, typename X, bool TSigned, bool XSigned>
-struct numeric_overflow_signed_impl;
-
-template <typename T, typename X>
-struct numeric_overflow_signed_impl<T, X, true, true> {
-	static int test(X x) {
-		if(		( std::numeric_limits<T>::is_integer &&  std::numeric_limits<X>::is_integer) ||
-				(!std::numeric_limits<T>::is_integer && !std::numeric_limits<X>::is_integer) ) {
-			if( sizeof(T) < sizeof(X) ) {
-				if( static_cast<X>( std::numeric_limits<T>::max()) < x ) { return 1; }
-				if( static_cast<X>(-std::numeric_limits<T>::max()) > x ) { return -1; }
-			}
-		} else if(std::numeric_limits<T>::is_integer) {
-			if( static_cast<X>( std::numeric_limits<T>::max()) < x) { return 1; }
-			if( static_cast<X>(-std::numeric_limits<T>::max()) > x) { return -1; }
-		}
-		return 0;
-	}
-};
-
-template <typename T, typename X>
-struct numeric_overflow_signed_impl<T, X, true, false> {
-	static int test(X x) {
-		if(		( std::numeric_limits<T>::is_integer &&  std::numeric_limits<X>::is_integer) ||
-				(!std::numeric_limits<T>::is_integer && !std::numeric_limits<X>::is_integer) ) {
-			if( sizeof(T) <= sizeof(X) ) {
-				if( static_cast<X>(std::numeric_limits<T>::max()) < x ) { return 1; }
-			}
-		} else if(std::numeric_limits<T>::is_integer) {
-			if( static_cast<X>( std::numeric_limits<T>::max()) < x) { return 1; }
-		}
-		return 0;
-	}
-};
-
-template <typename T, typename X>
-struct numeric_overflow_signed_impl<T, X, false, true> {
-	static int test(X x) {
-		if( static_cast<X>(0) > x ) { return -1; }
-		if(		( std::numeric_limits<T>::is_integer &&  std::numeric_limits<X>::is_integer) ||
-				(!std::numeric_limits<T>::is_integer && !std::numeric_limits<X>::is_integer) ) {
-			if( sizeof(T) < sizeof(X) ) {
-				if( static_cast<X>(std::numeric_limits<T>::max()) < x ) { return 1; }
-			}
-		} else if(std::numeric_limits<T>::is_integer) {
-			if( static_cast<X>( std::numeric_limits<T>::max()) < x) { return 1; }
-		}
-		return 0;
-	}
-};
-
-template <typename T, typename X>
-struct numeric_overflow_signed_impl<T, X, false, false> {
-	static int test(X x) {
-		if(		( std::numeric_limits<T>::is_integer &&  std::numeric_limits<X>::is_integer) ||
-				(!std::numeric_limits<T>::is_integer && !std::numeric_limits<X>::is_integer) ) {
-			if( sizeof(T) < sizeof(X) ) {
-				if( static_cast<X>(std::numeric_limits<T>::max()) < x ) { return 1; }
-			}
-		} else if(std::numeric_limits<T>::is_integer) {
-			if( static_cast<X>(std::numeric_limits<T>::max()) < x ) { return 1; }
-		}
-		return 0;
-	}
-};
-
-template <typename T, typename X>
-struct numeric_overflow {
-	static int test(X x) {
-		return numeric_overflow_signed_impl<T, X, std::numeric_limits<T>::is_signed, std::numeric_limits<X>::is_signed>::test(x);
-	}
-	static void check(X x) {
-		int r = test(x);
-		if(r ==  1) { throw positive_overflow_error(); }
-		if(r == -1) { throw negative_overflow_error(); }
-	}
-};
-
-
-template <typename T, typename X>
-struct numeric_underflow {
-	static bool test(X x) {
-		return static_cast<X>(static_cast<T>(x)) != x;
-	}
-	static void check(X x) {
-		if(test(x)) { throw underflow_error(); }
-	}
-};
-
-
 struct object_class {
 	virtual ~object_class() {}
 	virtual     bool   isnil() const { return false; }
@@ -181,11 +91,6 @@ struct object_class {
 	operator const   map&() const { return   xmap(); }
 	virtual const object_class* inspect(std::ostream& s) const
 		{ s << '<' << typeid(*this).name() << '>'; return this; }
-protected:
-	template <typename T, typename X>
-	static void check_overflow(X x) { numeric_overflow<T, X>::check(x); }
-	template <typename T, typename X>
-	static void check_underflow(X x) { numeric_underflow<T, X>::check(x); }
 };
 
 inline std::ostream& operator<< (std::ostream& s, const object_class* o)
@@ -253,500 +158,125 @@ inline std::ostream& operator<< (std::ostream& s, const object& o)
 
 
 struct object_nil : object_class {
-	bool isnil() const { return true; }
-	bool operator== (const object_class* x) const { return typeid(*this) == typeid(*x); }
-	const object_class* inspect(std::ostream& s) const
-		{ s << "nil"; return this; }
+	bool isnil() const;
+	bool operator== (const object_class* x) const;
+	const object_class* inspect(std::ostream& s) const;
 };
 
 struct object_true : object_class {
-	bool xbool() const { return true; }
-	bool operator== (const object_class* x) const { return typeid(*this) == typeid(*x); }
-	const object_class* inspect(std::ostream& s) const
-		{ s << "true"; return this; }
+	bool xbool() const;
+	bool operator== (const object_class* x) const;
+	const object_class* inspect(std::ostream& s) const;
 };
 
 struct object_false : object_class {
-	bool xbool() const { return false; }
-	bool operator== (const object_class* x) const { return typeid(*this) == typeid(*x); }
-	const object_class* inspect(std::ostream& s) const
-		{ s << "false"; return this; }
+	bool xbool() const;
+	bool operator== (const object_class* x) const;
+	const object_class* inspect(std::ostream& s) const;
 };
 
-struct object_u8 : object_class {
-	explicit object_u8(uint8_t v) : val(v) {}
-	 uint8_t  xu8() const { return val; }
-	uint16_t xu16() const { return static_cast<uint16_t>(val); }
-	uint32_t xu32() const { return static_cast<uint32_t>(val); }
-	uint64_t xu64() const { return static_cast<uint64_t>(val); }
-	  int8_t  xi8() const { check_overflow<int8_t>(val);
-							return static_cast<int8_t>(val);  }
-	 int16_t xi16() const { return static_cast<int16_t>(val); }
-	 int32_t xi32() const { return static_cast<int32_t>(val); }
-	 int64_t xi64() const { return static_cast<int64_t>(val); }
-	 float  xfloat() const { return static_cast<float>(val); }
-	double xdouble() const { return static_cast<double>(val); }
-	bool operator== (const object_class* x) const { try { return val == x->xu8(); }
-										catch (type_error&) { return false; } }
-	bool operator<  (const object_class* x) const { try { return val < x->xu8(); }
-										catch (positive_overflow_error&) { return true; }
-										catch (overflow_error&) { return false; } }
-	bool operator>  (const object_class* x) const { try { return val > x->xu8(); }
-										catch (negative_overflow_error&) { return true; }
-										catch (overflow_error&) { return false; } }
-	const object_class* inspect(std::ostream& s) const
-		{ s << (uint16_t)val; return this; }
-private:
-	uint8_t val;
+#define INTEGER_CLASS(TYPE, NAME) \
+struct object_##NAME : object_class {						\
+	explicit object_##NAME(TYPE v) : val(v) {}				\
+	uint8_t  xu8    () const;								\
+	uint16_t xu16   () const;								\
+	uint32_t xu32   () const;								\
+	uint64_t xu64   () const;								\
+	int8_t   xi8    () const;								\
+	int16_t  xi16   () const;								\
+	int32_t  xi32   () const;								\
+	int64_t  xi64   () const;								\
+	float    xfloat () const;								\
+	double   xdouble() const;								\
+	bool operator== (const object_class* x) const;			\
+	bool operator<  (const object_class* x) const;			\
+	bool operator>  (const object_class* x) const;			\
+	const object_class* inspect(std::ostream& s) const;		\
+private:													\
+	TYPE val;												\
 };
 
-struct object_u16 : object_class {
-	explicit object_u16(uint16_t v) : val(v) {}
-	 uint8_t  xu8() const { check_overflow<uint8_t>(val);
-							return static_cast<uint8_t>(val); }
-	uint16_t xu16() const { return val; }
-	uint32_t xu32() const { return static_cast<uint32_t>(val); }
-	uint64_t xu64() const { return static_cast<uint64_t>(val); }
-	  int8_t  xi8() const { check_overflow<int8_t>(val);
-							return static_cast<int8_t>(val);  }
-	 int16_t xi16() const { check_overflow<int16_t>(val);
-							return static_cast<int16_t>(val); }
-	 int32_t xi32() const { return static_cast<int32_t>(val); }
-	 int64_t xi64() const { return static_cast<int64_t>(val); }
-	 float  xfloat() const { return static_cast<float>(val); }
-	double xdouble() const { return static_cast<double>(val); }
-	bool operator== (const object_class* x) const { try { return val == x->xu16(); }
-										catch (type_error&) { return false; } }
-	bool operator<  (const object_class* x) const { try { return val < x->xu16(); }
-										catch (positive_overflow_error&) { return true; }
-										catch (type_error&) { return false; } }
-	bool operator>  (const object_class* x) const { try { return val > x->xu16(); }
-										catch (negative_overflow_error&) { return true; }
-										catch (type_error&) { return false; } }
-	const object_class* inspect(std::ostream& s) const
-		{ s << val; return this; }
-private:
-	uint16_t val;
+INTEGER_CLASS(uint8_t,  u8)
+INTEGER_CLASS(uint16_t, u16)
+INTEGER_CLASS(uint32_t, u32)
+INTEGER_CLASS(uint64_t, u64)
+INTEGER_CLASS(int8_t,  i8)
+INTEGER_CLASS(int16_t, i16)
+INTEGER_CLASS(int32_t, i32)
+INTEGER_CLASS(int64_t, i64)
+
+#undef INTEGER_CLASS(TYPE, NAME)
+
+
+#define FLOAT_CLASS(TYPE, NAME) \
+struct object_##NAME : object_class {							\
+	object_##NAME(TYPE v) : val(v) {}							\
+	uint8_t  xu8    () const;									\
+	uint16_t xu16   () const;									\
+	uint32_t xu32   () const;									\
+	uint64_t xu64   () const;									\
+	int8_t   xi8    () const;									\
+	int16_t  xi16   () const;									\
+	int32_t  xi32   () const;									\
+	int64_t  xi64   () const;									\
+	float    xfloat () const;									\
+	double   xdouble() const;									\
+	bool operator== (const object_class* x) const;				\
+	bool operator<  (const object_class* x) const;				\
+	bool operator>  (const object_class* x) const;				\
+	const object_class* inspect(std::ostream& s) const;			\
+private:														\
+	TYPE val;													\
 };
 
-struct object_u32 : object_class {
-	explicit object_u32(uint32_t v) : val(v) {}
-	 uint8_t  xu8() const { check_overflow<uint8_t>(val);
-							return static_cast<uint8_t>(val);  }
-	uint16_t xu16() const { check_overflow<uint16_t>(val);
-							return static_cast<uint16_t>(val); }
-	uint32_t xu32() const { return val; }
-	uint64_t xu64() const { return static_cast<uint64_t>(val); }
-	  int8_t  xi8() const { check_overflow<int8_t>(val);
-							return static_cast<int8_t>(val);  }
-	 int16_t xi16() const { check_overflow<int16_t>(val);
-							return static_cast<int16_t>(val); }
-	 int32_t xi32() const { check_overflow<int32_t>(val);
-							return static_cast<int32_t>(val); }
-	 int64_t xi64() const { return static_cast<int64_t>(val); }
-	 float  xfloat() const { check_underflow<float>(val);
-							return static_cast<float>(val); }
-	double xdouble() const { return static_cast<double>(val); }
-	bool operator== (const object_class* x) const { try { return val == x->xu32(); }
-										catch (type_error&) { return false; } }
-	bool operator<  (const object_class* x) const { try { return val < x->xu32(); }
-										catch (positive_overflow_error&) { return true; }
-										catch (overflow_error&) { return false; } }
-	bool operator>  (const object_class* x) const { try { return val > x->xu32(); }
-										catch (negative_overflow_error&) { return true; }
-										catch (overflow_error&) { return false; } }
-	const object_class* inspect(std::ostream& s) const
-		{ s << val; return this; }
-private:
-	uint32_t val;
+FLOAT_CLASS(float, float)
+FLOAT_CLASS(double, double)
+
+#undef FLOAT_CLASS(TYPE, NAME)
+
+
+#define RAW_CLASS(NAME, TYPE, EXTRA) \
+struct object_##NAME : object_class {									\
+	explicit object_##NAME(TYPE p, uint32_t l) : ptr(p), len(l) {}		\
+	EXTRA																\
+	bool operator== (const object_class* x) const;						\
+	bool operator<  (const object_class* x) const;						\
+	bool operator>  (const object_class* x) const;						\
+	const object_class* inspect(std::ostream& s) const;					\
+private:																\
+	TYPE ptr;															\
+	uint32_t len;														\
 };
 
-struct object_u64 : object_class {
-	explicit object_u64(uint64_t v) : val(v) {}
-	 uint8_t  xu8() const { check_overflow<uint8_t>(val);
-							return static_cast<uint8_t>(val);  }
-	uint16_t xu16() const { check_overflow<uint16_t>(val);
-							return static_cast<uint16_t>(val); }
-	uint32_t xu32() const { check_overflow<uint32_t>(val);
-							return static_cast<uint32_t>(val); }
-	uint64_t xu64() const { return val; }
-	  int8_t  xi8() const { check_overflow<int8_t>(val);
-							return static_cast<int8_t>(val);  }
-	 int16_t xi16() const { check_overflow<int16_t>(val);
-							return static_cast<int16_t>(val); }
-	 int32_t xi32() const { check_overflow<int32_t>(val);
-							return static_cast<int32_t>(val); }
-	 int64_t xi64() const { check_overflow<int64_t>(val);
-							return static_cast<int64_t>(val); }
-	 float  xfloat() const { check_underflow<float>(val);
-							return static_cast<float>(val); }
-	double xdouble() const { check_underflow<double>(val);
-							 return static_cast<double>(val); }
-	bool operator== (const object_class* x) const { try { return val == x->xu64(); }
-										catch (type_error&) { return false; } }
-	bool operator<  (const object_class* x) const { try { return val < x->xu64(); }
-										catch (positive_overflow_error&) { return true; }
-										catch (overflow_error&) { return false; } }
-	bool operator>  (const object_class* x) const { try { return val > x->xu64(); }
-										catch (negative_overflow_error&) { return true; }
-										catch (overflow_error&) { return false; } }
-	const object_class* inspect(std::ostream& s) const
-		{ s << val; return this; }
-private:
-	uint64_t val;
-};
+RAW_CLASS(raw, void*, raw xraw(); const_raw xraw() const; )
+RAW_CLASS(const_raw, const void*, const_raw xraw() const; )
 
-struct object_i8 : object_class {
-	explicit object_i8(int8_t v) : val(v) {}
-	 uint8_t  xu8() const { check_overflow<uint8_t>(val);
-							return static_cast<uint8_t>(val);  }
-	uint16_t xu16() const { check_overflow<uint16_t>(val);
-							return static_cast<uint16_t>(val); }
-	uint32_t xu32() const { check_overflow<uint32_t>(val);
-							return static_cast<uint32_t>(val); }
-	uint64_t xu64() const { check_overflow<uint64_t>(val);
-							return static_cast<uint64_t>(val); }
-	  int8_t  xi8() const { return val; }
-	 int16_t xi16() const { return static_cast<int16_t>(val); }
-	 int32_t xi32() const { return static_cast<int32_t>(val); }
-	 int64_t xi64() const { return static_cast<int64_t>(val); }
-	 float  xfloat() const { return static_cast<float>(val); }
-	double xdouble() const { return static_cast<double>(val); }
-	bool operator== (const object_class* x) const { try { return val == x->xi8(); }
-										catch (type_error&) { return false; } }
-	bool operator<  (const object_class* x) const { try { return val < x->xi8(); }
-										catch (positive_overflow_error&) { return true; }
-										catch (overflow_error&) { return false; } }
-	bool operator>  (const object_class* x) const { try { return val > x->xi8(); }
-										catch (negative_overflow_error&) { return true; }
-										catch (overflow_error&) { return false; } }
-	const object_class* inspect(std::ostream& s) const
-		{ s << (int16_t)val; return this; }
-private:
-	int8_t val;
-};
+#undef RAW_CLASS(NAME, TYPE, EXTRA)
 
-struct object_i16 : object_class {
-	explicit object_i16(int16_t v) : val(v) {}
-	 uint8_t  xu8() const { check_overflow<uint8_t>(val);
-							return static_cast<uint8_t>(val);  }
-	uint16_t xu16() const { check_overflow<uint16_t>(val);
-							return static_cast<uint16_t>(val); }
-	uint32_t xu32() const { check_overflow<uint32_t>(val);
-							return static_cast<uint32_t>(val); }
-	uint64_t xu64() const { check_overflow<uint64_t>(val);
-							return static_cast<uint64_t>(val); }
-	  int8_t  xi8() const { check_overflow<int8_t>(val);
-							return static_cast<int8_t>(val);  }
-	 int16_t xi16() const { return val; }
-	 int32_t xi32() const { return static_cast<int32_t>(val); }
-	 int64_t xi64() const { return static_cast<int64_t>(val); }
-	 float  xfloat() const { return static_cast<float>(val); }
-	double xdouble() const { return static_cast<double>(val); }
-	bool operator== (const object_class* x) const { try { return val == x->xi16(); }
-										catch (type_error&) { return false; } }
-	bool operator<  (const object_class* x) const { try { return val < x->xi16(); }
-										catch (positive_overflow_error&) { return true; }
-										catch (type_error&) { return false; } }
-	bool operator>  (const object_class* x) const { try { return val > x->xi16(); }
-										catch (negative_overflow_error&) { return true; }
-										catch (type_error&) { return false; } }
-	const object_class* inspect(std::ostream& s) const
-		{ s << val; return this; }
-private:
-	int16_t val;
-};
-
-struct object_i32 : object_class {
-	explicit object_i32(int32_t v) : val(v) {}
-	 uint8_t  xu8() const { check_overflow<uint8_t>(val);
-							return static_cast<uint8_t>(val);  }
-	uint16_t xu16() const { check_overflow<uint16_t>(val);
-							return static_cast<uint16_t>(val); }
-	uint32_t xu32() const { check_overflow<uint32_t>(val);
-							return static_cast<uint32_t>(val); }
-	uint64_t xu64() const { check_overflow<uint64_t>(val);
-							return static_cast<uint64_t>(val); }
-	  int8_t  xi8() const { check_overflow<int8_t>(val);
-							return static_cast<int8_t>(val);  }
-	 int16_t xi16() const { check_overflow<int16_t>(val);
-							return static_cast<int16_t>(val); }
-	 int32_t xi32() const { return val; }
-	 int64_t xi64() const { return static_cast<int64_t>(val); }
-	 float  xfloat() const { check_underflow<float>(val);
-							return static_cast<float>(val); }
-	double xdouble() const { return static_cast<double>(val); }
-	bool operator== (const object_class* x) const { try { return val == x->xi32(); }
-										catch (type_error&) { return false; } }
-	bool operator<  (const object_class* x) const { try { return val < x->xi32(); }
-										catch (positive_overflow_error&) { return true; }
-										catch (overflow_error&) { return false; } }
-	bool operator>  (const object_class* x) const { try { return val > x->xi32(); }
-										catch (negative_overflow_error&) { return true; }
-										catch (overflow_error&) { return false; } }
-	const object_class* inspect(std::ostream& s) const
-		{ s << val; return this; }
-private:
-	int32_t val;
-};
-
-struct object_i64 : object_class {
-	explicit object_i64(int64_t v) : val(v) {}
-	 uint8_t  xu8() const { check_overflow<uint8_t>(val);
-							return static_cast<uint8_t>(val);  }
-	uint16_t xu16() const { check_overflow<uint16_t>(val);
-							return static_cast<uint16_t>(val); }
-	uint32_t xu32() const { check_overflow<uint32_t>(val);
-							return static_cast<uint32_t>(val); }
-	uint64_t xu64() const { check_overflow<uint64_t>(val);
-							return static_cast<uint64_t>(val); }
-	  int8_t  xi8() const { check_overflow<int8_t>(val);
-							return static_cast<int8_t>(val);  }
-	 int16_t xi16() const { check_overflow<int16_t>(val);
-							return static_cast<int16_t>(val); }
-	 int32_t xi32() const { check_overflow<int32_t>(val);
-							return static_cast<int32_t>(val); }
-	 int64_t xi64() const { return val; }
-	 float  xfloat() const { check_underflow<float>(val);
-							return static_cast<float>(val); }
-	double xdouble() const { check_underflow<double>(val);
-							 return static_cast<double>(val); }
-	bool operator== (const object_class* x) const { try { return val == x->xi64(); }
-										catch (type_error&) { return false; } }
-	bool operator<  (const object_class* x) const { try { return val < x->xi64(); }
-										catch (positive_overflow_error&) { return true; }
-										catch (overflow_error&) { return false; } }
-	bool operator>  (const object_class* x) const { try { return val > x->xi64(); }
-										catch (negative_overflow_error&) { return true; }
-										catch (overflow_error&) { return false; } }
-	const object_class* inspect(std::ostream& s) const
-		{ s << val; return this; }
-private:
-	int64_t val;
-};
-
-
-struct object_float : object_class {
-	object_float(float v) : val(v) {}
-	 uint8_t  xu8() const { check_overflow<uint8_t>(val);
-							return static_cast<uint8_t>(val); }
-	uint16_t xu16() const { check_overflow<uint8_t>(val);
-							return static_cast<uint8_t>(val); }
-	uint32_t xu32() const { check_overflow<uint8_t>(val);
-							return static_cast<uint8_t>(val); }
-	uint64_t xu64() const { check_overflow<uint8_t>(val);
-							return static_cast<uint8_t>(val); }
-	  int8_t  xi8() const { check_overflow<uint8_t>(val);
-							return static_cast<uint8_t>(val); }
-	 int16_t xi16() const { check_overflow<uint8_t>(val);
-							return static_cast<uint8_t>(val); }
-	 int32_t xi32() const { check_overflow<uint8_t>(val);
-							return static_cast<uint8_t>(val); }
-	 int64_t xi64() const { check_overflow<uint8_t>(val);
-							return static_cast<uint8_t>(val); }
-	 float  xfloat() const { return val; }
-	double xdouble() const { return static_cast<double>(val); }
-	bool operator== (const object_class* x) const { try { return val == x->xfloat(); }
-										catch (type_error&) { return false; } }
-	bool operator<  (const object_class* x) const { try { return static_cast<double>(val) < x->xdouble(); }
-										catch (positive_overflow_error&) { return true; }
-										catch (overflow_error&) { return false; }
-										catch (underflow_error&) {
-											if(val < 0.0) {
-												if(numeric_overflow<int64_t, float>::test(val) == -1) { return true; }
-												try { return static_cast<int64_t>(val) < x->xi64(); }
-												catch (type_error&) { return true; }
-											} else {
-												if(numeric_overflow<uint64_t, float>::test(val) == 1) { return false; }
-												try { return static_cast<uint64_t>(val) < x->xu64(); }
-												catch (type_error&) { return false; }
-											}
-										} }
-	bool operator>  (const object_class* x) const { try { return static_cast<double>(val) > x->xdouble(); }
-										catch (negative_overflow_error&) { return true; }
-										catch (overflow_error&) { return false; }
-										catch (underflow_error&) {
-											if(val < 0.0) {
-												if(numeric_overflow<int64_t, float>::test(val) == -1) { return false; }
-												try { return static_cast<int64_t>(val) > x->xi64(); }
-												catch (type_error&) { return false; }
-											} else {
-												if(numeric_overflow<uint64_t, float>::test(val) == 1) { return true; }
-												try { return static_cast<uint64_t>(val) > x->xu64(); }
-												catch (type_error&) { return true; }
-											}
-										} }
-	const object_class* inspect(std::ostream& s) const
-		{ s << val; return this; }
-private:
-	float val;
-};
-
-
-struct object_double : object_class {
-	object_double(double v) : val(v) {}
-	 uint8_t  xu8() const { check_overflow<uint8_t>(val);
-							return static_cast<uint8_t>(val); }
-	uint16_t xu16() const { check_overflow<uint8_t>(val);
-							return static_cast<uint8_t>(val); }
-	uint32_t xu32() const { check_overflow<uint8_t>(val);
-							return static_cast<uint8_t>(val); }
-	uint64_t xu64() const { check_overflow<uint8_t>(val);
-							return static_cast<uint8_t>(val); }
-	  int8_t  xi8() const { check_overflow<uint8_t>(val);
-							return static_cast<uint8_t>(val); }
-	 int16_t xi16() const { check_overflow<uint8_t>(val);
-							return static_cast<uint8_t>(val); }
-	 int32_t xi32() const { check_overflow<uint8_t>(val);
-							return static_cast<uint8_t>(val); }
-	 int64_t xi64() const { check_overflow<uint8_t>(val);
-							return static_cast<uint8_t>(val); }
-	 float  xfloat() const { check_overflow<float>(val);
-							check_underflow<float>(val);
-							return static_cast<float>(val); }
-	double xdouble() const { return val; }
-	bool operator== (const object_class* x) const { try { return val == x->xdouble(); }
-										catch (type_error&) { return false; } }
-	bool operator<  (const object_class* x) const { try { return val < x->xdouble(); }
-										catch (positive_overflow_error&) { return true; }
-										catch (overflow_error&) { return false; }
-										catch (underflow_error&) {
-											if(val < 0.0) {
-												if(numeric_overflow<int64_t, double>::test(val) == -1) { return true; }
-												try { return static_cast<int64_t>(val) < x->xi64(); }
-												catch (type_error&) { return true; }
-											} else {
-												if(numeric_overflow<uint64_t, double>::test(val) == 1) { return false; }
-												try { return static_cast<uint64_t>(val) < x->xu64(); }
-												catch (type_error&) { return false; }
-											}
-										} }
-	bool operator>  (const object_class* x) const { try { return val > x->xdouble(); }
-										catch (negative_overflow_error&) { return true; }
-										catch (overflow_error&) { return false; }
-										catch (underflow_error&) {
-											if(val < 0.0) {
-												if(numeric_overflow<int64_t, double>::test(val) == -1) { return false; }
-												try { return static_cast<int64_t>(val) > x->xi64(); }
-												catch (type_error&) { return false; }
-											} else {
-												if(numeric_overflow<uint64_t, double>::test(val) == 1) { return true; }
-												try { return static_cast<uint64_t>(val) > x->xu64(); }
-												catch (type_error&) { return true; }
-											}
-										} }
-	const object_class* inspect(std::ostream& s) const
-		{ s << val; return this; }
-private:
-	double val;
-};
-
-
-struct object_raw : object_class {
-	explicit object_raw(void* p, uint32_t l) : ptr(p), len(l) {}
-	raw xraw() { return raw(ptr, len); }
-	const_raw xraw() const { return const_raw(ptr, len); }
-	bool operator== (const object_class* x) const { try { const_raw xr(x->xraw());
-		return len == xr.len && (ptr == xr.ptr || memcmp(ptr, xr.ptr, len) == 0); }
-		catch (type_error&) { return false; } }
-	bool operator<  (const object_class* x) const { const_raw xr(x->xraw());
-		if(len == xr.len) { return ptr != xr.ptr && memcmp(ptr, xr.ptr, len) < 0; }
-		else { return len < xr.len; } }
-	bool operator>  (const object_class* x) const { const_raw xr(x->xraw());
-		if(len == xr.len) { return ptr != xr.ptr && memcmp(ptr, xr.ptr, len) > 0; }
-		else { return len > xr.len; } }
-	const object_class* inspect(std::ostream& s) const
-		{ (s << '"').write((const char*)ptr, len) << '"'; return this; }  // FIXME escape
-private:
-	void* ptr;
-	uint32_t len;
-};
-
-struct object_const_raw : object_class {
-	explicit object_const_raw(const void* p, uint32_t l) : ptr(p), len(l) {}
-	const_raw xraw() const { return const_raw(ptr, len); }
-	bool operator== (const object_class* x) const { try { const_raw xr(x->xraw());
-		return len == xr.len && (ptr == xr.ptr || memcmp(ptr, xr.ptr, len) == 0); }
-		catch (type_error&) { return false; } }
-	bool operator<  (const object_class* x) const { const_raw xr(x->xraw());
-		if(len == xr.len) { return ptr != xr.ptr && memcmp(ptr, xr.ptr, len) < 0; }
-		else { return len < xr.len; } }
-	bool operator>  (const object_class* x) const { const_raw xr(x->xraw());
-		if(len == xr.len) { return ptr != xr.ptr && memcmp(ptr, xr.ptr, len) > 0; }
-		else { return len > xr.len; } }
-	const object_class* inspect(std::ostream& s) const
-		{ (s << '"').write((const char*)ptr, len) << '"'; return this; }  // FIXME escape
-private:
-	const void* ptr;
-	uint32_t len;
-};
 
 struct object_array : object_class, object_container_mixin {
 	explicit object_array() {}
 	explicit object_array(uint32_t n) { val.reserve(n); }
-	array& xarray() { return val; }
-	const array& xarray() const { return val; }
-	bool operator== (const object_class* x) const { try {
-		const std::vector<object>& xa(x->xarray());
-		if(val.size() != xa.size()) { return false; }
-		for(std::vector<object>::const_iterator iv(val.begin()), iv_end(val.end()), ix(xa.begin());
-				iv != iv_end;
-				++iv, ++ix) {
-			if(*iv != *ix) { return false; }
-		}
-		return true;
-		} catch (type_error&) { return false; } }
-	// FIXME operator< operator>
-	const object_class* inspect(std::ostream& s) const {
-		s << '[';
-		if(!val.empty()) {
-			std::vector<object>::const_iterator it(val.begin());
-			s << *it;
-			++it;
-			for(std::vector<object>::const_iterator it_end(val.end());
-					it != it_end;
-					++it) {
-				s << ", " << *it;
-			}
-		}
-		s << ']';
-		return this; }
+	array& xarray();
+	const array& xarray() const;
+	bool operator== (const object_class* x) const;
+	// FIXME operator<, operator>
+	const object_class* inspect(std::ostream& s) const;
 public:
 	void push_back(object o) { val.push_back(o); }
 private:
 	std::vector<object> val;
 };
 
-// FIXME hash, operator==: nil, true, false, containerを入れられない
+
+// FIXME hash, operator==: nil, true, false, array, mapを入れられない
 struct object_map : object_class, object_container_mixin {
 	explicit object_map() {}
-	map& xmap() { return val; }
-	const map& xmap() const { return val; }
-	bool operator== (const object_class* x) const { try {
-		const std::map<object, object>& xm(x->xmap());
-		if(val.size() != xm.size()) { return false; }
-		for(std::map<object, object>::const_iterator iv(val.begin()), iv_end(val.end()), ix(xm.begin());
-				iv != iv_end;
-				++iv, ++ix) {
-			if(iv->first != ix->first || iv->second != ix->first) { return false; }
-		}
-		return true;
-		} catch (type_error&) { return false; } }
-	// FIXME operator< operator>
-	const object_class* inspect(std::ostream& s) const {
-		s << '{';
-		if(!val.empty()) {
-			std::map<object, object>::const_iterator it(val.begin());
-			s << it->first << "=>" << it->second;
-			++it;
-			for(std::map<object, object>::const_iterator it_end(val.end());
-					it != it_end;
-					++it) {
-				s << ", " << it->first << "=>" << it->second;
-			}
-		}
-		s << '}';
-		return this; }
+	map& xmap();
+	const map& xmap() const;
+	bool operator== (const object_class* x) const;
+	// FIXME operator<, operator>
+	const object_class* inspect(std::ostream& s) const;
 public:
 	void store(object k, object v) { val[k] = v; }
 private:
