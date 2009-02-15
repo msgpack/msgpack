@@ -2,13 +2,18 @@ AC_INIT(object.cpp)
 AM_INIT_AUTOMAKE(msgpack, 0.1.0)
 AC_CONFIG_HEADER(config.h)
 
+AC_SUBST(CXXFLAGS)
+if test "" = "$CXXFLAGS"; then
+	CXXFLAGS="-g -O4"
+fi
+
 AC_PROG_CXX
 AC_PROG_LIBTOOL
 AC_CHECK_PROG(ERB, erb, erb, [$PATH])
 
 AC_CHECK_LIB(stdc++, main)
 
-CXXFLAGS="-O4 $CXXFLAGS -Wall -I.."
+CXXFLAGS="-O4 -Wall $CXXFLAGS -I.."
 
 AC_OUTPUT([Makefile])
 

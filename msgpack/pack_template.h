@@ -72,17 +72,21 @@
 msgpack_pack_inline_func(int)(msgpack_pack_user x, int d)
 {
 	if(d < -32) {
-		if(d < -32768) { // signed 32
+		if(d < -32768) {
+			// signed 32
 			const unsigned char buf[5] = {0xd2, STORE_BE32(d)};
 			msgpack_pack_append_buffer(x, buf, 5);
-		} else if(d < -128) { // signed 16
+		} else if(d < -128) {
+			// signed 16
 			const unsigned char buf[3] = {0xd1, STORE_BE16(d)};
 			msgpack_pack_append_buffer(x, buf, 3);
-		} else { // signed 8
+		} else {
+			// signed 8
 			const unsigned char buf[2] = {0xd0, (uint8_t)d};
 			msgpack_pack_append_buffer(x, buf, 2);
 		}
-	} else if(d < 128) { // fixnum
+	} else if(d < 128) {
+		// fixnum
 		msgpack_pack_append_buffer(x, (uint8_t*)&d, 1);
 	} else {
 		if(d < 256) {
@@ -104,21 +108,25 @@ msgpack_pack_inline_func(int)(msgpack_pack_user x, int d)
 // wrapper
 msgpack_pack_inline_func(unsigned_int)(msgpack_pack_user x, unsigned int d)
 {
-	if(d < 128) {
-		// fixnum
-		msgpack_pack_append_buffer(x, (unsigned char*)&d, 1);
-	} else if(d < 256) {
-		// unsigned 8
-		const unsigned char buf[2] = {0xcc, (uint8_t)d};
-		msgpack_pack_append_buffer(x, buf, 2);
-	} else if(d < 65536) {
-		// unsigned 16
-		const unsigned char buf[3] = {0xcd, STORE_BE16(d)};
-		msgpack_pack_append_buffer(x, buf, 3);
+	if(d < 256) {
+		if(d < 128) {
+			// fixnum
+			msgpack_pack_append_buffer(x, (unsigned char*)&d, 1);
+		} else {
+			// unsigned 8
+			const unsigned char buf[2] = {0xcc, (uint8_t)d};
+			msgpack_pack_append_buffer(x, buf, 2);
+		}
 	} else {
-		// unsigned 32
-		const unsigned char buf[5] = {0xce, STORE_BE32(d)};
-		msgpack_pack_append_buffer(x, buf, 5);
+		if(d < 65536) {
+			// unsigned 16
+			const unsigned char buf[3] = {0xcd, STORE_BE16(d)};
+			msgpack_pack_append_buffer(x, buf, 3);
+		} else {
+			// unsigned 32
+			const unsigned char buf[5] = {0xce, STORE_BE32(d)};
+			msgpack_pack_append_buffer(x, buf, 5);
+		}
 	}
 }
 

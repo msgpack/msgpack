@@ -41,9 +41,16 @@ private:
 	std::vector<char*> m_ptrs;
 
 private:
+	char* realloc_real(char* ptr, size_t count);
+
+private:
 	zone(const zone&);
 };
 
+
+inline zone::zone() { }
+
+inline zone::~zone() { clear(); }
 
 inline char* zone::malloc(size_t count)
 {
@@ -56,6 +63,15 @@ inline char* zone::malloc(size_t count)
 		throw;
 	}
 	return ptr;
+}
+
+inline char* zone::realloc(char* ptr, size_t count)
+{
+	if(ptr == NULL) {
+		return zone::malloc(count);
+	} else {
+		return realloc_real(ptr, count);
+	}
 }
 
 inline object* zone::malloc_container(size_t count)

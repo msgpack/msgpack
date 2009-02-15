@@ -20,10 +20,6 @@
 namespace msgpack {
 
 
-zone::zone() { }
-
-zone::~zone() { clear(); }
-
 void zone::clear()
 {
 	for(std::vector<char*>::iterator it(m_ptrs.begin()), it_end(m_ptrs.end());
@@ -33,22 +29,18 @@ void zone::clear()
 	m_ptrs.clear();
 }
 
-char* zone::realloc(char* ptr, size_t count)
+char* zone::realloc_real(char* ptr, size_t count)
 {
-	if(ptr == NULL) {
-		return zone::malloc(count);
-	} else {
-		for(std::vector<char*>::reverse_iterator it(m_ptrs.rbegin()), it_end(m_ptrs.rend());
-				it != it_end; ++it) {
-			if(*it == ptr) {
-				char* tmp = (char*)::realloc(ptr, count);
-				if(!tmp) { throw std::bad_alloc(); }
-				*it = tmp;
-				return tmp;
-			}
+	for(std::vector<char*>::reverse_iterator it(m_ptrs.rbegin()), it_end(m_ptrs.rend());
+			it != it_end; ++it) {
+		if(*it == ptr) {
+			char* tmp = (char*)::realloc(ptr, count);
+			if(!tmp) { throw std::bad_alloc(); }
+			*it = tmp;
+			return tmp;
 		}
-		throw std::bad_alloc();
 	}
+	throw std::bad_alloc();
 }
 
 

@@ -2,10 +2,15 @@ AC_INIT(pack.c)
 AM_INIT_AUTOMAKE(msgpackc, 0.1.0)
 AC_CONFIG_HEADER(config.h)
 
+AC_SUBST(CFLAGS)
+if test "" = "$CFLAGS"; then
+	CFLAGS="-g -O4"
+fi
+
 AC_PROG_CC
 AC_PROG_LIBTOOL
 
-CFLAGS="-O4 $CFLAGS -Wall -I.."
+CFLAGS="-O4 -Wall $CFLAGS -I.."
 
 AC_OUTPUT([Makefile])
 

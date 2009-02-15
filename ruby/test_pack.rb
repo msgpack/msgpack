@@ -21,6 +21,8 @@ check 256
 check 65535
 check 65536
 check -1
+check -32
+check -33
 check -128
 check -129
 check -32768

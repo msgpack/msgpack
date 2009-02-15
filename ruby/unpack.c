@@ -176,13 +176,13 @@ static VALUE MessagePack_Unpacker_execute_impl(VALUE args)
 	int ret;
 
 	if(from >= dlen) {
-		rb_raise(eUnpackError, "Requested start is after data buffer end.");
+		rb_raise(eUnpackError, "offset is bigger than data buffer size.");
 	}
 
 	ret = msgpack_unpacker_execute(mp, dptr, (size_t)dlen, &from);
 
 	if(ret < 0) {
-		rb_raise(eUnpackError, "Parse error.");
+		rb_raise(eUnpackError, "parse error.");
 	} else if(ret > 0) {
 		mp->user.finished = 1;
 		return ULONG2NUM(from);
@@ -242,12 +242,12 @@ static VALUE MessagePack_unpack_impl(VALUE args)
 	ret = msgpack_unpacker_execute(mp, dptr, (size_t)dlen, &from);
 
 	if(ret < 0) {
-		rb_raise(eUnpackError, "Parse error.");
+		rb_raise(eUnpackError, "parse error.");
 	} else if(ret == 0) {
-		rb_raise(eUnpackError, "Insufficient bytes.");
+		rb_raise(eUnpackError, "insufficient bytes.");
 	} else {
 		if(from < dlen) {
-			rb_raise(eUnpackError, "Extra bytes.");
+			rb_raise(eUnpackError, "extra bytes.");
 		}
 		return msgpack_unpacker_data(mp);
 	}
