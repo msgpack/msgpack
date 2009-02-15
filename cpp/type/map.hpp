@@ -23,8 +23,9 @@
 #include <vector>
 
 namespace msgpack {
-namespace type {
 
+
+namespace type {
 
 template <typename K, typename V>
 class assoc_vector : public std::vector< std::pair<K, V> > {};
@@ -37,10 +38,13 @@ namespace detail {
 	};
 }
 
+}  //namespace type
+
+
 template <typename K, typename V>
-inline assoc_vector<K,V>& operator<< (assoc_vector<K,V>& v, object o)
+inline type::assoc_vector<K,V>& operator>> (object o, type::assoc_vector<K,V>& v)
 {
-	if(o.type != MAP) { throw type_error(); }
+	if(o.type != type::MAP) { throw type_error(); }
 	v.resize(o.via.container.size);
 	object* p(o.via.container.ptr);
 	object* const pend(o.via.container.ptr + o.via.container.size);
@@ -49,26 +53,27 @@ inline assoc_vector<K,V>& operator<< (assoc_vector<K,V>& v, object o)
 		convert(it->first,  *p); ++p;
 		convert(it->second, *p); ++p;
 	}
-	std::sort(v.begin(), v.end(), detail::pair_first_less<K,V>());
+	std::sort(v.begin(), v.end(), type::detail::pair_first_less<K,V>());
 	return v;
 }
 
 template <typename Stream, typename K, typename V>
-inline const assoc_vector<K,V>& operator>> (const assoc_vector<K,V>& v, packer<Stream>& o)
+inline packer<Stream>& operator<< (packer<Stream>& o, const type::assoc_vector<K,V>& v)
 {
 	o.pack_map(v.size());
-	for(typename assoc_vector<K,V>::const_iterator it(v.begin()), it_end(v.end());
+	for(typename type::assoc_vector<K,V>::const_iterator it(v.begin()), it_end(v.end());
 			it != it_end; ++it) {
 		pack(it->first, o);
 		pack(it->second, o);
 	}
+	return o;
 }
 
 
 template <typename K, typename V>
-inline std::map<K, V> operator<< (std::map<K, V>& v, object o)
+inline std::map<K, V> operator>> (object o, std::map<K, V>& v)
 {
-	if(o.type != MAP) { throw type_error(); }
+	if(o.type != type::MAP) { throw type_error(); }
 	object* p(o.via.container.ptr);
 	object* const pend(o.via.container.ptr + o.via.container.size*2);
 	while(p < pend) {
@@ -87,7 +92,7 @@ inline std::map<K, V> operator<< (std::map<K, V>& v, object o)
 }
 
 template <typename Stream, typename K, typename V>
-inline const std::map<K,V>& operator>> (const std::map<K,V>& v, packer<Stream>& o)
+inline packer<Stream>& operator<< (packer<Stream>& o, const std::map<K,V>& v)
 {
 	o.pack_map(v.size());
 	for(typename std::map<K,V>::const_iterator it(v.begin()), it_end(v.end());
@@ -95,13 +100,14 @@ inline const std::map<K,V>& operator>> (const std::map<K,V>& v, packer<Stream>& 
 		pack(it->first, o);
 		pack(it->second, o);
 	}
+	return o;
 }
 
 
 template <typename K, typename V>
-inline std::multimap<K, V> operator<< (std::multimap<K, V>& v, object o)
+inline std::multimap<K, V> operator>> (object o, std::multimap<K, V>& v)
 {
-	if(o.type != MAP) { throw type_error(); }
+	if(o.type != type::MAP) { throw type_error(); }
 	object* p(o.via.container.ptr);
 	object* const pend(o.via.container.ptr + o.via.container.size*2);
 	while(p < pend) {
@@ -114,7 +120,7 @@ inline std::multimap<K, V> operator<< (std::multimap<K, V>& v, object o)
 }
 
 template <typename Stream, typename K, typename V>
-inline const std::multimap<K,V>& operator>> (const std::multimap<K,V>& v, packer<Stream>& o)
+inline packer<Stream>& operator<< (packer<Stream>& o, const std::multimap<K,V>& v)
 {
 	o.pack_multimap(v.size());
 	for(typename std::multimap<K,V>::const_iterator it(v.begin()), it_end(v.end());
@@ -122,10 +128,10 @@ inline const std::multimap<K,V>& operator>> (const std::multimap<K,V>& v, packer
 		pack(it->first, o);
 		pack(it->second, o);
 	}
+	return o;
 }
 
 
-}  // namespace type
 }  // namespace msgpack
 
 #endif /* msgpack/type/map.hpp */

@@ -21,26 +21,28 @@
 #include "msgpack/object.hpp"
 
 namespace msgpack {
-namespace type {
 
+namespace type {
 
 struct nil { };
 
-inline nil& operator<< (nil& v, object o)
+}  // namespace type
+
+
+inline type::nil& operator>> (object o, type::nil& v)
 {
-	if(o.type != NIL) { throw type_error(); }
+	if(o.type != type::NIL) { throw type_error(); }
 	return v;
 }
 
 template <typename Stream>
-inline const nil& operator>> (const nil& v, packer<Stream>& o)
+inline packer<Stream>& operator<< (packer<Stream>& o, const type::nil& v)
 {
 	o.pack_nil();
-	return v;
+	return o;
 }
 
 
-}  // namespace type
 }  // namespace msgpack
 
 #endif /* msgpack/type/nil.hpp */

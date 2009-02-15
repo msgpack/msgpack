@@ -22,13 +22,12 @@
 #include <vector>
 
 namespace msgpack {
-namespace type {
 
 
 template <typename T>
-inline std::vector<T> operator<< (std::vector<T>& v, object o)
+inline std::vector<T> operator>> (object o, std::vector<T>& v)
 {
-	if(o.type != ARRAY) { throw type_error(); }
+	if(o.type != type::ARRAY) { throw type_error(); }
 	v.resize(o.via.container.size);
 	object* p(o.via.container.ptr);
 	object* const pend(o.via.container.ptr + o.via.container.size);
@@ -41,18 +40,17 @@ inline std::vector<T> operator<< (std::vector<T>& v, object o)
 
 
 template <typename Stream, typename T>
-inline const std::vector<T>& operator>> (const std::vector<T>& v, packer<Stream>& o)
+inline packer<Stream>& operator<< (packer<Stream>& o, const std::vector<T>& v)
 {
 	o.pack_array(v.size());
 	for(typename std::vector<T>::const_iterator it(v.begin()), it_end(v.end());
 			it != it_end; ++it) {
 		pack(*it, o);
 	}
-	return v;
+	return o;
 }
 
 
-}  // namespace type
 }  // namespace msgpack
 
 #endif /* msgpack/type/array.hpp */

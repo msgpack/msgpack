@@ -31,6 +31,18 @@ namespace msgpack {
 class type_error : public std::bad_cast { };
 
 
+namespace type {
+	static const unsigned char NIL					= 0x01;
+	static const unsigned char BOOLEAN				= 0x02;
+	static const unsigned char POSITIVE_INTEGER		= 0x03;
+	static const unsigned char NEGATIVE_INTEGER		= 0x04;
+	static const unsigned char DOUBLE				= 0x05;
+	static const unsigned char RAW					= 0x06;
+	static const unsigned char ARRAY				= 0x07;
+	static const unsigned char MAP					= 0x08;
+}
+
+
 struct object {
 	unsigned char type;
 	union {
@@ -50,6 +62,11 @@ struct object {
 
 	template <typename T>
 	operator T() { T v; convert(v, *this); return v; };
+
+	template <typename T>
+	T as() { T v; convert(v, *this); return v; }
+
+	bool is_nil() { return type == type::NIL; }
 };
 
 std::ostream& operator<< (std::ostream& s, const object o);
@@ -58,53 +75,36 @@ bool operator==(const object x, const object y);
 inline bool operator!=(const object x, const object y) { return !(x == y); }
 
 
-inline object& operator<< (object& v, object o)
+inline object& operator>> (object o, object& v)
 	{ v = o; return v; }
 
 template <typename Stream>
-const object& operator>> (const object& v, packer<Stream>& o);
+packer<Stream>& operator<< (packer<Stream>& o, const object& v);
 
+	
 
 namespace type {
-	static const unsigned char NIL					= 0x01;
-	static const unsigned char BOOLEAN				= 0x02;
-	static const unsigned char POSITIVE_INTEGER		= 0x03;
-	static const unsigned char NEGATIVE_INTEGER		= 0x04;
-	static const unsigned char DOUBLE				= 0x05;
-	static const unsigned char RAW					= 0x06;
-	static const unsigned char ARRAY				= 0x07;
-	static const unsigned char MAP					= 0x08;
-
-
 	template <typename T>
-	inline T& operator<< (T& v, object o)
+	inline T& operator>> (object o, T& v)
 	{
 		v.msgpack_unpack(o);
 		return v;
 	}
-
-
-	namespace detail {
-		template <typename Stream, typename T>
-		inline void pack_copy(T v, packer<Stream>& o)
-			{ pack(v, o); }
-	}
-
+	
 	template <typename Stream, typename T>
-	inline const T& operator>> (const T& v, packer<Stream>& o)
+	inline packer<Stream>& operator<< (packer<Stream>& o, const T& v)
 	{
-		detail::pack_copy(v.msgpack_pack(), o);
-		return v;
+		pack_copy(v.msgpack_pack(), o);
+		return o;
 	}
-
-}  // namespace type
+}
 
 
 template <typename T>
 inline void convert(T& v, object o)
 {
 	using namespace type;
-	v << o;
+	o >> v;
 }
 
 
@@ -112,7 +112,7 @@ template <typename Stream, typename T>
 inline void pack(T& v, packer<Stream>& o)
 {
 	using namespace type;
-	v >> o;
+	o << v;
 }
 
 
@@ -124,14 +124,20 @@ inline void pack(T& v, Stream& s)
 }
 
 
+template <typename Stream, typename T>
+inline void pack_copy(T v, packer<Stream>& o)
+{
+	pack(v, o);
+}
+
 
 template <typename Stream>
-const object& operator>> (const object& v, packer<Stream>& o)
+packer<Stream>& operator<< (packer<Stream>& o, const object& v)
 {
 	switch(v.type) {
 	case type::NIL:
 		o.pack_nil();
-		return v;
+		return o;
 
 	case type::BOOLEAN:
 		if(v.via.boolean) {
@@ -139,7 +145,7 @@ const object& operator>> (const object& v, packer<Stream>& o)
 		} else {
 			o.pack_false();
 		}
-		return v;
+		return o;
 
 	case type::POSITIVE_INTEGER:
 		if(v.via.u64 <= (uint64_t)std::numeric_limits<uint16_t>::max()) {
@@ -155,7 +161,7 @@ const object& operator>> (const object& v, packer<Stream>& o)
 				o.pack_uint64(v.via.u64);
 			}
 		}
-		return v;
+		return o;
 
 	case type::NEGATIVE_INTEGER:
 		if(v.via.i64 >= (int64_t)std::numeric_limits<int16_t>::min()) {
@@ -171,11 +177,11 @@ const object& operator>> (const object& v, packer<Stream>& o)
 				o.pack_int64(v.via.i64);
 			}
 		}
-		return v;
+		return o;
 
 	case type::RAW:
 		o.pack_raw(v.via.ref.ptr, v.via.ref.size);
-		return v;
+		return o;
 
 	case type::ARRAY:
 		o.pack_array(v.via.container.size);
@@ -184,7 +190,7 @@ const object& operator>> (const object& v, packer<Stream>& o)
 				p < pend; ++p) {
 			*p >> o;
 		}
-		return v;
+		return o;
 		// FIXME loop optimiziation
 
 	case type::MAP:
@@ -195,7 +201,7 @@ const object& operator>> (const object& v, packer<Stream>& o)
 			*p >> o; ++p;
 			*p >> o; ++p;
 		}
-		return v;
+		return o;
 		// FIXME loop optimiziation
 
 	default:

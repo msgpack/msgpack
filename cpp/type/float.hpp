@@ -22,45 +22,43 @@
 #include <vector>
 
 namespace msgpack {
-namespace type {
 
 
 // FIXME check overflow, underflow
 
 
-inline float& operator<< (float& v, object o)
+inline float& operator>> (object o, float& v)
 {
-	if(o.type != DOUBLE) { throw type_error(); }
+	if(o.type != type::DOUBLE) { throw type_error(); }
 	v = o.via.dec;
 	return v;
 }
 
 
 template <typename Stream>
-inline const float& operator>> (const float& v, packer<Stream> o)
+inline packer<Stream>& operator<< (packer<Stream>& o, const float& v)
 {
 	o.pack_float(v);
-	return v;
+	return o;
 }
 
 
-inline double& operator<< (double& v, object o)
+inline double& operator>> (object o, double& v)
 {
-	if(o.type != DOUBLE) { throw type_error(); }
+	if(o.type != type::DOUBLE) { throw type_error(); }
 	v = o.via.dec;
 	return v;
 }
 
 
 template <typename Stream>
-inline const double& operator>> (const double& v, packer<Stream> o)
+inline packer<Stream>& operator<< (packer<Stream>& o, const double& v)
 {
 	o.pack_double(v);
-	return v;
+	return o;
 }
 
 
-}  // namespace type
 }  // namespace msgpack
 
 #endif /* msgpack/type/float.hpp */

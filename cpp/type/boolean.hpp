@@ -25,7 +25,7 @@ namespace msgpack {
 namespace type {
 
 
-inline bool& operator<< (bool& v, object o)
+inline bool& operator>> (object o, bool& v)
 {
 	if(o.type != BOOLEAN) { throw type_error(); }
 	v = o.via.boolean;
@@ -34,11 +34,11 @@ inline bool& operator<< (bool& v, object o)
 
 
 template <typename Stream>
-inline const bool& operator>> (const bool& v, packer<Stream> o)
+inline packer<Stream>& operator<< (packer<Stream>& o, const bool& v)
 {
 	if(v) { o.pack_true(); }
 	else { o.pack_false(); }
-	return v;
+	return o;
 }
 
 

@@ -23,8 +23,8 @@
 #include <string>
 
 namespace msgpack {
-namespace type {
 
+namespace type {
 
 struct raw_ref {
 	raw_ref() : ptr(NULL), size(0) {}
@@ -58,41 +58,43 @@ struct raw_ref {
 	}
 };
 
-inline raw_ref& operator<< (raw_ref& v, object o)
+}  // namespace type
+
+
+inline type::raw_ref& operator>> (object o, type::raw_ref& v)
 {
-	if(o.type != RAW) { throw type_error(); }
+	if(o.type != type::RAW) { throw type_error(); }
 	v.ptr  = o.via.ref.ptr;
 	v.size = o.via.ref.size;
 	return v;
 }
 
 
-inline std::string& operator<< (std::string& v, object o)
+inline std::string& operator>> (object o, std::string& v)
 {
-	raw_ref r;
-	r << o;
+	type::raw_ref r;
+	o >> r;
 	v.assign(r.ptr, r.size);
 	return v;
 }
 
 
 template <typename Stream>
-inline const raw_ref& operator>> (const raw_ref& v, packer<Stream>& o)
+inline packer<Stream>& operator<< (packer<Stream>& o, const type::raw_ref& v)
 {
 	o.pack_raw(v.ptr, v.size);
-	return v;
+	return o;
 }
 
 
 template <typename Stream>
-inline const std::string& operator>> (const std::string& v, packer<Stream>& o)
+inline packer<Stream>& operator<< (packer<Stream>& o, const std::string& v)
 {
 	o.pack_raw(v.data(), v.size());
-	return v;
+	return o;
 }
 
 
-}  // namespace type
 }  // namespace msgpack
 
 #endif /* msgpack/type/raw.hpp */

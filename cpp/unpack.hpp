@@ -124,6 +124,10 @@ public:
 	// Note that reset() leaves non-parsed buffer.
 	void remove_nonparsed_buffer();
 
+	/*! skip specified size of non-parsed buffer, leaving the buffer */
+	// Note the size must be smaller than nonparsed_size()
+	void skip_nonparsed_buffer(size_t len);
+
 private:
 	char* m_buffer;
 	size_t m_used;
@@ -176,6 +180,9 @@ inline size_t unpacker::parsed_size() const
 
 inline void unpacker::remove_nonparsed_buffer()
 	{ m_used = m_off; }
+
+inline void unpacker::skip_nonparsed_buffer(size_t len)
+	{ m_off += len; }
 
 
 inline object unpack(const char* data, size_t len, zone& z, size_t* off = NULL)
