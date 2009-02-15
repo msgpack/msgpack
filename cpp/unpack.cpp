@@ -198,7 +198,7 @@ void unpacker::expand_buffer(size_t len)
 {
 	if(m_off == 0) {
 		size_t next_size;
-		if(m_free != 0) { next_size = m_free * 2; }
+		if(m_used != 0) { next_size = (m_used + m_free) * 2; }
 		else { next_size = UNPACKER_INITIAL_BUFFER_SIZE; }
 		while(next_size < len + m_used) { next_size *= 2; }
 
