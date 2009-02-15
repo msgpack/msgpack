@@ -31,8 +31,9 @@ public:
 };
 
 struct const_raw {
-	const_raw() : ptr(NULL), len(0) {}
-	const_raw(const void* p, size_t l) : ptr(p), len(l) {}
+	explicit const_raw() : ptr(NULL), len(0) {}
+	explicit const_raw(const void* p, size_t l) : ptr(p), len(l) {}
+	const_raw(const raw& m) : ptr(m.ptr), len(m.len) {}
 public:
 	const void* ptr;
 	size_t len;
@@ -257,8 +258,8 @@ private:																\
 	uint32_t len;														\
 };
 
-RAW_CLASS(raw, void*, raw xraw(); const_raw xraw() const; )
-RAW_CLASS(const_raw, const void*, const_raw xraw() const; )
+RAW_CLASS(raw_ref, void*, raw xraw(); const_raw xraw() const; )
+RAW_CLASS(const_raw_ref, const void*, const_raw xraw() const; )
 
 #undef RAW_CLASS(NAME, TYPE, EXTRA)
 

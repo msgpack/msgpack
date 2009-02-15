@@ -320,12 +320,12 @@ const object_class* object_##NAME::inspect(std::ostream& s) const				\
 	{ (s << '"').write((const char*)ptr, len) << '"'; return this; }  // FIXME escape
 
 
-RAW_OBJECT(raw,
-	raw object_raw::xraw() { return raw(ptr, len); }
-	const_raw object_raw::xraw() const { return const_raw(ptr, len); } )
+RAW_OBJECT(raw_ref,
+	raw object_raw_ref::xraw() { return raw(ptr, len); }
+	const_raw object_raw_ref::xraw() const { return const_raw(ptr, len); } )
 
-RAW_OBJECT(const_raw,
-	const_raw object_const_raw::xraw() const { return const_raw(ptr, len); } )
+RAW_OBJECT(const_raw_ref,
+	const_raw object_const_raw_ref::xraw() const { return const_raw(ptr, len); } )
 
 #undef RAW_OBJECT(NAME, EXTRA)
 

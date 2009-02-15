@@ -5,10 +5,10 @@
 namespace msgpack {
 
 struct unpacker::context {
-	context(zone& z)
+	context(zone* z)
 	{
 		msgpack_unpacker_init(&m_ctx);
-		m_ctx.user = &z;
+		m_ctx.user = z;
 	}
 
 	~context() { }
@@ -30,6 +30,22 @@ struct unpacker::context {
 		m_ctx.user = z;
 	}
 
+	void reset(zone* z)
+	{
+		msgpack_unpacker_init(&m_ctx);
+		m_ctx.user = z;
+	}
+
+	zone* user()
+	{
+		return m_ctx.user;
+	}
+
+	void user(zone* z)
+	{
+		m_ctx.user = z;
+	}
+
 private:
 	msgpack_unpacker m_ctx;
 
@@ -39,46 +55,105 @@ private:
 };
 
 
-unpacker::unpacker(zone& z) :
-	m_ctx(new context(z)),
-	m_zone(z),
-	m_finished(false)
+unpacker::unpacker() :
+	m_zone(new zone()),
+	m_ctx(new context(m_zone)),
+	m_buffer(NULL),
+	m_used(0),
+	m_free(0),
+	m_off(0)
 { }
 
 
-unpacker::~unpacker() { delete m_ctx; }
-
-
-size_t unpacker::execute(const void* data, size_t len, size_t off)
+unpacker::~unpacker()
 {
-	int ret = m_ctx->execute(data, len, &off);
-	if(ret < 0) {
-		throw unpack_error("parse error");
-	} else if(ret > 0) {
-		m_finished = true;
-		return off;
+	free(m_buffer);
+	delete m_ctx;
+	delete m_zone;
+}
+
+
+void unpacker::expand_buffer(size_t len)
+{
+	if(m_off == 0) {
+		size_t next_size;
+		if(m_free != 0) { next_size = m_free * 2; }
+		else { next_size = MSGPACK_UNPACKER_INITIAL_BUFFER_SIZE; }
+		while(next_size < len + m_used) { next_size *= 2; }
+
+		// FIXME realloc?
+
+		void* tmp = malloc(next_size);
+		if(!tmp) { throw std::bad_alloc(); }
+		memcpy(tmp, m_buffer, m_used);
+
+		free(m_buffer);
+		m_buffer = tmp;
+		m_free = next_size - m_used;
+
 	} else {
-		m_finished = false;
-		return off;
+		size_t next_size = MSGPACK_UNPACKER_INITIAL_BUFFER_SIZE;
+		while(next_size < len + m_used - m_off) { next_size *= 2; }
+
+		void* tmp = malloc(next_size);
+		if(!tmp) { throw std::bad_alloc(); }
+		memcpy(tmp, ((char*)m_buffer)+m_off, m_used-m_off);
+
+		try {
+			m_zone->push_finalizer<void>(&zone::finalize_free, NULL, m_buffer);
+		} catch (...) {
+			free(tmp);
+			throw;
+		}
+
+		m_buffer = tmp;
+		m_used = m_used - m_off;
+		m_free = next_size - m_used;
+		m_off = 0;
 	}
 }
 
+bool unpacker::execute()
+{
+	int ret = m_ctx->execute(m_buffer, m_used, &m_off);
+	if(ret < 0) {
+		throw unpack_error("parse error");
+	} else if(ret == 0) {
+		return false;
+	} else {
+		return true;
+	}
+}
+
+zone* unpacker::release_zone()
+{
+	zone* z = m_zone;
+	m_zone = NULL;
+	m_zone = new zone();
+	m_ctx->user(m_zone);
+	return z;
+}
 
 object unpacker::data()
 {
 	return object(m_ctx->data());
 }
 
-
 void unpacker::reset()
 {
+	if(!m_zone->empty()) {
+		delete m_zone;
+		m_zone = NULL;
+		m_zone = new zone();
+	}
+	expand_buffer(0);
 	m_ctx->reset();
 }
 
 
 object unpacker::unpack(const void* data, size_t len, zone& z)
 {
-	context ctx(z);
+	context ctx(&z);
 	size_t off = 0;
 	int ret = ctx.execute(data, len, &off);
 	if(ret < 0) {

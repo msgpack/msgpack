@@ -2,6 +2,8 @@
 #include <string>
 #include <msgpack/unpack.hpp>
 #include <msgpack/pack.hpp>
+#include <sstream>
+#include <boost/scoped_ptr.hpp>
 
 class checker {
 public:
@@ -114,12 +116,83 @@ int main(void)
 		};
 		c.check(d, sizeof(d),
 			z.narray(
-				z.nraw("", 0),
-				z.nraw("a", 1),
-				z.nraw("bc", 2),
-				z.nraw("def", 3)
+				z.nraw_ref("", 0),
+				z.nraw_ref("a", 1),
+				z.nraw_ref("bc", 2),
+				z.nraw_ref("def", 3)
 			)
 		);
+	}
+
+	static const uint16_t TASK_ARRAY = 100;
+	static char tarray[3];
+	static char traw[64];
+
+	{
+		memset(traw, 'a', sizeof(traw));
+		traw[0] = 0xda;
+		uint16_t n = htons(sizeof(traw)-3);
+		traw[1] = ((char*)&n)[0];
+		traw[2] = ((char*)&n)[1];
+
+		msgpack::zone z;
+		std::cout << msgpack::unpack(traw, sizeof(traw), z) << std::endl;;
+	}
+
+	{
+		tarray[0] = 0xdc;
+		uint16_t n = htons(TASK_ARRAY);
+		tarray[1] = ((char*)&n)[0];
+		tarray[2] = ((char*)&n)[1];
+	}
+
+	{
+		// write message
+		ssize_t total_bytes = 0;
+		std::stringstream stream;
+		for(unsigned q=0; q < 10; ++q) {
+			stream.write(tarray, sizeof(tarray));
+			total_bytes += sizeof(tarray);
+			for(uint16_t i=0; i < TASK_ARRAY; ++i) {
+				stream.write(traw, sizeof(traw));
+				total_bytes += sizeof(traw);
+			}
+		}
+
+		stream.seekg(0);
+
+		// reserive message
+		unsigned num_msg = 0;
+
+		static const size_t RESERVE_SIZE = 32;//*1024;
+
+		msgpack::unpacker upk;
+		while(stream.good() && total_bytes > 0) {
+
+			upk.reserve_buffer(RESERVE_SIZE);
+			size_t sz = stream.readsome(
+					(char*)upk.buffer(),
+					upk.buffer_capacity());
+
+			total_bytes -= sz;
+			std::cout << "read " << sz << " bytes to capacity "
+					<< upk.buffer_capacity() << " bytes"
+					<< std::endl;
+
+			upk.buffer_consumed(sz);
+			while( upk.execute() ) {
+				std::cout << "message parsed" << std::endl;
+				boost::scoped_ptr<msgpack::zone> pz(upk.release_zone());
+				msgpack::object o = upk.data();
+				upk.reset();
+				std::cout << o << std::endl;
+				++num_msg;
+			}
+
+		}
+
+		std::cout << "stream finished" << std::endl;
+		std::cout << num_msg << " messages reached" << std::endl;
 	}
 
 	return 0;

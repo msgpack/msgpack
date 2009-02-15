@@ -1,8 +1,11 @@
 #ifndef MSGPACK_ZONE_HPP__
 #define MSGPACK_ZONE_HPP__
+#include <iostream>
 
 #include "msgpack/object.hpp"
-#include <iostream>
+#include <string.h>
+#include <stdlib.h>
+#include <stdexcept>
 
 #ifndef MSGPACK_ZONE_CHUNK_SIZE
 #define MSGPACK_ZONE_CHUNK_SIZE 64
@@ -13,8 +16,8 @@ namespace msgpack {
 
 class zone {
 public:
-zone() : m_used(0), m_pool(1) { }
-~zone() { clear(); }
+	zone() : m_used(0) { }
+	~zone() { clear(); }
 
 public:
 	template <typename T>
@@ -35,11 +38,27 @@ public:
 	 object_float*  nfloat(   float v) { return new (alloc())  object_float(v); }
 	object_double* ndouble(  double v) { return new (alloc()) object_double(v); }
 
-	object_raw* nraw(void* ptr, uint32_t len)
-		{ return new (alloc()) object_raw(ptr, len); }
+	object_raw_ref* nraw_ref(void* ptr, uint32_t len)
+		{ return new (alloc()) object_raw_ref(ptr, len); }
 
-	object_const_raw* nraw(const void* ptr, uint32_t len)
-		{ return new (alloc()) object_const_raw(ptr, len); }
+	object_const_raw_ref* nraw_ref(const void* ptr, uint32_t len)
+		{ return new (alloc()) object_const_raw_ref(ptr, len); }
+
+	object_raw_ref* nraw_copy(const void* ptr, uint32_t len)
+		{
+			void* copy = malloc(len);
+			if(!copy) { throw std::bad_alloc(); }
+			object_raw_ref* o;
+			try {
+				o = new (alloc()) object_raw_ref(copy, len);
+				push_finalizer<void>(&zone::finalize_free, NULL, copy);
+			} catch (...) {
+				free(copy);
+				throw;
+			}
+			memcpy(copy, ptr, len);
+			return o;
+		}
 
 	object_array* narray()
 		{ return new (alloc()) object_array(); }
@@ -67,6 +86,7 @@ public:
 
 public:
 	void clear();
+	bool empty() const;
 
 private:
 	void* alloc();
@@ -75,9 +95,9 @@ private:
 	size_t m_used;
 
 	static const size_t MAX_OBJECT_SIZE =
-		sizeof(object_raw) > sizeof(object_array)
-			? ( sizeof(object_raw) > sizeof(object_map)
-					? sizeof(object_raw)
+		sizeof(object_raw_ref) > sizeof(object_array)
+			? ( sizeof(object_raw_ref) > sizeof(object_map)
+					? sizeof(object_raw_ref)
 					: sizeof(object_map)
 			  )
 			: ( sizeof(object_array) > sizeof(object_map)
@@ -94,7 +114,7 @@ private:
 		cell_t cells[MSGPACK_ZONE_CHUNK_SIZE];
 	};
 
-	typedef std::vector<chunk_t> pool_t;
+	typedef std::vector<chunk_t*> pool_t;
 	pool_t m_pool;
 
 
@@ -113,8 +133,29 @@ private:
 	user_finalizer_t m_user_finalizer;
 
 private:
+	void resize_pool(size_t n);
+
+public:
+	static void finalize_free(void* obj, void* user)
+		{ free(user); }
+
+private:
 	zone(const zone&);
 };
+
+
+template <typename T>
+inline void zone::push_finalizer(void (*func)(void* obj, void* user), T* obj, void* user)
+{
+	m_user_finalizer.push_back( finalizer(
+			func, reinterpret_cast<void*>(obj),
+			user) );
+}
+
+inline bool zone::empty() const
+{
+	return m_used == 0 && m_user_finalizer.empty();
+}
 
 
 }  // namespace msgpack

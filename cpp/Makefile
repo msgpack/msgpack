@@ -1,5 +1,6 @@
 
-CXXFLAGS = -I.. -I. -Wall -g -O4
+CXXFLAGS = -I.. -I. -Wall -g
+#CXXFLAGS = -I.. -I. -Wall -g -O4
 LDFLAGS = -L.
 
 NEED_PREPROCESS = zone.hpp

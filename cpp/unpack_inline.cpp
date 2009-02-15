@@ -59,11 +59,8 @@ static inline object_class* msgpack_unpack_map_start(zone** z, unsigned int n)
 static inline void msgpack_unpack_map_item(zone** z, object_class* c, object_class* k, object_class* v)
 { reinterpret_cast<object_map*>(c)->store(k, v); }
 
-static inline object_class* msgpack_unpack_string(zone** z, const void* b, size_t l)
-{ return (*z)->nraw(b, l); }
-
-static inline object_class* msgpack_unpack_raw(zone** z, const void* b, size_t l)
-{ return (*z)->nraw(b, l); }
+static inline object_class* msgpack_unpack_raw(zone** z, const void* b, const void* p, size_t l)
+{ return (*z)->nraw_ref(p, l); }
 
 
 }  // extern "C"
