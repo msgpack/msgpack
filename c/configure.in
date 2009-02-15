@@ -1,0 +1,11 @@
+AC_INIT(pack.h)
+AM_INIT_AUTOMAKE(msgpackc, 0.1)
+AC_CONFIG_HEADER(config.h)
+
+AC_PROG_CC
+AC_PROG_LIBTOOL
+
+CFLAGS="-O4 $CFLAGS -Wall -I.."
+
+AC_OUTPUT([Makefile])
+

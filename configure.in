@@ -1,0 +1,10 @@
+AC_INIT(msgpack/unpack/inline_impl.h)
+AM_INIT_AUTOMAKE(msgpack, 0.1)
+AC_CONFIG_HEADER(config.h)
+
+AC_PROG_LIBTOOL
+#AC_CHECK_PROG(RUBY, ruby, ruby, [$PATH])
+
+AC_CONFIG_SUBDIRS([c cpp])
+AC_OUTPUT([Makefile])
+

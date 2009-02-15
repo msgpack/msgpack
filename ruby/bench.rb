@@ -9,9 +9,9 @@ end
 
 ary = []
 i = 0
-while i < (1<<23)
-	ary << (1<<23)
-	#ary << i
+while i < (1<<24)
+	#ary << (1<<24)
+	ary << i
 	i += 1
 end
 
@@ -23,10 +23,13 @@ a = Time.now
 packed = MessagePack::pack(ary)
 b = Time.now
 show10(packed)
-puts "#{b-a} sec."
+sec = b - a
+puts "#{sec} sec."
+puts "#{packed.length.to_f / sec / 1024 / 1024 * 8} Mbps"
 
 GC.start
 
+=begin
 puts "----"
 puts "JSON"
 a = Time.now
@@ -37,6 +40,7 @@ puts "#{b-a} sec."
 
 ary = nil
 GC.start
+=end
 
 
 puts "----"
@@ -44,17 +48,23 @@ puts "MessagePack"
 a = Time.now
 ary = MessagePack::unpack(packed)
 b = Time.now
-puts "#{b-a} sec."
+sec = b - a
+puts "#{sec} sec."
+puts "#{packed.length.to_f / sec / 1024 / 1024 * 8} Mbps"
+
+p ary.size
+p (1<<24)
 
 ary = nil
 GC.start
 
 
+=begin
 puts "----"
 puts "JSON"
 a = Time.now
 ary = JSON::load(json)
 b = Time.now
 puts "#{b-a} sec."
-
+=end
 

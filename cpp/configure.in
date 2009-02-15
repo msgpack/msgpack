@@ -1,0 +1,14 @@
+AC_INIT(object.hpp)
+AM_INIT_AUTOMAKE(msgpack, 0.1)
+AC_CONFIG_HEADER(config.h)
+
+AC_PROG_CXX
+AC_PROG_LIBTOOL
+AC_CHECK_PROG(ERB, erb, erb, [$PATH])
+
+AC_CHECK_LIB(stdc++, main)
+
+CXXFLAGS="-O4 $CXXFLAGS -Wall -I.."
+
+AC_OUTPUT([Makefile])
+
