@@ -81,7 +81,7 @@ std::ostream& operator<< (std::ostream& s, const object o)
 
 	default:
 		// FIXME
-		s << "#<UNKNOWN " << (uint16_t)o.type << ">" << std::endl;
+		s << "#<UNKNOWN " << (uint16_t)o.type << ">";
 	}
 	return s;
 }
@@ -113,7 +113,7 @@ bool operator==(const object x, const object y)
 		for(object* px(x.via.container.ptr),
 				* const pxend(x.via.container.ptr + x.via.container.size),
 				* py(y.via.container.ptr);
-				px != pxend; ++px, ++py) {
+				px < pxend; ++px, ++py) {
 			if(*px != *py) { return false; }
 		}
 		return true;
@@ -124,7 +124,7 @@ bool operator==(const object x, const object y)
 		for(object* px(x.via.container.ptr),
 				* const pxend(x.via.container.ptr + x.via.container.size*2),
 				* py(y.via.container.ptr);
-				px != pxend; ++px, ++py) {
+				px < pxend; ++px, ++py) {
 			if(*px != *py) { return false; }
 		}
 		return true;
@@ -133,11 +133,6 @@ bool operator==(const object x, const object y)
 		return false;
 	}
 }
-
-
-// FIXME
-//template <typename Stream>
-//const object& operator>> (const object& v, packer<Stream>& o);
 
 
 }  // namespace msgpack

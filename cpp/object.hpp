@@ -22,6 +22,7 @@
 #include <stdint.h>
 #include <stdexcept>
 #include <typeinfo>
+#include <limits>
 #include <ostream>
 
 namespace msgpack {
@@ -46,7 +47,9 @@ struct object {
 			uint32_t size;
 		} ref;
 	} via;
-	// FIXME template <typename T> operator T() { T v; convert(*this, v); return v; };
+
+	template <typename T>
+	operator T() { T v; convert(v, *this); return v; };
 };
 
 std::ostream& operator<< (std::ostream& s, const object o);
@@ -54,6 +57,9 @@ std::ostream& operator<< (std::ostream& s, const object o);
 bool operator==(const object x, const object y);
 inline bool operator!=(const object x, const object y) { return !(x == y); }
 
+
+inline object& operator<< (object& v, object o)
+	{ v = o; return v; }
 
 template <typename Stream>
 const object& operator>> (const object& v, packer<Stream>& o);
@@ -73,7 +79,7 @@ namespace type {
 	template <typename T>
 	inline T& operator<< (T& v, object o)
 	{
-		v = o;
+		v.msgpack_unpack(o);
 		return v;
 	}
 
@@ -87,7 +93,7 @@ namespace type {
 	template <typename Stream, typename T>
 	inline const T& operator>> (const T& v, packer<Stream>& o)
 	{
-		detail::pack_copy(v.pack(), o);
+		detail::pack_copy(v.msgpack_pack(), o);
 		return v;
 	}
 
@@ -115,6 +121,86 @@ inline void pack(T& v, Stream& s)
 {
 	packer<Stream> pk(s);
 	pack(v, pk);
+}
+
+
+
+template <typename Stream>
+const object& operator>> (const object& v, packer<Stream>& o)
+{
+	switch(v.type) {
+	case type::NIL:
+		o.pack_nil();
+		return v;
+
+	case type::BOOLEAN:
+		if(v.via.boolean) {
+			o.pack_true();
+		} else {
+			o.pack_false();
+		}
+		return v;
+
+	case type::POSITIVE_INTEGER:
+		if(v.via.u64 <= (uint64_t)std::numeric_limits<uint16_t>::max()) {
+			if(v.via.u64 <= (uint16_t)std::numeric_limits<uint8_t>::max()) {
+				o.pack_uint8(v.via.u64);
+			} else {
+				o.pack_uint16(v.via.u64);
+			}
+		} else {
+			if(v.via.u64 <= (uint64_t)std::numeric_limits<uint32_t>::max()) {
+				o.pack_uint32(v.via.u64);
+			} else {
+				o.pack_uint64(v.via.u64);
+			}
+		}
+		return v;
+
+	case type::NEGATIVE_INTEGER:
+		if(v.via.i64 >= (int64_t)std::numeric_limits<int16_t>::min()) {
+			if(v.via.i64 >= (int64_t)std::numeric_limits<int8_t>::min()) {
+				o.pack_int8(v.via.i64);
+			} else {
+				o.pack_int16(v.via.i64);
+			}
+		} else {
+			if(v.via.i64 >= (int64_t)std::numeric_limits<int32_t>::min()) {
+				o.pack_int64(v.via.i64);
+			} else {
+				o.pack_int64(v.via.i64);
+			}
+		}
+		return v;
+
+	case type::RAW:
+		o.pack_raw(v.via.ref.ptr, v.via.ref.size);
+		return v;
+
+	case type::ARRAY:
+		o.pack_array(v.via.container.size);
+		for(object* p(v.via.container.ptr),
+				* const pend(v.via.container.ptr + v.via.container.size);
+				p < pend; ++p) {
+			*p >> o;
+		}
+		return v;
+		// FIXME loop optimiziation
+
+	case type::MAP:
+		o.pack_map(v.via.container.size);
+		for(object* p(v.via.container.ptr),
+				* const pend(v.via.container.ptr + v.via.container.size*2);
+				p < pend; ) {
+			*p >> o; ++p;
+			*p >> o; ++p;
+		}
+		return v;
+		// FIXME loop optimiziation
+
+	default:
+		throw type_error();
+	}
 }
 
 
