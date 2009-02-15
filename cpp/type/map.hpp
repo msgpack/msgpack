@@ -21,6 +21,7 @@
 #include "msgpack/object.hpp"
 #include <map>
 #include <vector>
+#include <algorithm>
 
 namespace msgpack {
 

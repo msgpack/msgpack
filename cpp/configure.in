@@ -9,7 +9,11 @@ fi
 
 AC_PROG_CXX
 AC_PROG_LIBTOOL
-AC_CHECK_PROG(ERB, erb, erb, [$PATH])
+
+AC_CHECK_PROG(ERB, erb, erb)
+if test "x$ERB" = x; then
+	AC_MSG_ERROR([cannot find erb. Ruby is needed to build.])
+fi
 
 AC_CHECK_LIB(stdc++, main)
 
