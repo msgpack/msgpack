@@ -82,7 +82,6 @@ void unpacker::expand_buffer(size_t len)
 		while(next_size < len + m_used) { next_size *= 2; }
 
 		// FIXME realloc?
-
 		void* tmp = malloc(next_size);
 		if(!tmp) { throw std::bad_alloc(); }
 		memcpy(tmp, m_buffer, m_used);
@@ -121,15 +120,16 @@ bool unpacker::execute()
 	} else if(ret == 0) {
 		return false;
 	} else {
+		expand_buffer(0);
 		return true;
 	}
 }
 
 zone* unpacker::release_zone()
 {
+	zone* nz = new zone();
 	zone* z = m_zone;
-	m_zone = NULL;
-	m_zone = new zone();
+	m_zone = nz;
 	m_ctx->user(m_zone);
 	return z;
 }
@@ -141,12 +141,12 @@ object unpacker::data()
 
 void unpacker::reset()
 {
+	if(m_off != 0) { expand_buffer(0); }
 	if(!m_zone->empty()) {
 		delete m_zone;
 		m_zone = NULL;
 		m_zone = new zone();
 	}
-	expand_buffer(0);
 	m_ctx->reset();
 }
 

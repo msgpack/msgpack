@@ -169,7 +169,10 @@ int main(void)
 		msgpack::unpacker upk;
 		while(stream.good() && total_bytes > 0) {
 
+			// 1. reserve buffer
 			upk.reserve_buffer(RESERVE_SIZE);
+
+			// 2. read data to buffer() up to buffer_capacity() bytes
 			size_t sz = stream.readsome(
 					(char*)upk.buffer(),
 					upk.buffer_capacity());
@@ -179,14 +182,24 @@ int main(void)
 					<< upk.buffer_capacity() << " bytes"
 					<< std::endl;
 
+			// 3. specify the number of  bytes actually copied
 			upk.buffer_consumed(sz);
+
+			// 4. repeat execute() until it returns false
 			while( upk.execute() ) {
 				std::cout << "message parsed" << std::endl;
-				boost::scoped_ptr<msgpack::zone> pz(upk.release_zone());
+
+				// 5.1. take out the parsed object
 				msgpack::object o = upk.data();
-				upk.reset();
+
+				// 5.2. the parsed object is valid until the zone is deleted
+				boost::scoped_ptr<msgpack::zone> pz(upk.release_zone());
+
 				std::cout << o << std::endl;
 				++num_msg;
+
+				// 5.3 re-initialize unpacker
+				upk.reset();
 			}
 
 		}
