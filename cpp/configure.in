@@ -1,4 +1,4 @@
-AC_INIT(object.hpp)
+AC_INIT(object.cpp)
 AM_INIT_AUTOMAKE(msgpack, 0.1.0)
 AC_CONFIG_HEADER(config.h)
 

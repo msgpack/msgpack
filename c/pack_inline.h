@@ -18,7 +18,7 @@
 #ifndef PACK_INLINE_H__
 #define PACK_INLINE_H__
 
-#include "pack.h"
+#include "msgpack/pack.h"
 
 typedef msgpack_pack_t* msgpack_pack_context;
 

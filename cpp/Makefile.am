@@ -14,7 +14,8 @@ nobase_include_HEADERS = \
 		msgpack/zone.hpp
 
 noinst_HEADERS = \
-		unpack_context.hpp
+		unpack_context.hpp \
+		msgpack/zone.hpp.erb
 
 msgpack/zone.hpp: msgpack/zone.hpp.erb
 	erb $< > $@

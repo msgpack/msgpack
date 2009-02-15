@@ -232,7 +232,7 @@ INTEGER_CLASS(int16_t, i16)
 INTEGER_CLASS(int32_t, i32)
 INTEGER_CLASS(int64_t, i64)
 
-#undef INTEGER_CLASS(TYPE, NAME)
+#undef INTEGER_CLASS
 
 
 #define FLOAT_CLASS(TYPE, NAME) \
@@ -260,7 +260,7 @@ private:													\
 FLOAT_CLASS(float, float)
 FLOAT_CLASS(double, double)
 
-#undef FLOAT_CLASS(TYPE, NAME)
+#undef FLOAT_CLASS
 
 
 #define RAW_CLASS(NAME, TYPE, EXTRA) \
@@ -281,7 +281,7 @@ private:																\
 RAW_CLASS(mutable_raw_ref, char*, /*mutable_raw xraw();*/ raw xraw() const; )
 RAW_CLASS(raw_ref, const char*, raw xraw() const; )
 
-#undef RAW_CLASS(NAME, TYPE, EXTRA)
+#undef RAW_CLASS
 
 
 struct object_array : object_class, object_container_mixin {

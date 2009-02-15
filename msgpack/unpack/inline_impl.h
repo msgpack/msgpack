@@ -175,6 +175,7 @@ int msgpack_unpacker_execute(msgpack_unpacker* ctx, const char* data, size_t len
 	msgpack_unpack_context* user = &ctx->user;
 
 	msgpack_object obj;
+	msgpack_unpacker_stack* c = NULL;
 
 	int ret;
 
@@ -381,7 +382,7 @@ int msgpack_unpacker_execute(msgpack_unpacker* ctx, const char* data, size_t len
 
 _push:
 	if(top == 0) { goto _finish; }
-	msgpack_unpacker_stack* c = &stack[top-1];
+	c = &stack[top-1];
 	switch(c->ct) {
 	case CT_ARRAY_ITEM:
 		msgpack_unpack_array_item(user, c->obj, obj);
@@ -444,16 +445,16 @@ _end:
 }
 
 
-#ifdef betoh16(x)
-#undef betoh16(x)
+#ifdef betoh16
+#undef betoh16
 #endif
 
-#ifdef betoh32(x)
-#undef betoh32(x)
+#ifdef betoh32
+#undef betoh32
 #endif
 
-#ifdef betoh64(x)
-#undef betoh64(x)
+#ifdef betoh64
+#undef betoh64
 #endif
 
 #ifdef __cplusplus

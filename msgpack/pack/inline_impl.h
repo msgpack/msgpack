@@ -52,7 +52,7 @@
 
 #endif
 
-#ifndef msgpack_pack_inline_func(name)
+#ifndef msgpack_pack_inline_func
 #define msgpack_pack_inline_func(name) \
 	inline void msgpack_pack_##name
 #endif
@@ -293,11 +293,11 @@ msgpack_pack_inline_func(raw)(msgpack_pack_context x, const void* b, size_t l)
 }
 
 
-#undef msgpack_pack_inline_func(name)
+#undef msgpack_pack_inline_func
 
-#undef STORE_BE16(d)
-#undef STORE_BE32(d)
-#undef STORE_BE64(d)
+#undef STORE_BE16
+#undef STORE_BE32
+#undef STORE_BE64
 
 #endif /* msgpack/pack/inline_impl.h */
 
