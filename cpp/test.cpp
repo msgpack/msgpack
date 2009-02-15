@@ -152,9 +152,7 @@ int main(void)
 		unsigned num_msg = 0;
 		static const size_t RESERVE_SIZE = 32;//*1024;
 
-		std::auto_ptr<zone> pz(new zone());
-
-		unpacker pac(*pz);
+		unpacker pac;
 
 		while(stream.good() && total_bytes > 0) {
 
@@ -179,13 +177,15 @@ int main(void)
 				// 5.1. take out the parsed object
 				object o = pac.data();
 
-				// do something using pz and o
+				// 5.2 release the zone
+				std::auto_ptr<zone> olife( pac.release_zone() );
+
+				// 5.3 re-initialize the unpacker */
+				pac.reset();
+
+				// do some with the o and olife
 				std::cout << "message parsed: " << o << std::endl;
 				++num_msg;
-
-				// 5.3 re-initialize unpacker with next zone */
-				pz.reset(new zone());
-				pac.reset(*pz);
 			}
 
 		}

@@ -20,6 +20,7 @@
 
 #include "msgpack/object.hpp"
 #include "msgpack/zone.hpp"
+#include <memory>
 #include <stdexcept>
 
 #ifndef MSGPACK_UNPACKER_INITIAL_BUFFER_SIZE
@@ -40,7 +41,7 @@ struct unpack_error : public std::runtime_error {
 
 class unpacker {
 public:
-	unpacker(zone& z);
+	unpacker();
 	~unpacker();
 
 public:
@@ -60,8 +61,52 @@ public:
 	/*! 5.1. if execute() returns true, take out the parsed object */
 	object data();
 
-	/*! 5.2. re-initialize unpacker with next zone */
-	void reset(zone& z);
+	/*! 5.2. the object is valid until the zone is deleted */
+	// Note that once release_zone() from unpacker, you must delete it
+	// otherwise the memrory will leak.
+	zone* release_zone();
+
+	/*! 5.3. after release_zone(), re-initialize unpacker */
+	void reset();
+
+
+	// Basic usage of the unpacker is as following:
+	//
+	// msgpack::unpacker pac;
+	//
+	// while( /* readable */ ) {
+	//
+	//     // 1.
+	//     pac.reserve(1024);
+	//
+	//     // 2.
+	//     ssize_t bytes =
+	//         read(the_source, pac.buffer, pac.buffer_capacity());
+	//
+	//     // error handling ...
+	//
+	//     // 3.
+	//     pac.buffer_consumed(bytes);
+	//
+	//     // 4.
+	//     while(pac.execute()) {
+	//         // 5.1
+	//         object o = pac.data();
+	//
+	//         // 5.2
+	//         std::auto_ptr<msgpack::zone> olife( pac.release_zone() );
+	//
+	//         // boost::shared_ptr is also usable:
+	//         // boost::shared_ptr<msgpack::zone> olife( pac.release_zone() );
+	//
+	//         // 5.3
+	//         pac.reset();
+	//
+	//         // do some with the object with the old zone.
+	//         do_something(o, olife);
+	//     }
+	// }
+	//
 
 public:
 	// These functions are usable when non-MessagePack message follows after
@@ -80,19 +125,20 @@ public:
 	void remove_nonparsed_buffer();
 
 private:
-	struct context;
-	context* m_ctx;
-
 	char* m_buffer;
 	size_t m_used;
 	size_t m_free;
 	size_t m_off;
 
+	std::auto_ptr<zone> m_zone;
+
+	struct context;
+	context* m_ctx;
+
 private:
 	void expand_buffer(size_t len);
 
 private:
-	unpacker();
 	unpacker(const unpacker&);
 
 public:

@@ -178,12 +178,13 @@ private:
 };
 
 
-unpacker::unpacker(zone& z) :
-	m_ctx(new context(&z)),
+unpacker::unpacker() :
 	m_buffer(NULL),
 	m_used(0),
 	m_free(0),
-	m_off(0)
+	m_off(0),
+	m_zone(new zone()),
+	m_ctx(new context(&*m_zone))
 { }
 
 
@@ -201,14 +202,14 @@ void unpacker::expand_buffer(size_t len)
 		else { next_size = UNPACKER_INITIAL_BUFFER_SIZE; }
 		while(next_size < len + m_used) { next_size *= 2; }
 
-		m_buffer = m_ctx->user()->realloc(m_buffer, next_size);
+		m_buffer = m_zone->realloc(m_buffer, next_size);
 		m_free = next_size - m_used;
 
 	} else {
 		size_t next_size = UNPACKER_INITIAL_BUFFER_SIZE;
 		while(next_size < len + m_used - m_off) { next_size *= 2; }
 
-		char* tmp = m_ctx->user()->malloc(next_size);
+		char* tmp = m_zone->malloc(next_size);
 		memcpy(tmp, m_buffer+m_off, m_used-m_off);
 
 		m_buffer = tmp;
@@ -226,9 +227,38 @@ bool unpacker::execute()
 	} else if(ret == 0) {
 		return false;
 	} else {
-		expand_buffer(0);
 		return true;
 	}
+}
+
+zone* unpacker::release_zone()
+{
+	zone* n = new zone();
+	std::auto_ptr<zone> old(m_zone.release());
+	m_zone.reset(n);
+
+	//std::auto_ptr<zone> old(new zone());
+	//m_zone.swap(old);
+
+	// move all bytes in m_buffer to new buffer from the new zone
+	if(m_used <= m_off) {
+		m_buffer = NULL;
+		m_used = 0;
+		m_free = 0;
+		m_off = 0;
+	} else {
+		try {
+			expand_buffer(0);
+		} catch (...) {
+			// m_zone.swap(old);
+			zone* tmp = old.release();
+			old.reset(m_zone.release());
+			m_zone.reset(tmp);
+			throw;
+		}
+	}
+	m_ctx->user(&*m_zone);
+	return old.release();
 }
 
 object unpacker::data()
@@ -236,10 +266,10 @@ object unpacker::data()
 	return m_ctx->data();
 }
 
-void unpacker::reset(zone& z)
+void unpacker::reset()
 {
-	if(m_off != 0) { expand_buffer(0); }
-	m_ctx->reset(&z);
+	if(m_off != 0) { std::auto_ptr<zone> old(release_zone()); }
+	m_ctx->reset();
 }
 
 

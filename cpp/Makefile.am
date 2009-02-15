@@ -14,9 +14,11 @@ nobase_include_HEADERS = \
 		msgpack/type.hpp \
 		msgpack/type/array.hpp \
 		msgpack/type/boolean.hpp \
+		msgpack/type/float.hpp \
 		msgpack/type/integer.hpp \
 		msgpack/type/map.hpp \
 		msgpack/type/nil.hpp \
+		msgpack/type/raw.hpp \
 		msgpack/type/tuple.hpp
 
 noinst_HEADERS = \
