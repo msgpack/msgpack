@@ -30,7 +30,7 @@ static inline VALUE msgpack_unpack_unsigned_int_32(msgpack_unpack_context* x, ui
 { return UINT2NUM(d); }
 
 static inline VALUE msgpack_unpack_unsigned_int_64(msgpack_unpack_context* x, uint64_t d)
-{ return UINT2NUM(d); }  // FIXME
+{ return rb_ull2inum(d); }
 
 static inline VALUE msgpack_unpack_signed_int_8(msgpack_unpack_context* x, int8_t d)
 { return INT2FIX((long)d); }
@@ -42,7 +42,7 @@ static inline VALUE msgpack_unpack_signed_int_32(msgpack_unpack_context* x, int3
 { return INT2NUM((long)d); }
 
 static inline VALUE msgpack_unpack_signed_int_64(msgpack_unpack_context* x, int64_t d)
-{ return INT2NUM(d); }  // FIXME
+{ return rb_ll2inum(d); }
 
 static inline VALUE msgpack_unpack_float(msgpack_unpack_context* x, float d)
 { return rb_float_new(d); }
@@ -63,7 +63,7 @@ static inline VALUE msgpack_unpack_array_start(msgpack_unpack_context* x, unsign
 { return rb_ary_new2(n); }
 
 static inline void msgpack_unpack_array_item(msgpack_unpack_context* x, VALUE c, VALUE o)
-{ rb_ary_push(c, o); }
+{ rb_ary_push(c, o); }  // FIXME set value directry RARRAY_PTR(obj)[RARRAY_LEN(obj)++]
 
 static inline VALUE msgpack_unpack_map_start(msgpack_unpack_context* x, unsigned int n)
 { return rb_hash_new(); }

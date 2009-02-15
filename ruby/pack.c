@@ -62,6 +62,23 @@ static VALUE MessagePack_Fixnum_to_msgpack(int argc, VALUE *argv, VALUE self)
 	return out;
 }
 
+
+#ifndef RBIGNUM_SIGN  // Ruby 1.8
+#define RBIGNUM_SIGN(b) (RBIGNUM(b)->sign)
+#endif
+
+static VALUE MessagePack_Bignum_to_msgpack(int argc, VALUE *argv, VALUE self)
+{
+	ARG_BUFFER(out, argc, argv);
+	// FIXME bignum
+	if(RBIGNUM_SIGN(self)) {  // positive
+		msgpack_pack_unsigned_int_64(out, rb_big2ull(self));
+	} else {  // negative
+		msgpack_pack_signed_int_64(out, rb_big2ll(self));
+	}
+	return out;
+}
+
 static VALUE MessagePack_Float_to_msgpack(int argc, VALUE *argv, VALUE self)
 {
 	ARG_BUFFER(out, argc, argv);
@@ -122,6 +139,7 @@ void Init_msgpack_pack(VALUE mMessagePack)
 	rb_define_method_id(rb_cTrueClass,  s_to_msgpack, MessagePack_TrueClass_to_msgpack, -1);
 	rb_define_method_id(rb_cFalseClass, s_to_msgpack, MessagePack_FalseClass_to_msgpack, -1);
 	rb_define_method_id(rb_cFixnum, s_to_msgpack, MessagePack_Fixnum_to_msgpack, -1);
+	rb_define_method_id(rb_cBignum, s_to_msgpack, MessagePack_Bignum_to_msgpack, -1);
 	rb_define_method_id(rb_cFloat,  s_to_msgpack, MessagePack_Float_to_msgpack, -1);
 	rb_define_method_id(rb_cString, s_to_msgpack, MessagePack_String_to_msgpack, -1);
 	rb_define_method_id(rb_cArray,  s_to_msgpack, MessagePack_Array_to_msgpack, -1);
