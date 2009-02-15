@@ -34,14 +34,14 @@ public:
 public:
 	void pack_int(int d)					{ pack_int_impl(m_stream, d); }
 	void pack_unsigned_int(unsigned int d)	{ pack_unsigned_int_impl(m_stream, d); }
-	void pack_unsigned_int_8(uint8_t d)		{ pack_unsigned_int_8_impl(m_stream, d); }
-	void pack_unsigned_int_16(uint16_t d)	{ pack_unsigned_int_16_impl(m_stream, d); }
-	void pack_unsigned_int_32(uint32_t d)	{ pack_unsigned_int_32_impl(m_stream, d); }
-	void pack_unsigned_int_64(uint64_t d)	{ pack_unsigned_int_64_impl(m_stream, d); }
-	void pack_signed_int_8(uint8_t d)		{ pack_signed_int_8_impl(m_stream, d); }
-	void pack_signed_int_16(uint16_t d)		{ pack_signed_int_16_impl(m_stream, d); }
-	void pack_signed_int_32(uint32_t d)		{ pack_signed_int_32_impl(m_stream, d); }
-	void pack_signed_int_64(uint64_t d)		{ pack_signed_int_64_impl(m_stream, d); }
+	void pack_uint8(uint8_t d)				{ pack_uint8_impl(m_stream, d); }
+	void pack_uint16(uint16_t d)			{ pack_uint16_impl(m_stream, d); }
+	void pack_uint32(uint32_t d)			{ pack_uint32_impl(m_stream, d); }
+	void pack_uint64(uint64_t d)			{ pack_uint64_impl(m_stream, d); }
+	void pack_int8(uint8_t d)				{ pack_int8_impl(m_stream, d); }
+	void pack_int16(uint16_t d)				{ pack_int16_impl(m_stream, d); }
+	void pack_int32(uint32_t d)				{ pack_int32_impl(m_stream, d); }
+	void pack_int64(uint64_t d)				{ pack_int64_impl(m_stream, d); }
 	void pack_float(float d)				{ pack_float_impl(m_stream, d); }
 	void pack_double(double d)				{ pack_double_impl(m_stream, d); }
 	void pack_nil()							{ pack_nil(m_stream); }
@@ -49,20 +49,19 @@ public:
 	void pack_false()						{ pack_false(m_stream); }
 	void pack_array(unsigned int n)			{ pack_array_impl(m_stream, n); }
 	void pack_map(unsigned int n)			{ pack_map_impl(m_stream, n); }
-	void pack_string(const char* b)			{ pack_string_impl(m_stream, b); }
 	void pack_raw(const char* b, size_t l)	{ pack_raw_impl(m_stream, (const void*)b, l); }
 
 private:
 	static void pack_int_impl(Stream& x, int d);
 	static void pack_unsigned_int_impl(Stream& x, unsigned int d);
-	static void pack_unsigned_int_8_impl(Stream& x, uint8_t d);
-	static void pack_unsigned_int_16_impl(Stream& x, uint16_t d);
-	static void pack_unsigned_int_32_impl(Stream& x, uint32_t d);
-	static void pack_unsigned_int_64_impl(Stream& x, uint64_t d);
-	static void pack_signed_int_8_impl(Stream& x, int8_t d);
-	static void pack_signed_int_16_impl(Stream& x, int16_t d);
-	static void pack_signed_int_32_impl(Stream& x, int32_t d);
-	static void pack_signed_int_64_impl(Stream& x, int64_t d);
+	static void pack_uint8_impl(Stream& x, uint8_t d);
+	static void pack_uint16_impl(Stream& x, uint16_t d);
+	static void pack_uint32_impl(Stream& x, uint32_t d);
+	static void pack_uint64_impl(Stream& x, uint64_t d);
+	static void pack_int8_impl(Stream& x, int8_t d);
+	static void pack_int16_impl(Stream& x, int16_t d);
+	static void pack_int32_impl(Stream& x, int32_t d);
+	static void pack_int64_impl(Stream& x, int64_t d);
 	static void pack_float_impl(Stream& x, float d);
 	static void pack_double_impl(Stream& x, double d);
 	static void pack_nil_impl(Stream& x);
@@ -70,7 +69,6 @@ private:
 	static void pack_false_impl(Stream& x);
 	static void pack_array_impl(Stream& x, unsigned int n);
 	static void pack_map_impl(Stream& x, unsigned int n);
-	static void pack_string_impl(Stream& x, const char* b);
 	static void pack_raw_impl(Stream& x, const void* b, size_t l);
 	static void append_buffer(Stream& x, const unsigned char* buf, unsigned int len)
 		{ x.write((const char*)buf, len); }
@@ -85,11 +83,10 @@ private:
 #define msgpack_pack_inline_func(name) \
 	template <typename Stream> \
 	inline void packer<Stream>::pack_ ## name ## _impl
-#define msgpack_pack_context Stream&
+#define msgpack_pack_user Stream&
 #define msgpack_pack_append_buffer append_buffer
-#include "msgpack/pack/inline_impl.h"
-#undef msgpack_pack_context
-#undef msgpack_pack_append_buffer
+#include "msgpack/pack_template.h"
+
 
 template <typename Stream>
 packer<Stream>::packer(Stream& s) : m_stream(s) { }
@@ -118,14 +115,14 @@ public:
 public:
 	void pack_int(int d)					{ pack_int_impl(m_stream, d); }
 	void pack_unsigned_int(unsigned int d)	{ pack_unsigned_int_impl(m_stream, d); }
-	void pack_unsigned_int_8(uint8_t d)		{ pack_unsigned_int_8_impl(m_stream, d); }
-	void pack_unsigned_int_16(uint16_t d)	{ pack_unsigned_int_16_impl(m_stream, d); }
-	void pack_unsigned_int_32(uint32_t d)	{ pack_unsigned_int_32_impl(m_stream, d); }
-	void pack_unsigned_int_64(uint64_t d)	{ pack_unsigned_int_64_impl(m_stream, d); }
-	void pack_signed_int_8(uint8_t d)		{ pack_signed_int_8_impl(m_stream, d); }
-	void pack_signed_int_16(uint16_t d)		{ pack_signed_int_16_impl(m_stream, d); }
-	void pack_signed_int_32(uint32_t d)		{ pack_signed_int_32_impl(m_stream, d); }
-	void pack_signed_int_64(uint64_t d)		{ pack_signed_int_64_impl(m_stream, d); }
+	void pack_uint8(uint8_t d)				{ pack_uint8_impl(m_stream, d); }
+	void pack_uint16(uint16_t d)			{ pack_uint16_impl(m_stream, d); }
+	void pack_uint32(uint32_t d)			{ pack_uint32_impl(m_stream, d); }
+	void pack_uint64(uint64_t d)			{ pack_uint64_impl(m_stream, d); }
+	void pack_int8(uint8_t d)				{ pack_int8_impl(m_stream, d); }
+	void pack_int16(uint16_t d)				{ pack_int16_impl(m_stream, d); }
+	void pack_int32(uint32_t d)				{ pack_int32_impl(m_stream, d); }
+	void pack_int64(uint64_t d)				{ pack_int64_impl(m_stream, d); }
 	void pack_float(float d)				{ pack_float_impl(m_stream, d); }
 	void pack_double(double d)				{ pack_double_impl(m_stream, d); }
 	void pack_nil()							{ pack_nil_impl(m_stream); }
@@ -139,14 +136,14 @@ public:
 private:
 	static void pack_int_impl(dynamic_stream& x, int d);
 	static void pack_unsigned_int_impl(dynamic_stream& x, unsigned int d);
-	static void pack_unsigned_int_8_impl(dynamic_stream& x, uint8_t d);
-	static void pack_unsigned_int_16_impl(dynamic_stream& x, uint16_t d);
-	static void pack_unsigned_int_32_impl(dynamic_stream& x, uint32_t d);
-	static void pack_unsigned_int_64_impl(dynamic_stream& x, uint64_t d);
-	static void pack_signed_int_8_impl(dynamic_stream& x, int8_t d);
-	static void pack_signed_int_16_impl(dynamic_stream& x, int16_t d);
-	static void pack_signed_int_32_impl(dynamic_stream& x, int32_t d);
-	static void pack_signed_int_64_impl(dynamic_stream& x, int64_t d);
+	static void pack_uint8_impl(dynamic_stream& x, uint8_t d);
+	static void pack_uint16_impl(dynamic_stream& x, uint16_t d);
+	static void pack_uint32_impl(dynamic_stream& x, uint32_t d);
+	static void pack_uint64_impl(dynamic_stream& x, uint64_t d);
+	static void pack_int8_impl(dynamic_stream& x, int8_t d);
+	static void pack_int16_impl(dynamic_stream& x, int16_t d);
+	static void pack_int32_impl(dynamic_stream& x, int32_t d);
+	static void pack_int64_impl(dynamic_stream& x, int64_t d);
 	static void pack_float_impl(dynamic_stream& x, float d);
 	static void pack_double_impl(dynamic_stream& x, double d);
 	static void pack_nil_impl(dynamic_stream& x);
@@ -166,14 +163,11 @@ private:
 	dynamic_packer();
 };
 
-#undef MSGPACK_PACK_INLINE_IMPL_H__
 #define msgpack_pack_inline_func(name) \
 	inline void dynamic_packer::pack_ ## name ## _impl
-#define msgpack_pack_context dynamic_stream&
+#define msgpack_pack_user dynamic_stream&
 #define msgpack_pack_append_buffer append_buffer
-#include "msgpack/pack/inline_impl.h"
-#undef msgpack_pack_context
-#undef msgpack_pack_append_buffer
+#include "msgpack/pack_template.h"
 
 template <typename Stream>
 dynamic_packer::dynamic_packer(Stream& s) : m_stream(s) { }

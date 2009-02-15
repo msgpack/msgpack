@@ -15,11 +15,21 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-#include "pack_inline.h"
+#include "msgpack/pack.h"
 #include <stdlib.h>
-#include <stdio.h>
 
-msgpack_pack_t* msgpack_pack_new(void* data, msgpack_pack_callback_t callback)
+
+#define msgpack_pack_inline_func(name) \
+	void msgpack_pack_##name
+
+#define msgpack_pack_user msgpack_pack_t*
+
+#define msgpack_pack_append_buffer(user, buf, len) \
+	(*(user)->callback)((user)->data, (const char*)buf, len)
+
+#include "msgpack/pack_template.h"
+
+msgpack_pack_t* msgpack_pack_new(void* data, msgpack_pack_append_buffer_t callback)
 {
 	msgpack_pack_t* ctx = calloc(1, sizeof(msgpack_pack_t));
 	if(!ctx) { return NULL; }
@@ -31,10 +41,5 @@ msgpack_pack_t* msgpack_pack_new(void* data, msgpack_pack_callback_t callback)
 void msgpack_pack_free(msgpack_pack_t* ctx)
 {
 	free(ctx);
-}
-
-static inline void msgpack_pack_append_buffer(msgpack_pack_t* ctx, const unsigned char* b, unsigned int l)
-{
-	ctx->callback(ctx->data, b, l);
 }
 

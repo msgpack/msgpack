@@ -16,10 +16,95 @@
 //    limitations under the License.
 //
 #include "msgpack/unpack.hpp"
-#include "unpack_context.hpp"
+#include "msgpack/unpack_define.h"
 #include <stdlib.h>
 
 namespace msgpack {
+
+
+#define msgpack_unpack_struct(name) \
+	struct msgpack_unpacker_##name
+
+#define msgpack_unpack_func(ret, name) \
+	ret msgpack_unpacker_##name
+
+#define msgpack_unpack_callback(name) \
+	msgpack_unpack_##name
+
+#define msgpack_unpack_object object_class*
+
+#define msgpack_unpack_user zone*
+
+
+struct msgpack_unpacker_context;
+
+static void msgpack_unpacker_init(struct msgpack_unpacker_context* ctx);
+
+static object_class* msgpack_unpacker_data(struct msgpack_unpacker_context* ctx);
+
+static int msgpack_unpacker_execute(struct msgpack_unpacker_context* ctx,
+		const char* data, size_t len, size_t* off);
+
+
+static inline object_class* msgpack_unpack_init(zone** z)
+{ return NULL; }
+
+static inline object_class* msgpack_unpack_uint8(zone** z, uint8_t d)
+{ return (*z)->nu8(d); }
+
+static inline object_class* msgpack_unpack_uint16(zone** z, uint16_t d)
+{ return (*z)->nu16(d); }
+
+static inline object_class* msgpack_unpack_uint32(zone** z, uint32_t d)
+{ return (*z)->nu32(d); }
+
+static inline object_class* msgpack_unpack_uint64(zone** z, uint64_t d)
+{ return (*z)->nu64(d); }
+
+static inline object_class* msgpack_unpack_int8(zone** z, int8_t d)
+{ return (*z)->ni8(d); }
+
+static inline object_class* msgpack_unpack_int16(zone** z, int16_t d)
+{ return (*z)->ni16(d); }
+
+static inline object_class* msgpack_unpack_int32(zone** z, int32_t d)
+{ return (*z)->ni32(d); }
+
+static inline object_class* msgpack_unpack_int64(zone** z, int64_t d)
+{ return (*z)->ni64(d); }
+
+static inline object_class* msgpack_unpack_float(zone** z, float d)
+{ return (*z)->nfloat(d); }
+
+static inline object_class* msgpack_unpack_double(zone** z, double d)
+{ return (*z)->ndouble(d); }
+
+static inline object_class* msgpack_unpack_nil(zone** z)
+{ return (*z)->nnil(); }
+
+static inline object_class* msgpack_unpack_true(zone** z)
+{ return (*z)->ntrue(); }
+
+static inline object_class* msgpack_unpack_false(zone** z)
+{ return (*z)->nfalse(); }
+
+static inline object_class* msgpack_unpack_array(zone** z, unsigned int n)
+{ return (*z)->narray(n); }
+
+static inline void msgpack_unpack_array_item(zone** z, object_class* c, object_class* o)
+{ reinterpret_cast<object_array*>(c)->push_back(o); }
+
+static inline object_class* msgpack_unpack_map(zone** z, unsigned int n)
+{ return (*z)->nmap(); }
+
+static inline void msgpack_unpack_map_item(zone** z, object_class* c, object_class* k, object_class* v)
+{ reinterpret_cast<object_map*>(c)->store(k, v); }
+
+static inline object_class* msgpack_unpack_raw(zone** z, const char* b, const char* p, unsigned int l)
+{ return (*z)->nraw_ref(p, l); }
+
+
+#include "msgpack/unpack_template.h"
 
 
 struct unpacker::context {
@@ -65,7 +150,7 @@ struct unpacker::context {
 	}
 
 private:
-	msgpack_unpacker m_ctx;
+	msgpack_unpacker_context m_ctx;
 
 private:
 	context();
@@ -171,17 +256,26 @@ void unpacker::reset()
 }
 
 
-object unpacker::unpack(const char* data, size_t len, zone& z)
+object unpacker::unpack(const char* data, size_t len, zone& z, size_t* off)
 {
 	context ctx(&z);
-	size_t off = 0;
-	int ret = ctx.execute(data, len, &off);
-	if(ret < 0) {
-		throw unpack_error("parse error");
-	} else if(ret == 0) {
-		throw unpack_error("insufficient bytes");
-	} else if(off < len) {
-		throw unpack_error("extra bytes");
+	if(off) {
+		int ret = ctx.execute(data, len, off);
+		if(ret < 0) {
+			throw unpack_error("parse error");
+		} else if(ret == 0) {
+			throw unpack_error("insufficient bytes");
+		}
+	} else {
+		size_t noff = 0;
+		int ret = ctx.execute(data, len, &noff);
+		if(ret < 0) {
+			throw unpack_error("parse error");
+		} else if(ret == 0) {
+			throw unpack_error("insufficient bytes");
+		} else if(noff < len) {
+			throw unpack_error("extra bytes");
+		}
 	}
 	return ctx.data();
 }

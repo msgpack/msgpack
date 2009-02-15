@@ -1,0 +1,360 @@
+/*
+ * MessagePack unpacking routine template
+ *
+ * Copyright (C) 2008 FURUHASHI Sadayuki
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
+#ifndef msgpack_unpack_func
+#error msgpack_unpack_func template is not defined
+#endif
+
+#ifndef msgpack_unpack_callback
+#error msgpack_unpack_callback template is not defined
+#endif
+
+#ifndef msgpack_unpack_struct
+#error msgpack_unpack_struct template is not defined
+#endif
+
+#ifndef msgpack_unpack_struct_decl
+#define msgpack_unpack_struct_decl(name) msgpack_unpack_struct(name)
+#endif
+
+#ifndef msgpack_unpack_object
+#error msgpack_unpack_object type is not defined
+#endif
+
+#ifndef msgpack_unpack_user
+#error msgpack_unpack_user type is not defined
+#endif
+
+
+msgpack_unpack_struct_decl(stack) {
+	msgpack_unpack_object obj;
+	size_t count;
+	unsigned int ct;
+	msgpack_unpack_object map_key;
+};
+
+msgpack_unpack_struct_decl(context) {
+	msgpack_unpack_user user;  // must be first
+	unsigned int cs;
+	unsigned int trail;
+	unsigned int top;
+	msgpack_unpack_struct(stack) stack[MSGPACK_MAX_STACK_SIZE];
+};
+
+
+msgpack_unpack_func(void, init)(msgpack_unpack_struct(context)* ctx)
+{
+	/*memset(ctx, 0, sizeof( msgpack_unpack_struct(context) ));   FIXME needed? */
+	ctx->cs = CS_HEADER;
+	ctx->trail = 0;
+	ctx->top = 0;
+	ctx->stack[0].obj = msgpack_unpack_callback(init)(&ctx->user);
+}
+
+msgpack_unpack_func(msgpack_unpack_object, data)(msgpack_unpack_struct(context)* unpacker)
+{
+	return (unpacker)->stack[0].obj;
+}
+
+
+msgpack_unpack_func(int, execute)(msgpack_unpack_struct(context)* ctx, const char* data, size_t len, size_t* off)
+{
+	assert(len >= *off);
+
+	const unsigned char* p = (unsigned char*)data + *off;
+	const unsigned char* const pe = (unsigned char*)data + len;
+	const void* n = NULL;
+
+	unsigned int trail = ctx->trail;
+	unsigned int cs = ctx->cs;
+	unsigned int top = ctx->top;
+	msgpack_unpack_struct(stack)* stack = ctx->stack;
+	msgpack_unpack_user* user = &ctx->user;
+
+	msgpack_unpack_object obj;
+	msgpack_unpack_struct(stack)* c = NULL;
+
+	int ret;
+
+#define push_simple_value(func) \
+	obj = msgpack_unpack_callback(func)(user); \
+	/*printf("obj %d\n",obj);*/ \
+	goto _push
+#define push_fixed_value(func, arg) \
+	obj = msgpack_unpack_callback(func)(user, arg); \
+	/*printf("obj %d\n",obj);*/ \
+	goto _push
+#define push_variable_value(func, base, pos, len) \
+	obj = msgpack_unpack_callback(func)(user, (const char*)base, (const char*)pos, len); \
+	/*printf("obj %d\n",obj);*/ \
+	goto _push
+
+#define again_fixed_trail(_cs, trail_len) \
+	trail = trail_len; \
+	cs = _cs; \
+	goto _fixed_trail_again
+#define again_fixed_trail_if_zero(_cs, trail_len, ifzero) \
+	trail = trail_len; \
+	if(trail == 0) { goto ifzero; } \
+	cs = _cs; \
+	goto _fixed_trail_again
+
+#define start_container(func, count_, ct_) \
+	stack[top].obj = msgpack_unpack_callback(func)(user, count_); \
+	if((count_) == 0) { obj = stack[top].obj; goto _push; } \
+	if(top >= MSGPACK_MAX_STACK_SIZE) { goto _failed; } \
+	stack[top].ct = ct_; \
+	stack[top].count = count_; \
+	/*printf("container %d count %d stack %d\n",stack[top].obj,count_,top);*/ \
+	/*printf("stack push %d\n", top);*/ \
+	++top; \
+	goto _header_again
+
+#define NEXT_CS(p) \
+	((unsigned int)*p & 0x1f)
+
+#define PTR_CAST_8(ptr)   (*(uint8_t*)ptr)
+#define PTR_CAST_16(ptr)  msgpack_betoh16(*(uint16_t*)ptr)
+#define PTR_CAST_32(ptr)  msgpack_betoh32(*(uint32_t*)ptr)
+#define PTR_CAST_64(ptr)  msgpack_betoh64(*(uint64_t*)ptr)
+
+	if(p == pe) { goto _out; }
+	do {
+		switch(cs) {
+		case CS_HEADER:
+			switch(*p) {
+			case 0x00 ... 0x7f:  // Positive Fixnum
+				push_fixed_value(uint8, *(uint8_t*)p);
+			case 0xe0 ... 0xff:  // Negative Fixnum
+				push_fixed_value(int8, *(int8_t*)p);
+			case 0xc0 ... 0xdf:  // Variable
+				switch(*p) {
+				case 0xc0:  // nil
+					push_simple_value(nil);
+				//case 0xc1:  // string
+				//	again_terminal_trail(NEXT_CS(p), p+1);
+				case 0xc2:  // false
+					push_simple_value(false);
+				case 0xc3:  // true
+					push_simple_value(true);
+				//case 0xc4:
+				//case 0xc5:
+				//case 0xc6:
+				//case 0xc7:
+				//case 0xc8:
+				//case 0xc9:
+				case 0xca:  // float
+				case 0xcb:  // double
+				case 0xcc:  // unsigned int  8
+				case 0xcd:  // unsigned int 16
+				case 0xce:  // unsigned int 32
+				case 0xcf:  // unsigned int 64
+				case 0xd0:  // signed int  8
+				case 0xd1:  // signed int 16
+				case 0xd2:  // signed int 32
+				case 0xd3:  // signed int 64
+					again_fixed_trail(NEXT_CS(p), 1 << (((unsigned int)*p) & 0x03));
+				//case 0xd4:
+				//case 0xd5:
+				//case 0xd6:  // big integer 16
+				//case 0xd7:  // big integer 32
+				//case 0xd8:  // big float 16
+				//case 0xd9:  // big float 32
+				case 0xda:  // raw 16
+				case 0xdb:  // raw 32
+				case 0xdc:  // array 16
+				case 0xdd:  // array 32
+				case 0xde:  // map 16
+				case 0xdf:  // map 32
+					again_fixed_trail(NEXT_CS(p), 2 << (((unsigned int)*p) & 0x01));
+				default:
+					goto _failed;
+				}
+			case 0xa0 ... 0xbf:  // FixRaw
+				again_fixed_trail_if_zero(ACS_RAW_VALUE, ((unsigned int)*p & 0x1f), _raw_zero);
+			case 0x90 ... 0x9f:  // FixArray
+				start_container(array, ((unsigned int)*p) & 0x0f, CT_ARRAY_ITEM);
+			case 0x80 ... 0x8f:  // FixMap
+				start_container(map, ((unsigned int)*p) & 0x0f, CT_MAP_KEY);
+
+			default:
+				goto _failed;
+			}
+			// end CS_HEADER
+
+
+		_fixed_trail_again:
+			++p;
+
+		default:
+			if((size_t)(pe - p) < trail) { goto _out; }
+			n = p;  p += trail - 1;
+			switch(cs) {
+			//case CS_
+			//case CS_
+			case CS_FLOAT: {
+					uint32_t x = PTR_CAST_32(n);  // FIXME
+					push_fixed_value(float, *((float*)&x)); }
+			case CS_DOUBLE: {
+					uint64_t x = PTR_CAST_64(n);  // FIXME
+					push_fixed_value(double, *((double*)&x)); }
+			case CS_UINT_8:
+				push_fixed_value(uint8, (uint8_t)PTR_CAST_8(n));
+			case CS_UINT_16:
+				push_fixed_value(uint16, (uint16_t)PTR_CAST_16(n));
+			case CS_UINT_32:
+				push_fixed_value(uint32, (uint32_t)PTR_CAST_32(n));
+			case CS_UINT_64:
+				push_fixed_value(uint64, (uint64_t)PTR_CAST_64(n));
+
+			case CS_INT_8:
+				push_fixed_value(int8, (int8_t)PTR_CAST_8(n));
+			case CS_INT_16:
+				push_fixed_value(int16, (int16_t)PTR_CAST_16(n));
+			case CS_INT_32:
+				push_fixed_value(int32, (int32_t)PTR_CAST_32(n));
+			case CS_INT_64:
+				push_fixed_value(int64, (int64_t)PTR_CAST_64(n));
+
+			//case CS_
+			//case CS_
+			//case CS_BIG_INT_16:
+			//	again_fixed_trail_if_zero(ACS_BIG_INT_VALUE, (uint16_t)PTR_CAST_16(n), _big_int_zero);
+			//case CS_BIG_INT_32:
+			//	again_fixed_trail_if_zero(ACS_BIG_INT_VALUE, (uint32_t)PTR_CAST_32(n), _big_int_zero);
+			//case ACS_BIG_INT_VALUE:
+			//_big_int_zero:
+			//	// FIXME
+			//	push_variable_value(big_int, data, n, trail);
+
+			//case CS_BIG_FLOAT_16:
+			//	again_fixed_trail_if_zero(ACS_BIG_FLOAT_VALUE, (uint16_t)PTR_CAST_16(n), _big_float_zero);
+			//case CS_BIG_FLOAT_32:
+			//	again_fixed_trail_if_zero(ACS_BIG_FLOAT_VALUE, (uint32_t)PTR_CAST_32(n), _big_float_zero);
+			//case ACS_BIG_FLOAT_VALUE:
+			//_big_float_zero:
+			//	// FIXME
+			//	push_variable_value(big_float, data, n, trail);
+
+			case CS_RAW_16:
+				again_fixed_trail_if_zero(ACS_RAW_VALUE, (uint16_t)PTR_CAST_16(n), _raw_zero);
+			case CS_RAW_32:
+				again_fixed_trail_if_zero(ACS_RAW_VALUE, (uint32_t)PTR_CAST_32(n), _raw_zero);
+			case ACS_RAW_VALUE:
+			_raw_zero:
+				push_variable_value(raw, data, n, trail);
+
+			case CS_ARRAY_16:
+				start_container(array, (uint16_t)PTR_CAST_16(n), CT_ARRAY_ITEM);
+			case CS_ARRAY_32:
+				start_container(array, (uint32_t)PTR_CAST_32(n), CT_ARRAY_ITEM);
+
+			case CS_MAP_16:
+				start_container(map, (uint16_t)PTR_CAST_16(n), CT_MAP_KEY);
+			case CS_MAP_32:
+				start_container(map, (uint32_t)PTR_CAST_32(n), CT_MAP_KEY);
+
+			default:
+				goto _failed;
+			}
+		}
+
+_push:
+	if(top == 0) { goto _finish; }
+	c = &stack[top-1];
+	switch(c->ct) {
+	case CT_ARRAY_ITEM:
+		msgpack_unpack_callback(array_item)(user, c->obj, obj);
+		if(--c->count == 0) {
+			obj = c->obj;
+			--top;
+			/*printf("stack pop %d\n", top);*/
+			goto _push;
+		}
+		goto _header_again;
+	case CT_MAP_KEY:
+		c->map_key = obj;
+		c->ct = CT_MAP_VALUE;
+		goto _header_again;
+	case CT_MAP_VALUE:
+		msgpack_unpack_callback(map_item)(user, c->obj, c->map_key, obj);
+		if(--c->count == 0) {
+			obj = c->obj;
+			--top;
+			/*printf("stack pop %d\n", top);*/
+			goto _push;
+		}
+		c->ct = CT_MAP_KEY;
+		goto _header_again;
+
+	default:
+		goto _failed;
+	}
+
+_header_again:
+		cs = CS_HEADER;
+		++p;
+	} while(p != pe);
+	goto _out;
+
+
+_finish:
+	stack[0].obj = obj;
+	++p;
+	ret = 1;
+	/*printf("-- finish --\n"); */
+	goto _end;
+
+_failed:
+	/*printf("** FAILED **\n"); */
+	ret = -1;
+	goto _end;
+
+_out:
+	ret = 0;
+	goto _end;
+
+_end:
+	ctx->cs = cs;
+	ctx->trail = trail;
+	ctx->top = top;
+	*off = p - (const unsigned char*)data;
+
+	return ret;
+}
+
+
+#undef msgpack_unpack_func
+#undef msgpack_unpack_callback
+#undef msgpack_unpack_struct
+#undef msgpack_unpack_object
+#undef msgpack_unpack_user
+
+#undef push_simple_value
+#undef push_fixed_value
+#undef push_variable_value
+#undef again_fixed_trail
+#undef again_fixed_trail_if_zero
+#undef start_container
+
+#undef NEXT_CS
+#undef PTR_CAST_8
+#undef PTR_CAST_16
+#undef PTR_CAST_32
+#undef PTR_CAST_64
+

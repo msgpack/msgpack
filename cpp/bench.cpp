@@ -6,10 +6,10 @@
 #include <stdexcept>
 #include <string>
 
-static const unsigned int TASK_INT_NUM = 1<<24;
-static const unsigned int TASK_STR_LEN = 1<<15;
-//static const unsigned int TASK_INT_NUM = 1<<23;
-//static const unsigned int TASK_STR_LEN = 1<<14;
+//static const unsigned int TASK_INT_NUM = 1<<24;
+//static const unsigned int TASK_STR_LEN = 1<<15;
+static const unsigned int TASK_INT_NUM = 1<<22;
+static const unsigned int TASK_STR_LEN = 1<<13;
 static const char* TASK_STR_PTR;
 
 
@@ -24,7 +24,7 @@ public:
 			+ (double)(endtime.tv_usec - m_timeval.tv_usec) / 1000 / 1000;
 		std::cout << sec << " sec" << std::endl;
 		std::cout << (double(bufsz)/1024/1024) << " MB" << std::endl;
-		std::cout << (bufsz/sec/1024/1024*8) << " Mbps" << std::endl;
+		std::cout << (bufsz/sec/1000/1000*8) << " Mbps" << std::endl;
 	}
 private:
 	timeval m_timeval;

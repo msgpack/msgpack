@@ -15,7 +15,41 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-#include "pack_inline.h"
+#include "ruby.h"
+#include <stddef.h>
+#include <stdint.h>
+
+#define msgpack_pack_inline_func(name) \
+	static void msgpack_pack_##name
+
+#define msgpack_pack_user VALUE
+
+#define msgpack_pack_append_buffer(user, buf, len) \
+	rb_str_buf_cat(user, (const void*)buf, len)
+
+/*
+static void msgpack_pack_int(VALUE x, int d);
+static void msgpack_pack_unsigned_int(VALUE x, unsigned int d);
+static void msgpack_pack_uint8(VALUE x, uint8_t d);
+static void msgpack_pack_uint16(VALUE x, uint16_t d);
+static void msgpack_pack_uint32(VALUE x, uint32_t d);
+static void msgpack_pack_uint64(VALUE x, uint64_t d);
+static void msgpack_pack_int8(VALUE x, int8_t d);
+static void msgpack_pack_int16(VALUE x, int16_t d);
+static void msgpack_pack_int32(VALUE x, int32_t d);
+static void msgpack_pack_int64(VALUE x, int64_t d);
+static void msgpack_pack_float(VALUE x, float d);
+static void msgpack_pack_double(VALUE x, double d);
+static void msgpack_pack_nil(VALUE x);
+static void msgpack_pack_true(VALUE x);
+static void msgpack_pack_false(VALUE x);
+static void msgpack_pack_array(VALUE x, unsigned int n);
+static void msgpack_pack_map(VALUE x, unsigned int n);
+static void msgpack_pack_raw(VALUE x, const void* b, size_t l);
+*/
+
+#include "msgpack/pack_template.h"
+
 
 #ifndef RUBY_VM
 #include "st.h"  // ruby hash
@@ -72,9 +106,9 @@ static VALUE MessagePack_Bignum_to_msgpack(int argc, VALUE *argv, VALUE self)
 	ARG_BUFFER(out, argc, argv);
 	// FIXME bignum
 	if(RBIGNUM_SIGN(self)) {  // positive
-		msgpack_pack_unsigned_int_64(out, rb_big2ull(self));
+		msgpack_pack_uint64(out, rb_big2ull(self));
 	} else {  // negative
-		msgpack_pack_signed_int_64(out, rb_big2ll(self));
+		msgpack_pack_int64(out, rb_big2ll(self));
 	}
 	return out;
 }

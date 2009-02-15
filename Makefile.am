@@ -1,7 +1,7 @@
 SUBDIRS = c cpp
 
 nobase_include_HEADERS = \
-		msgpack/pack/inline_impl.h \
-		msgpack/unpack/inline_context.h \
-		msgpack/unpack/inline_impl.h
+		msgpack/pack_template.h \
+		msgpack/unpack_define.h \
+		msgpack/unpack_template.h
 

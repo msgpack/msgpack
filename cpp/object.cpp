@@ -155,35 +155,35 @@ inline void numeric_pack(dynamic_packer& p, V v);
 
 template <>
 inline void numeric_pack<uint8_t>(dynamic_packer& p, uint8_t v)
-	{ p.pack_unsigned_int_8(v); }
+	{ p.pack_uint8(v); }
 
 template <>
 inline void numeric_pack<uint16_t>(dynamic_packer& p, uint16_t v)
-	{ p.pack_unsigned_int_16(v); }
+	{ p.pack_uint16(v); }
 
 template <>
 inline void numeric_pack<uint32_t>(dynamic_packer& p, uint32_t v)
-	{ p.pack_unsigned_int_32(v); }
+	{ p.pack_uint32(v); }
 
 template <>
 inline void numeric_pack<uint64_t>(dynamic_packer& p, uint64_t v)
-	{ p.pack_unsigned_int_64(v); }
+	{ p.pack_uint64(v); }
 
 template <>
 inline void numeric_pack<int8_t>(dynamic_packer& p, int8_t v)
-	{ p.pack_unsigned_int_8(v); }
+	{ p.pack_int8(v); }
 
 template <>
 inline void numeric_pack<int16_t>(dynamic_packer& p, int16_t v)
-	{ p.pack_unsigned_int_16(v); }
+	{ p.pack_int16(v); }
 
 template <>
 inline void numeric_pack<int32_t>(dynamic_packer& p, int32_t v)
-	{ p.pack_unsigned_int_32(v); }
+	{ p.pack_int32(v); }
 
 template <>
 inline void numeric_pack<int64_t>(dynamic_packer& p, int64_t v)
-	{ p.pack_unsigned_int_64(v); }
+	{ p.pack_int64(v); }
 
 template <>
 inline void numeric_pack<float>(dynamic_packer& p, float v)
