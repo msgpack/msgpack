@@ -50,6 +50,7 @@ int main(void)
 {
 	checker c;
 
+#if 0
 	{  // SimpleValue
 		const char d[] = {
 			0x93, 0xc0, 0xc2, 0xc3,
@@ -116,9 +117,10 @@ int main(void)
 			)
 		);
 	}
+#endif
 
 
-	static const unsigned TASK_ARRAY = 100;
+	static const unsigned TASK_ARRAY = 1000;
 	static const unsigned TASK_REPEAT = 10;
 	std::vector<std::string> task;
 

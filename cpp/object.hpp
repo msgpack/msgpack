@@ -135,14 +135,14 @@ inline void pack_copy(packer<Stream>& o, T v)
 template <typename T>
 inline T& operator>> (object o, T& v)
 {
-	v.msgpack_unpack(o);
+	v.msgpack_unpack(o.convert());
 	return v;
 }
 
 template <typename Stream, typename T>
 inline packer<Stream>& operator<< (packer<Stream>& o, const T& v)
 {
-	o << v.msgpack_pack();
+	v.msgpack_pack(o);
 	return o;
 }
 
@@ -156,14 +156,15 @@ public:
 	define() {}
 	define(msgpack_type v) : msgpack_type(v) {}
 
-	msgpack_type msgpack_pack() const
+	template <typename Packer>
+	void msgpack_pack(Packer& o) const
 	{
-		return *this;
+		o << static_cast<const msgpack_type&>(*this);
 	}
 
 	void msgpack_unpack(object o)
 	{
-		convert(static_cast<msgpack_type&>(*this), o);
+		o >> static_cast<msgpack_type&>(*this);
 	}
 };
 
