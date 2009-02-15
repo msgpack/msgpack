@@ -30,7 +30,8 @@ unpack.lo: msgpack/type/tuple.hpp
 zone.lo: msgpack/type/tuple.hpp
 
 msgpack/type/tuple.hpp: msgpack/type/tuple.hpp.erb
-	$(ERB) $< > $@
+	$(ERB) $< > $@.tmp
+	mv $@.tmp $@
 
 MOSTLYCLEANFILES = msgpack/type/tuple.hpp
 
