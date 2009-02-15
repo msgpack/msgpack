@@ -20,7 +20,7 @@
 #include <stdint.h>
 
 #define msgpack_pack_inline_func(name) \
-	static void msgpack_pack_##name
+	static inline void msgpack_pack_##name
 
 #define msgpack_pack_user VALUE
 
@@ -30,6 +30,8 @@
 /*
 static void msgpack_pack_int(VALUE x, int d);
 static void msgpack_pack_unsigned_int(VALUE x, unsigned int d);
+static void msgpack_pack_long(VALUE x, long d);
+static void msgpack_pack_unsigned_long(VALUE x, unsigned long d);
 static void msgpack_pack_uint8(VALUE x, uint8_t d);
 static void msgpack_pack_uint16(VALUE x, uint16_t d);
 static void msgpack_pack_uint32(VALUE x, uint32_t d);
@@ -93,7 +95,7 @@ static VALUE MessagePack_FalseClass_to_msgpack(int argc, VALUE *argv, VALUE self
 static VALUE MessagePack_Fixnum_to_msgpack(int argc, VALUE *argv, VALUE self)
 {
 	ARG_BUFFER(out, argc, argv);
-	msgpack_pack_int(out, FIX2INT(self));
+	msgpack_pack_long(out, FIX2LONG(self));
 	return out;
 }
 
