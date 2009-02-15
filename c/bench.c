@@ -98,9 +98,9 @@ static void pack_append_buffer(void* user, const unsigned char* b, unsigned int 
 
 
 static const unsigned int TASK_INT_NUM = 1<<24;
-//static const unsigned int TASK_STR_LEN = 1<<15;
+static const unsigned int TASK_STR_LEN = 1<<15;
 //static const unsigned int TASK_INT_NUM = 1<<20;
-static const unsigned int TASK_STR_LEN = 1<<12;
+//static const unsigned int TASK_STR_LEN = 1<<12;
 static const char* TASK_STR_PTR;
 
 
@@ -284,7 +284,6 @@ void bench_msgpack(void)
 	msgpack_unpack_reset(mupk);
 
 
-	/*
 	puts("----");
 	puts("pack string");
 	reset_timer();
@@ -317,7 +316,6 @@ void bench_msgpack(void)
 	sec = show_timer();
 
 	printf("%f MB/s\n", len / sec / 1024 / 1024);
-	*/
 
 
 	msgpack_unpack_free(mupk);
@@ -332,7 +330,7 @@ int main(int argc, char* argv[])
 	TASK_STR_PTR = str;
 
 	bench_msgpack();
-//	bench_json();
+	bench_json();
 
 	return 0;
 }
