@@ -50,7 +50,6 @@
 
 #endif
 
-
 #ifndef msgpack_pack_inline_func
 #error msgpack_pack_inline_func template is not defined
 #endif
@@ -68,7 +67,127 @@
  * Integer
  */
 
-#define msgpack_pack_compress_int32(x, d) \
+#define msgpack_pack_real_uint8(x, d) \
+do { \
+	if(d < (1<<7)) { \
+		/* fixnum */ \
+		msgpack_pack_append_buffer(x, (uint8_t*)&d, 1); \
+	} else { \
+		/* unsigned 8 */ \
+		const unsigned char buf[2] = {0xcc, (uint8_t)d}; \
+		msgpack_pack_append_buffer(x, buf, 2); \
+	} \
+} while(0)
+
+#define msgpack_pack_real_uint16(x, d) \
+do { \
+	if(d < (1<<7)) { \
+		/* fixnum */ \
+		msgpack_pack_append_buffer(x, (uint8_t*)&d, 1); \
+	} else if(d < (1<<8)) { \
+		/* unsigned 8 */ \
+		const unsigned char buf[2] = {0xcc, (uint8_t)d}; \
+		msgpack_pack_append_buffer(x, buf, 2); \
+	} else { \
+		/* unsigned 16 */ \
+		const unsigned char buf[3] = {0xcd, STORE_BE16(d)}; \
+		msgpack_pack_append_buffer(x, buf, 3); \
+	} \
+} while(0)
+
+#define msgpack_pack_real_uint32(x, d) \
+do { \
+	if(d < (1<<8)) { \
+		if(d < (1<<7)) { \
+			/* fixnum */ \
+			msgpack_pack_append_buffer(x, (uint8_t*)&d, 1); \
+		} else { \
+			/* unsigned 8 */ \
+			const unsigned char buf[2] = {0xcc, (uint8_t)d}; \
+			msgpack_pack_append_buffer(x, buf, 2); \
+		} \
+	} else { \
+		if(d < (1<<16)) { \
+			/* unsigned 16 */ \
+			const unsigned char buf[3] = {0xcd, STORE_BE16(d)}; \
+			msgpack_pack_append_buffer(x, buf, 3); \
+		} else { \
+			/* unsigned 32 */ \
+			const unsigned char buf[5] = {0xce, STORE_BE32(d)}; \
+			msgpack_pack_append_buffer(x, buf, 5); \
+		} \
+	} \
+} while(0)
+
+#define msgpack_pack_real_uint64(x, d) \
+do { \
+	if(d < (1ULL<<8)) { \
+		if(d < (1<<7)) { \
+			/* fixnum */ \
+			msgpack_pack_append_buffer(x, (uint8_t*)&d, 1); \
+		} else { \
+			/* unsigned 8 */ \
+			const unsigned char buf[2] = {0xcc, (uint8_t)d}; \
+			msgpack_pack_append_buffer(x, buf, 2); \
+		} \
+	} else { \
+		if(d < (1ULL<<16)) { \
+			/* signed 16 */ \
+			const unsigned char buf[3] = {0xcd, STORE_BE16(d)}; \
+			msgpack_pack_append_buffer(x, buf, 3); \
+		} else if(d < (1ULL<<32)) { \
+			/* signed 32 */ \
+			const unsigned char buf[5] = {0xce, STORE_BE32(d)}; \
+			msgpack_pack_append_buffer(x, buf, 5); \
+		} else { \
+			/* signed 64 */ \
+			const unsigned char buf[9] = {0xcf, STORE_BE64(d)}; \
+			msgpack_pack_append_buffer(x, buf, 9); \
+		} \
+	} \
+} while(0)
+
+#define msgpack_pack_real_int8(x, d) \
+do { \
+	if(d < -(1<<5)) { \
+		/* signed 8 */ \
+		const unsigned char buf[2] = {0xd0, d}; \
+		msgpack_pack_append_buffer(x, buf, 2); \
+	} else { \
+		/* fixnum */ \
+		msgpack_pack_append_buffer(x, (uint8_t*)&d, 1); \
+	} \
+} while(0)
+
+#define msgpack_pack_real_int16(x, d) \
+do { \
+	if(d < -(1<<5)) { \
+		if(d < -(1<<7)) { \
+			/* signed 16 */ \
+			const unsigned char buf[3] = {0xd1, STORE_BE16(d)}; \
+			msgpack_pack_append_buffer(x, buf, 3); \
+		} else { \
+			/* signed 8 */ \
+			const unsigned char buf[2] = {0xd0, (uint8_t)d}; \
+			msgpack_pack_append_buffer(x, buf, 2); \
+		} \
+	} else if(d < (1<<7)) { \
+		/* fixnum */ \
+		msgpack_pack_append_buffer(x, (uint8_t*)&d, 1); \
+	} else { \
+		if(d < (1<<8)) { \
+			/* unsigned 8 */ \
+			const unsigned char buf[2] = {0xcc, (uint8_t)d}; \
+			msgpack_pack_append_buffer(x, buf, 2); \
+		} else { \
+			/* unsigned 16 */ \
+			const unsigned char buf[3] = {0xcd, STORE_BE16(d)}; \
+			msgpack_pack_append_buffer(x, buf, 3); \
+		} \
+	} \
+} while(0)
+
+#define msgpack_pack_real_int32(x, d) \
 do { \
 	if(d < -(1<<5)) { \
 		if(d < -(1<<15)) { \
@@ -104,31 +223,7 @@ do { \
 	} \
 } while(0)
 
-#define msgpack_pack_compress_uint32(x, d) \
-do { \
-	if(d < (1<<8)) { \
-		if(d < (1<<7)) { \
-			/* fixnum */ \
-			msgpack_pack_append_buffer(x, (unsigned char*)&d, 1); \
-		} else { \
-			/* unsigned 8 */ \
-			const unsigned char buf[2] = {0xcc, (uint8_t)d}; \
-			msgpack_pack_append_buffer(x, buf, 2); \
-		} \
-	} else { \
-		if(d < (1<<16)) { \
-			/* unsigned 16 */ \
-			const unsigned char buf[3] = {0xcd, STORE_BE16(d)}; \
-			msgpack_pack_append_buffer(x, buf, 3); \
-		} else { \
-			/* unsigned 32 */ \
-			const unsigned char buf[5] = {0xce, STORE_BE32(d)}; \
-			msgpack_pack_append_buffer(x, buf, 5); \
-		} \
-	} \
-} while(0)
-
-#define msgpack_pack_compress_int64(x, d) \
+#define msgpack_pack_real_int64(x, d) \
 do { \
 	if(d < -(1LL<<5)) { \
 		if(d < -(1LL<<15)) { \
@@ -180,132 +275,275 @@ do { \
 	} \
 } while(0)
 
-#define msgpack_pack_compress_uint64(x, d) \
-do { \
-	if(d < (1ULL<<8)) { \
-		if(d < (1<<7)) { \
-			/* fixnum */ \
-			msgpack_pack_append_buffer(x, (unsigned char*)&d, 1); \
-		} else { \
-			/* unsigned 8 */ \
-			const unsigned char buf[2] = {0xcc, (uint8_t)d}; \
-			msgpack_pack_append_buffer(x, buf, 2); \
-		} \
-	} else { \
-		if(d < (1ULL<<16)) { \
-			/* signed 16 */ \
-			const unsigned char buf[3] = {0xcd, STORE_BE16(d)}; \
-			msgpack_pack_append_buffer(x, buf, 3); \
-		} else if(d < (1ULL<<32)) { \
-			/* signed 32 */ \
-			const unsigned char buf[5] = {0xce, STORE_BE32(d)}; \
-			msgpack_pack_append_buffer(x, buf, 5); \
-		} else { \
-			/* signed 64 */ \
-			const unsigned char buf[9] = {0xcf, STORE_BE64(d)}; \
-			msgpack_pack_append_buffer(x, buf, 9); \
-		} \
-	} \
-} while(0)
 
-msgpack_pack_inline_func(int)(msgpack_pack_user x, int d)
+#ifdef msgpack_pack_inline_func_fastint
+
+msgpack_pack_inline_func_fastint(uint8)(msgpack_pack_user x, uint8_t d)
 {
-#if SIZEOF_INT == 8
-	msgpack_pack_compress_int64(x, d);
-#else
-	msgpack_pack_compress_int32(x, d);
-#endif
+	const unsigned char buf[2] = {0xcc, d};
+	msgpack_pack_append_buffer(x, buf, 2);
 }
 
-msgpack_pack_inline_func(unsigned_int)(msgpack_pack_user x, unsigned int d)
-{
-#if SIZEOF_INT == 8
-	msgpack_pack_compress_uint64(x, d);
-#else
-	msgpack_pack_compress_uint32(x, d);
-#endif
-}
-
-msgpack_pack_inline_func(long)(msgpack_pack_user x, long d)
-{
-#if SIZEOF_LONG == 8
-	msgpack_pack_compress_int64(x, d);
-#else
-	msgpack_pack_compress_int32(x, d);
-#endif
-}
-
-msgpack_pack_inline_func(unsigned_long)(msgpack_pack_user x, unsigned long d)
-{
-#if SIZEOF_LONG == 8
-	msgpack_pack_compress_uint64(x, d);
-#else
-	msgpack_pack_compress_uint32(x, d);
-#endif
-}
-
-#undef msgpack_pack_compress_int32
-#undef msgpack_pack_compress_uint32
-#undef msgpack_pack_compress_int64
-#undef msgpack_pack_compress_uint64
-
-msgpack_pack_inline_func(uint8)(msgpack_pack_user x, uint8_t d)
-{
-	if(d < 128) {
-		msgpack_pack_append_buffer(x, &d, 1);
-	} else {
-		const unsigned char buf[2] = {0xcc, d};
-		msgpack_pack_append_buffer(x, buf, 2);
-	}
-}
-
-msgpack_pack_inline_func(uint16)(msgpack_pack_user x, uint16_t d)
+msgpack_pack_inline_func_fastint(uint16)(msgpack_pack_user x, uint16_t d)
 {
 	const unsigned char buf[3] = {0xcd, STORE_BE16(d)};
 	msgpack_pack_append_buffer(x, buf, 3);
 }
 
-msgpack_pack_inline_func(uint32)(msgpack_pack_user x, uint32_t d)
+msgpack_pack_inline_func_fastint(uint32)(msgpack_pack_user x, uint32_t d)
 {
 	const unsigned char buf[5] = {0xce, STORE_BE32(d)};
 	msgpack_pack_append_buffer(x, buf, 5);
 }
 
-msgpack_pack_inline_func(uint64)(msgpack_pack_user x, uint64_t d)
+msgpack_pack_inline_func_fastint(uint64)(msgpack_pack_user x, uint64_t d)
 {
 	const unsigned char buf[9] = {0xcf, STORE_BE64(d)};
 	msgpack_pack_append_buffer(x, buf, 9);
 }
 
-msgpack_pack_inline_func(int8)(msgpack_pack_user x, int8_t d)
+msgpack_pack_inline_func_fastint(int8)(msgpack_pack_user x, int8_t d)
 {
-	if(d > 0) {
-		msgpack_pack_append_buffer(x, (uint8_t*)&d, 1);
-	} else if(d >= -32) {
-		msgpack_pack_append_buffer(x, (uint8_t*)&d, 1);
-	} else {
-		const unsigned char buf[2] = {0xd0, d};
-		msgpack_pack_append_buffer(x, buf, 2);
-	}
+	const unsigned char buf[2] = {0xd0, d};
+	msgpack_pack_append_buffer(x, buf, 2);
 }
 
-msgpack_pack_inline_func(int16)(msgpack_pack_user x, int16_t d)
+msgpack_pack_inline_func_fastint(int16)(msgpack_pack_user x, int16_t d)
 {
 	const unsigned char buf[3] = {0xd1, STORE_BE16(d)};
 	msgpack_pack_append_buffer(x, buf, 3);
 }
 
-msgpack_pack_inline_func(int32)(msgpack_pack_user x, int32_t d)
+msgpack_pack_inline_func_fastint(int32)(msgpack_pack_user x, int32_t d)
 {
 	const unsigned char buf[5] = {0xd2, STORE_BE32(d)};
 	msgpack_pack_append_buffer(x, buf, 5);
 }
 
-msgpack_pack_inline_func(int64)(msgpack_pack_user x, int64_t d)
+msgpack_pack_inline_func_fastint(int64)(msgpack_pack_user x, int64_t d)
 {
 	const unsigned char buf[9] = {0xd3, STORE_BE64(d)};
 	msgpack_pack_append_buffer(x, buf, 9);
 }
+
+#undef msgpack_pack_inline_func_fastint
+#endif
+
+
+msgpack_pack_inline_func(uint8)(msgpack_pack_user x, uint8_t d)
+{
+	msgpack_pack_real_uint8(x, d);
+}
+
+msgpack_pack_inline_func(uint16)(msgpack_pack_user x, uint16_t d)
+{
+	msgpack_pack_real_uint16(x, d);
+}
+
+msgpack_pack_inline_func(uint32)(msgpack_pack_user x, uint32_t d)
+{
+	msgpack_pack_real_uint32(x, d);
+}
+
+msgpack_pack_inline_func(uint64)(msgpack_pack_user x, uint64_t d)
+{
+	msgpack_pack_real_uint64(x, d);
+}
+
+msgpack_pack_inline_func(int8)(msgpack_pack_user x, int8_t d)
+{
+	msgpack_pack_real_int8(x, d);
+}
+
+msgpack_pack_inline_func(int16)(msgpack_pack_user x, int16_t d)
+{
+	msgpack_pack_real_int16(x, d);
+}
+
+msgpack_pack_inline_func(int32)(msgpack_pack_user x, int32_t d)
+{
+	msgpack_pack_real_int32(x, d);
+}
+
+msgpack_pack_inline_func(int64)(msgpack_pack_user x, int64_t d)
+{
+	msgpack_pack_real_int64(x, d);
+}
+
+
+#ifdef msgpack_pack_inline_func_cint
+
+msgpack_pack_inline_func_cint(short)(msgpack_pack_user x, short d)
+{
+#if defined(SIZEOF_SHORT) || defined(SHRT_MAX)
+#if SIZEOF_SHORT == 2 || SHRT_MAX == 0x7fff
+	msgpack_pack_real_int16(x, d);
+#elif SIZEOF_SHORT == 4 || SHRT_MAX == 0x7fffffff
+	msgpack_pack_real_int32(x, d);
+#else
+	msgpack_pack_real_int64(x, d);
+#endif
+#else
+if(sizeof(short) == 2) {
+	msgpack_pack_real_int16(x, d);
+} else if(sizeof(short) == 4) {
+	msgpack_pack_real_int32(x, d);
+} else {
+	msgpack_pack_real_int64(x, d);
+}
+#endif
+}
+
+msgpack_pack_inline_func_cint(int)(msgpack_pack_user x, int d)
+{
+#if defined(SIZEOF_INT) || defined(INT_MAX)
+#if SIZEOF_INT == 2 || INT_MAX == 0x7fff
+	msgpack_pack_real_int16(x, d);
+#elif SIZEOF_INT == 4 || INT_MAX == 0x7fffffff
+	msgpack_pack_real_int32(x, d);
+#else
+	msgpack_pack_real_int64(x, d);
+#endif
+#else
+if(sizeof(int) == 2) {
+	msgpack_pack_real_int16(x, d);
+} else if(sizeof(int) == 4) {
+	msgpack_pack_real_int32(x, d);
+} else {
+	msgpack_pack_real_int64(x, d);
+}
+#endif
+}
+
+msgpack_pack_inline_func_cint(long)(msgpack_pack_user x, long d)
+{
+#if defined(SIZEOF_LONG) || defined(LONG_MAX)
+#if SIZEOF_LONG == 2 || LONG_MAX == 0x7fffL
+	msgpack_pack_real_int16(x, d);
+#elif SIZEOF_LONG == 4 || LONG_MAX == 0x7fffffffL
+	msgpack_pack_real_int32(x, d);
+#else
+	msgpack_pack_real_int64(x, d);
+#endif
+#else
+if(sizeof(long) == 2) {
+	msgpack_pack_real_int16(x, d);
+} else if(sizeof(long) == 4) {
+	msgpack_pack_real_int32(x, d);
+} else {
+	msgpack_pack_real_int64(x, d);
+}
+#endif
+}
+
+msgpack_pack_inline_func_cint(long_long)(msgpack_pack_user x, long long d)
+{
+#if defined(SIZEOF_LONG_LONG) || defined(LLONG_MAX)
+#if SIZEOF_LONG_LONG == 2 || LLONG_MAX == 0x7fffL
+	msgpack_pack_real_int16(x, d);
+#elif SIZEOF_LONG_LONG == 4 || LLONG_MAX == 0x7fffffffL
+	msgpack_pack_real_int32(x, d);
+#else
+	msgpack_pack_real_int64(x, d);
+#endif
+#else
+if(sizeof(long long) == 2) {
+	msgpack_pack_real_int16(x, d);
+} else if(sizeof(long long) == 4) {
+	msgpack_pack_real_int32(x, d);
+} else {
+	msgpack_pack_real_int64(x, d);
+}
+#endif
+}
+
+msgpack_pack_inline_func_cint(unsigned_short)(msgpack_pack_user x, unsigned short d)
+{
+#if defined(SIZEOF_SHORT) || defined(USHRT_MAX)
+#if SIZEOF_SHORT == 2 || USHRT_MAX == 0xffffU
+	msgpack_pack_real_uint16(x, d);
+#elif SIZEOF_SHORT == 4 || USHRT_MAX == 0xffffffffU
+	msgpack_pack_real_uint32(x, d);
+#else
+	msgpack_pack_real_uint64(x, d);
+#endif
+#else
+if(sizeof(unsigned short) == 2) {
+	msgpack_pack_real_uint16(x, d);
+} else if(sizeof(unsigned short) == 4) {
+	msgpack_pack_real_uint32(x, d);
+} else {
+	msgpack_pack_real_uint64(x, d);
+}
+#endif
+}
+
+msgpack_pack_inline_func_cint(unsigned_int)(msgpack_pack_user x, unsigned int d)
+{
+#if defined(SIZEOF_INT) || defined(UINT_MAX)
+#if SIZEOF_INT == 2 || UINT_MAX == 0xffffU
+	msgpack_pack_real_uint16(x, d);
+#elif SIZEOF_INT == 4 || UINT_MAX == 0xffffffffU
+	msgpack_pack_real_uint32(x, d);
+#else
+	msgpack_pack_real_uint64(x, d);
+#endif
+#else
+if(sizeof(unsigned int) == 2) {
+	msgpack_pack_real_uint16(x, d);
+} else if(sizeof(unsigned int) == 4) {
+	msgpack_pack_real_uint32(x, d);
+} else {
+	msgpack_pack_real_uint64(x, d);
+}
+#endif
+}
+
+msgpack_pack_inline_func_cint(unsigned_long)(msgpack_pack_user x, unsigned long d)
+{
+#if defined(SIZEOF_LONG) || defined(ULONG_MAX)
+#if SIZEOF_LONG == 2 || ULONG_MAX == 0xffffUL
+	msgpack_pack_real_uint16(x, d);
+#elif SIZEOF_LONG == 4 || ULONG_MAX == 0xffffffffUL
+	msgpack_pack_real_uint32(x, d);
+#else
+	msgpack_pack_real_uint64(x, d);
+#endif
+#else
+if(sizeof(unsigned int) == 2) {
+	msgpack_pack_real_uint16(x, d);
+} else if(sizeof(unsigned int) == 4) {
+	msgpack_pack_real_uint32(x, d);
+} else {
+	msgpack_pack_real_uint64(x, d);
+}
+#endif
+}
+
+msgpack_pack_inline_func_cint(unsigned_long_long)(msgpack_pack_user x, unsigned long long d)
+{
+#if defined(SIZEOF_LONG_LONG) || defined(ULLONG_MAX)
+#if SIZEOF_LONG_LONG == 2 || ULLONG_MAX == 0xffffUL
+	msgpack_pack_real_uint16(x, d);
+#elif SIZEOF_LONG_LONG == 4 || ULLONG_MAX == 0xffffffffUL
+	msgpack_pack_real_uint32(x, d);
+#else
+	msgpack_pack_real_uint64(x, d);
+#endif
+#else
+if(sizeof(unsigned long long) == 2) {
+	msgpack_pack_real_uint16(x, d);
+} else if(sizeof(unsigned long long) == 4) {
+	msgpack_pack_real_uint32(x, d);
+} else {
+	msgpack_pack_real_uint64(x, d);
+}
+#endif
+}
+
+#undef msgpack_pack_inline_func_cint
+#endif
+
 
 
 /*
@@ -429,4 +667,13 @@ msgpack_pack_inline_func(raw_body)(msgpack_pack_user x, const void* b, size_t l)
 #undef STORE_BE16
 #undef STORE_BE32
 #undef STORE_BE64
+
+#undef msgpack_pack_real_uint8
+#undef msgpack_pack_real_uint16
+#undef msgpack_pack_real_uint32
+#undef msgpack_pack_real_uint64
+#undef msgpack_pack_real_int8
+#undef msgpack_pack_real_int16
+#undef msgpack_pack_real_int32
+#undef msgpack_pack_real_int64
 

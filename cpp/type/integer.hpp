@@ -63,102 +63,6 @@ namespace detail {
 		return detail::convert_integer_sign<T, std::numeric_limits<T>::is_signed>::convert(o);
 	}
 
-
-
-	template <typename T, typename Stream, int Size, bool Signed>
-	struct pack_integer_size_sign;
-
-	template <typename T, typename Stream>
-	struct pack_integer_size_sign<T, Stream, 1, true> {
-		static inline void pack(packer<Stream>& o, T v)
-			{ o.pack_int8(v); }
-	};
-
-	template <typename T, typename Stream>
-	struct pack_integer_size_sign<T, Stream, 1, false> {
-		static inline void pack(packer<Stream>& o, T v)
-			{ o.pack_uint8(v); }
-	};
-
-	template <typename T, typename Stream>
-	struct pack_integer_size_sign<T, Stream, 2, true> {
-		static inline void pack(packer<Stream>& o, T v) {
-			if( (int16_t)v <= (int16_t)std::numeric_limits<int8_t>::max() &&
-				(int16_t)v >= (int16_t)std::numeric_limits<int8_t>::min())
-				{ o.pack_int8(v); }
-			else { o.pack_int16(v); }
-		}
-	};
-
-	template <typename T, typename Stream>
-	struct pack_integer_size_sign<T, Stream, 2, false> {
-		static inline void pack(packer<Stream>& o, T v) {
-			if( (uint16_t)v <= (uint16_t)std::numeric_limits<uint8_t>::max())
-				{ o.pack_uint8(v); }
-			else { o.pack_uint16(v); }
-		}
-	};
-
-	template <typename T, typename Stream>
-	struct pack_integer_size_sign<T, Stream, 4, true> {
-		static inline void pack(packer<Stream>& o, T v) {
-			if( (int32_t)v <= (int32_t)std::numeric_limits<int8_t>::max() &&
-				(int32_t)v >= (int32_t)std::numeric_limits<int8_t>::min())
-				{ o.pack_int8(v); }
-			else if( (int32_t)v <= (int32_t)std::numeric_limits<int16_t>::max() &&
-					 (int32_t)v >= (int32_t)std::numeric_limits<int16_t>::min())
-				{ o.pack_int16(v); }
-			else { o.pack_int32(v); }
-		}
-	};
-
-	template <typename T, typename Stream>
-	struct pack_integer_size_sign<T, Stream, 4, false> {
-		static inline void pack(packer<Stream>& o, T v) {
-			if( (uint32_t)v <= (uint32_t)std::numeric_limits<uint8_t>::max())
-				{ o.pack_uint8(v); }
-			else if( (uint32_t)v <= (uint32_t)std::numeric_limits<uint16_t>::max())
-				{ o.pack_uint16(v); }
-			else { o.pack_uint32(v); }
-		}
-	};
-
-	template <typename T, typename Stream>
-	struct pack_integer_size_sign<T, Stream, 8, true> {
-		static inline void pack(packer<Stream>& o, T v) {
-			if( (int64_t)v <= (int64_t)std::numeric_limits<int8_t>::max() &&
-				(int64_t)v >= (int64_t)std::numeric_limits<int8_t>::min())
-				{ o.pack_int8(v); }
-			else if( (int64_t)v <= (int64_t)std::numeric_limits<int16_t>::max() &&
-					 (int64_t)v >= (int64_t)std::numeric_limits<int16_t>::min())
-				{ o.pack_int16(v); }
-			else if( (int64_t)v <= (int64_t)std::numeric_limits<int32_t>::max() &&
-					 (int64_t)v >= (int64_t)std::numeric_limits<int32_t>::min())
-				{ o.pack_int32(v); }
-			else { o.pack_int64(v); }
-		}
-	};
-
-	template <typename T, typename Stream>
-	struct pack_integer_size_sign<T, Stream, 8, false> {
-		static inline void pack(packer<Stream>& o, T v) {
-			if( (uint64_t)v <= (uint64_t)std::numeric_limits<uint8_t>::max())
-				{ o.pack_uint8(v); }
-			else if( (uint64_t)v <= (uint64_t)std::numeric_limits<uint16_t>::max())
-				{ o.pack_uint16(v); }
-			else if( (uint64_t)v <= (uint64_t)std::numeric_limits<uint32_t>::max())
-				{ o.pack_uint32(v); }
-			else { o.pack_uint64(v); }
-		}
-	};
-
-
-	template <typename T, typename Stream>
-	static inline void pack_integer(T v, packer<Stream>& o)
-	{
-		pack_integer_size_sign<T, Stream, sizeof(T), std::numeric_limits<T>::is_signed>::pack(o, v);
-	}
-
 }  // namespace detail
 }  // namespace type
 
@@ -197,44 +101,44 @@ inline unsigned long long& operator>> (object o, unsigned long long& v)
 
 template <typename Stream>
 inline packer<Stream>& operator<< (packer<Stream>& o, const signed char& v)
-	{ type::detail::pack_integer<signed char>(v, o); return o; }
+	{ o.pack_int8(v); return o; }
 
 template <typename Stream>
 inline packer<Stream>& operator<< (packer<Stream>& o, const signed short& v)
-	{ type::detail::pack_integer<signed short>(v, o); return o; }
+	{ o.pack_short(v); return o; }
 
 template <typename Stream>
 inline packer<Stream>& operator<< (packer<Stream>& o, const signed int& v)
-	{ type::detail::pack_integer<signed int>(v, o); return o; }
+	{ o.pack_int(v); return o; }
 
 template <typename Stream>
 inline packer<Stream>& operator<< (packer<Stream>& o, const signed long& v)
-	{ type::detail::pack_integer<signed long>(v, o); return o; }
+	{ o.pack_long(v); return o; }
 
 template <typename Stream>
 inline packer<Stream>& operator<< (packer<Stream>& o, const signed long long& v)
-	{ type::detail::pack_integer<signed long long>(v, o); return o; }
+	{ o.pack_long_long(v); return o; }
 
 
 template <typename Stream>
 inline packer<Stream>& operator<< (packer<Stream>& o, const unsigned char& v)
-	{ type::detail::pack_integer<unsigned char>(v, o); return o; }
+	{ o.pack_uint8(v); return o; }
 
 template <typename Stream>
 inline packer<Stream>& operator<< (packer<Stream>& o, const unsigned short& v)
-	{ type::detail::pack_integer<unsigned short>(v, o); return o; }
+	{ o.pack_unsigned_short(v); return o; }
 
 template <typename Stream>
 inline packer<Stream>& operator<< (packer<Stream>& o, const unsigned int& v)
-	{ type::detail::pack_integer<unsigned int>(v, o); return o; }
+	{ o.pack_unsigned_int(v); return o; }
 
 template <typename Stream>
 inline packer<Stream>& operator<< (packer<Stream>& o, const unsigned long& v)
-	{ type::detail::pack_integer<unsigned long>(v, o); return o; }
+	{ o.pack_unsigned_long(v); return o; }
 
 template <typename Stream>
 inline packer<Stream>& operator<< (packer<Stream>& o, const unsigned long long& v)
-	{ type::detail::pack_integer<unsigned long long>(v, o); return o; }
+	{ o.pack_unsigned_long_long(v); return o; }
 
 
 }  // namespace msgpack

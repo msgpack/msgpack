@@ -16,10 +16,14 @@
  *    limitations under the License.
  */
 #include "msgpack/pack.h"
+#include "msgpack/pack_define.h"
 #include <stdlib.h>
 
 
 #define msgpack_pack_inline_func(name) \
+	void msgpack_pack_##name
+
+#define msgpack_pack_inline_func_cint(name) \
 	void msgpack_pack_##name
 
 #define msgpack_pack_user msgpack_pack_t*
