@@ -68,145 +68,145 @@
  * Integer
  */
 
-static inline void msgpack_pack_compress_int32(msgpack_pack_user x, uint32_t d)
-{
-	if(d < -(1<<5)) {
-		if(d < -(1<<15)) {
-			// signed 32
-			const unsigned char buf[5] = {0xd2, STORE_BE32(d)};
-			msgpack_pack_append_buffer(x, buf, 5);
-		} else if(d < -(1<<7)) {
-			// signed 16
-			const unsigned char buf[3] = {0xd1, STORE_BE16(d)};
-			msgpack_pack_append_buffer(x, buf, 3);
-		} else {
-			// signed 8
-			const unsigned char buf[2] = {0xd0, (uint8_t)d};
-			msgpack_pack_append_buffer(x, buf, 2);
-		}
-	} else if(d < (1<<7)) {
-		// fixnum
-		msgpack_pack_append_buffer(x, (uint8_t*)&d, 1);
-	} else {
-		if(d < (1<<8)) {
-			// unsigned 8
-			const unsigned char buf[2] = {0xcc, (uint8_t)d};
-			msgpack_pack_append_buffer(x, buf, 2);
-		} else if(d < (1<<16)) {
-			// unsigned 16
-			const unsigned char buf[3] = {0xcd, STORE_BE16(d)};
-			msgpack_pack_append_buffer(x, buf, 3);
-		} else {
-			// unsigned 32
-			const unsigned char buf[5] = {0xce, STORE_BE32(d)};
-			msgpack_pack_append_buffer(x, buf, 5);
-		}
-	}
-}
+#define msgpack_pack_compress_int32(x, d) \
+do { \
+	if(d < -(1<<5)) { \
+		if(d < -(1<<15)) { \
+			/* signed 32 */ \
+			const unsigned char buf[5] = {0xd2, STORE_BE32(d)}; \
+			msgpack_pack_append_buffer(x, buf, 5); \
+		} else if(d < -(1<<7)) { \
+			/* signed 16 */ \
+			const unsigned char buf[3] = {0xd1, STORE_BE16(d)}; \
+			msgpack_pack_append_buffer(x, buf, 3); \
+		} else { \
+			/* signed 8 */ \
+			const unsigned char buf[2] = {0xd0, (uint8_t)d}; \
+			msgpack_pack_append_buffer(x, buf, 2); \
+		} \
+	} else if(d < (1<<7)) { \
+		/* fixnum */ \
+		msgpack_pack_append_buffer(x, (uint8_t*)&d, 1); \
+	} else { \
+		if(d < (1<<8)) { \
+			/* unsigned 8 */ \
+			const unsigned char buf[2] = {0xcc, (uint8_t)d}; \
+			msgpack_pack_append_buffer(x, buf, 2); \
+		} else if(d < (1<<16)) { \
+			/* unsigned 16 */ \
+			const unsigned char buf[3] = {0xcd, STORE_BE16(d)}; \
+			msgpack_pack_append_buffer(x, buf, 3); \
+		} else { \
+			/* unsigned 32 */ \
+			const unsigned char buf[5] = {0xce, STORE_BE32(d)}; \
+			msgpack_pack_append_buffer(x, buf, 5); \
+		} \
+	} \
+} while(0)
 
-static inline void msgpack_pack_compress_uint32(msgpack_pack_user x, uint32_t d)
-{
-	if(d < (1<<8)) {
-		if(d < (1<<7)) {
-			// fixnum
-			msgpack_pack_append_buffer(x, (unsigned char*)&d, 1);
-		} else {
-			// unsigned 8
-			const unsigned char buf[2] = {0xcc, (uint8_t)d};
-			msgpack_pack_append_buffer(x, buf, 2);
-		}
-	} else {
-		if(d < (1<<16)) {
-			// unsigned 16
-			const unsigned char buf[3] = {0xcd, STORE_BE16(d)};
-			msgpack_pack_append_buffer(x, buf, 3);
-		} else {
-			// unsigned 32
-			const unsigned char buf[5] = {0xce, STORE_BE32(d)};
-			msgpack_pack_append_buffer(x, buf, 5);
-		}
-	}
-}
+#define msgpack_pack_compress_uint32(x, d) \
+do { \
+	if(d < (1<<8)) { \
+		if(d < (1<<7)) { \
+			/* fixnum */ \
+			msgpack_pack_append_buffer(x, (unsigned char*)&d, 1); \
+		} else { \
+			/* unsigned 8 */ \
+			const unsigned char buf[2] = {0xcc, (uint8_t)d}; \
+			msgpack_pack_append_buffer(x, buf, 2); \
+		} \
+	} else { \
+		if(d < (1<<16)) { \
+			/* unsigned 16 */ \
+			const unsigned char buf[3] = {0xcd, STORE_BE16(d)}; \
+			msgpack_pack_append_buffer(x, buf, 3); \
+		} else { \
+			/* unsigned 32 */ \
+			const unsigned char buf[5] = {0xce, STORE_BE32(d)}; \
+			msgpack_pack_append_buffer(x, buf, 5); \
+		} \
+	} \
+} while(0)
 
-static inline void msgpack_pack_compress_int64(msgpack_pack_user x, int64_t d)
-{
-	if(d < -(1LL<<5)) {
-		if(d < -(1LL<<15)) {
-			if(d < -(1LL<<31)) {
-				// signed 64
-				const unsigned char buf[9] = {0xd3, STORE_BE64(d)};
-				msgpack_pack_append_buffer(x, buf, 9);
-			} else {
-				// signed 32
-				const unsigned char buf[5] = {0xd2, STORE_BE32(d)};
-				msgpack_pack_append_buffer(x, buf, 5);
-			}
-		} else {
-			if(d < -(1<<7)) {
-				// signed 16
-				const unsigned char buf[3] = {0xd1, STORE_BE16(d)};
-				msgpack_pack_append_buffer(x, buf, 3);
-			} else {
-				// signed 8
-				const unsigned char buf[2] = {0xd0, (uint8_t)d};
-				msgpack_pack_append_buffer(x, buf, 2);
-			}
-		}
-	} else if(d < (1<<7)) {
-		// fixnum
-		msgpack_pack_append_buffer(x, (uint8_t*)&d, 1);
-	} else {
-		if(d < (1LL<<16)) {
-			if(d < (1<<8)) {
-				// unsigned 8
-				const unsigned char buf[2] = {0xcc, (uint8_t)d};
-				msgpack_pack_append_buffer(x, buf, 2);
-			} else {
-				// unsigned 16
-				const unsigned char buf[3] = {0xcd, STORE_BE16(d)};
-				msgpack_pack_append_buffer(x, buf, 3);
-			}
-		} else {
-			if(d < (1LL<<32)) {
-				// unsigned 32
-				const unsigned char buf[5] = {0xce, STORE_BE32(d)};
-				msgpack_pack_append_buffer(x, buf, 5);
-			} else {
-				// unsigned 64
-				const unsigned char buf[9] = {0xcf, STORE_BE64(d)};
-				msgpack_pack_append_buffer(x, buf, 9);
-			}
-		}
-	}
-}
+#define msgpack_pack_compress_int64(x, d) \
+do { \
+	if(d < -(1LL<<5)) { \
+		if(d < -(1LL<<15)) { \
+			if(d < -(1LL<<31)) { \
+				/* signed 64 */ \
+				const unsigned char buf[9] = {0xd3, STORE_BE64(d)}; \
+				msgpack_pack_append_buffer(x, buf, 9); \
+			} else { \
+				/* signed 32 */ \
+				const unsigned char buf[5] = {0xd2, STORE_BE32(d)}; \
+				msgpack_pack_append_buffer(x, buf, 5); \
+			} \
+		} else { \
+			if(d < -(1<<7)) { \
+				/* signed 16 */ \
+				const unsigned char buf[3] = {0xd1, STORE_BE16(d)}; \
+				msgpack_pack_append_buffer(x, buf, 3); \
+			} else { \
+				/* signed 8 */ \
+				const unsigned char buf[2] = {0xd0, (uint8_t)d}; \
+				msgpack_pack_append_buffer(x, buf, 2); \
+			} \
+		} \
+	} else if(d < (1<<7)) { \
+		/* fixnum */ \
+		msgpack_pack_append_buffer(x, (uint8_t*)&d, 1); \
+	} else { \
+		if(d < (1LL<<16)) { \
+			if(d < (1<<8)) { \
+				/* unsigned 8 */ \
+				const unsigned char buf[2] = {0xcc, (uint8_t)d}; \
+				msgpack_pack_append_buffer(x, buf, 2); \
+			} else { \
+				/* unsigned 16 */ \
+				const unsigned char buf[3] = {0xcd, STORE_BE16(d)}; \
+				msgpack_pack_append_buffer(x, buf, 3); \
+			} \
+		} else { \
+			if(d < (1LL<<32)) { \
+				/* unsigned 32 */ \
+				const unsigned char buf[5] = {0xce, STORE_BE32(d)}; \
+				msgpack_pack_append_buffer(x, buf, 5); \
+			} else { \
+				/* unsigned 64 */ \
+				const unsigned char buf[9] = {0xcf, STORE_BE64(d)}; \
+				msgpack_pack_append_buffer(x, buf, 9); \
+			} \
+		} \
+	} \
+} while(0)
 
-static inline void msgpack_pack_compress_uint64(msgpack_pack_user x, uint64_t d)
-{
-	if(d < (1ULL<<8)) {
-		if(d < (1<<7)) {
-			// fixnum
-			msgpack_pack_append_buffer(x, (unsigned char*)&d, 1);
-		} else {
-			// unsigned 8
-			const unsigned char buf[2] = {0xcc, (uint8_t)d};
-			msgpack_pack_append_buffer(x, buf, 2);
-		}
-	} else {
-		if(d < (1ULL<<16)) {
-			// signed 16
-			const unsigned char buf[3] = {0xcd, STORE_BE16(d)};
-			msgpack_pack_append_buffer(x, buf, 3);
-		} else if(d < (1ULL<<32)) {
-			// signed 32
-			const unsigned char buf[5] = {0xce, STORE_BE32(d)};
-			msgpack_pack_append_buffer(x, buf, 5);
-		} else {
-			// signed 64
-			const unsigned char buf[9] = {0xcf, STORE_BE64(d)};
-			msgpack_pack_append_buffer(x, buf, 9);
-		}
-	}
-}
+#define msgpack_pack_compress_uint64(x, d) \
+do { \
+	if(d < (1ULL<<8)) { \
+		if(d < (1<<7)) { \
+			/* fixnum */ \
+			msgpack_pack_append_buffer(x, (unsigned char*)&d, 1); \
+		} else { \
+			/* unsigned 8 */ \
+			const unsigned char buf[2] = {0xcc, (uint8_t)d}; \
+			msgpack_pack_append_buffer(x, buf, 2); \
+		} \
+	} else { \
+		if(d < (1ULL<<16)) { \
+			/* signed 16 */ \
+			const unsigned char buf[3] = {0xcd, STORE_BE16(d)}; \
+			msgpack_pack_append_buffer(x, buf, 3); \
+		} else if(d < (1ULL<<32)) { \
+			/* signed 32 */ \
+			const unsigned char buf[5] = {0xce, STORE_BE32(d)}; \
+			msgpack_pack_append_buffer(x, buf, 5); \
+		} else { \
+			/* signed 64 */ \
+			const unsigned char buf[9] = {0xcf, STORE_BE64(d)}; \
+			msgpack_pack_append_buffer(x, buf, 9); \
+		} \
+	} \
+} while(0)
 
 msgpack_pack_inline_func(int)(msgpack_pack_user x, int d)
 {
@@ -244,6 +244,10 @@ msgpack_pack_inline_func(unsigned_long)(msgpack_pack_user x, unsigned long d)
 #endif
 }
 
+#undef msgpack_pack_compress_int32
+#undef msgpack_pack_compress_uint32
+#undef msgpack_pack_compress_int64
+#undef msgpack_pack_compress_uint64
 
 msgpack_pack_inline_func(uint8)(msgpack_pack_user x, uint8_t d)
 {

@@ -39,6 +39,8 @@ void msgpack_pack_free(msgpack_pack_t* ctx);
 
 void msgpack_pack_int(msgpack_pack_t* ctx, int d);
 void msgpack_pack_unsigned_int(msgpack_pack_t* ctx, unsigned int d);
+void msgpack_pack_long(msgpack_pack_t* ctx, long d);
+void msgpack_pack_unsigned_long(msgpack_pack_t* ctx, unsigned long d);
 void msgpack_pack_uint8(msgpack_pack_t* ctx, uint8_t d);
 void msgpack_pack_uint16(msgpack_pack_t* ctx, uint16_t d);
 void msgpack_pack_uint32(msgpack_pack_t* ctx, uint32_t d);

@@ -30,29 +30,33 @@ public:
 	packer(Stream& s);
 
 public:
-	void pack_int(int d)					{ pack_int_impl(m_stream, d); }
-	void pack_unsigned_int(unsigned int d)	{ pack_unsigned_int_impl(m_stream, d); }
-	void pack_uint8(uint8_t d)				{ pack_uint8_impl(m_stream, d); }
-	void pack_uint16(uint16_t d)			{ pack_uint16_impl(m_stream, d); }
-	void pack_uint32(uint32_t d)			{ pack_uint32_impl(m_stream, d); }
-	void pack_uint64(uint64_t d)			{ pack_uint64_impl(m_stream, d); }
-	void pack_int8(uint8_t d)				{ pack_int8_impl(m_stream, d); }
-	void pack_int16(uint16_t d)				{ pack_int16_impl(m_stream, d); }
-	void pack_int32(uint32_t d)				{ pack_int32_impl(m_stream, d); }
-	void pack_int64(uint64_t d)				{ pack_int64_impl(m_stream, d); }
-	void pack_float(float d)				{ pack_float_impl(m_stream, d); }
-	void pack_double(double d)				{ pack_double_impl(m_stream, d); }
-	void pack_nil()							{ pack_nil_impl(m_stream); }
-	void pack_true()						{ pack_true_impl(m_stream); }
-	void pack_false()						{ pack_false_impl(m_stream); }
-	void pack_array(unsigned int n)			{ pack_array_impl(m_stream, n); }
-	void pack_map(unsigned int n)			{ pack_map_impl(m_stream, n); }
-	void pack_raw(size_t l)					{ pack_raw_impl(m_stream, l); }
-	void pack_raw_body(const char* b, size_t l)		{ pack_raw_body_impl(m_stream, b, l); }
+	void pack_int(int d)						{ pack_int_impl(m_stream, d); }
+	void pack_long(long d)						{ pack_long_impl(m_stream, d); }
+	void pack_unsigned_int(unsigned int d)		{ pack_unsigned_int_impl(m_stream, d); }
+	void pack_unsigned_long(unsigned long d)	{ pack_unsigned_long_impl(m_stream, d); }
+	void pack_uint8(uint8_t d)					{ pack_uint8_impl(m_stream, d); }
+	void pack_uint16(uint16_t d)				{ pack_uint16_impl(m_stream, d); }
+	void pack_uint32(uint32_t d)				{ pack_uint32_impl(m_stream, d); }
+	void pack_uint64(uint64_t d)				{ pack_uint64_impl(m_stream, d); }
+	void pack_int8(uint8_t d)					{ pack_int8_impl(m_stream, d); }
+	void pack_int16(uint16_t d)					{ pack_int16_impl(m_stream, d); }
+	void pack_int32(uint32_t d)					{ pack_int32_impl(m_stream, d); }
+	void pack_int64(uint64_t d)					{ pack_int64_impl(m_stream, d); }
+	void pack_float(float d)					{ pack_float_impl(m_stream, d); }
+	void pack_double(double d)					{ pack_double_impl(m_stream, d); }
+	void pack_nil()								{ pack_nil_impl(m_stream); }
+	void pack_true()							{ pack_true_impl(m_stream); }
+	void pack_false()							{ pack_false_impl(m_stream); }
+	void pack_array(unsigned int n)				{ pack_array_impl(m_stream, n); }
+	void pack_map(unsigned int n)				{ pack_map_impl(m_stream, n); }
+	void pack_raw(size_t l)						{ pack_raw_impl(m_stream, l); }
+	void pack_raw_body(const char* b, size_t l)	{ pack_raw_body_impl(m_stream, b, l); }
 
 private:
 	static void pack_int_impl(Stream& x, int d);
+	static void pack_long_impl(Stream& x, long d);
 	static void pack_unsigned_int_impl(Stream& x, unsigned int d);
+	static void pack_unsigned_long_impl(Stream& x, unsigned long d);
 	static void pack_uint8_impl(Stream& x, uint8_t d);
 	static void pack_uint16_impl(Stream& x, uint16_t d);
 	static void pack_uint32_impl(Stream& x, uint32_t d);
