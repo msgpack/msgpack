@@ -32,36 +32,48 @@ template <typename A0 = void<%1.upto(GENERATION_LIMIT+1) {|i|%>, typename A<%=i%
 struct tuple;
 
 template <typename Tuple, int N>
-struct tuple_type;
+struct tuple_element;
 
 template <typename Tuple, int N>
-struct const_tuple_type;
+struct const_tuple_element;
 
 template <typename T>
-struct tuple_element {
+struct tuple_type {
 	typedef T type;
-	tuple_element(T& x) : _x(x) {}
-	type& get() { return _x; }
-	const type& get() const { return _x; }
-private:
-	type& _x;
+	typedef T value_type;
+	typedef T& reference;
+	typedef const T& const_reference;
+	typedef const T& transparent_reference;
 };
 
 template <typename T>
-struct const_tuple_element {
+struct tuple_type<T&> {
 	typedef T type;
-	const_tuple_element(const T& x) : _x(x) {}
-	const type& get() const { return _x; }
-private:
-	const type& _x;
+	typedef T& value_type;
+	typedef T& reference;
+	typedef const T& const_reference;
+	typedef T& transparent_reference;
+};
+
+template <typename T>
+struct tuple_type<const T&> {
+	typedef T type;
+	typedef T& value_type;
+	typedef T& reference;
+	typedef const T& const_reference;
+	typedef const T& transparent_reference;
 };
 
 
 <%0.upto(GENERATION_LIMIT) {|i|%>
 <%0.upto(i) {|j|%>
 template <typename A0<%1.upto(i) {|k|%>, typename A<%=k%><%}%>>
-struct tuple_type<tuple<A0<%1.upto(i) {|k|%>, A<%=k%><%}%>>, <%=j%>> : tuple_element<A<%=j%>> {
-	tuple_type(tuple<A0<%1.upto(i) {|k|%>, A<%=k%> <%}%>>& x) : tuple_element<A<%=j%>>(x.a<%=j%>) {}
+struct tuple_element<tuple<A0<%1.upto(i) {|k|%>, A<%=k%><%}%>>, <%=j%>> : tuple_type<A<%=j%>> {
+	tuple_element(tuple<A0<%1.upto(i) {|k|%>, A<%=k%> <%}%>>& x) : _x(x.a<%=j%>) {}
+	typename tuple_type<A<%=j%>>::reference get() { return _x; }
+	typename tuple_type<A<%=j%>>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A<%=j%>>::reference _x;
 };
 <%}%>
 <%}%>
@@ -70,8 +82,11 @@ struct tuple_type<tuple<A0<%1.upto(i) {|k|%>, A<%=k%><%}%>>, <%=j%>> : tuple_ele
 <%0.upto(GENERATION_LIMIT) {|i|%>
 <%0.upto(i) {|j|%>
 template <typename A0<%1.upto(i) {|k|%>, typename A<%=k%><%}%>>
-struct const_tuple_type<tuple<A0<%1.upto(i) {|k|%>, A<%=k%><%}%>>, <%=j%>> : const_tuple_element<A<%=j%>> {
-	const_tuple_type(const tuple<A0<%1.upto(i) {|k|%>, A<%=k%><%}%>>& x) : const_tuple_element<A<%=j%>>(x.a<%=j%>) {}
+struct const_tuple_element<tuple<A0<%1.upto(i) {|k|%>, A<%=k%><%}%>>, <%=j%>> : tuple_type<A<%=j%>> {
+	const_tuple_element(const tuple<A0<%1.upto(i) {|k|%>, A<%=k%><%}%>>& x) : _x(x.a<%=j%>) {}
+	typename tuple_type<A<%=j%>>::const_reference get() const { return _x; }
+private:
+	typename tuple_type<A<%=j%>>::const_reference _x;
 };
 <%}%>
 <%}%>
@@ -79,7 +94,7 @@ struct const_tuple_type<tuple<A0<%1.upto(i) {|k|%>, A<%=k%><%}%>>, <%=j%>> : con
 
 <%0.upto(GENERATION_LIMIT) {|i|%>
 template <typename A0<%1.upto(i) {|j|%>, typename A<%=j%><%}%>>
-tuple<A0<%1.upto(i) {|j|%>, A<%=j%><%}%>> make_tuple(const A0& a0<%1.upto(i) {|j|%>, const A<%=j%>& a<%=j%><%}%>)
+tuple<A0<%1.upto(i) {|j|%>, A<%=j%><%}%>> make_tuple(typename tuple_type<A0>::transparent_reference a0<%1.upto(i) {|j|%>, typename tuple_type<A<%=j%>>::transparent_reference a<%=j%><%}%>)
 {
 	return tuple<A0<%1.upto(i) {|j|%>, A<%=j%><%}%>>(a0<%1.upto(i) {|j|%>, a<%=j%><%}%>);
 }
@@ -92,14 +107,15 @@ struct tuple<> {
 <%0.upto(GENERATION_LIMIT) {|i|%>
 template <typename A0<%1.upto(i) {|j|%>, typename A<%=j%><%}%>>
 struct tuple<A0<%1.upto(i) {|j|%>, A<%=j%><%}%>> {
+	typedef tuple<A0<%1.upto(i) {|j|%>, A<%=j%><%}%>> value_type;
 	tuple() {}
-	tuple(const A0& _a0<%1.upto(i) {|j|%>, const A<%=j%>& _a<%=j%><%}%>) :
-		a0(_a0) <%1.upto(i) {|j|%>, a<%=j%>(_a<%=j%>)<%}%> {}
+	tuple(typename tuple_type<A0>::transparent_reference _a0<%1.upto(i) {|j|%>, typename tuple_type<A<%=j%>>::transparent_reference _a<%=j%><%}%>) :
+		a0(_a0)<%1.upto(i) {|j|%>, a<%=j%>(_a<%=j%>)<%}%> {}
 	tuple(object o) { convert(*this, o); }
-	template <int N> typename tuple_type<tuple<A0<%1.upto(i) {|j|%>, A<%=j%><%}%>>, N>::type& get()
-		{ return tuple_type<tuple<A0<%1.upto(i) {|j|%>, A<%=j%><%}%>>, N>(*this).get(); }
-	template <int N> const typename const_tuple_type<tuple<A0<%1.upto(i) {|j|%>, A<%=j%><%}%>>, N>::type& get() const
-		{ return const_tuple_type<tuple<A0<%1.upto(i) {|j|%>, A<%=j%><%}%>>, N>(*this).get(); }
+	template <int N> typename tuple_element<value_type, N>::reference get()
+		{ return tuple_element<value_type, N>(*this).get(); }
+	template <int N> typename const_tuple_element<value_type, N>::const_reference get() const
+		{ return const_tuple_element<value_type, N>(*this).get(); }
 	<%0.upto(i) {|j|%>
 	A<%=j%> a<%=j%>;<%}%>
 };
@@ -146,37 +162,6 @@ const packer<Stream>& operator<< (
 	return o;
 }
 <%}%>
-
-
-// FIXME
-/*
-template <typename A0, typename A1 = void, typename A2 = void>
-struct tuple_just;
-
-template <typename A0>
-struct tuple_just<A0> {
-	A0 a0;
-	static inline void convert(object o, tuple_just<A0>& v)
-	{
-		if(o.type != type::ARRAY) { throw type_error(); }
-		if(o.v.container.size != 1) { throw type_error(); }
-		msgpack::convert<A0>(o.v.container.ptr[0], v.a0);
-	}
-};
-
-template <typename A0, typename A1>
-struct tuple_just<A0, A1> {
-	A0 a0;
-	A1 a1;
-	static inline void convert(object o, tuple_just<A0, A1>& v)
-	{
-		if(o.type != type::ARRAY) { throw type_error(); }
-		if(o.v.container.size != 2) { throw type_error(); }
-		msgpack::convert<A0>(o.v.container.ptr[0], v.a0);
-		msgpack::convert<A1>(o.v.container.ptr[1], v.a1);
-	}
-};
-*/
 
 
 }  // namespace msgpack
