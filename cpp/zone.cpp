@@ -5,10 +5,17 @@ namespace msgpack {
 
 void* zone::alloc()
 {
-	if(m_used >= m_pool.size()*MSGPACK_ZONE_CHUNK_SIZE) {
-		m_pool.push_back(new chunk_t());
+	if(m_pool.size()*ZONE_CHUNK_SIZE <= m_used) {
+		cell_t* chunk = (cell_t*)malloc(sizeof(cell_t)*ZONE_CHUNK_SIZE);
+		if(!chunk) { throw std::bad_alloc(); }
+		try {
+			m_pool.push_back(chunk);
+		} catch (...) {
+			free(chunk);
+			throw;
+		}
 	}
-	void* data = m_pool[m_used/MSGPACK_ZONE_CHUNK_SIZE]->cells[m_used%MSGPACK_ZONE_CHUNK_SIZE].data;
+	void* data = m_pool[m_used/ZONE_CHUNK_SIZE][m_used%ZONE_CHUNK_SIZE].data;
 	++m_used;
 	return data;
 }
@@ -16,21 +23,21 @@ void* zone::alloc()
 void zone::clear()
 {
 	if(!m_pool.empty()) {
-		for(size_t b=0; b < m_used/MSGPACK_ZONE_CHUNK_SIZE; ++b) {
-			cell_t* c(m_pool[b]->cells);
-			for(size_t e=0; e < MSGPACK_ZONE_CHUNK_SIZE; ++e) {
+		for(size_t b=0; b < m_used/ZONE_CHUNK_SIZE; ++b) {
+			cell_t* c(m_pool[b]);
+			for(size_t e=0; e < ZONE_CHUNK_SIZE; ++e) {
 				reinterpret_cast<object_class*>(c[e].data)->~object_class();
 			}
 		}
-		cell_t* c(m_pool.back()->cells);
-		for(size_t e=0; e < m_used%MSGPACK_ZONE_CHUNK_SIZE; ++e) {
+		cell_t* c(m_pool.back());
+		for(size_t e=0; e < m_used%ZONE_CHUNK_SIZE; ++e) {
 			reinterpret_cast<object_class*>(c[e].data)->~object_class();
 		}
 
 		for(pool_t::iterator it(m_pool.begin()), it_end(m_pool.end());
 				it != it_end;
 				++it) {
-			delete *it;
+			free(*it);
 		}
 		m_pool.clear();
 	}

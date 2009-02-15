@@ -78,7 +78,7 @@ void unpacker::expand_buffer(size_t len)
 	if(m_off == 0) {
 		size_t next_size;
 		if(m_free != 0) { next_size = m_free * 2; }
-		else { next_size = MSGPACK_UNPACKER_INITIAL_BUFFER_SIZE; }
+		else { next_size = UNPACKER_INITIAL_BUFFER_SIZE; }
 		while(next_size < len + m_used) { next_size *= 2; }
 
 		// FIXME realloc?
@@ -91,7 +91,7 @@ void unpacker::expand_buffer(size_t len)
 		m_free = next_size - m_used;
 
 	} else {
-		size_t next_size = MSGPACK_UNPACKER_INITIAL_BUFFER_SIZE;
+		size_t next_size = UNPACKER_INITIAL_BUFFER_SIZE;
 		while(next_size < len + m_used - m_off) { next_size *= 2; }
 
 		void* tmp = malloc(next_size);

@@ -8,10 +8,13 @@
 #include <stdexcept>
 
 #ifndef MSGPACK_ZONE_CHUNK_SIZE
-#define MSGPACK_ZONE_CHUNK_SIZE 64
+#define MSGPACK_ZONE_CHUNK_SIZE 8*1024
 #endif
 
 namespace msgpack {
+
+
+static const size_t ZONE_CHUNK_SIZE = MSGPACK_ZONE_CHUNK_SIZE;
 
 
 class zone {
@@ -110,11 +113,7 @@ private:
 		char data[MAX_OBJECT_SIZE];
 	};
 
-	struct chunk_t {
-		cell_t cells[MSGPACK_ZONE_CHUNK_SIZE];
-	};
-
-	typedef std::vector<chunk_t*> pool_t;
+	typedef std::vector<cell_t*> pool_t;
 	pool_t m_pool;
 
 

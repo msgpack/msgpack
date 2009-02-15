@@ -12,6 +12,9 @@
 namespace msgpack {
 
 
+static const size_t UNPACKER_INITIAL_BUFFER_SIZE = MSGPACK_UNPACKER_INITIAL_BUFFER_SIZE;
+
+
 struct unpack_error : public std::runtime_error {
 	unpack_error(const std::string& msg) :
 		std::runtime_error(msg) { }
