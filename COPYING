@@ -1,9 +1,3 @@
-MessagePack for C
------------------
-MessagePack is a binary-based efficient data interchange format.
-
-
-
 Copyright (C) 2008 FURUHASHI Sadayuki
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,5 +11,4 @@ Copyright (C) 2008 FURUHASHI Sadayuki
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
-
 

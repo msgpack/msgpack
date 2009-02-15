@@ -1,5 +1,5 @@
 /*
- * MessagePack packing routine for C
+ * MessagePack unpacking routine for C
  *
  * Copyright (C) 2008 FURUHASHI Sadayuki
  *

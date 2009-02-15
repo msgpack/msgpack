@@ -1,5 +1,5 @@
 //
-// MessagePack for C++ deserializing routine
+// MessagePack for C++
 //
 // Copyright (C) 2008 FURUHASHI Sadayuki
 //
@@ -15,17 +15,7 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 //
-#ifndef UNPACK_CONTEXT_HPP__
-#define UNPACK_CONTEXT_HPP__
-
-#include "msgpack/zone.hpp"
 #include "msgpack/object.hpp"
-
-typedef msgpack::object_class* msgpack_object;
-
-typedef msgpack::zone* msgpack_unpack_context;
-
-#include "msgpack/unpack/inline_context.h"
-
-#endif /* unpack_context.h */
-
+#include "msgpack/zone.hpp"
+#include "msgpack/pack.hpp"
+#include "msgpack/unpack.hpp"

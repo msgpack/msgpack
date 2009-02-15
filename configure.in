@@ -1,5 +1,5 @@
 AC_INIT(msgpack/unpack/inline_impl.h)
-AM_INIT_AUTOMAKE(msgpack, 0.1)
+AM_INIT_AUTOMAKE(msgpack, 0.1.0)
 AC_CONFIG_HEADER(config.h)
 
 AC_PROG_LIBTOOL

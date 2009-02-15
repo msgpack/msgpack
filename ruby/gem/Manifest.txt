@@ -13,7 +13,6 @@ ext/unpack.c
 ext/unpack.h
 ext/unpack_context.h
 ext/unpack_inline.c
-msgpack/pack/inline_context.h
 msgpack/pack/inline_impl.h
 msgpack/unpack/inline_context.h
 msgpack/unpack/inline_impl.h

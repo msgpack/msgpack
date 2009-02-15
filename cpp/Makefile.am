@@ -7,6 +7,7 @@ libmsgpack_la_SOURCES = \
 		zone.cpp
 
 nobase_include_HEADERS = \
+		msgpack.hpp \
 		msgpack/pack.hpp \
 		msgpack/unpack.hpp \
 		msgpack/object.hpp \
@@ -15,6 +16,10 @@ nobase_include_HEADERS = \
 noinst_HEADERS = \
 		unpack_context.hpp
 
-zone.hpp: zone.hpp.erb
+msgpack/zone.hpp: msgpack/zone.hpp.erb
 	erb $< > $@
+
+MOSTLYCLEANFILES = zone.hpp
+
+libmsgpack_la_LDFLAGS = -version-info 0:0:0
 
