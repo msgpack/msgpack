@@ -41,6 +41,10 @@ std::ostream& operator<< (std::ostream& s, const object o)
 		s << o.via.i64;
 		break;
 
+	case type::DOUBLE:
+		s << o.via.dec;
+		break;
+
 	case type::RAW:
 		(s << '"').write(o.via.ref.ptr, o.via.ref.size) << '"';
 		break;
