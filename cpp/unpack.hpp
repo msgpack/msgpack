@@ -23,14 +23,11 @@
 #include <memory>
 #include <stdexcept>
 
-#ifndef MSGPACK_UNPACKER_INITIAL_BUFFER_SIZE
-#define MSGPACK_UNPACKER_INITIAL_BUFFER_SIZE 8*1024
+#ifndef MSGPACK_UNPACKER_DEFAULT_INITIAL_BUFFER_SIZE
+#define MSGPACK_UNPACKER_DEFAULT_INITIAL_BUFFER_SIZE 8*1024
 #endif
 
 namespace msgpack {
-
-
-static const size_t UNPACKER_INITIAL_BUFFER_SIZE = MSGPACK_UNPACKER_INITIAL_BUFFER_SIZE;
 
 
 struct unpack_error : public std::runtime_error {
@@ -41,7 +38,7 @@ struct unpack_error : public std::runtime_error {
 
 class unpacker {
 public:
-	unpacker();
+	unpacker(size_t initial_buffer_size = MSGPACK_UNPACKER_DEFAULT_INITIAL_BUFFER_SIZE);
 	~unpacker();
 
 public:
@@ -138,6 +135,8 @@ private:
 
 	struct context;
 	context* m_ctx;
+
+	const size_t m_initial_buffer_size;
 
 private:
 	void expand_buffer(size_t len);

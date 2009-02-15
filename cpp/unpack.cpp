@@ -178,13 +178,14 @@ private:
 };
 
 
-unpacker::unpacker() :
+unpacker::unpacker(size_t initial_buffer_size) :
 	m_buffer(NULL),
 	m_used(0),
 	m_free(0),
 	m_off(0),
 	m_zone(new zone()),
-	m_ctx(new context(&*m_zone))
+	m_ctx(new context(&*m_zone)),
+	m_initial_buffer_size(initial_buffer_size)
 { }
 
 
@@ -199,14 +200,14 @@ void unpacker::expand_buffer(size_t len)
 	if(m_off == 0) {
 		size_t next_size;
 		if(m_used != 0) { next_size = (m_used + m_free) * 2; }
-		else { next_size = UNPACKER_INITIAL_BUFFER_SIZE; }
+		else { next_size = m_initial_buffer_size; }
 		while(next_size < len + m_used) { next_size *= 2; }
 
 		m_buffer = m_zone->realloc(m_buffer, next_size);
 		m_free = next_size - m_used;
 
 	} else {
-		size_t next_size = UNPACKER_INITIAL_BUFFER_SIZE;
+		size_t next_size = m_initial_buffer_size;
 		while(next_size < len + m_used - m_off) { next_size *= 2; }
 
 		char* tmp = m_zone->malloc(next_size);
