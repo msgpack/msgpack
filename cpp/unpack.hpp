@@ -109,22 +109,18 @@ public:
 public:
 	// These functions are usable when non-MessagePack message follows after
 	// MessagePack message.
-	// Note that there are no parsed buffer when execute() returned true.
 
-	/*! get address of buffer that is not parsed */
+	/*! get address of the buffer that is not parsed */
 	char* nonparsed_buffer();
 	size_t nonparsed_size() const;
 
-	/*! get the number of bytes that is already parsed */
-	size_t parsed_size() const;
+	/*! skip specified size of non-parsed buffer, leaving the buffer */
+	// Note that the `len' argument must be smaller than nonparsed_size()
+	void skip_nonparsed_buffer(size_t len);
 
 	/*! remove unparsed buffer from unpacker */
 	// Note that reset() leaves non-parsed buffer.
 	void remove_nonparsed_buffer();
-
-	/*! skip specified size of non-parsed buffer, leaving the buffer */
-	// Note the size must be smaller than nonparsed_size()
-	void skip_nonparsed_buffer(size_t len);
 
 private:
 	char* m_buffer;
@@ -174,14 +170,11 @@ inline char* unpacker::nonparsed_buffer()
 inline size_t unpacker::nonparsed_size() const
 	{ return m_used - m_off; }
 
-inline size_t unpacker::parsed_size() const
-	{ return m_off; }
+inline void unpacker::skip_nonparsed_buffer(size_t len)
+	{ m_off += len; }
 
 inline void unpacker::remove_nonparsed_buffer()
 	{ m_used = m_off; }
-
-inline void unpacker::skip_nonparsed_buffer(size_t len)
-	{ m_off += len; }
 
 
 inline object unpack(const char* data, size_t len, zone& z, size_t* off = NULL)
