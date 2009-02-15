@@ -1,0 +1,123 @@
+#ifndef MSGPACK_ZONE_HPP__
+#define MSGPACK_ZONE_HPP__
+
+#include "msgpack/object.hpp"
+#include <iostream>
+
+#ifndef MSGPACK_ZONE_CHUNK_SIZE
+#define MSGPACK_ZONE_CHUNK_SIZE 64
+#endif
+
+namespace msgpack {
+
+
+class zone {
+public:
+zone() : m_used(0), m_pool(1) { }
+~zone() { clear(); }
+
+public:
+	template <typename T>
+	void push_finalizer(void (*func)(void* obj, void* user), T* obj, void* user);
+
+public:
+	   object_nil*    nnil() { return new (alloc()) object_nil();   }
+	  object_true*   ntrue() { return new (alloc()) object_true();  }
+	 object_false*  nfalse() { return new (alloc()) object_false(); }
+	    object_u8*     nu8( uint8_t v) { return new (alloc())     object_u8(v); }
+	   object_u16*    nu16(uint16_t v) { return new (alloc())    object_u16(v); }
+	   object_u32*    nu32(uint32_t v) { return new (alloc())    object_u32(v); }
+	   object_u64*    nu64(uint64_t v) { return new (alloc())    object_u64(v); }
+	    object_i8*     ni8(  int8_t v) { return new (alloc())     object_i8(v); }
+	   object_i16*    ni16( int16_t v) { return new (alloc())    object_i16(v); }
+	   object_i32*    ni32( int32_t v) { return new (alloc())    object_i32(v); }
+	   object_i64*    ni64( int64_t v) { return new (alloc())    object_i64(v); }
+	 object_float*  nfloat(   float v) { return new (alloc())  object_float(v); }
+	object_double* ndouble(  double v) { return new (alloc()) object_double(v); }
+
+	object_raw* nraw(void* ptr, uint32_t len)
+		{ return new (alloc()) object_raw(ptr, len); }
+
+	object_const_raw* nraw(const void* ptr, uint32_t len)
+		{ return new (alloc()) object_const_raw(ptr, len); }
+
+	object_array* narray()
+		{ return new (alloc()) object_array(); }
+
+	object_array* narray(size_t reserve_size)
+		{ return new (alloc()) object_array(reserve_size); }
+
+	object_map* nmap()
+		{ return new (alloc()) object_map(); }
+
+<% GENERATION_SIZE = 16 %>
+<% 1.upto(GENERATION_SIZE) {|i| %>
+	object_array* narray(<% 1.upto(i-1) {|n| %>object o<%=n%>, <% } %>object o<%=i%>)
+		{ object_array* a = new (alloc()) object_array(<%=i%>);
+			<% 1.upto(i) {|n| %>a->push_back(o<%=n%>);
+			<% } %>return a; }
+<% } %>
+
+<% 1.upto(GENERATION_SIZE) {|i| %>
+	object_map* nmap(<% 1.upto(i-1) {|n| %>object k<%=n%>, object v<%=n%>, <% } %>object k<%=i%>, object v<%=i%>)
+		{ object_map* m = new (alloc()) object_map();
+			<% 1.upto(i) {|n| %>m->store(k<%=n%>, v<%=n%>);
+			<% } %>return m; }
+<% } %>
+
+public:
+	void clear();
+
+private:
+	void* alloc();
+
+private:
+	size_t m_used;
+
+	static const size_t MAX_OBJECT_SIZE =
+		sizeof(object_raw) > sizeof(object_array)
+			? ( sizeof(object_raw) > sizeof(object_map)
+					? sizeof(object_raw)
+					: sizeof(object_map)
+			  )
+			: ( sizeof(object_array) > sizeof(object_map)
+					? sizeof(object_array)
+					: sizeof(object_map)
+			  )
+		;
+
+	struct cell_t {
+		char data[MAX_OBJECT_SIZE];
+	};
+
+	struct chunk_t {
+		cell_t cells[MSGPACK_ZONE_CHUNK_SIZE];
+	};
+
+	typedef std::vector<chunk_t> pool_t;
+	pool_t m_pool;
+
+
+	class finalizer {
+	public:
+		finalizer(void (*func)(void*, void*), void* obj, void* user) :
+			m_obj(obj), m_user(user), m_func(func) {}
+		void call() { (*m_func)(m_obj, m_user); }
+	private:
+		void* m_obj;
+		void* m_user;
+		void (*m_func)(void*, void*);
+	};
+
+	typedef std::vector<finalizer> user_finalizer_t;
+	user_finalizer_t m_user_finalizer;
+
+private:
+	zone(const zone&);
+};
+
+
+}  // namespace msgpack
+
+#endif /* msgpack/zone.hpp */
+

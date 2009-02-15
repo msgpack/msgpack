@@ -23,6 +23,10 @@
 #include <arpa/inet.h>
 /*#include <stdio.h>*/
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // Positive FixNum  0xxxxxxx  0x00 - 0x7f
 // Negative FixNum  111xxxxx  0xe0 - 0xff
 // Variable         110xxxxx  0xc0 - 0xdf
@@ -71,13 +75,16 @@
 #endif
 #endif
 
-static inline uint64_t ntohll(uint64_t x) {
-#ifdef __LITTLE_ENDIAN__  // FIXME
+#define betoh16(x) ntohs(x)
+#define betoh32(x) ntohl(x)
+
+#ifdef __LITTLE_ENDIAN__
 #if defined(__bswap_64)
-	return __bswap_64(x);
+#  define betoh64(x) __bswap_64(x)
 #elif defined(__DARWIN_OSSwapInt64)
-	return __DARWIN_OSSwapInt64(x);
+#  define betoh64(x) __DARWIN_OSSwapInt64(x)
 #else
+static inline uint64_t betoh64(uint64_t x) {
 	return	((x << 56) & 0xff00000000000000ULL ) |
 			((x << 40) & 0x00ff000000000000ULL ) |
 			((x << 24) & 0x0000ff0000000000ULL ) |
@@ -86,11 +93,12 @@ static inline uint64_t ntohll(uint64_t x) {
 			((x >> 24) & 0x0000000000ff0000ULL ) |
 			((x >> 40) & 0x000000000000ff00ULL ) |
 			((x >> 56) & 0x00000000000000ffULL ) ;
+}
 #endif
 #else
-	return x;
+#define betoh64(x) (x)
 #endif
-}
+
 
 typedef enum {
 	CS_HEADER            = 0x00,  // nil
@@ -212,9 +220,9 @@ int msgpack_unpacker_execute(msgpack_unpacker* ctx, const char* data, size_t len
 	((unsigned int)*p & 0x1f)
 
 #define PTR_CAST_8(ptr)   (*(uint8_t*)ptr)
-#define PTR_CAST_16(ptr)  ntohs(*(uint16_t*)ptr)
-#define PTR_CAST_32(ptr)  ntohl(*(uint32_t*)ptr)
-#define PTR_CAST_64(ptr)  ntohll(*(uint64_t*)ptr)
+#define PTR_CAST_16(ptr)  betoh16(*(uint16_t*)ptr)
+#define PTR_CAST_32(ptr)  betoh32(*(uint32_t*)ptr)
+#define PTR_CAST_64(ptr)  betoh64(*(uint64_t*)ptr)
 
 	if(p == pe) { goto _out; }
 	do {
@@ -433,6 +441,22 @@ _end:
 	return ret;
 }
 
+
+#ifdef betoh16(x)
+#undef betoh16(x)
+#endif
+
+#ifdef betoh32(x)
+#undef betoh32(x)
+#endif
+
+#ifdef betoh64(x)
+#undef betoh64(x)
+#endif
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* msgpack/unpack/inline_impl.h */
 

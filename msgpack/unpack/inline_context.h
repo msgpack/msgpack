@@ -25,6 +25,10 @@
 #define MSG_STACK_SIZE 16
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct {
 	msgpack_object obj;
 	size_t count;
@@ -47,6 +51,9 @@ void msgpack_unpacker_init(msgpack_unpacker* ctx);
 int msgpack_unpacker_execute(msgpack_unpacker* ctx, const char* data, size_t len, size_t* off);
 #define msgpack_unpacker_data(unpacker) (unpacker)->stack[0].obj
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* msgpack/unpack/inline_context.h */
 

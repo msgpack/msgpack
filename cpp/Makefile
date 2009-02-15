@@ -1,0 +1,21 @@
+
+CXXFLAGS = -I.. -I. -Wall -g -O4
+LDFLAGS = -L.
+
+NEED_PREPROCESS = zone.hpp
+
+all: test
+
+%.hpp: %.hpp.erb
+	erb $< > $@
+
+test: $(NEED_PREPROCESS) unpack.o unpack_inline.o zone.o test.o object.hpp unpack.hpp
+	$(CXX) $(LDFLAGS) unpack.o unpack_inline.o zone.o test.o -o $@
+
+.PHONY: clean
+clean:
+	$(RM) unpack.o unpack_inline.o zone.o
+	$(RM) test.o
+	$(RM) test
+	$(RM) $(NEED_PREPROCESS)
+
