@@ -21,6 +21,7 @@
 
 typedef struct {
 	int finished;
+	VALUE origstr;
 } msgpack_unpack_context;
 
 
@@ -104,7 +105,7 @@ static inline void template_callback_map_item(msgpack_unpack_context* x, VALUE* 
 { rb_hash_aset(*c, k, v); }
 
 static inline VALUE template_callback_raw(msgpack_unpack_context* x, const char* b, const char* p, unsigned int l)
-{ return rb_str_new(p, l); }
+{ return l == 0 ? rb_str_new(0,0) : rb_str_substr(x->origstr, p - b, l); }
 
 
 #include "msgpack/unpack_template.h"
@@ -152,8 +153,9 @@ static VALUE MessagePack_Unpacker_alloc(VALUE klass)
 static VALUE MessagePack_Unpacker_reset(VALUE self)
 {
 	UNPACKER(self, mp);
-	mp->user.finished = 0;
 	msgpack_unpacker_init(mp);
+	msgpack_unpack_context ctx = {0, Qnil};
+	mp->user = ctx;
 	return self;
 }
 
@@ -179,7 +181,9 @@ static VALUE MessagePack_Unpacker_execute_impl(VALUE args)
 		rb_raise(eUnpackError, "offset is bigger than data buffer size.");
 	}
 
+	mp->user.origstr = data;
 	ret = msgpack_unpacker_execute(mp, dptr, (size_t)dlen, &from);
+	mp->user.origstr = Qnil;
 
 	if(ret < 0) {
 		rb_raise(eUnpackError, "parse error.");
@@ -239,7 +243,9 @@ static VALUE MessagePack_unpack_impl(VALUE args)
 	long dlen = RSTRING_LEN(data);
 	int ret;
 
+	mp->user.origstr = data;
 	ret = msgpack_unpacker_execute(mp, dptr, (size_t)dlen, &from);
+	mp->user.origstr = Qnil;
 
 	if(ret < 0) {
 		rb_raise(eUnpackError, "parse error.");
@@ -268,6 +274,9 @@ static VALUE MessagePack_unpack(VALUE self, VALUE data)
 	CHECK_STRING_TYPE(data);
 	msgpack_unpacker mp;
 	msgpack_unpacker_init(&mp);
+	msgpack_unpack_context ctx = {0, Qnil};
+	mp.user = ctx;
+
 	rb_gc_disable();
 	VALUE args[2] = {(VALUE)&mp, data};
 	VALUE ret = rb_rescue(MessagePack_unpack_impl, (VALUE)args,

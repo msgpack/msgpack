@@ -22,8 +22,10 @@
 #include <stdint.h>
 #include <string.h>
 #include <assert.h>
-#include <arpa/inet.h>
 #include <stdio.h>
+#ifndef __WIN32__
+#include <arpa/inet.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" {
