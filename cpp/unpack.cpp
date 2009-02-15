@@ -257,7 +257,7 @@ zone* unpacker::release_zone()
 			throw;
 		}
 	}
-	m_ctx->user(&*m_zone);
+	m_ctx->user(m_zone.get());
 	return old.release();
 }
 
@@ -268,7 +268,7 @@ object unpacker::data()
 
 void unpacker::reset()
 {
-	if(m_off != 0) { std::auto_ptr<zone> old(release_zone()); }
+	if(m_off != 0) { delete release_zone(); }
 	m_ctx->reset();
 }
 

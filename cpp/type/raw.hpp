@@ -82,7 +82,8 @@ inline std::string& operator>> (object o, std::string& v)
 template <typename Stream>
 inline packer<Stream>& operator<< (packer<Stream>& o, const type::raw_ref& v)
 {
-	o.pack_raw(v.ptr, v.size);
+	o.pack_raw(v.size);
+	o.pack_raw_body(v.ptr, v.size);
 	return o;
 }
 
@@ -90,7 +91,8 @@ inline packer<Stream>& operator<< (packer<Stream>& o, const type::raw_ref& v)
 template <typename Stream>
 inline packer<Stream>& operator<< (packer<Stream>& o, const std::string& v)
 {
-	o.pack_raw(v.data(), v.size());
+	o.pack_raw(v.size());
+	o.pack_raw_body(v.data(), v.size());
 	return o;
 }
 

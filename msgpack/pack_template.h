@@ -282,7 +282,7 @@ msgpack_pack_inline_func(map)(msgpack_pack_user x, unsigned int n)
  * Raw
  */
 
-msgpack_pack_inline_func(raw)(msgpack_pack_user x, const void* b, size_t l)
+msgpack_pack_inline_func(raw)(msgpack_pack_user x, size_t l)
 {
 	if(l < 32) {
 		unsigned char d = 0xa0 | l;
@@ -296,9 +296,12 @@ msgpack_pack_inline_func(raw)(msgpack_pack_user x, const void* b, size_t l)
 		unsigned char buf[5] = {0xdb, STORE_BE32(d)};
 		msgpack_pack_append_buffer(x, buf, 5);
 	}
-	msgpack_pack_append_buffer(x, (const unsigned char*)b, l);
 }
 
+msgpack_pack_inline_func(raw_body)(msgpack_pack_user x, const void* b, size_t l)
+{
+	msgpack_pack_append_buffer(x, (const unsigned char*)b, l);
+}
 
 #undef msgpack_pack_inline_func
 #undef msgpack_pack_user

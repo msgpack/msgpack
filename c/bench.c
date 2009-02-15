@@ -279,7 +279,8 @@ void bench_msgpack(void)
 		unsigned int i;
 		msgpack_pack_array(mpk, TASK_STR_LEN);
 		for(i=0; i < TASK_STR_LEN; ++i) {
-			msgpack_pack_raw(mpk, TASK_STR_PTR, i);
+			msgpack_pack_raw(mpk, i);
+			msgpack_pack_raw_body(mpk, TASK_STR_PTR, i);
 		}
 	}
 	show_timer(mpkbuf.length);

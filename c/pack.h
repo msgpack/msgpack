@@ -54,8 +54,8 @@ void msgpack_pack_true(msgpack_pack_t* ctx);
 void msgpack_pack_false(msgpack_pack_t* ctx);
 void msgpack_pack_array(msgpack_pack_t* ctx, unsigned int n);
 void msgpack_pack_map(msgpack_pack_t* ctx, unsigned int n);
-void msgpack_pack_string(msgpack_pack_t* ctx, const char* b);
-void msgpack_pack_raw(msgpack_pack_t* ctx, const void* b, size_t l);
+void msgpack_pack_raw(msgpack_pack_t* ctx, size_t l);
+void msgpack_pack_raw_body(msgpack_pack_t* ctx, const void* b, size_t l);
 
 
 #ifdef __cplusplus

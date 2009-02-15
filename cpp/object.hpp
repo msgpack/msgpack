@@ -173,7 +173,8 @@ packer<Stream>& operator<< (packer<Stream>& o, const object& v)
 		return o;
 
 	case type::RAW:
-		o.pack_raw(v.via.ref.ptr, v.via.ref.size);
+		o.pack_raw(v.via.ref.size);
+		o.pack_raw_body(v.via.ref.ptr, v.via.ref.size);
 		return o;
 
 	case type::ARRAY:

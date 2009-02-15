@@ -45,7 +45,8 @@ static void msgpack_pack_true(VALUE x);
 static void msgpack_pack_false(VALUE x);
 static void msgpack_pack_array(VALUE x, unsigned int n);
 static void msgpack_pack_map(VALUE x, unsigned int n);
-static void msgpack_pack_raw(VALUE x, const void* b, size_t l);
+static void msgpack_pack_raw(VALUE x, size_t l);
+static void msgpack_pack_raw_body(VALUE x, const void* b, size_t l);
 */
 
 #include "msgpack/pack_template.h"
@@ -123,7 +124,8 @@ static VALUE MessagePack_Float_to_msgpack(int argc, VALUE *argv, VALUE self)
 static VALUE MessagePack_String_to_msgpack(int argc, VALUE *argv, VALUE self)
 {
 	ARG_BUFFER(out, argc, argv);
-	msgpack_pack_raw(out, RSTRING_PTR(self), RSTRING_LEN(self));
+	msgpack_pack_raw(out, RSTRING_LEN(self));
+	msgpack_pack_raw_body(out, RSTRING_PTR(self), RSTRING_LEN(self));
 	return out;
 }
 

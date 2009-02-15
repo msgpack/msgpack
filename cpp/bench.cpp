@@ -142,7 +142,8 @@ void bench_msgpack_str()
 		msgpack::packer<simple_buffer> pk(buf);
 		pk.pack_array(TASK_STR_LEN);
 		for(unsigned int i=0; i < TASK_STR_LEN; ++i) {
-			pk.pack_raw(TASK_STR_PTR, i);
+			pk.pack_raw(i);
+			pk.pack_raw_body(TASK_STR_PTR, i);
 		}
 	}
 	timer.show_stat(buf.size());
