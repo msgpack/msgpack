@@ -81,21 +81,6 @@ inline object& operator>> (object o, object& v)
 template <typename Stream>
 packer<Stream>& operator<< (packer<Stream>& o, const object& v);
 
-	
-
-template <typename T>
-inline T& operator>> (object o, T& v)
-{
-	v.msgpack_unpack(o);
-	return v;
-}
-
-template <typename Stream, typename T>
-inline packer<Stream>& operator<< (packer<Stream>& o, const T& v)
-{
-	o << v.msgpack_pack();
-	return o;
-}
 
 
 template <typename T>
@@ -122,6 +107,44 @@ inline void pack_copy(packer<Stream>& o, T v)
 {
 	pack(o, v);
 }
+
+	
+
+template <typename T>
+inline T& operator>> (object o, T& v)
+{
+	v.msgpack_unpack(o);
+	return v;
+}
+
+template <typename Stream, typename T>
+inline packer<Stream>& operator<< (packer<Stream>& o, const T& v)
+{
+	o << v.msgpack_pack();
+	return o;
+}
+
+
+template <typename Type>
+class define : public Type {
+public:
+	typedef Type msgpack_type;
+	typedef define<Type> define_type;
+
+	define() {}
+	define(msgpack_type v) : msgpack_type(v) {}
+
+	msgpack_type msgpack_pack() const
+	{
+		return *this;
+	}
+
+	void msgpack_unpack(object o)
+	{
+		convert(static_cast<msgpack_type&>(*this), o);
+	}
+};
+
 
 
 template <typename Stream>
