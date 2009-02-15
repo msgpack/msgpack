@@ -1,6 +1,5 @@
 #ifndef MSGPACK_OBJECT_HPP__
 #define MSGPACK_OBJECT_HPP__
-#include <iostream>
 
 #include <cstddef>
 #include <stdexcept>
@@ -47,6 +46,8 @@ struct object;
 typedef std::map<object, object> map;
 typedef std::vector<object> array;
 
+class dynamic_packer;
+
 
 struct object_class {
 	virtual ~object_class() {}
@@ -72,6 +73,7 @@ struct object_class {
 	bool operator!= (const object_class* x) const { return !(this->operator==(x)); }
 	virtual bool operator<  (const object_class* x) const { throw cast_error(); }
 	virtual bool operator>  (const object_class* x) const { throw cast_error(); }
+	virtual void pack(dynamic_packer& p) const = 0;
 	operator     bool() const { return   xbool(); } // FIXME !isnil();
 	operator  uint8_t() const { return     xu8(); }
 	operator uint16_t() const { return    xu16(); }
@@ -128,6 +130,7 @@ struct object {
 	bool operator!= (object x) const { return val->operator!= (x.val); }
 	bool operator<  (object x) const { return val->operator<  (x.val); }
 	bool operator>  (object x) const { return val->operator>  (x.val); }
+	void pack(dynamic_packer& p) const { val->pack(p); }
 	operator     bool() const { return val->operator bool();     }
 	operator  uint8_t() const { return val->operator uint8_t();  }
 	operator uint16_t() const { return val->operator uint16_t(); }
@@ -160,18 +163,21 @@ inline std::ostream& operator<< (std::ostream& s, const object& o)
 struct object_nil : object_class {
 	bool isnil() const;
 	bool operator== (const object_class* x) const;
+	void pack(dynamic_packer& p) const;
 	const object_class* inspect(std::ostream& s) const;
 };
 
 struct object_true : object_class {
 	bool xbool() const;
 	bool operator== (const object_class* x) const;
+	void pack(dynamic_packer& p) const;
 	const object_class* inspect(std::ostream& s) const;
 };
 
 struct object_false : object_class {
 	bool xbool() const;
 	bool operator== (const object_class* x) const;
+	void pack(dynamic_packer& p) const;
 	const object_class* inspect(std::ostream& s) const;
 };
 
@@ -191,6 +197,7 @@ struct object_##NAME : object_class {						\
 	bool operator== (const object_class* x) const;			\
 	bool operator<  (const object_class* x) const;			\
 	bool operator>  (const object_class* x) const;			\
+	void pack(dynamic_packer& p) const;						\
 	const object_class* inspect(std::ostream& s) const;		\
 private:													\
 	TYPE val;												\
@@ -209,24 +216,25 @@ INTEGER_CLASS(int64_t, i64)
 
 
 #define FLOAT_CLASS(TYPE, NAME) \
-struct object_##NAME : object_class {							\
-	object_##NAME(TYPE v) : val(v) {}							\
-	uint8_t  xu8    () const;									\
-	uint16_t xu16   () const;									\
-	uint32_t xu32   () const;									\
-	uint64_t xu64   () const;									\
-	int8_t   xi8    () const;									\
-	int16_t  xi16   () const;									\
-	int32_t  xi32   () const;									\
-	int64_t  xi64   () const;									\
-	float    xfloat () const;									\
-	double   xdouble() const;									\
-	bool operator== (const object_class* x) const;				\
-	bool operator<  (const object_class* x) const;				\
-	bool operator>  (const object_class* x) const;				\
-	const object_class* inspect(std::ostream& s) const;			\
-private:														\
-	TYPE val;													\
+struct object_##NAME : object_class {						\
+	object_##NAME(TYPE v) : val(v) {}						\
+	uint8_t  xu8    () const;								\
+	uint16_t xu16   () const;								\
+	uint32_t xu32   () const;								\
+	uint64_t xu64   () const;								\
+	int8_t   xi8    () const;								\
+	int16_t  xi16   () const;								\
+	int32_t  xi32   () const;								\
+	int64_t  xi64   () const;								\
+	float    xfloat () const;								\
+	double   xdouble() const;								\
+	bool operator== (const object_class* x) const;			\
+	bool operator<  (const object_class* x) const;			\
+	bool operator>  (const object_class* x) const;			\
+	void pack(dynamic_packer& p) const;						\
+	const object_class* inspect(std::ostream& s) const;		\
+private:													\
+	TYPE val;												\
 };
 
 FLOAT_CLASS(float, float)
@@ -242,6 +250,7 @@ struct object_##NAME : object_class {									\
 	bool operator== (const object_class* x) const;						\
 	bool operator<  (const object_class* x) const;						\
 	bool operator>  (const object_class* x) const;						\
+	void pack(dynamic_packer& p) const;									\
 	const object_class* inspect(std::ostream& s) const;					\
 private:																\
 	TYPE ptr;															\
@@ -261,6 +270,7 @@ struct object_array : object_class, object_container_mixin {
 	const array& xarray() const;
 	bool operator== (const object_class* x) const;
 	// FIXME operator<, operator>
+	void pack(dynamic_packer& p) const;
 	const object_class* inspect(std::ostream& s) const;
 public:
 	void push_back(object o) { val.push_back(o); }
@@ -276,6 +286,7 @@ struct object_map : object_class, object_container_mixin {
 	const map& xmap() const;
 	bool operator== (const object_class* x) const;
 	// FIXME operator<, operator>
+	void pack(dynamic_packer& p) const;
 	const object_class* inspect(std::ostream& s) const;
 public:
 	void store(object k, object v) { val[k] = v; }

@@ -9,7 +9,7 @@ all: test
 %.hpp: %.hpp.erb
 	erb $< > $@
 
-test: $(NEED_PREPROCESS) unpack.o unpack_inline.o object.o zone.o test.o object.hpp unpack.hpp
+test: $(NEED_PREPROCESS) unpack.o unpack_inline.o object.o zone.o test.o object.hpp unpack.hpp pack.hpp
 	$(CXX) $(LDFLAGS) unpack.o unpack_inline.o zone.o object.o test.o -o $@
 
 .PHONY: clean

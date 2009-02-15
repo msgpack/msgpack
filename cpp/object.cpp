@@ -1,4 +1,5 @@
 #include "msgpack/object.hpp"
+#include "msgpack/pack.hpp"
 
 namespace msgpack {
 
@@ -132,24 +133,73 @@ template <>
 inline void numeric_inspect<int8_t>(int8_t v, std::ostream& s)
 	{ s << (int16_t)v; }
 
+template <typename V>
+inline void numeric_pack(dynamic_packer& p, V v);
+
+template <>
+inline void numeric_pack<uint8_t>(dynamic_packer& p, uint8_t v)
+	{ p.pack_unsigned_int_8(v); }
+
+template <>
+inline void numeric_pack<uint16_t>(dynamic_packer& p, uint16_t v)
+	{ p.pack_unsigned_int_16(v); }
+
+template <>
+inline void numeric_pack<uint32_t>(dynamic_packer& p, uint32_t v)
+	{ p.pack_unsigned_int_32(v); }
+
+template <>
+inline void numeric_pack<uint64_t>(dynamic_packer& p, uint64_t v)
+	{ p.pack_unsigned_int_64(v); }
+
+template <>
+inline void numeric_pack<int8_t>(dynamic_packer& p, int8_t v)
+	{ p.pack_unsigned_int_8(v); }
+
+template <>
+inline void numeric_pack<int16_t>(dynamic_packer& p, int16_t v)
+	{ p.pack_unsigned_int_16(v); }
+
+template <>
+inline void numeric_pack<int32_t>(dynamic_packer& p, int32_t v)
+	{ p.pack_unsigned_int_32(v); }
+
+template <>
+inline void numeric_pack<int64_t>(dynamic_packer& p, int64_t v)
+	{ p.pack_unsigned_int_64(v); }
+
+template <>
+inline void numeric_pack<float>(dynamic_packer& p, float v)
+	{ p.pack_float(v); }
+
+template <>
+inline void numeric_pack<double>(dynamic_packer& p, double v)
+	{ p.pack_double(v); }
+
 }  // noname namespace
 
 
 bool object_nil::isnil() const { return true; }
 bool object_nil::operator== (const object_class* x) const
 	{ return typeid(*this) == typeid(*x); }
+void object_nil::pack(dynamic_packer& p) const
+	{ p.pack_nil(); }
 const object_class* object_nil::inspect(std::ostream& s) const
 	{ s << "nil"; return this; }
 
 bool object_true::xbool() const { return true; }
 bool object_true::operator== (const object_class* x) const
 	{ return typeid(*this) == typeid(*x); }
+void object_true::pack(dynamic_packer& p) const
+	{ p.pack_true(); }
 const object_class* object_true::inspect(std::ostream& s) const
 	{ s << "true"; return this; }
 
 bool object_false::xbool() const { return false; }
 bool object_false::operator== (const object_class* x) const
 	{ return typeid(*this) == typeid(*x); }
+void object_false::pack(dynamic_packer& p) const
+	{ p.pack_false(); }
 const object_class* object_false::inspect(std::ostream& s) const
 	{ s << "false"; return this; }
 
@@ -176,6 +226,8 @@ bool object_##NAME::operator>  (const object_class* x) const					\
 	try { return val > x->x##NAME(); }											\
 	catch (negative_overflow_error&) { return true; }							\
 	catch (overflow_error&) { return false; }									\
+void object_##NAME::pack(dynamic_packer& p) const								\
+	{ numeric_pack(p, val); }													\
 const object_class* object_##NAME::inspect(std::ostream& s) const				\
 	{ numeric_inspect(val, s); return this; }									\
 
@@ -236,7 +288,9 @@ bool object_##NAME::operator>  (const object_class* x) const {					\
 			catch (type_error&) { return true; }								\
 		}																		\
 	} }																			\
-const object_class* object_##NAME::inspect(std::ostream& s) const								\
+void object_##NAME::pack(dynamic_packer& p) const								\
+	{ numeric_pack(p, val); }													\
+const object_class* object_##NAME::inspect(std::ostream& s) const				\
 	{ s << val; return this; }													\
 
 FLOAT_OBJECT(float)
@@ -260,6 +314,8 @@ bool object_##NAME::operator>  (const object_class* x) const {					\
 	const_raw xr(x->xraw());													\
 	if(len == xr.len) { return ptr != xr.ptr && memcmp(ptr, xr.ptr, len) > 0; }	\
 	else { return len > xr.len; } }												\
+void object_##NAME::pack(dynamic_packer& p) const								\
+	{ p.pack_raw(ptr, len); }													\
 const object_class* object_##NAME::inspect(std::ostream& s) const				\
 	{ (s << '"').write((const char*)ptr, len) << '"'; return this; }  // FIXME escape
 
@@ -303,6 +359,15 @@ const object_class* object_array::inspect(std::ostream& s) const
 	s << ']';
 	return this;
 }
+void object_array::pack(dynamic_packer& p) const
+{
+	p.pack_array(val.size());
+	for(std::vector<object>::const_iterator it(val.begin()), it_end(val.end());
+			it != it_end;
+			++it) {
+		it->pack(p);
+	}
+}
 
 
       map& object_map::xmap()       { return val; }
@@ -333,6 +398,16 @@ const object_class* object_map::inspect(std::ostream& s) const
 	}
 	s << '}';
 	return this;
+}
+void object_map::pack(dynamic_packer& p) const
+{
+	p.pack_map(val.size());
+	for(std::map<object, object>::const_iterator it(val.begin()), it_end(val.end());
+			it != it_end;
+			++it) {
+		it->first.pack(p);
+		it->second.pack(p);
+	}
 }
 
 

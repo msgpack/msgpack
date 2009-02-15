@@ -27,6 +27,8 @@ static inline void msgpack_pack_append_buffer(VALUE x, const unsigned char* b, u
 	rb_str_buf_cat(x, (const void*)b, l);
 }
 
+#include <string.h>
+#include <arpa/inet.h>  /* __BYTE_ORDER */
 #include "msgpack/pack/inline_impl.h"
 
 #endif /* pack_inline.h */
