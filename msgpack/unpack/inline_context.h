@@ -34,7 +34,7 @@ typedef struct {
 	size_t count;
 	unsigned int ct;
 	union {
-		const unsigned char* terminal_trail_start;
+		/*const unsigned char* terminal_trail_start;*/
 		msgpack_object map_key;
 	} tmp;
 } msgpack_unpacker_stack;

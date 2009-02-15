@@ -103,7 +103,7 @@ static inline uint64_t betoh64(uint64_t x) {
 typedef enum {
 	CS_HEADER            = 0x00,  // nil
 
-	CS_STRING            = 0x01,
+	//CS_STRING          = 0x01,
 	//CS_                = 0x02,  // false
 	//CS_                = 0x03,  // true
 
@@ -186,15 +186,17 @@ int msgpack_unpacker_execute(msgpack_unpacker* ctx, const char* data, size_t len
 	obj = func(user, arg); \
 	/*printf("obj %d\n",obj);*/ \
 	goto _push
-#define push_variable_value(func, arg, arglen) \
-	obj = func(user, arg, arglen); \
+#define push_variable_value(func, base, pos, len) \
+	obj = func(user, (const void*)base, (const void*)pos, len); \
 	/*printf("obj %d\n",obj);*/ \
 	goto _push
 
+/*
 #define again_terminal_trail(_cs, from) \
 	cs = _cs; \
 	stack[top].tmp.terminal_trail_start = from; \
 	goto _terminal_trail_again
+*/
 #define again_fixed_trail(_cs, trail_len) \
 	trail = trail_len; \
 	cs = _cs; \
@@ -237,8 +239,8 @@ int msgpack_unpacker_execute(msgpack_unpacker* ctx, const char* data, size_t len
 				switch(*p) {
 				case 0xc0:  // nil
 					push_simple_value(msgpack_unpack_nil);
-				case 0xc1:  // string
-					again_terminal_trail(NEXT_CS(p), p+1);
+				//case 0xc1:  // string
+				//	again_terminal_trail(NEXT_CS(p), p+1);
 				case 0xc2:  // false
 					push_simple_value(msgpack_unpack_false);
 				case 0xc3:  // true
@@ -289,16 +291,16 @@ int msgpack_unpacker_execute(msgpack_unpacker* ctx, const char* data, size_t len
 			// end CS_HEADER
 
 
-		_terminal_trail_again:
-			++p;
+		//_terminal_trail_again:
+		//	++p;
 
-		case CS_STRING:
-			if(*p == 0) {
-				const unsigned char* start = stack[top].tmp.terminal_trail_start;
-				obj = msgpack_unpack_string(user, start, p-start);
-				goto _push;
-			}
-			goto _terminal_trail_again;
+		//case CS_STRING:
+		//	if(*p == 0) {
+		//		const unsigned char* start = stack[top].tmp.terminal_trail_start;
+		//		obj = msgpack_unpack_string(user, start, p-start);
+		//		goto _push;
+		//	}
+		//	goto _terminal_trail_again;
 
 
 		_fixed_trail_again:
@@ -343,7 +345,7 @@ int msgpack_unpacker_execute(msgpack_unpacker* ctx, const char* data, size_t len
 			//case ACS_BIG_INT_VALUE:
 			//_big_int_zero:
 			//	// FIXME
-			//	push_variable_value(msgpack_unpack_big_int, n, trail);
+			//	push_variable_value(msgpack_unpack_big_int, data, n, trail);
 
 			//case CS_BIG_FLOAT_16:
 			//	again_fixed_trail_if_zero(ACS_BIG_FLOAT_VALUE, (uint16_t)PTR_CAST_16(n), _big_float_zero);
@@ -352,7 +354,7 @@ int msgpack_unpacker_execute(msgpack_unpacker* ctx, const char* data, size_t len
 			//case ACS_BIG_FLOAT_VALUE:
 			//_big_float_zero:
 			//	// FIXME
-			//	push_variable_value(msgpack_unpack_big_float, n, trail);
+			//	push_variable_value(msgpack_unpack_big_float, data, n, trail);
 
 			case CS_RAW_16:
 				again_fixed_trail_if_zero(ACS_RAW_VALUE, (uint16_t)PTR_CAST_16(n), _raw_zero);
@@ -360,7 +362,7 @@ int msgpack_unpacker_execute(msgpack_unpacker* ctx, const char* data, size_t len
 				again_fixed_trail_if_zero(ACS_RAW_VALUE, (uint32_t)PTR_CAST_32(n), _raw_zero);
 			case ACS_RAW_VALUE:
 			_raw_zero:
-				push_variable_value(msgpack_unpack_raw, n, trail);
+				push_variable_value(msgpack_unpack_raw, data, n, trail);
 
 			case CS_ARRAY_16:
 				start_container(msgpack_unpack_array_start, (uint16_t)PTR_CAST_16(n), CT_ARRAY_ITEM);

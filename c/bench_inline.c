@@ -65,8 +65,7 @@ static inline void* msgpack_unpack_array_start(msgpack_unpack_context* x, unsign
 static inline void msgpack_unpack_array_item(msgpack_unpack_context* x, void* c, void* o) { }
 static inline void* msgpack_unpack_map_start(msgpack_unpack_context* x, unsigned int n) { return NULL; }
 static inline void msgpack_unpack_map_item(msgpack_unpack_context* x, void* c, void* k, void* v) { }
-static inline void* msgpack_unpack_string(msgpack_unpack_context* x, const void* b, size_t l) { return NULL; }
-static inline void* msgpack_unpack_raw(msgpack_unpack_context* x, const void* b, size_t l) { return NULL; }
+static inline void* msgpack_unpack_raw(msgpack_unpack_context* x, const void* b, const void* p, size_t l) { return NULL; }
 
 #include "msgpack/unpack/inline_impl.h"
 
@@ -131,7 +130,6 @@ void bench_json(void)
 	    NULL,
 	    NULL,
 	    reformat_number,
-	    reformat_string,
 	    reformat_start_map,
 	    reformat_map_key,
 	    reformat_end_map,

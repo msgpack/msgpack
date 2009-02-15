@@ -55,8 +55,7 @@ static void* unpack_array_start(void* data, unsigned int n) { return NULL; }
 static void unpack_array_item(void* data, void* c, void* o) { }
 static void* unpack_map_start(void* data, unsigned int n) { return NULL; }
 static void unpack_map_item(void* data, void* c, void* k, void* v) { }
-static void* unpack_string(void* data, const void* b, size_t l) { return NULL; }
-static void* unpack_raw(void* data, const void* b, size_t l) { /*printf("unpack raw %p %lu\n",b,l);*/ return NULL; }
+static void* unpack_raw(void* data, const void* b, const void* p, size_t l) { /*printf("unpack raw %p %lu\n",p,l);*/ return NULL; }
 
 typedef struct {
 	size_t allocated;
@@ -119,7 +118,7 @@ void bench_json(void)
 	    NULL,
 	    NULL,
 	    reformat_number,
-	    reformat_string,
+		reformat_string,
 	    reformat_start_map,
 	    reformat_map_key,
 	    reformat_end_map,
@@ -236,7 +235,6 @@ void bench_msgpack(void)
 		unpack_array_item,
 		unpack_map_start,
 		unpack_map_item,
-		unpack_string,
 		unpack_raw,
 	};
 	msgpack_unpack_t* mupk = msgpack_unpack_new(NULL, &cb);
