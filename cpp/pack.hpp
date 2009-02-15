@@ -47,6 +47,7 @@ public:
 	void pack_long_long(long long d)	{ pack_long_long_impl(m_stream, d); }
 	void pack_unsigned_short(unsigned short d)			{ pack_unsigned_short_impl(m_stream, d); }
 	void pack_unsigned_int(unsigned int d)				{ pack_unsigned_int_impl(m_stream, d); }
+	void pack_unsigned_long(unsigned long d)			{ pack_unsigned_long_impl(m_stream, d); }
 	void pack_unsigned_long_long(unsigned long long d)	{ pack_unsigned_long_long_impl(m_stream, d); }
 
 	void pack_float(float d)			{ pack_float_impl(m_stream, d); }
