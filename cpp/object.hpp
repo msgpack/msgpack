@@ -44,8 +44,7 @@ namespace type {
 
 
 struct object {
-	unsigned char type;
-	union {
+	union union_type {
 		bool boolean;
 		uint64_t u64;
 		int64_t  i64;
@@ -58,15 +57,36 @@ struct object {
 			const char* ptr;
 			uint32_t size;
 		} ref;
-	} via;
+	};
 
-	template <typename T>
-	operator T() { T v; convert(v, *this); return v; };
-
-	template <typename T>
-	T as() { T v; convert(v, *this); return v; }
+	unsigned char type;
+	union_type via;
 
 	bool is_nil() { return type == type::NIL; }
+
+	template <typename T>
+	T as();
+
+	template <typename T>
+	void convert(T& v);
+
+private:
+	struct implicit_type;
+
+public:
+	implicit_type convert();
+};
+
+
+struct object::implicit_type {
+	implicit_type(object o) : obj(o) { }
+	~implicit_type() { }
+
+	template <typename T>
+	operator T() { return obj.as<T>(); }
+
+private:
+	object obj;
 };
 
 std::ostream& operator<< (std::ostream& s, const object o);
@@ -74,9 +94,11 @@ std::ostream& operator<< (std::ostream& s, const object o);
 bool operator==(const object x, const object y);
 inline bool operator!=(const object x, const object y) { return !(x == y); }
 
-
 inline object& operator>> (object o, object& v)
-	{ v = o; return v; }
+{
+	v = o;
+	return v;
+}
 
 template <typename Stream>
 packer<Stream>& operator<< (packer<Stream>& o, const object& v);
@@ -146,6 +168,25 @@ public:
 };
 
 
+
+inline object::implicit_type object::convert()
+{
+	return implicit_type(*this);
+}
+
+template <typename T>
+inline T object::as()
+{
+	T v;
+	msgpack::convert(v, *this);
+	return v;
+}
+
+template <typename T>
+void object::convert(T& v)
+{
+	msgpack::convert(v, *this);
+}
 
 template <typename Stream>
 packer<Stream>& operator<< (packer<Stream>& o, const object& v)
