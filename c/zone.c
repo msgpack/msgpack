@@ -41,7 +41,7 @@ void msgpack_zone_free(msgpack_zone* z)
 	if(z->array) {
 		size_t i;
 		for(i=0; i <= z->ntail; ++i) {
-			free(z->array[i].ptr);
+			free(z->array[i].alloc);
 		}
 	}
 	free(z);

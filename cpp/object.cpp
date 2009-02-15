@@ -46,16 +46,16 @@ std::ostream& operator<< (std::ostream& s, const object o)
 		break;
 
 	case type::RAW:
-		(s << '"').write(o.via.ref.ptr, o.via.ref.size) << '"';
+		(s << '"').write(o.via.raw.ptr, o.via.raw.size) << '"';
 		break;
 
 	case type::ARRAY:
 		s << "[";
-		if(o.via.container.size != 0) {
-			object* p(o.via.container.ptr);
+		if(o.via.array.size != 0) {
+			object* p(o.via.array.ptr);
 			s << *p;
 			++p;
-			for(object* const pend(o.via.container.ptr + o.via.container.size);
+			for(object* const pend(o.via.array.ptr + o.via.array.size);
 					p < pend; ++p) {
 				s << ", " << *p;
 			}
@@ -66,17 +66,13 @@ std::ostream& operator<< (std::ostream& s, const object o)
 
 	case type::MAP:
 		s << "{";
-		if(o.via.container.size != 0) {
-			object* p(o.via.container.ptr);
-			object* const pend(o.via.container.ptr + o.via.container.size*2);
-			s << *p;  ++p;
-			s << "=>";
-			s << *p;  ++p;
-			while(p < pend) {
-				s << ", ";
-				s << *p;  ++p;
-				s << "=>";
-				s << *p;  ++p;
+		if(o.via.map.size != 0) {
+			object_kv* p(o.via.map.ptr);
+			s << p->key << "=>" << p->val;
+			++p;
+			for(object_kv* const pend(o.via.map.ptr + o.via.map.size);
+					p < pend; ++p) {
+				s << ", " << p->key << "=>" << p->val;
 			}
 		}
 		s << "}";
@@ -109,14 +105,14 @@ bool operator==(const object x, const object y)
 		return x.via.i64 == y.via.i64;
 
 	case type::RAW:
-		return x.via.ref.size == y.via.ref.size &&
-			memcmp(x.via.ref.ptr, y.via.ref.ptr, x.via.ref.size) == 0;
+		return x.via.raw.size == y.via.raw.size &&
+			memcmp(x.via.raw.ptr, y.via.raw.ptr, x.via.raw.size) == 0;
 
 	case type::ARRAY:
-		if(x.via.container.size != y.via.container.size) { return false; }
-		for(object* px(x.via.container.ptr),
-				* const pxend(x.via.container.ptr + x.via.container.size),
-				* py(y.via.container.ptr);
+		if(x.via.array.size != y.via.array.size) { return false; }
+		for(object* px(x.via.array.ptr),
+				* const pxend(x.via.array.ptr + x.via.array.size),
+				* py(y.via.array.ptr);
 				px < pxend; ++px, ++py) {
 			if(*px != *py) { return false; }
 		}
@@ -124,12 +120,12 @@ bool operator==(const object x, const object y)
 		// FIXME loop optimiziation
 
 	case type::MAP:
-		if(x.via.container.size != y.via.container.size) { return false; }
-		for(object* px(x.via.container.ptr),
-				* const pxend(x.via.container.ptr + x.via.container.size*2),
-				* py(y.via.container.ptr);
+		if(x.via.map.size != y.via.map.size) { return false; }
+		for(object_kv* px(x.via.map.ptr),
+				* const pxend(x.via.map.ptr + x.via.map.size),
+				* py(y.via.map.ptr);
 				px < pxend; ++px, ++py) {
-			if(*px != *py) { return false; }
+			if(px->key != py->key || px->val != py->val) { return false; }
 		}
 		return true;
 

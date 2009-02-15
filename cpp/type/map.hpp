@@ -46,13 +46,13 @@ template <typename K, typename V>
 inline type::assoc_vector<K,V>& operator>> (object o, type::assoc_vector<K,V>& v)
 {
 	if(o.type != type::MAP) { throw type_error(); }
-	v.resize(o.via.container.size);
-	object* p = o.via.container.ptr;
-	object* const pend = o.via.container.ptr + o.via.container.size;
+	v.resize(o.via.map.size);
+	object_kv* p = o.via.map.ptr;
+	object_kv* const pend = o.via.map.ptr + o.via.map.size;
 	std::pair<K, V>* it(&v.front());
-	for(; p < pend; ++it) {
-		p->convert(&it->first);  ++p;
-		p->convert(&it->second); ++p;
+	for(; p < pend; ++p, ++it) {
+		p->key.convert(&it->first);
+		p->val.convert(&it->second);
 	}
 	std::sort(v.begin(), v.end(), type::detail::pair_first_less<K,V>());
 	return v;
@@ -75,18 +75,18 @@ template <typename K, typename V>
 inline std::map<K, V> operator>> (object o, std::map<K, V>& v)
 {
 	if(o.type != type::MAP) { throw type_error(); }
-	object* p(o.via.container.ptr);
-	object* const pend(o.via.container.ptr + o.via.container.size*2);
-	while(p < pend) {
+	object_kv* p(o.via.map.ptr);
+	object_kv* const pend(o.via.map.ptr + o.via.map.size);
+	for(; p != pend; ++p) {
 		K key;
-		p->convert(&key); ++p;
+		p->key.convert(&key);
 		typename std::map<K,V>::iterator it(v.find(key));
 		if(it != v.end()) {
 			V val;
-			p->convert(&val); ++p;
+			p->val.convert(&val);
 			it->insert( std::pair<K,V>(key, val) );
 		} else {
-			p->convert(&it->second); ++p;
+			p->val.convert(&it->second);
 		}
 	}
 	return v;
@@ -109,12 +109,12 @@ template <typename K, typename V>
 inline std::multimap<K, V> operator>> (object o, std::multimap<K, V>& v)
 {
 	if(o.type != type::MAP) { throw type_error(); }
-	object* p = o.via.container.ptr;
-	object* const pend = o.via.container.ptr + o.via.container.size*2;
-	while(p < pend) {
+	object_kv* p(o.via.map.ptr);
+	object_kv* const pend(o.via.map.ptr + o.via.map.size);
+	for(; p != pend; ++p) {
 		std::pair<K, V> value;
-		p->convert(&value.first);  ++p;
-		p->convert(&value.second); ++p;
+		p->key.convert(&value.first);
+		p->val.convert(&value.second);
 		v.insert(value);
 	}
 	return v;
@@ -123,7 +123,7 @@ inline std::multimap<K, V> operator>> (object o, std::multimap<K, V>& v)
 template <typename Stream, typename K, typename V>
 inline packer<Stream>& operator<< (packer<Stream>& o, const std::multimap<K,V>& v)
 {
-	o.pack_multimap(v.size());
+	o.pack_map(v.size());
 	for(typename std::multimap<K,V>::const_iterator it(v.begin()), it_end(v.end());
 			it != it_end; ++it) {
 		o.pack(it->first);

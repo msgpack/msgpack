@@ -45,20 +45,33 @@ namespace type {
 }
 
 
+struct object;
+struct object_kv;
+
+struct object_array {
+	uint32_t size;
+	object* ptr;
+};
+
+struct object_map {
+	uint32_t size;
+	object_kv* ptr;
+};
+
+struct object_raw {
+	uint32_t size;
+	const char* ptr;
+};
+
 struct object {
 	union union_type {
 		bool boolean;
 		uint64_t u64;
 		int64_t  i64;
 		double   dec;
-		struct {
-			object* ptr;
-			uint32_t size;
-		} container;
-		struct {
-			const char* ptr;
-			uint32_t size;
-		} ref;
+		object_array array;
+		object_map map;
+		object_raw raw;
 	};
 
 	type::object_type type;
@@ -77,6 +90,11 @@ private:
 
 public:
 	implicit_type convert();
+};
+
+struct object_kv {
+	object key;
+	object val;
 };
 
 bool operator==(const object x, const object y);
@@ -258,14 +276,14 @@ packer<Stream>& operator<< (packer<Stream>& o, const object& v)
 		return o;
 
 	case type::RAW:
-		o.pack_raw(v.via.ref.size);
-		o.pack_raw_body(v.via.ref.ptr, v.via.ref.size);
+		o.pack_raw(v.via.raw.size);
+		o.pack_raw_body(v.via.raw.ptr, v.via.raw.size);
 		return o;
 
 	case type::ARRAY:
-		o.pack_array(v.via.container.size);
-		for(object* p(v.via.container.ptr),
-				* const pend(v.via.container.ptr + v.via.container.size);
+		o.pack_array(v.via.array.size);
+		for(object* p(v.via.array.ptr),
+				* const pend(v.via.array.ptr + v.via.array.size);
 				p < pend; ++p) {
 			*p >> o;
 		}
@@ -273,12 +291,12 @@ packer<Stream>& operator<< (packer<Stream>& o, const object& v)
 		// FIXME loop optimiziation
 
 	case type::MAP:
-		o.pack_map(v.via.container.size);
-		for(object* p(v.via.container.ptr),
-				* const pend(v.via.container.ptr + v.via.container.size*2);
-				p < pend; ) {
-			*p >> o; ++p;
-			*p >> o; ++p;
+		o.pack_map(v.via.map.size);
+		for(object_kv* p(v.via.map.ptr),
+				* const pend(v.via.map.ptr + v.via.map.size);
+				p < pend; ++p) {
+			p->key >> o;
+			p->val >> o;
 		}
 		return o;
 		// FIXME loop optimiziation

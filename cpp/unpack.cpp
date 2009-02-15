@@ -104,36 +104,36 @@ static inline object msgpack_unpack_array(unpack_user* u, unsigned int n)
 {
 	object o;
 	o.type = type::ARRAY;
-	o.via.container.size = 0;
-	o.via.container.ptr = (object*)u->z->malloc(n*sizeof(object));
+	o.via.array.size = 0;
+	o.via.array.ptr = (object*)u->z->malloc(n*sizeof(object));
 	return o;
 }
 
 static inline void msgpack_unpack_array_item(unpack_user* u, object* c, object o)
-{ c->via.container.ptr[ c->via.container.size++ ] = o; }
+{ c->via.array.ptr[c->via.array.size++] = o; }
 
 static inline object msgpack_unpack_map(unpack_user* u, unsigned int n)
 {
 	object o;
 	o.type = type::MAP;
-	o.via.container.size = 0;
-	o.via.container.ptr = (object*)u->z->malloc(n*2*sizeof(object));
+	o.via.map.size = 0;
+	o.via.map.ptr = (object_kv*)u->z->malloc(n*sizeof(object_kv));
 	return o;
 }
 
 static inline void msgpack_unpack_map_item(unpack_user* u, object* c, object k, object v)
 {
-	c->via.container.ptr[ c->via.container.size   ] = k;
-	c->via.container.ptr[ c->via.container.size+1 ] = v;
-	++c->via.container.size;
+	c->via.map.ptr[c->via.map.size].key = k;
+	c->via.map.ptr[c->via.map.size].val = v;
+	++c->via.map.size;
 }
 
 static inline object msgpack_unpack_raw(unpack_user* u, const char* b, const char* p, unsigned int l)
 {
 	object o;
 	o.type = type::RAW;
-	o.via.ref.ptr = p;
-	o.via.ref.size = l;
+	o.via.raw.ptr = p;
+	o.via.raw.size = l;
 	u->referenced = true;
 	return o;
 }
@@ -332,7 +332,7 @@ object unpacker::data()
 
 void unpacker::reset()
 {
-	if(!m_zone->empty()) { delete release_zone(); }
+	//if(!m_zone->empty()) { delete release_zone(); }
 	as_ctx(m_ctx)->reset();
 }
 

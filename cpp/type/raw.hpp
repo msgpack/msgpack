@@ -27,11 +27,11 @@ namespace msgpack {
 namespace type {
 
 struct raw_ref {
-	raw_ref() : ptr(NULL), size(0) {}
-	raw_ref(const char* p, uint32_t s) : ptr(p), size(s) {}
+	raw_ref() : size(0), ptr(NULL) {}
+	raw_ref(const char* p, uint32_t s) : size(s), ptr(p) {}
 
-	const char* ptr;
 	uint32_t size;
+	const char* ptr;
 
 	std::string str() { return std::string(ptr, size); }
 
@@ -64,8 +64,8 @@ struct raw_ref {
 inline type::raw_ref& operator>> (object o, type::raw_ref& v)
 {
 	if(o.type != type::RAW) { throw type_error(); }
-	v.ptr  = o.via.ref.ptr;
-	v.size = o.via.ref.size;
+	v.ptr  = o.via.raw.ptr;
+	v.size = o.via.raw.size;
 	return v;
 }
 

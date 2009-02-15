@@ -41,19 +41,31 @@ typedef enum {
 
 struct _msgpack_object;
 
+struct _msgpack_object_kv;
+
+typedef struct {
+	uint32_t size;
+	struct _msgpack_object* ptr;
+} msgpack_object_array;
+
+typedef struct {
+	uint32_t size;
+	struct _msgpack_object_kv* ptr;
+} msgpack_object_map;
+
+typedef struct {
+	uint32_t size;
+	const char* ptr;
+} msgpack_object_raw;
+
 typedef union {
 	bool boolean;
 	uint64_t u64;
 	int64_t  i64;
 	double   dec;
-	struct {
-		struct _msgpack_object* ptr;
-		uint32_t size;
-	} container;
-	struct {
-		const char* ptr;
-		uint32_t size;
-	} ref;
+	msgpack_object_array array;
+	msgpack_object_map map;
+	msgpack_object_raw raw;
 } msgpack_object_union;
 
 typedef struct _msgpack_object {
@@ -61,6 +73,10 @@ typedef struct _msgpack_object {
 	msgpack_object_union via;
 } msgpack_object;
 
+typedef struct _msgpack_object_kv {
+	msgpack_object key;
+	msgpack_object val;
+} msgpack_object_kv;
 
 typedef enum {
 	MSGPACK_OBJECT_PARSE_SUCCESS		=  0,

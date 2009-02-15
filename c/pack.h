@@ -21,6 +21,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include "msgpack/pack_define.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -34,42 +35,43 @@ typedef struct {
 	msgpack_pack_write_t callback;
 } msgpack_pack_t;
 
-void msgpack_pack_init(msgpack_pack_t* ctx, void* data, msgpack_pack_write_t callback);
+static void msgpack_pack_init(msgpack_pack_t* ctx, void* data, msgpack_pack_write_t callback);
 
-msgpack_pack_t* msgpack_pack_new(void* data, msgpack_pack_write_t callback);
-void msgpack_pack_free(msgpack_pack_t* ctx);
+static msgpack_pack_t* msgpack_pack_new(void* data, msgpack_pack_write_t callback);
 
-int msgpack_pack_short(msgpack_pack_t* ctx, short d);
-int msgpack_pack_int(msgpack_pack_t* ctx, int d);
-int msgpack_pack_long(msgpack_pack_t* ctx, long d);
-int msgpack_pack_long_long(msgpack_pack_t* ctx, long long d);
-int msgpack_pack_unsigned_short(msgpack_pack_t* ctx, unsigned short d);
-int msgpack_pack_unsigned_int(msgpack_pack_t* ctx, unsigned int d);
-int msgpack_pack_unsigned_long(msgpack_pack_t* ctx, unsigned long d);
-int msgpack_pack_unsigned_long_long(msgpack_pack_t* ctx, unsigned long long d);
+static void msgpack_pack_free(msgpack_pack_t* ctx);
 
-int msgpack_pack_uint8(msgpack_pack_t* ctx, uint8_t d);
-int msgpack_pack_uint16(msgpack_pack_t* ctx, uint16_t d);
-int msgpack_pack_uint32(msgpack_pack_t* ctx, uint32_t d);
-int msgpack_pack_uint64(msgpack_pack_t* ctx, uint64_t d);
-int msgpack_pack_int8(msgpack_pack_t* ctx, int8_t d);
-int msgpack_pack_int16(msgpack_pack_t* ctx, int16_t d);
-int msgpack_pack_int32(msgpack_pack_t* ctx, int32_t d);
-int msgpack_pack_int64(msgpack_pack_t* ctx, int64_t d);
+static int msgpack_pack_short(msgpack_pack_t* ctx, short d);
+static int msgpack_pack_int(msgpack_pack_t* ctx, int d);
+static int msgpack_pack_long(msgpack_pack_t* ctx, long d);
+static int msgpack_pack_long_long(msgpack_pack_t* ctx, long long d);
+static int msgpack_pack_unsigned_short(msgpack_pack_t* ctx, unsigned short d);
+static int msgpack_pack_unsigned_int(msgpack_pack_t* ctx, unsigned int d);
+static int msgpack_pack_unsigned_long(msgpack_pack_t* ctx, unsigned long d);
+static int msgpack_pack_unsigned_long_long(msgpack_pack_t* ctx, unsigned long long d);
 
-int msgpack_pack_float(msgpack_pack_t* ctx, float d);
-int msgpack_pack_double(msgpack_pack_t* ctx, double d);
+static int msgpack_pack_uint8(msgpack_pack_t* ctx, uint8_t d);
+static int msgpack_pack_uint16(msgpack_pack_t* ctx, uint16_t d);
+static int msgpack_pack_uint32(msgpack_pack_t* ctx, uint32_t d);
+static int msgpack_pack_uint64(msgpack_pack_t* ctx, uint64_t d);
+static int msgpack_pack_int8(msgpack_pack_t* ctx, int8_t d);
+static int msgpack_pack_int16(msgpack_pack_t* ctx, int16_t d);
+static int msgpack_pack_int32(msgpack_pack_t* ctx, int32_t d);
+static int msgpack_pack_int64(msgpack_pack_t* ctx, int64_t d);
 
-int msgpack_pack_nil(msgpack_pack_t* ctx);
-int msgpack_pack_true(msgpack_pack_t* ctx);
-int msgpack_pack_false(msgpack_pack_t* ctx);
+static int msgpack_pack_float(msgpack_pack_t* ctx, float d);
+static int msgpack_pack_double(msgpack_pack_t* ctx, double d);
 
-int msgpack_pack_array(msgpack_pack_t* ctx, unsigned int n);
+static int msgpack_pack_nil(msgpack_pack_t* ctx);
+static int msgpack_pack_true(msgpack_pack_t* ctx);
+static int msgpack_pack_false(msgpack_pack_t* ctx);
 
-int msgpack_pack_map(msgpack_pack_t* ctx, unsigned int n);
+static int msgpack_pack_array(msgpack_pack_t* ctx, unsigned int n);
 
-int msgpack_pack_raw(msgpack_pack_t* ctx, size_t l);
-int msgpack_pack_raw_body(msgpack_pack_t* ctx, const void* b, size_t l);
+static int msgpack_pack_map(msgpack_pack_t* ctx, unsigned int n);
+
+static int msgpack_pack_raw(msgpack_pack_t* ctx, size_t l);
+static int msgpack_pack_raw_body(msgpack_pack_t* ctx, const void* b, size_t l);
 
 
 

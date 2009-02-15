@@ -98,42 +98,42 @@ static inline msgpack_object msgpack_unpack_array(unpack_user* u, unsigned int n
 {
 	msgpack_object o;
 	o.type = MSGPACK_OBJECT_ARRAY;
-	o.via.container.size = 0;
-	o.via.container.ptr = msgpack_zone_malloc(u->z, n*sizeof(msgpack_object));
-	if(o.via.container.ptr == NULL) { u->failed = true; }
+	o.via.array.size = 0;
+	o.via.array.ptr = msgpack_zone_malloc(u->z, n*sizeof(msgpack_object));
+	if(o.via.array.ptr == NULL) { u->failed = true; }
 	return o;
 }
 
 static inline void msgpack_unpack_array_item(unpack_user* u, msgpack_object* c, msgpack_object o)
 {
 	if(u->failed) { return; }
-	c->via.container.ptr[ c->via.container.size++ ] = o;
+	c->via.array.ptr[ c->via.array.size++ ] = o;
 }
 
 static inline msgpack_object msgpack_unpack_map(unpack_user* u, unsigned int n)
 {
 	msgpack_object o;
 	o.type = MSGPACK_OBJECT_MAP;
-	o.via.container.size = 0;
-	o.via.container.ptr = msgpack_zone_malloc(u->z, n*2*sizeof(msgpack_object));
-	if(o.via.container.ptr == NULL) { u->failed = true; }
+	o.via.map.size = 0;
+	o.via.map.ptr = msgpack_zone_malloc(u->z, n*sizeof(msgpack_object_kv));
+	if(o.via.map.ptr == NULL) { u->failed = true; }
 	return o;
 }
 
 static inline void msgpack_unpack_map_item(unpack_user* u, msgpack_object* c, msgpack_object k, msgpack_object v)
 {
 	if(u->failed) { return; }
-	c->via.container.ptr[ c->via.container.size   ] = k;
-	c->via.container.ptr[ c->via.container.size+1 ] = v;
-	++c->via.container.size;
+	c->via.map.ptr[c->via.map.size].key = k;
+	c->via.map.ptr[c->via.map.size].val = v;
+	++c->via.map.size;
 }
 
 static inline msgpack_object msgpack_unpack_raw(unpack_user* u, const char* b, const char* p, unsigned int l)
 {
 	msgpack_object o;
 	o.type = MSGPACK_OBJECT_RAW;
-	o.via.ref.ptr = p;
-	o.via.ref.size = l;
+	o.via.raw.ptr = p;
+	o.via.raw.size = l;
 	u->referenced = true;
 	return o;
 }

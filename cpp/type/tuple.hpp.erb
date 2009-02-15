@@ -136,9 +136,9 @@ type::tuple<A0<%1.upto(i) {|j|%>, A<%=j%><%}%>>& operator>> (
 		object o,
 		type::tuple<A0<%1.upto(i) {|j|%>, A<%=j%><%}%>>& v) {
 	if(o.type != type::ARRAY) { throw type_error(); }
-	if(o.via.container.size < <%=i+1%>) { throw type_error(); }
+	if(o.via.array.size < <%=i+1%>) { throw type_error(); }
 	<%0.upto(i) {|j|%>
-	o.via.container.ptr[<%=j%>].convert<A<%=j%>>(&v.template get<<%=j%>>());<%}%>
+	o.via.array.ptr[<%=j%>].convert<A<%=j%>>(&v.template get<<%=j%>>());<%}%>
 	return v;
 }
 <%}%>

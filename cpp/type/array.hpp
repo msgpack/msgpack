@@ -28,9 +28,9 @@ template <typename T>
 inline std::vector<T> operator>> (object o, std::vector<T>& v)
 {
 	if(o.type != type::ARRAY) { throw type_error(); }
-	v.resize(o.via.container.size);
-	object* p = o.via.container.ptr;
-	object* const pend = o.via.container.ptr + o.via.container.size;
+	v.resize(o.via.array.size);
+	object* p = o.via.array.ptr;
+	object* const pend = o.via.array.ptr + o.via.array.size;
 	T* it = &v.front();
 	for(; p < pend; ++p, ++it) {
 		p->convert(it);
