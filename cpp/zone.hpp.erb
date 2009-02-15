@@ -1,0 +1,103 @@
+//
+// MessagePack for C++ memory pool
+//
+// Copyright (C) 2008 FURUHASHI Sadayuki
+//
+//    Licensed under the Apache License, Version 2.0 (the "License");
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+//
+//        http://www.apache.org/licenses/LICENSE-2.0
+//
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an "AS IS" BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+#ifndef MSGPACK_ZONE_HPP__
+#define MSGPACK_ZONE_HPP__
+
+#include "msgpack/object.hpp"
+#include <cstdlib>
+#include <vector>
+
+#ifndef MSGPACK_ZONE_CHUNK_SIZE
+#define MSGPACK_ZONE_CHUNK_SIZE 2048
+#endif
+<% GENERATION_LIMIT = 15 %>
+namespace msgpack {
+
+
+class zone {
+public:
+	zone(size_t chunk_size = MSGPACK_ZONE_CHUNK_SIZE);
+	~zone();
+
+public:
+	void* malloc(size_t size);
+
+	void push_finalizer(void (*func)(void*), void* obj);
+
+	void clear();
+
+	bool empty() const;
+
+	<%0.upto(GENERATION_LIMIT) {|i|%>
+	template <typename T<%1.upto(i) {|j|%>, typename A<%=j%><%}%>>
+	T* allocate(<%=(1..i).map{|j|"A#{j} a#{j}"}.join(', ')%>);
+	<%}%>
+
+private:
+	struct chunk {
+		size_t free;
+		void* ptr;
+		void* alloc;
+	};
+
+	std::vector<chunk> m_chunk_array;
+
+	struct finalizer {
+		void (*func)(void*);
+		void* obj;
+	};
+
+	std::vector<finalizer> m_finalizers;
+
+	template <typename T>
+	static void object_destructor(void* obj);
+
+	size_t m_chunk_size;
+
+private:
+	zone(const zone&);
+};
+
+
+inline void zone::push_finalizer(void (*func)(void*), void* obj)
+{
+	finalizer f = {func, obj};
+	m_finalizers.push_back(f);
+}
+
+template <typename T>
+void zone::object_destructor(void* obj)
+{
+	reinterpret_cast<T*>(obj)->~T();
+}
+
+<%0.upto(GENERATION_LIMIT) {|i|%>
+template <typename T<%1.upto(i) {|j|%>, typename A<%=j%><%}%>>
+T* zone::allocate(<%=(1..i).map{|j|"A#{j} a#{j}"}.join(', ')%>)
+{
+	void* x = malloc(sizeof(T));
+	push_finalizer(&zone::object_destructor<T>, x);
+	try { return new (x) T(<%=(1..i).map{|j|"a#{j}"}.join(', ')%>); }
+	catch (...) { m_finalizers.pop_back(); throw; }
+}
+<%}%>
+
+}  // namespace msgpack
+
+#endif /* msgpack/zone.hpp */
+

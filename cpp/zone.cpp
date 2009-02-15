@@ -16,31 +16,83 @@
 //    limitations under the License.
 //
 #include "msgpack/zone.hpp"
+#include <algorithm>
 
 namespace msgpack {
 
 
-void zone::clear()
+zone::zone(size_t chunk_size) :
+	m_chunk_size(chunk_size)
 {
-	for(std::vector<char*>::iterator it(m_ptrs.begin()), it_end(m_ptrs.end());
-			it != it_end; ++it) {
-		free(*it);
-	}
-	m_ptrs.clear();
+	chunk dummy = {0, NULL, NULL};
+	m_chunk_array.push_back(dummy);
 }
 
-char* zone::realloc_real(char* ptr, size_t count)
+zone::~zone()
 {
-	for(std::vector<char*>::reverse_iterator it(m_ptrs.rbegin()), it_end(m_ptrs.rend());
-			it != it_end; ++it) {
-		if(*it == ptr) {
-			char* tmp = (char*)::realloc(ptr, count);
-			if(!tmp) { throw std::bad_alloc(); }
-			*it = tmp;
-			return tmp;
+	clear();
+}
+
+namespace {
+	template <typename Private>
+	struct zone_finalize {
+		void operator() (Private& f) {
+			(*f.func)(f.obj);
 		}
+	};
+
+	template <typename Private>
+	struct zone_free {
+		void operator() (Private& c) {
+			::free(c.alloc);
+		}
+	};
+}
+
+void zone::clear()
+{
+	std::for_each(m_finalizers.rbegin(), m_finalizers.rend(),
+			zone_finalize<finalizer>());
+	m_finalizers.clear();
+
+	std::for_each(m_chunk_array.begin(), m_chunk_array.end(),
+			zone_free<chunk>());
+	m_chunk_array.resize(1);
+	m_chunk_array[0].ptr  = NULL;
+	m_chunk_array[0].free = 0;
+}
+
+bool zone::empty() const
+{
+	return m_chunk_array.back().alloc == NULL &&
+		m_finalizers.empty();
+}
+
+void* zone::malloc(size_t size)
+{
+	if(m_chunk_array.back().free > size) {
+		char* p = (char*)m_chunk_array.back().ptr;
+		m_chunk_array.back().ptr   = p + size;
+		m_chunk_array.back().free -= size;
+		return p;
 	}
-	throw std::bad_alloc();
+
+	size_t sz = m_chunk_size;
+	while(sz < size) { sz *= 2; }
+
+	chunk dummy = {0, NULL, NULL};
+	m_chunk_array.push_back(dummy);
+
+	char* p = (char*)::malloc(sz);
+	if(!p) {
+		m_chunk_array.pop_back();
+		throw std::bad_alloc();
+	}
+
+	m_chunk_array.back().free  = sz - size;
+	m_chunk_array.back().ptr   = p + size;
+	m_chunk_array.back().alloc = p;
+	return p;
 }
 
 

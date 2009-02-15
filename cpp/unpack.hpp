@@ -24,7 +24,8 @@
 #include <stdexcept>
 
 #ifndef MSGPACK_UNPACKER_DEFAULT_INITIAL_BUFFER_SIZE
-#define MSGPACK_UNPACKER_DEFAULT_INITIAL_BUFFER_SIZE 8*1024
+#define MSGPACK_UNPACKER_DEFAULT_INITIAL_BUFFER_SIZE 16
+//#define MSGPACK_UNPACKER_DEFAULT_INITIAL_BUFFER_SIZE 8*1024
 #endif
 
 namespace msgpack {
@@ -133,10 +134,9 @@ private:
 
 	std::auto_ptr<zone> m_zone;
 
-	struct context;
-	context* m_ctx;
+	void* m_ctx;
 
-	const size_t m_initial_buffer_size;
+	size_t m_initial_buffer_size;
 
 private:
 	void expand_buffer(size_t len);
