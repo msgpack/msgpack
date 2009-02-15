@@ -69,28 +69,28 @@ class dynamic_packer;
 
 struct object_class {
 	virtual ~object_class() {}
-	virtual     bool   isnil() const { return false; }
-	virtual     bool   xbool() const { throw cast_error(); }
-	virtual  uint8_t     xu8() const { throw cast_error(); }
-	virtual uint16_t    xu16() const { throw cast_error(); }
-	virtual uint32_t    xu32() const { throw cast_error(); }
-	virtual uint64_t    xu64() const { throw cast_error(); }
-	virtual   int8_t     xi8() const { throw cast_error(); }
-	virtual  int16_t    xi16() const { throw cast_error(); }
-	virtual  int32_t    xi32() const { throw cast_error(); }
-	virtual  int64_t    xi64() const { throw cast_error(); }
-	virtual    float  xfloat() const { throw cast_error(); }
-	virtual   double xdouble() const { throw cast_error(); }
-	virtual      raw    xraw() { throw cast_error(); }
-	virtual   array&  xarray() { throw cast_error(); }
-	virtual     map&    xmap() { throw cast_error(); }
-	virtual    const_raw   xraw() const { throw cast_error(); }
+	virtual bool     isnil  () const { return false; }
+	virtual bool     xbool  () const { throw cast_error(); }
+	virtual uint8_t  xu8    () const { throw cast_error(); }
+	virtual uint16_t xu16   () const { throw cast_error(); }
+	virtual uint32_t xu32   () const { throw cast_error(); }
+	virtual uint64_t xu64   () const { throw cast_error(); }
+	virtual int8_t   xi8    () const { throw cast_error(); }
+	virtual int16_t  xi16   () const { throw cast_error(); }
+	virtual int32_t  xi32   () const { throw cast_error(); }
+	virtual int64_t  xi64   () const { throw cast_error(); }
+	virtual float    xfloat () const { throw cast_error(); }
+	virtual double   xdouble() const { throw cast_error(); }
+	virtual raw      xraw   () { throw cast_error(); }
+	virtual array&   xarray () { throw cast_error(); }
+	virtual map&     xmap   () { throw cast_error(); }
+	virtual const_raw    xraw  () const { throw cast_error(); }
 	virtual const array& xarray() const { throw cast_error(); }
-	virtual const   map&   xmap() const { throw cast_error(); }
+	virtual const map&   xmap  () const { throw cast_error(); }
 	virtual bool operator== (const object_class* x) const { return false; }
-	bool operator!= (const object_class* x) const { return !(this->operator==(x)); }
 	virtual bool operator<  (const object_class* x) const { throw cast_error(); }
 	virtual bool operator>  (const object_class* x) const { throw cast_error(); }
+	bool operator!= (const object_class* x) const { return !(this->operator==(x)); }
 	virtual void pack(dynamic_packer& p) const = 0;
 	operator     bool() const { return   xbool(); } // FIXME !isnil();
 	operator  uint8_t() const { return     xu8(); }
@@ -126,24 +126,24 @@ struct object {
 	object(object_class* v) : val(v) {}
 	//object(object_class& v) : val(&v) {}
 	~object() {}
-	    bool   isnil() const { return val->isnil();   }
-	    bool   xbool() const { return val->xbool();   }
-	 uint8_t     xu8() const { return val->xu8();     }
-	uint16_t    xu16() const { return val->xu16();    }
-	uint32_t    xu32() const { return val->xu32();    }
-	uint64_t    xu64() const { return val->xu64();    }
-	  int8_t     xi8() const { return val->xi8();     }
-	 int16_t    xi16() const { return val->xi16();    }
-	 int32_t    xi32() const { return val->xi32();    }
-	 int64_t    xi64() const { return val->xi64();    }
-	   float  xfloat() const { return val->xfloat();  }
-	  double xdouble() const { return val->xdouble(); }
-	     raw    xraw() { return val->xraw();   }
-	  array&  xarray() { return val->xarray(); }
-	    map&    xmap() { return val->xmap();   }
-	   const_raw   xraw() const { return const_cast<const object_class*>(val)->xraw();   }
+	bool     isnil  () const { return val->isnil();   }
+	bool     xbool  () const { return val->xbool();   }
+	uint8_t  xu8    () const { return val->xu8();     }
+	uint16_t xu16   () const { return val->xu16();    }
+	uint32_t xu32   () const { return val->xu32();    }
+	uint64_t xu64   () const { return val->xu64();    }
+	int8_t   xi8    () const { return val->xi8();     }
+	int16_t  xi16   () const { return val->xi16();    }
+	int32_t  xi32   () const { return val->xi32();    }
+	int64_t  xi64   () const { return val->xi64();    }
+	float    xfloat () const { return val->xfloat();  }
+	double   xdouble() const { return val->xdouble(); }
+	raw      xraw   () { return val->xraw();   }
+	array&   xarray () { return val->xarray(); }
+	map&     xmap   () { return val->xmap();   }
+	const_raw    xraw  () const { return const_cast<const object_class*>(val)->xraw();   }
 	const array& xarray() const { return const_cast<const object_class*>(val)->xarray(); }
-	const   map&   xmap() const { return const_cast<const object_class*>(val)->xmap();   }
+	const map&   xmap  () const { return const_cast<const object_class*>(val)->xmap();   }
 	bool operator== (object x) const { return val->operator== (x.val); }
 	bool operator!= (object x) const { return val->operator!= (x.val); }
 	bool operator<  (object x) const { return val->operator<  (x.val); }
@@ -163,9 +163,9 @@ struct object {
 	operator    raw() { return val->operator raw();    }
 	operator array&() { return val->operator array&(); }
 	operator   map&() { return val->operator map&();   }
-	operator    raw() const { return val->operator raw();    }
-	operator array&() const { return val->operator array&(); }
-	operator   map&() const { return val->operator map&();   }
+	operator    const_raw() const { return val->operator const_raw();    }
+	operator const array&() const { return val->operator const array&(); }
+	operator const   map&() const { return val->operator const map&();   }
 	const object& inspect(std::ostream& s) const
 		{ val->inspect(s); return *this; }
 private:

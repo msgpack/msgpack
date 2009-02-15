@@ -21,6 +21,7 @@
 
 namespace msgpack {
 
+
 struct unpacker::context {
 	context(zone* z)
 	{
@@ -98,11 +99,13 @@ void unpacker::expand_buffer(size_t len)
 		else { next_size = UNPACKER_INITIAL_BUFFER_SIZE; }
 		while(next_size < len + m_used) { next_size *= 2; }
 
-		// FIXME realloc?
-		void* tmp = malloc(next_size);
+		void* tmp = realloc(m_buffer, next_size);
 		if(!tmp) { throw std::bad_alloc(); }
-		memcpy(tmp, m_buffer, m_used);
-		free(m_buffer);
+		m_buffer = tmp;
+		//void* tmp = malloc(next_size);
+		//if(!tmp) { throw std::bad_alloc(); }
+		//memcpy(tmp, m_buffer, m_used);
+		//free(m_buffer);
 
 		m_buffer = tmp;
 		m_free = next_size - m_used;

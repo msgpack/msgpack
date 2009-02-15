@@ -20,34 +20,33 @@
 namespace msgpack {
 
 
-void* zone::alloc()
+// FIXME custom allocator?
+
+void zone::expand_chunk()
 {
-	if(m_pool.size()*ZONE_CHUNK_SIZE <= m_used) {
-		cell_t* chunk = (cell_t*)malloc(sizeof(cell_t)*ZONE_CHUNK_SIZE);
-		if(!chunk) { throw std::bad_alloc(); }
-		try {
-			m_pool.push_back(chunk);
-		} catch (...) {
-			free(chunk);
-			throw;
-		}
+	cell_t* chunk = (cell_t*)malloc(sizeof(cell_t)*ZONE_CHUNK_SIZE);
+	if(!chunk) { throw std::bad_alloc(); }
+	try {
+		m_pool.push_back(chunk);
+	} catch (...) {
+		free(chunk);
+		throw;
 	}
-	void* data = m_pool[m_used/ZONE_CHUNK_SIZE][m_used%ZONE_CHUNK_SIZE].data;
-	++m_used;
-	return data;
 }
 
 void zone::clear()
 {
 	if(!m_pool.empty()) {
-		for(size_t b=0; b < m_used/ZONE_CHUNK_SIZE; ++b) {
+		size_t base_size = m_used / ZONE_CHUNK_SIZE;
+		size_t extend_size = m_used % ZONE_CHUNK_SIZE;
+		for(size_t b=0; b < base_size; ++b) {
 			cell_t* c(m_pool[b]);
 			for(size_t e=0; e < ZONE_CHUNK_SIZE; ++e) {
 				reinterpret_cast<object_class*>(c[e].data)->~object_class();
 			}
 		}
 		cell_t* c(m_pool.back());
-		for(size_t e=0; e < m_used%ZONE_CHUNK_SIZE; ++e) {
+		for(size_t e=0; e < extend_size; ++e) {
 			reinterpret_cast<object_class*>(c[e].data)->~object_class();
 		}
 
@@ -60,7 +59,8 @@ void zone::clear()
 	}
 	m_used = 0;
 
-	for(user_finalizer_t::reverse_iterator it(m_user_finalizer.rbegin()), it_end(m_user_finalizer.rend());
+	for(user_finalizer_t::reverse_iterator it(m_user_finalizer.rbegin()),
+					it_end(m_user_finalizer.rend());
 			it != it_end;
 			++it) {
 		it->call();
