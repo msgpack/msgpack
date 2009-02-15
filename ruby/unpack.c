@@ -1,7 +1,7 @@
 /*
- * MessagePack unpacking routine for Ruby
+ * MessagePack for Ruby unpacking routine
  *
- * Copyright (C) 2008 FURUHASHI Sadayuki
+ * Copyright (C) 2008-2009 FURUHASHI Sadayuki
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -26,13 +26,13 @@ typedef struct {
 
 
 #define msgpack_unpack_struct(name) \
-	struct msgpack_unpacker_##name
+	struct msgpack_unpacker ## name
 
 #define msgpack_unpack_func(ret, name) \
-	ret msgpack_unpacker_##name
+	ret msgpack_unpacker ## name
 
 #define msgpack_unpack_callback(name) \
-	template_callback_##name
+	template_callback ## name
 
 #define msgpack_unpack_object VALUE
 

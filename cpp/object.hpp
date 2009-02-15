@@ -1,7 +1,7 @@
 //
 // MessagePack for C++ static resolution routine
 //
-// Copyright (C) 2008 FURUHASHI Sadayuki
+// Copyright (C) 2008-2009 FURUHASHI Sadayuki
 //
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -32,14 +32,16 @@ class type_error : public std::bad_cast { };
 
 
 namespace type {
-	static const unsigned char NIL					= 0x01;
-	static const unsigned char BOOLEAN				= 0x02;
-	static const unsigned char POSITIVE_INTEGER		= 0x03;
-	static const unsigned char NEGATIVE_INTEGER		= 0x04;
-	static const unsigned char DOUBLE				= 0x05;
-	static const unsigned char RAW					= 0x06;
-	static const unsigned char ARRAY				= 0x07;
-	static const unsigned char MAP					= 0x08;
+	enum object_type {
+		NIL					= 0x01,
+		BOOLEAN				= 0x02,
+		POSITIVE_INTEGER	= 0x03,
+		NEGATIVE_INTEGER	= 0x04,
+		DOUBLE				= 0x05,
+		RAW					= 0x06,
+		ARRAY				= 0x07,
+		MAP					= 0x08,
+	};
 }
 
 
@@ -59,7 +61,7 @@ struct object {
 		} ref;
 	};
 
-	unsigned char type;
+	type::object_type type;
 	union_type via;
 
 	bool is_nil() { return type == type::NIL; }
@@ -68,7 +70,7 @@ struct object {
 	T as();
 
 	template <typename T>
-	void convert(T& v);
+	void convert(T* v);
 
 private:
 	struct implicit_type;
@@ -76,6 +78,21 @@ private:
 public:
 	implicit_type convert();
 };
+
+bool operator==(const object x, const object y);
+bool operator!=(const object x, const object y);
+
+std::ostream& operator<< (std::ostream& s, const object o);
+
+
+template <typename Stream, typename T>
+inline void pack(Stream& s, const T& v);
+
+template <typename Stream, typename T>
+packer<Stream>& operator<< (packer<Stream>& o, const T& v);
+
+template <typename T>
+T& operator>> (object o, T& v);
 
 
 struct object::implicit_type {
@@ -89,39 +106,41 @@ private:
 	object obj;
 };
 
-std::ostream& operator<< (std::ostream& s, const object o);
 
-bool operator==(const object x, const object y);
-inline bool operator!=(const object x, const object y) { return !(x == y); }
+template <typename Type>
+class define : public Type {
+public:
+	typedef Type msgpack_type;
+	typedef define<Type> define_type;
 
-inline object& operator>> (object o, object& v)
-{
-	v = o;
-	return v;
-}
+	define() {}
+	define(const msgpack_type& v) : msgpack_type(v) {}
+
+	template <typename Packer>
+	void msgpack_pack(Packer& o) const
+	{
+		o << static_cast<const msgpack_type&>(*this);
+	}
+
+	void msgpack_unpack(object o)
+	{
+		o >> static_cast<msgpack_type&>(*this);
+	}
+};
+
 
 template <typename Stream>
-packer<Stream>& operator<< (packer<Stream>& o, const object& v);
-
-
-
 template <typename T>
-inline void convert(T& v, object o)
+inline packer<Stream>& packer<Stream>::pack(const T& v)
 {
-	o >> v;
-}
-
-template <typename Stream, typename T>
-inline void pack(packer<Stream>& o, const T& v)
-{
-	o << v;
+	*this << v;
+	return *this;
 }
 
 template <typename Stream, typename T>
 inline void pack(Stream& s, const T& v)
 {
-	packer<Stream> pk(s);
-	pack(pk, v);
+	packer<Stream>(s).pack(v);
 }
 
 template <typename Stream, typename T>
@@ -130,7 +149,11 @@ inline void pack_copy(packer<Stream>& o, T v)
 	pack(o, v);
 }
 
-	
+inline object& operator>> (object o, object& v)
+{
+	v = o;
+	return v;
+}
 
 template <typename T>
 inline T& operator>> (object o, T& v)
@@ -147,27 +170,8 @@ inline packer<Stream>& operator<< (packer<Stream>& o, const T& v)
 }
 
 
-template <typename Type>
-class define : public Type {
-public:
-	typedef Type msgpack_type;
-	typedef define<Type> define_type;
-
-	define() {}
-	define(msgpack_type v) : msgpack_type(v) {}
-
-	template <typename Packer>
-	void msgpack_pack(Packer& o) const
-	{
-		o << static_cast<const msgpack_type&>(*this);
-	}
-
-	void msgpack_unpack(object o)
-	{
-		o >> static_cast<msgpack_type&>(*this);
-	}
-};
-
+inline bool operator!=(const object x, const object y)
+{ return !(x == y); }
 
 
 inline object::implicit_type object::convert()
@@ -179,15 +183,31 @@ template <typename T>
 inline T object::as()
 {
 	T v;
-	msgpack::convert(v, *this);
+	convert(&v);
 	return v;
 }
 
 template <typename T>
-void object::convert(T& v)
+inline void object::convert(T* v)
 {
-	msgpack::convert(v, *this);
+	*this >> *v;
 }
+
+
+// obsolete
+template <typename T>
+inline void convert(T& v, object o)
+{
+	o.convert(&v);
+}
+
+// obsolete
+template <typename Stream, typename T>
+inline void pack(packer<Stream>& o, const T& v)
+{
+	o.pack(v);
+}
+
 
 template <typename Stream>
 packer<Stream>& operator<< (packer<Stream>& o, const object& v)

@@ -7,6 +7,7 @@ libmsgpack_la_SOURCES = \
 
 nobase_include_HEADERS = \
 		msgpack.hpp \
+		msgpack/sbuffer.hpp \
 		msgpack/pack.hpp \
 		msgpack/unpack.hpp \
 		msgpack/object.hpp \
@@ -41,6 +42,6 @@ MOSTLYCLEANFILES = \
 		msgpack/type/tuple.hpp \
 		msgpack/zone.hpp
 
-# FIXME
-libmsgpack_la_LDFLAGS = -version-info 0:0:0
+# -version-info CURRENT:REVISION:AGE
+libmsgpack_la_LDFLAGS = -version-info 1:0:0
 

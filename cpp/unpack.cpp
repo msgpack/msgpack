@@ -1,7 +1,7 @@
 //
 // MessagePack for C++ deserializing routine
 //
-// Copyright (C) 2008 FURUHASHI Sadayuki
+// Copyright (C) 2008-2009 FURUHASHI Sadayuki
 //
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -23,30 +23,25 @@ namespace msgpack {
 
 
 //namespace {
-struct allocator {
+struct unpack_user {
 	zone* z;
 	bool referenced;
-
-	inline object* malloc_object(size_t n)
-	{
-		return (object*)z->malloc(sizeof(object)*n);
-	}
 };
 //}  // noname namespace
 
 
 #define msgpack_unpack_struct(name) \
-	struct msgpack_unpacker_##name
+	struct msgpack_unpacker ## name
 
 #define msgpack_unpack_func(ret, name) \
-	ret msgpack_unpacker_##name
+	ret msgpack_unpacker ## name
 
 #define msgpack_unpack_callback(name) \
-	msgpack_unpack_##name
+	msgpack_unpack ## name
 
 #define msgpack_unpack_object object
 
-#define msgpack_unpack_user allocator
+#define msgpack_unpack_user unpack_user
 
 
 struct msgpack_unpacker_context;
@@ -59,87 +54,87 @@ static int msgpack_unpacker_execute(struct msgpack_unpacker_context* ctx,
 		const char* data, size_t len, size_t* off);
 
 
-static inline object msgpack_unpack_init(allocator* a)
+static inline object msgpack_unpack_init(unpack_user* u)
 { return object(); }
 
-static inline object msgpack_unpack_uint8(allocator* a, uint8_t d)
+static inline object msgpack_unpack_uint8(unpack_user* u, uint8_t d)
 { object o; o.type = type::POSITIVE_INTEGER; o.via.u64 = d; return o; }
 
-static inline object msgpack_unpack_uint16(allocator* a, uint16_t d)
+static inline object msgpack_unpack_uint16(unpack_user* u, uint16_t d)
 { object o; o.type = type::POSITIVE_INTEGER; o.via.u64 = d; return o; }
 
-static inline object msgpack_unpack_uint32(allocator* a, uint32_t d)
+static inline object msgpack_unpack_uint32(unpack_user* u, uint32_t d)
 { object o; o.type = type::POSITIVE_INTEGER; o.via.u64 = d; return o; }
 
-static inline object msgpack_unpack_uint64(allocator* a, uint64_t d)
+static inline object msgpack_unpack_uint64(unpack_user* u, uint64_t d)
 { object o; o.type = type::POSITIVE_INTEGER; o.via.u64 = d; return o; }
 
-static inline object msgpack_unpack_int8(allocator* a, int8_t d)
+static inline object msgpack_unpack_int8(unpack_user* u, int8_t d)
 { if(d >= 0) { object o; o.type = type::POSITIVE_INTEGER; o.via.u64 = d; return o; }
 		else { object o; o.type = type::NEGATIVE_INTEGER; o.via.i64 = d; return o; } }
 
-static inline object msgpack_unpack_int16(allocator* a, int16_t d)
+static inline object msgpack_unpack_int16(unpack_user* u, int16_t d)
 { if(d >= 0) { object o; o.type = type::POSITIVE_INTEGER; o.via.u64 = d; return o; }
 		else { object o; o.type = type::NEGATIVE_INTEGER; o.via.i64 = d; return o; } }
 
-static inline object msgpack_unpack_int32(allocator* a, int32_t d)
+static inline object msgpack_unpack_int32(unpack_user* u, int32_t d)
 { if(d >= 0) { object o; o.type = type::POSITIVE_INTEGER; o.via.u64 = d; return o; }
 		else { object o; o.type = type::NEGATIVE_INTEGER; o.via.i64 = d; return o; } }
 
-static inline object msgpack_unpack_int64(allocator* a, int64_t d)
+static inline object msgpack_unpack_int64(unpack_user* u, int64_t d)
 { if(d >= 0) { object o; o.type = type::POSITIVE_INTEGER; o.via.u64 = d; return o; }
 		else { object o; o.type = type::NEGATIVE_INTEGER; o.via.i64 = d; return o; } }
 
-static inline object msgpack_unpack_float(allocator* a, float d)
+static inline object msgpack_unpack_float(unpack_user* u, float d)
 { object o; o.type = type::DOUBLE; o.via.dec = d; return o; }
 
-static inline object msgpack_unpack_double(allocator* a, double d)
+static inline object msgpack_unpack_double(unpack_user* u, double d)
 { object o; o.type = type::DOUBLE; o.via.dec = d; return o; }
 
-static inline object msgpack_unpack_nil(allocator* a)
+static inline object msgpack_unpack_nil(unpack_user* u)
 { object o; o.type = type::NIL; return o; }
 
-static inline object msgpack_unpack_true(allocator* a)
+static inline object msgpack_unpack_true(unpack_user* u)
 { object o; o.type = type::BOOLEAN; o.via.boolean = true; return o; }
 
-static inline object msgpack_unpack_false(allocator* a)
+static inline object msgpack_unpack_false(unpack_user* u)
 { object o; o.type = type::BOOLEAN; o.via.boolean = false; return o; }
 
-static inline object msgpack_unpack_array(allocator* a, unsigned int n)
+static inline object msgpack_unpack_array(unpack_user* u, unsigned int n)
 {
 	object o;
 	o.type = type::ARRAY;
 	o.via.container.size = 0;
-	o.via.container.ptr = a->malloc_object(n);
+	o.via.container.ptr = (object*)u->z->malloc(n*sizeof(object));
 	return o;
 }
 
-static inline void msgpack_unpack_array_item(allocator* a, object* c, object o)
+static inline void msgpack_unpack_array_item(unpack_user* u, object* c, object o)
 { c->via.container.ptr[ c->via.container.size++ ] = o; }
 
-static inline object msgpack_unpack_map(allocator* a, unsigned int n)
+static inline object msgpack_unpack_map(unpack_user* u, unsigned int n)
 {
 	object o;
 	o.type = type::MAP;
 	o.via.container.size = 0;
-	o.via.container.ptr = a->malloc_object(n*2);
+	o.via.container.ptr = (object*)u->z->malloc(n*2*sizeof(object));
 	return o;
 }
 
-static inline void msgpack_unpack_map_item(allocator* a, object* c, object k, object v)
+static inline void msgpack_unpack_map_item(unpack_user* u, object* c, object k, object v)
 {
 	c->via.container.ptr[ c->via.container.size   ] = k;
 	c->via.container.ptr[ c->via.container.size+1 ] = v;
 	++c->via.container.size;
 }
 
-static inline object msgpack_unpack_raw(allocator* a, const char* b, const char* p, unsigned int l)
+static inline object msgpack_unpack_raw(unpack_user* u, const char* b, const char* p, unsigned int l)
 {
 	object o;
 	o.type = type::RAW;
 	o.via.ref.ptr = p;
 	o.via.ref.size = l;
-	a->referenced = true;
+	u->referenced = true;
 	return o;
 }
 
@@ -151,8 +146,8 @@ struct context {
 	context()
 	{
 		msgpack_unpacker_init(&m_ctx);
-		allocator a = {NULL, false};
-		m_ctx.user = a;
+		unpack_user u = {NULL, false};
+		m_ctx.user = u;
 	}
 
 	~context() { }
@@ -171,8 +166,8 @@ struct context {
 	{
 		zone* z = m_ctx.user.z;
 		msgpack_unpacker_init(&m_ctx);
-		allocator a = {z, false};
-		m_ctx.user = a;
+		unpack_user u = {z, false};
+		m_ctx.user = u;
 	}
 
 	void set_zone(zone* z)
@@ -193,7 +188,7 @@ private:
 	context(const context&);
 };
 
-context* as_ctx(void* m)
+static inline context* as_ctx(void* m)
 {
 	return reinterpret_cast<context*>(m);
 }

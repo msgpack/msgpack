@@ -47,12 +47,12 @@ inline type::assoc_vector<K,V>& operator>> (object o, type::assoc_vector<K,V>& v
 {
 	if(o.type != type::MAP) { throw type_error(); }
 	v.resize(o.via.container.size);
-	object* p(o.via.container.ptr);
-	object* const pend(o.via.container.ptr + o.via.container.size);
+	object* p = o.via.container.ptr;
+	object* const pend = o.via.container.ptr + o.via.container.size;
 	std::pair<K, V>* it(&v.front());
 	for(; p < pend; ++it) {
-		convert(it->first,  *p); ++p;
-		convert(it->second, *p); ++p;
+		p->convert(&it->first);  ++p;
+		p->convert(&it->second); ++p;
 	}
 	std::sort(v.begin(), v.end(), type::detail::pair_first_less<K,V>());
 	return v;
@@ -64,8 +64,8 @@ inline packer<Stream>& operator<< (packer<Stream>& o, const type::assoc_vector<K
 	o.pack_map(v.size());
 	for(typename type::assoc_vector<K,V>::const_iterator it(v.begin()), it_end(v.end());
 			it != it_end; ++it) {
-		pack(o, it->first);
-		pack(o, it->second);
+		o.pack(it->first);
+		o.pack(it->second);
 	}
 	return o;
 }
@@ -79,14 +79,14 @@ inline std::map<K, V> operator>> (object o, std::map<K, V>& v)
 	object* const pend(o.via.container.ptr + o.via.container.size*2);
 	while(p < pend) {
 		K key;
-		convert(key, *p);  ++p;
+		p->convert(&key); ++p;
 		typename std::map<K,V>::iterator it(v.find(key));
 		if(it != v.end()) {
 			V val;
-			convert(val, *p);  ++p;
+			p->convert(&val); ++p;
 			it->insert( std::pair<K,V>(key, val) );
 		} else {
-			convert(it->second, *p); ++p;
+			p->convert(&it->second); ++p;
 		}
 	}
 	return v;
@@ -98,8 +98,8 @@ inline packer<Stream>& operator<< (packer<Stream>& o, const std::map<K,V>& v)
 	o.pack_map(v.size());
 	for(typename std::map<K,V>::const_iterator it(v.begin()), it_end(v.end());
 			it != it_end; ++it) {
-		pack(o, it->first);
-		pack(o, it->second);
+		o.pack(it->first);
+		o.pack(it->second);
 	}
 	return o;
 }
@@ -109,12 +109,12 @@ template <typename K, typename V>
 inline std::multimap<K, V> operator>> (object o, std::multimap<K, V>& v)
 {
 	if(o.type != type::MAP) { throw type_error(); }
-	object* p(o.via.container.ptr);
-	object* const pend(o.via.container.ptr + o.via.container.size*2);
+	object* p = o.via.container.ptr;
+	object* const pend = o.via.container.ptr + o.via.container.size*2;
 	while(p < pend) {
 		std::pair<K, V> value;
-		convert(value.first, *p);  ++p;
-		convert(value.second, *p);  ++p;
+		p->convert(&value.first);  ++p;
+		p->convert(&value.second); ++p;
 		v.insert(value);
 	}
 	return v;
@@ -126,8 +126,8 @@ inline packer<Stream>& operator<< (packer<Stream>& o, const std::multimap<K,V>& 
 	o.pack_multimap(v.size());
 	for(typename std::multimap<K,V>::const_iterator it(v.begin()), it_end(v.end());
 			it != it_end; ++it) {
-		pack(o, it->first);
-		pack(o, it->second);
+		o.pack(it->first);
+		o.pack(it->second);
 	}
 	return o;
 }

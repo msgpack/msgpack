@@ -1,7 +1,7 @@
 /*
  * MessagePack for C
  *
- * Copyright (C) 2008 FURUHASHI Sadayuki
+ * Copyright (C) 2008-2009 FURUHASHI Sadayuki
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -15,5 +15,8 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
+#include "msgpack/object.h"
+#include "msgpack/zone.h"
 #include "msgpack/pack.h"
 #include "msgpack/unpack.h"
+#include "msgpack/sbuffer.h"

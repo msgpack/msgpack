@@ -1,7 +1,7 @@
 //
 // MessagePack for C++
 //
-// Copyright (C) 2008 FURUHASHI Sadayuki
+// Copyright (C) 2008-2009 FURUHASHI Sadayuki
 //
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -19,3 +19,4 @@
 #include "msgpack/zone.hpp"
 #include "msgpack/pack.hpp"
 #include "msgpack/unpack.hpp"
+#include "msgpack/sbuffer.hpp"

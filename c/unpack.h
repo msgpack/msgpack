@@ -1,7 +1,7 @@
 /*
- * MessagePack unpacking routine for C
+ * MessagePack for C unpacking routine
  *
- * Copyright (C) 2008 FURUHASHI Sadayuki
+ * Copyright (C) 2008-2009 FURUHASHI Sadayuki
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -54,11 +54,11 @@ typedef struct {
 
 msgpack_unpack_t* msgpack_unpack_new(void* data, msgpack_unpack_callback* callback);
 void msgpack_unpack_free(msgpack_unpack_t* ctx);
-void msgpack_unpack_reset(msgpack_unpack_t* ctx);
 
 int msgpack_unpack_execute(msgpack_unpack_t* ctx,
 		const char* data, size_t len, size_t* off);
 void* msgpack_unpack_data(msgpack_unpack_t* ctx);
+void msgpack_unpack_reset(msgpack_unpack_t* ctx);
 
 
 #ifdef __cplusplus

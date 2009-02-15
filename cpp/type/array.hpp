@@ -29,11 +29,11 @@ inline std::vector<T> operator>> (object o, std::vector<T>& v)
 {
 	if(o.type != type::ARRAY) { throw type_error(); }
 	v.resize(o.via.container.size);
-	object* p(o.via.container.ptr);
-	object* const pend(o.via.container.ptr + o.via.container.size);
-	T* it(&v.front());
+	object* p = o.via.container.ptr;
+	object* const pend = o.via.container.ptr + o.via.container.size;
+	T* it = &v.front();
 	for(; p < pend; ++p, ++it) {
-		convert(*it, *p);
+		p->convert(it);
 	}
 	return v;
 }
@@ -45,7 +45,7 @@ inline packer<Stream>& operator<< (packer<Stream>& o, const std::vector<T>& v)
 	o.pack_array(v.size());
 	for(typename std::vector<T>::const_iterator it(v.begin()), it_end(v.end());
 			it != it_end; ++it) {
-		pack(o, *it);
+		o.pack(*it);
 	}
 	return o;
 }

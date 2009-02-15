@@ -75,6 +75,13 @@ class MessagePackTestFormat < Test::Unit::TestCase
 		check 9, -(1<<63)
 	end
 
+	it "double" do
+		check 9, 1.0
+		check 9, 0.1
+		check 9, -0.1
+		check 9, -1.0
+	end
+
 	it "fixraw" do
 		check_raw 1, 0
 		check_raw 1, (1<<5)-1

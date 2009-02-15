@@ -1,7 +1,7 @@
 //
 // MessagePack for C++ serializing routine
 //
-// Copyright (C) 2008 FURUHASHI Sadayuki
+// Copyright (C) 2008-2009 FURUHASHI Sadayuki
 //
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -32,70 +32,73 @@ public:
 	packer(Stream& s);
 
 public:
-	void pack_uint8(uint8_t d)			{ pack_uint8_impl(m_stream, d); }
-	void pack_uint16(uint16_t d)		{ pack_uint16_impl(m_stream, d); }
-	void pack_uint32(uint32_t d)		{ pack_uint32_impl(m_stream, d); }
-	void pack_uint64(uint64_t d)		{ pack_uint64_impl(m_stream, d); }
-	void pack_int8(uint8_t d)			{ pack_int8_impl(m_stream, d); }
-	void pack_int16(uint16_t d)			{ pack_int16_impl(m_stream, d); }
-	void pack_int32(uint32_t d)			{ pack_int32_impl(m_stream, d); }
-	void pack_int64(uint64_t d)			{ pack_int64_impl(m_stream, d); }
+	template <typename T>
+	packer<Stream>& pack(const T& v);
 
-	void pack_short(int d)				{ pack_short_impl(m_stream, d); }
-	void pack_int(int d)				{ pack_int_impl(m_stream, d); }
-	void pack_long(long d)				{ pack_long_impl(m_stream, d); }
-	void pack_long_long(long long d)	{ pack_long_long_impl(m_stream, d); }
-	void pack_unsigned_short(unsigned short d)			{ pack_unsigned_short_impl(m_stream, d); }
-	void pack_unsigned_int(unsigned int d)				{ pack_unsigned_int_impl(m_stream, d); }
-	void pack_unsigned_long(unsigned long d)			{ pack_unsigned_long_impl(m_stream, d); }
-	void pack_unsigned_long_long(unsigned long long d)	{ pack_unsigned_long_long_impl(m_stream, d); }
+	packer<Stream>& pack_uint8(uint8_t d);
+	packer<Stream>& pack_uint16(uint16_t d);
+	packer<Stream>& pack_uint32(uint32_t d);
+	packer<Stream>& pack_uint64(uint64_t d);
+	packer<Stream>& pack_int8(uint8_t d);
+	packer<Stream>& pack_int16(uint16_t d);
+	packer<Stream>& pack_int32(uint32_t d);
+	packer<Stream>& pack_int64(uint64_t d);
 
-	void pack_float(float d)			{ pack_float_impl(m_stream, d); }
-	void pack_double(double d)			{ pack_double_impl(m_stream, d); }
+	packer<Stream>& pack_short(int d);
+	packer<Stream>& pack_int(int d);
+	packer<Stream>& pack_long(long d);
+	packer<Stream>& pack_long_long(long long d);
+	packer<Stream>& pack_unsigned_short(unsigned short d);
+	packer<Stream>& pack_unsigned_int(unsigned int d);
+	packer<Stream>& pack_unsigned_long(unsigned long d);
+	packer<Stream>& pack_unsigned_long_long(unsigned long long d);
 
-	void pack_nil()						{ pack_nil_impl(m_stream); }
-	void pack_true()					{ pack_true_impl(m_stream); }
-	void pack_false()					{ pack_false_impl(m_stream); }
+	packer<Stream>& pack_float(float d);
+	packer<Stream>& pack_double(double d);
 
-	void pack_array(unsigned int n)		{ pack_array_impl(m_stream, n); }
+	packer<Stream>& pack_nil();
+	packer<Stream>& pack_true();
+	packer<Stream>& pack_false();
 
-	void pack_map(unsigned int n)		{ pack_map_impl(m_stream, n); }
+	packer<Stream>& pack_array(unsigned int n);
 
-	void pack_raw(size_t l)						{ pack_raw_impl(m_stream, l); }
-	void pack_raw_body(const char* b, size_t l)	{ pack_raw_body_impl(m_stream, b, l); }
+	packer<Stream>& pack_map(unsigned int n);
+
+	packer<Stream>& pack_raw(size_t l);
+	packer<Stream>& pack_raw_body(const char* b, size_t l);
 
 private:
-	static void pack_uint8_impl(Stream& x, uint8_t d);
-	static void pack_uint16_impl(Stream& x, uint16_t d);
-	static void pack_uint32_impl(Stream& x, uint32_t d);
-	static void pack_uint64_impl(Stream& x, uint64_t d);
-	static void pack_int8_impl(Stream& x, int8_t d);
-	static void pack_int16_impl(Stream& x, int16_t d);
-	static void pack_int32_impl(Stream& x, int32_t d);
-	static void pack_int64_impl(Stream& x, int64_t d);
+	static void _pack_uint8(Stream& x, uint8_t d);
+	static void _pack_uint16(Stream& x, uint16_t d);
+	static void _pack_uint32(Stream& x, uint32_t d);
+	static void _pack_uint64(Stream& x, uint64_t d);
+	static void _pack_int8(Stream& x, int8_t d);
+	static void _pack_int16(Stream& x, int16_t d);
+	static void _pack_int32(Stream& x, int32_t d);
+	static void _pack_int64(Stream& x, int64_t d);
 
-	static void pack_short_impl(Stream& x, short d);
-	static void pack_int_impl(Stream& x, int d);
-	static void pack_long_impl(Stream& x, long d);
-	static void pack_long_long_impl(Stream& x, long long d);
-	static void pack_unsigned_short_impl(Stream& x, unsigned short d);
-	static void pack_unsigned_int_impl(Stream& x, unsigned int d);
-	static void pack_unsigned_long_impl(Stream& x, unsigned long d);
-	static void pack_unsigned_long_long_impl(Stream& x, unsigned long long d);
+	static void _pack_short(Stream& x, short d);
+	static void _pack_int(Stream& x, int d);
+	static void _pack_long(Stream& x, long d);
+	static void _pack_long_long(Stream& x, long long d);
+	static void _pack_unsigned_short(Stream& x, unsigned short d);
+	static void _pack_unsigned_int(Stream& x, unsigned int d);
+	static void _pack_unsigned_long(Stream& x, unsigned long d);
+	static void _pack_unsigned_long_long(Stream& x, unsigned long long d);
 
-	static void pack_float_impl(Stream& x, float d);
-	static void pack_double_impl(Stream& x, double d);
+	static void _pack_float(Stream& x, float d);
+	static void _pack_double(Stream& x, double d);
 
-	static void pack_nil_impl(Stream& x);
-	static void pack_true_impl(Stream& x);
-	static void pack_false_impl(Stream& x);
+	static void _pack_nil(Stream& x);
+	static void _pack_true(Stream& x);
+	static void _pack_false(Stream& x);
 
-	static void pack_array_impl(Stream& x, unsigned int n);
+	static void _pack_array(Stream& x, unsigned int n);
 
-	static void pack_map_impl(Stream& x, unsigned int n);
+	static void _pack_map(Stream& x, unsigned int n);
 
-	static void pack_raw_impl(Stream& x, size_t l);
-	static void pack_raw_body_impl(Stream& x, const void* b, size_t l);
+	static void _pack_raw(Stream& x, size_t l);
+	static void _pack_raw_body(Stream& x, const void* b, size_t l);
 
 	static void append_buffer(Stream& x, const unsigned char* buf, unsigned int len)
 		{ x.write((const char*)buf, len); }
@@ -107,13 +110,14 @@ private:
 	packer();
 };
 
+
 #define msgpack_pack_inline_func(name) \
 	template <typename Stream> \
-	inline void packer<Stream>::pack_ ## name ## _impl
+	inline void packer<Stream>::_pack ## name
 
 #define msgpack_pack_inline_func_cint(name) \
 	template <typename Stream> \
-	inline void packer<Stream>::pack_ ## name ## _impl
+	inline void packer<Stream>::_pack ## name
 
 #define msgpack_pack_user Stream&
 
@@ -124,6 +128,112 @@ private:
 
 template <typename Stream>
 packer<Stream>::packer(Stream& s) : m_stream(s) { }
+
+template <typename Stream>
+inline packer<Stream>& packer<Stream>::pack_uint8(uint8_t d)
+{ _pack_uint8(m_stream, d); return *this; }
+
+template <typename Stream>
+inline packer<Stream>& packer<Stream>::pack_uint16(uint16_t d)
+{ _pack_uint16(m_stream, d); return *this; }
+
+template <typename Stream>
+inline packer<Stream>& packer<Stream>::pack_uint32(uint32_t d)
+{ _pack_uint32(m_stream, d); return *this; }
+
+template <typename Stream>
+inline packer<Stream>& packer<Stream>::pack_uint64(uint64_t d)
+{ _pack_uint64(m_stream, d); return *this; }
+
+template <typename Stream>
+inline packer<Stream>& packer<Stream>::pack_int8(uint8_t d)
+{ _pack_int8(m_stream, d); return *this; }
+
+template <typename Stream>
+inline packer<Stream>& packer<Stream>::pack_int16(uint16_t d)
+{ _pack_int16(m_stream, d); return *this; }
+
+template <typename Stream>
+inline packer<Stream>& packer<Stream>::pack_int32(uint32_t d)
+{ _pack_int32(m_stream, d); return *this; }
+
+template <typename Stream>
+inline packer<Stream>& packer<Stream>::pack_int64(uint64_t d)
+{ _pack_int64(m_stream, d); return *this;}
+
+
+template <typename Stream>
+inline packer<Stream>& packer<Stream>::pack_short(int d)
+{ _pack_short(m_stream, d); return *this; }
+
+template <typename Stream>
+inline packer<Stream>& packer<Stream>::pack_int(int d)
+{ _pack_int(m_stream, d); return *this; }
+
+template <typename Stream>
+inline packer<Stream>& packer<Stream>::pack_long(long d)
+{ _pack_long(m_stream, d); return *this; }
+
+template <typename Stream>
+inline packer<Stream>& packer<Stream>::pack_long_long(long long d)
+{ _pack_long_long(m_stream, d); return *this; }
+
+template <typename Stream>
+inline packer<Stream>& packer<Stream>::pack_unsigned_short(unsigned short d)
+{ _pack_unsigned_short(m_stream, d); return *this; }
+
+template <typename Stream>
+inline packer<Stream>& packer<Stream>::pack_unsigned_int(unsigned int d)
+{ _pack_unsigned_int(m_stream, d); return *this; }
+
+template <typename Stream>
+inline packer<Stream>& packer<Stream>::pack_unsigned_long(unsigned long d)
+{ _pack_unsigned_long(m_stream, d); return *this; }
+
+template <typename Stream>
+inline packer<Stream>& packer<Stream>::pack_unsigned_long_long(unsigned long long d)
+{ _pack_unsigned_long_long(m_stream, d); return *this; }
+
+
+template <typename Stream>
+inline packer<Stream>& packer<Stream>::pack_float(float d)
+{ _pack_float(m_stream, d); return *this; }
+
+template <typename Stream>
+inline packer<Stream>& packer<Stream>::pack_double(double d)
+{ _pack_double(m_stream, d); return *this; }
+
+
+template <typename Stream>
+inline packer<Stream>& packer<Stream>::pack_nil()
+{ _pack_nil(m_stream); return *this; }
+
+template <typename Stream>
+inline packer<Stream>& packer<Stream>::pack_true()
+{ _pack_true(m_stream); return *this; }
+
+template <typename Stream>
+inline packer<Stream>& packer<Stream>::pack_false()
+{ _pack_false(m_stream); return *this; }
+
+
+template <typename Stream>
+inline packer<Stream>& packer<Stream>::pack_array(unsigned int n)
+{ _pack_array(m_stream, n); return *this; }
+
+
+template <typename Stream>
+inline packer<Stream>& packer<Stream>::pack_map(unsigned int n)
+{ _pack_map(m_stream, n); return *this; }
+
+
+template <typename Stream>
+inline packer<Stream>& packer<Stream>::pack_raw(size_t l)
+{ _pack_raw(m_stream, l); return *this; }
+
+template <typename Stream>
+inline packer<Stream>& packer<Stream>::pack_raw_body(const char* b, size_t l)
+{ _pack_raw_body(m_stream, b, l); return *this; }
 
 
 }  // namespace msgpack
