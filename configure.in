@@ -32,7 +32,7 @@ fi
 # FIXME
 AC_PROG_CXX
 
-CXXFLAGS="-O4 -Wall $CXXFLAGS -I.."
+CXXFLAGS="-O4 -Wall $CXXFLAGS -I.. -I../c"
 
 
 AM_CONDITIONAL(ENABLE_CXX, test "$enable_cxx" != "no")
