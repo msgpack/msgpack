@@ -1,3 +1,0 @@
-#!/bin/sh
-NO_NEST=1
-. ../bootstrap

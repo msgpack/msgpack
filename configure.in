@@ -2,8 +2,42 @@ AC_INIT(msgpack/unpack_template.h)
 AM_INIT_AUTOMAKE(msgpack, 0.3.0)
 AC_CONFIG_HEADER(config.h)
 
+AC_SUBST(CFLAGS)
+if test "" = "$CFLAGS"; then
+	CFLAGS="-g -O4"
+fi
+
+AC_PROG_CC
+
+CFLAGS="-O4 -Wall $CFLAGS -I.."
+
+
+AC_MSG_CHECKING([if c++ api is enabled])
+AC_ARG_ENABLE(cxx,
+	AS_HELP_STRING([--disable-cxx],
+				   [don't build c++ api.]) )
+AC_MSG_RESULT($enable_cxx)
+if test "$enable_cxx" != "no"; then
+	AC_SUBST(CXXFLAGS)
+	if test "" = "$CXXFLAGS"; then
+		CXXFLAGS="-g -O4"
+	fi
+	
+	AC_CHECK_PROG(ERB, erb, erb)
+	if test "x$ERB" = x; then
+		AC_MSG_ERROR([cannot find erb. Ruby is needed to build.])
+	fi
+fi
+
+# FIXME
+AC_PROG_CXX
+
+CXXFLAGS="-O4 -Wall $CXXFLAGS -I.."
+
+
+AM_CONDITIONAL(ENABLE_CXX, test "$enable_cxx" != "no")
+
 AC_PROG_LIBTOOL
 
-AC_CONFIG_SUBDIRS([c cpp])
-AC_OUTPUT([Makefile])
+AC_OUTPUT([Makefile c/Makefile cpp/Makefile])
 

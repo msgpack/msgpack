@@ -10,6 +10,7 @@
 class Server {
 public:
 	Server(int sock) : m_sock(sock) { }
+
 	~Server() { }
 
 	typedef std::auto_ptr<msgpack::zone> auto_zone;

@@ -1,5 +1,7 @@
 #!/bin/sh
 
+mkdir -p gem/ext
+mkdir -p gem/msgpack
 cp extconf.rb       gem/ext/
 cp pack.c           gem/ext/
 cp pack.h           gem/ext/

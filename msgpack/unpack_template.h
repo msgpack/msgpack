@@ -49,7 +49,7 @@ msgpack_unpack_struct_decl(_stack) {
 };
 
 msgpack_unpack_struct_decl(_context) {
-	msgpack_unpack_user user;  // must be first
+	msgpack_unpack_user user;
 	unsigned int cs;
 	unsigned int trail;
 	unsigned int top;
@@ -63,12 +63,12 @@ msgpack_unpack_func(void, _init)(msgpack_unpack_struct(_context)* ctx)
 	ctx->cs = CS_HEADER;
 	ctx->trail = 0;
 	ctx->top = 0;
-	ctx->stack[0].obj = msgpack_unpack_callback(_init)(&ctx->user);
+	ctx->stack[0].obj = msgpack_unpack_callback(_root)(&ctx->user);
 }
 
-msgpack_unpack_func(msgpack_unpack_object, _data)(msgpack_unpack_struct(_context)* unpacker)
+msgpack_unpack_func(msgpack_unpack_object, _data)(msgpack_unpack_struct(_context)* ctx)
 {
-	return (unpacker)->stack[0].obj;
+	return (ctx)->stack[0].obj;
 }
 
 
@@ -92,16 +92,14 @@ msgpack_unpack_func(int, _execute)(msgpack_unpack_struct(_context)* ctx, const c
 	int ret;
 
 #define push_simple_value(func) \
-	obj = msgpack_unpack_callback(func)(user); \
-	/*printf("obj %d\n",obj);*/ \
+	if(msgpack_unpack_callback(func)(user, &obj) < 0) { goto _failed; } \
 	goto _push
 #define push_fixed_value(func, arg) \
-	obj = msgpack_unpack_callback(func)(user, arg); \
-	/*printf("obj %d\n",obj);*/ \
+	if(msgpack_unpack_callback(func)(user, arg, &obj) < 0) { goto _failed; } \
 	goto _push
 #define push_variable_value(func, base, pos, len) \
-	obj = msgpack_unpack_callback(func)(user, (const char*)base, (const char*)pos, len); \
-	/*printf("obj %d\n",obj);*/ \
+	if(msgpack_unpack_callback(func)(user, \
+		(const char*)base, (const char*)pos, len, &obj) < 0) { goto _failed; } \
 	goto _push
 
 #define again_fixed_trail(_cs, trail_len) \
@@ -115,7 +113,7 @@ msgpack_unpack_func(int, _execute)(msgpack_unpack_struct(_context)* ctx, const c
 	goto _fixed_trail_again
 
 #define start_container(func, count_, ct_) \
-	stack[top].obj = msgpack_unpack_callback(func)(user, count_); \
+	if(msgpack_unpack_callback(func)(user, count_, &stack[top].obj) < 0) { goto _failed; } \
 	if((count_) == 0) { obj = stack[top].obj; goto _push; } \
 	if(top >= MSGPACK_MAX_STACK_SIZE) { goto _failed; } \
 	stack[top].ct = ct_; \
@@ -264,11 +262,13 @@ msgpack_unpack_func(int, _execute)(msgpack_unpack_struct(_context)* ctx, const c
 			case CS_ARRAY_16:
 				start_container(_array, (uint16_t)PTR_CAST_16(n), CT_ARRAY_ITEM);
 			case CS_ARRAY_32:
+				/* FIXME security guard */
 				start_container(_array, (uint32_t)PTR_CAST_32(n), CT_ARRAY_ITEM);
 
 			case CS_MAP_16:
 				start_container(_map, (uint16_t)PTR_CAST_16(n), CT_MAP_KEY);
 			case CS_MAP_32:
+				/* FIXME security guard */
 				start_container(_map, (uint32_t)PTR_CAST_32(n), CT_MAP_KEY);
 
 			default:
@@ -281,7 +281,7 @@ _push:
 	c = &stack[top-1];
 	switch(c->ct) {
 	case CT_ARRAY_ITEM:
-		msgpack_unpack_callback(_array_item)(user, &c->obj, obj);
+		if(msgpack_unpack_callback(_array_item)(user, &c->obj, obj) < 0) { goto _failed; }
 		if(--c->count == 0) {
 			obj = c->obj;
 			--top;
@@ -294,7 +294,7 @@ _push:
 		c->ct = CT_MAP_VALUE;
 		goto _header_again;
 	case CT_MAP_VALUE:
-		msgpack_unpack_callback(_map_item)(user, &c->obj, c->map_key, obj);
+		if(msgpack_unpack_callback(_map_item)(user, &c->obj, c->map_key, obj) < 0) { goto _failed; }
 		if(--c->count == 0) {
 			obj = c->obj;
 			--top;

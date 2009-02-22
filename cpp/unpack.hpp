@@ -18,6 +18,7 @@
 #ifndef MSGPACK_UNPACK_HPP__
 #define MSGPACK_UNPACK_HPP__
 
+#include "msgpack/unpack.h"
 #include "msgpack/object.hpp"
 #include "msgpack/zone.hpp"
 #include <memory>
@@ -36,21 +37,21 @@ struct unpack_error : public std::runtime_error {
 };
 
 
-class unpacker {
+class unpacker : public msgpack_unpacker {
 public:
 	unpacker(size_t initial_buffer_size = MSGPACK_UNPACKER_DEFAULT_INITIAL_BUFFER_SIZE);
 	~unpacker();
 
 public:
-	/*! 1. reserve buffer. at least `len' bytes of capacity will be ready */
-	void reserve_buffer(size_t len);
+	/*! 1. reserve buffer. at least `size' bytes of capacity will be ready */
+	void reserve_buffer(size_t size);
 
 	/*! 2. read data to the buffer() up to buffer_capacity() bytes */
 	char* buffer();
 	size_t buffer_capacity() const;
 
 	/*! 3. specify the number of bytes actually copied */
-	void buffer_consumed(size_t len);
+	void buffer_consumed(size_t size);
 
 	/*! 4. repeat execute() until it retunrs false */
 	bool execute();
@@ -114,71 +115,157 @@ public:
 	size_t nonparsed_size() const;
 
 	/*! skip specified size of non-parsed buffer, leaving the buffer */
-	// Note that the `len' argument must be smaller than nonparsed_size()
-	void skip_nonparsed_buffer(size_t len);
+	// Note that the `size' argument must be smaller than nonparsed_size()
+	void skip_nonparsed_buffer(size_t size);
 
 	/*! remove unparsed buffer from unpacker */
 	// Note that reset() leaves non-parsed buffer.
 	void remove_nonparsed_buffer();
 
 private:
-	char* m_buffer;
-	size_t m_used;
-	size_t m_free;
-	size_t m_off;
-
-	std::auto_ptr<zone> m_zone;
-
-	void* m_ctx;
-
-	size_t m_initial_buffer_size;
-
-private:
-	void expand_buffer(size_t len);
-
-private:
 	unpacker(const unpacker&);
-
-public:
-	static object unpack(const char* data, size_t len, zone& z, size_t* off = NULL);
 };
 
 
-inline void unpacker::reserve_buffer(size_t len)
+typedef enum {
+	MSGPACK_UNPACK_SUCCESS				=  2,
+	MSGPACK_UNPACK_EXTRA_BYTES			=  1,
+	MSGPACK_UNPACK_CONTINUE				=  0,
+	MSGPACK_UNPACK_PARSE_ERROR			= -1,
+} unpack_return;
+
+static unpack_return unpack(const char* data, size_t len, size_t* off,
+		zone* z, object* result);
+
+
+// obsolete
+static object unpack(const char* data, size_t len, zone& z, size_t* off = NULL);
+
+
+inline unpacker::unpacker(size_t initial_buffer_size)
 {
-	if(m_free >= len) { return; }
-	expand_buffer(len);
+	if(!msgpack_unpacker_init(this, initial_buffer_size)) {
+		throw std::bad_alloc();
+	}
+}
+
+inline unpacker::~unpacker()
+{
+	msgpack_unpacker_destroy(this);
+}
+
+inline void unpacker::reserve_buffer(size_t size)
+{
+	if(!msgpack_unpacker_reserve_buffer(this, size)) {
+		throw std::bad_alloc();
+	}
 }
 
 inline char* unpacker::buffer()
-	{ return m_buffer + m_used; }
+{
+	return msgpack_unpacker_buffer(this);
+}
 
 inline size_t unpacker::buffer_capacity() const
-	{ return m_free; }
-
-inline void unpacker::buffer_consumed(size_t len)
 {
-	m_used += len;
-	m_free -= len;
+	return msgpack_unpacker_buffer_capacity(this);
+}
+
+inline void unpacker::buffer_consumed(size_t size)
+{
+	return msgpack_unpacker_buffer_consumed(this, size);
+}
+
+
+inline bool unpacker::execute()
+{
+	int ret = msgpack_unpacker_execute(this);
+	if(ret < 0) {
+		throw unpack_error("parse error");
+	} else if(ret == 0) {
+		return false;
+	} else {
+		return true;
+	}
+}
+
+inline object unpacker::data()
+{
+	msgpack_object obj = msgpack_unpacker_data(this);
+	return *reinterpret_cast<object*>(&obj);
+}
+
+inline zone* unpacker::release_zone()
+{
+	if(!msgpack_unpacker_flush_zone(this)) {
+		throw std::bad_alloc();
+	}
+
+	zone* r = new zone();
+
+	msgpack_zone old = *this->z;
+	*this->z = *z;
+	*z = old;
+
+	return r;
+}
+
+inline void unpacker::reset()
+{
+	msgpack_unpacker_reset(this);
 }
 
 
 inline char* unpacker::nonparsed_buffer()
-	{ return m_buffer + m_off; }
+{
+	return buf + off;
+}
 
 inline size_t unpacker::nonparsed_size() const
-	{ return m_used - m_off; }
+{
+	return used - off;
+}
 
-inline void unpacker::skip_nonparsed_buffer(size_t len)
-	{ m_off += len; }
+inline void unpacker::skip_nonparsed_buffer(size_t size)
+{
+	off += size;
+}
 
 inline void unpacker::remove_nonparsed_buffer()
-	{ m_used = m_off; }
-
-
-inline object unpack(const char* data, size_t len, zone& z, size_t* off = NULL)
 {
-	return unpacker::unpack(data, len, z, off);
+	used = off;
+}
+
+
+inline unpack_return unpack(const char* data, size_t len, size_t* off,
+		zone* z, object* result)
+{
+	return (unpack_return)msgpack_unpack(data, len, off,
+			z, reinterpret_cast<msgpack_object*>(result));
+}
+
+inline object unpack(const char* data, size_t len, zone& z, size_t* off)
+{
+	object result;
+
+	switch( msgpack::unpack(data, len, off, &z, &result) ) {
+	case MSGPACK_UNPACK_SUCCESS:
+		return result;
+
+	case MSGPACK_UNPACK_EXTRA_BYTES:
+		if(off) {
+			return result;
+		} else {
+			throw unpack_error("extra bytes");
+		}
+
+	case MSGPACK_UNPACK_CONTINUE:
+		throw unpack_error("insufficient bytes");
+
+	case MSGPACK_UNPACK_PARSE_ERROR:
+	default:
+		throw unpack_error("parse error");
+	}
 }
 
 
