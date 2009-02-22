@@ -9,7 +9,7 @@ Binary-based efficient data interchange format.
   UNIX-like platforms.
 
   Following programs is required to build:
-    - gcc >= 4.0 with C++ support
+    - gcc >= 4.1 with C++ support
     - ruby >= 1.8   (ruby is used as a preprocessor)
 
 
