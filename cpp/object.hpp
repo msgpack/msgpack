@@ -18,8 +18,10 @@
 #ifndef MSGPACK_OBJECT_HPP__
 #define MSGPACK_OBJECT_HPP__
 
+#include "msgpack/object.h"
 #include "msgpack/pack.hpp"
 #include <stdint.h>
+#include <string.h>
 #include <stdexcept>
 #include <typeinfo>
 #include <limits>
@@ -72,6 +74,7 @@ struct object {
 		object_array array;
 		object_map map;
 		object_raw raw;
+		object_raw ref;  // obsolete
 	};
 
 	type::object_type type;
@@ -84,6 +87,10 @@ struct object {
 
 	template <typename T>
 	void convert(T* v);
+
+	object();
+	object(msgpack_object obj);
+	operator msgpack_object();
 
 private:
 	struct implicit_type;
@@ -190,6 +197,23 @@ inline packer<Stream>& operator<< (packer<Stream>& o, const T& v)
 
 inline bool operator!=(const object x, const object y)
 { return !(x == y); }
+
+
+inline object::object() { }
+
+inline object::object(msgpack_object obj)
+{
+	// FIXME beter way?
+	::memcpy(this, &obj, sizeof(obj));
+}
+
+inline object::operator msgpack_object()
+{
+	// FIXME beter way?
+	msgpack_object obj;
+	::memcpy(&obj, this, sizeof(obj));
+	return obj;
+}
 
 
 inline object::implicit_type object::convert()

@@ -191,8 +191,7 @@ inline bool unpacker::execute()
 
 inline object unpacker::data()
 {
-	msgpack_object obj = msgpack_unpacker_data(this);
-	return *reinterpret_cast<object*>(&obj);
+	return msgpack_unpacker_data(this);
 }
 
 inline zone* unpacker::release_zone()
