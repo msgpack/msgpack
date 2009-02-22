@@ -35,6 +35,7 @@ fi
 #	cd c   && ./bootstrap $@; cd ..
 #	cd cpp && ./bootstrap $@; cd ..
 #fi
+mkdir -p ac
 
 
 ACLOCAL="aclocal"
