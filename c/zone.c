@@ -19,85 +19,214 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct {
-	size_t free;
-	void* ptr;
-	void* alloc;
-} msgpack_zone_chunk;
 
-struct _msgpack_zone {
-	msgpack_zone_chunk* array;
-	size_t ntail;
-	size_t usable;
-};
-
-msgpack_zone* msgpack_zone_new()
+static inline bool init_chunk_array(msgpack_zone_chunk_array* ca, size_t chunk_size)
 {
-	return calloc(1, sizeof(msgpack_zone));
-}
+	// glibcは72バイト以下のmallocが高速
+	const size_t nfirst = (sizeof(msgpack_zone_chunk) < 72/2) ?
+			72 / sizeof(msgpack_zone_chunk) : 8;
 
-void msgpack_zone_free(msgpack_zone* z)
-{
-	if(z->array) {
-		size_t i;
-		for(i=0; i <= z->ntail; ++i) {
-			free(z->array[i].alloc);
-		}
+	msgpack_zone_chunk* array = (msgpack_zone_chunk*)malloc(
+			sizeof(msgpack_zone_chunk) * nfirst);
+	if(!array) {
+		return false;
 	}
-	free(z);
+
+	const size_t sz = chunk_size;
+
+	char* ptr = (char*)malloc(sz);
+	if(!ptr) {
+		free(array);
+		return NULL;
+	}
+
+	ca->tail  = array;
+	ca->end   = array + nfirst;
+	ca->array = array;
+
+	array[0].free  = sz;
+	array[0].ptr   = ptr;
+	array[0].alloc = ptr;
+
+	return true;
 }
 
-
-void* msgpack_zone_malloc(msgpack_zone* z, size_t size)
+static inline void destroy_chunk_array(msgpack_zone_chunk_array* ca)
 {
-	if(!z->array) {
-		const size_t n = (sizeof(msgpack_zone_chunk) < 72/2) ?
-				72 / sizeof(msgpack_zone_chunk) : 8;
-		msgpack_zone_chunk* array =
-			(msgpack_zone_chunk*)malloc(sizeof(msgpack_zone_chunk) * n);
-		if(!array) { return NULL; }
+	msgpack_zone_chunk* chunk = ca->array;
+	for(; chunk != ca->tail+1; ++chunk) {
+		free(chunk->alloc);
+	}
+	free(ca->array);
+}
 
-		size_t sz = 2048;  /* FIXME chunk_size */
-		while(sz < size) { sz *= 2; }
-		char* p = (char*)malloc(sz);
-		if(!p) {
-			free(array);
+void* msgpack_zone_malloc(msgpack_zone* zone, size_t size)
+{
+	msgpack_zone_chunk_array* const ca = &zone->chunk_array;
+
+	msgpack_zone_chunk* chunk = ca->tail;
+
+	if(chunk->free > size) {
+		// chunkに空き容量がある
+		// 空き容量を消費して返す
+
+		char* ptr = chunk->ptr;
+
+		chunk->ptr  += size;
+		chunk->free -= size;
+
+		return ptr;
+	}
+
+	chunk = ++ca->tail;
+
+	if(chunk == ca->end) {
+		// ca->arrayに空きがない
+		// ca->arrayを拡張する
+
+		const size_t nused = ca->end - ca->array;
+		const size_t nnext = (ca->end - ca->array) * 2;
+
+		chunk = (msgpack_zone_chunk*)realloc(ca->array,
+				sizeof(msgpack_zone_chunk) * nnext);
+		if(!chunk) {
 			return NULL;
 		}
 
-		z->array = array;
-		z->usable = n - 1;
-		array[0].free  = sz - size;
-		array[0].ptr   = p + size;
-		array[0].alloc = p;
-		return p;
+		ca->array        = chunk;
+		ca->end          = chunk + nnext;
+		chunk = ca->tail = chunk + nused;
 	}
 
-	if(z->array[z->ntail].free > size) {
-		char* p = (char*)z->array[z->ntail].ptr;
-		z->array[z->ntail].ptr   = p + size;
-		z->array[z->ntail].free -= size;
-		return p;
+	size_t sz = zone->chunk_size;
+
+	while(sz < size) {
+		sz *= 2;
 	}
 
-	if(z->usable <= z->ntail) {
-		const size_t n = (z->usable + 1) * 2;
-		msgpack_zone_chunk* tmp =
-			(msgpack_zone_chunk*)realloc(z->array, sizeof(msgpack_zone_chunk) * n);
-		if(!tmp) { return NULL; }
-		z->array  = tmp;
-		z->usable = n - 1;
+	char* ptr = (char*)malloc(sz);
+	if(!ptr) {
+		return NULL;
 	}
 
-	size_t sz = 2048;  /* FIXME chunk_size */
-	while(sz < size) { sz *= 2; }
-	char* p = (char*)malloc(sz);
-	if(!p) { return NULL; }
+	chunk->free  = sz - size;
+	chunk->ptr   = ptr + size;
+	chunk->alloc = ptr;
 
-	++z->ntail;
-	z->array[z->ntail].free  = sz - size;
-	z->array[z->ntail].ptr   = p + size;
-	z->array[z->ntail].alloc = p;
-	return p;
+	return ptr;
+}
+
+
+static inline void init_finalizer_array(msgpack_zone_finalizer_array* fa)
+{
+	fa->tail  = NULL;
+	fa->end   = NULL;
+	fa->array = NULL;
+}
+
+static inline void destroy_finalizer_array(msgpack_zone_finalizer_array* fa)
+{
+	// 逆順に呼び出し
+	msgpack_zone_finalizer* fin = fa->tail;
+	for(; fin != fa->array; --fin) {
+		(*(fin-1)->func)((fin-1)->data);
+	}
+	free(fa->array);
+}
+
+bool msgpack_zone_push_finalizer(msgpack_zone* zone,
+		void (*func)(void* data), void* data)
+{
+	msgpack_zone_finalizer_array* const fa = &zone->finalizer_array;
+
+	msgpack_zone_finalizer* fin = fa->tail;
+
+	if(fin == fa->end) {
+		// fa->arrayに空きがない
+		// fa->arrayを拡張する
+
+		size_t nnext;
+		const size_t nused = fa->end - fa->array;
+
+		if(nused == 0) {
+			// 初回の呼び出し：fa->tail == fa->end == fa->array == NULL
+
+			// glibcは72バイト以下のmallocが高速
+			nnext = (sizeof(msgpack_zone_finalizer) < 72/2) ?
+					72 / sizeof(msgpack_zone_finalizer) : 8;
+
+		} else {
+			nnext = (fa->end - fa->array) * 2;
+		}
+
+		fin = (msgpack_zone_finalizer*)realloc(fa->array,
+				sizeof(msgpack_zone_finalizer) * nnext);
+		if(!fin) {
+			return false;
+		}
+
+		fa->array      = fin;
+		fa->end        = fin + nnext;
+		fin = fa->tail = fin + nused;
+	}
+
+	fin->func = func;
+	fin->data = data;
+
+	++fa->tail;
+
+	return true;
+}
+
+
+bool msgpack_zone_is_empty(msgpack_zone* zone)
+{
+	msgpack_zone_chunk_array* const ca = &zone->chunk_array;
+	msgpack_zone_finalizer_array* const fa = &zone->finalizer_array;
+	return ca->array[0].ptr == ca->array[0].alloc &&
+		ca->tail == ca->array &&
+		fa->tail == fa->array;
+}
+
+
+bool msgpack_zone_init(msgpack_zone* zone, size_t chunk_size)
+{
+	zone->chunk_size = chunk_size;
+
+	if(!init_chunk_array(&zone->chunk_array, chunk_size)) {
+		return false;
+	}
+
+	init_finalizer_array(&zone->finalizer_array);
+
+	return true;
+}
+
+void msgpack_zone_destroy(msgpack_zone* zone)
+{
+	destroy_finalizer_array(&zone->finalizer_array);
+	destroy_chunk_array(&zone->chunk_array);
+}
+
+
+msgpack_zone* msgpack_zone_new(size_t chunk_size)
+{
+	msgpack_zone* zone = (msgpack_zone*)malloc(sizeof(msgpack_zone));
+	if(zone == NULL) {
+		return NULL;
+	}
+
+	if(!msgpack_zone_init(zone, chunk_size)) {
+		free(zone);
+		return NULL;
+	}
+
+	return zone;
+}
+
+void msgpack_zone_free(msgpack_zone* zone)
+{
+	msgpack_zone_destroy(zone);
+	free(zone);
 }
 

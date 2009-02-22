@@ -15,153 +15,78 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-#include "msgpack/unpack.h"
-#include "msgpack/unpack_define.h"
 #include "msgpack/object.h"
+#include <stdio.h>
+#include <inttypes.h>
 
-typedef struct {
-	msgpack_zone* z;
-	bool referenced;
-	bool failed;
-} unpack_user;
-
-#define msgpack_unpack_struct(name) \
-	struct msgpack_unpacker ## name
-
-#define msgpack_unpack_func(ret, name) \
-	ret msgpack_unpacker ## name
-
-#define msgpack_unpack_callback(name) \
-	msgpack_unpack ## name
-
-#define msgpack_unpack_object msgpack_object
-
-#define msgpack_unpack_user unpack_user
-
-
-struct msgpack_unpacker_context;
-
-static void msgpack_unpacker_init(struct msgpack_unpacker_context* ctx);
-
-static msgpack_object msgpack_unpacker_data(struct msgpack_unpacker_context* ctx);
-
-static int msgpack_unpacker_execute(struct msgpack_unpacker_context* ctx,
-		const char* data, size_t len, size_t* off);
-
-static inline msgpack_object msgpack_unpack_init(unpack_user* u)
-{ msgpack_object o; return o; }
-
-static inline msgpack_object msgpack_unpack_uint8(unpack_user* u, uint8_t d)
-{ msgpack_object o; o.type = MSGPACK_OBJECT_POSITIVE_INTEGER; o.via.u64 = d; return o; }
-
-static inline msgpack_object msgpack_unpack_uint16(unpack_user* u, uint16_t d)
-{ msgpack_object o; o.type = MSGPACK_OBJECT_POSITIVE_INTEGER; o.via.u64 = d; return o; }
-
-static inline msgpack_object msgpack_unpack_uint32(unpack_user* u, uint32_t d)
-{ msgpack_object o; o.type = MSGPACK_OBJECT_POSITIVE_INTEGER; o.via.u64 = d; return o; }
-
-static inline msgpack_object msgpack_unpack_uint64(unpack_user* u, uint64_t d)
-{ msgpack_object o; o.type = MSGPACK_OBJECT_POSITIVE_INTEGER; o.via.u64 = d; return o; }
-
-static inline msgpack_object msgpack_unpack_int8(unpack_user* u, int8_t d)
-{ if(d >= 0) { msgpack_object o; o.type = MSGPACK_OBJECT_POSITIVE_INTEGER; o.via.u64 = d; return o; }
-		else { msgpack_object o; o.type = MSGPACK_OBJECT_NEGATIVE_INTEGER; o.via.i64 = d; return o; } }
-
-static inline msgpack_object msgpack_unpack_int16(unpack_user* u, int16_t d)
-{ if(d >= 0) { msgpack_object o; o.type = MSGPACK_OBJECT_POSITIVE_INTEGER; o.via.u64 = d; return o; }
-		else { msgpack_object o; o.type = MSGPACK_OBJECT_NEGATIVE_INTEGER; o.via.i64 = d; return o; } }
-
-static inline msgpack_object msgpack_unpack_int32(unpack_user* u, int32_t d)
-{ if(d >= 0) { msgpack_object o; o.type = MSGPACK_OBJECT_POSITIVE_INTEGER; o.via.u64 = d; return o; }
-		else { msgpack_object o; o.type = MSGPACK_OBJECT_NEGATIVE_INTEGER; o.via.i64 = d; return o; } }
-
-static inline msgpack_object msgpack_unpack_int64(unpack_user* u, int64_t d)
-{ if(d >= 0) { msgpack_object o; o.type = MSGPACK_OBJECT_POSITIVE_INTEGER; o.via.u64 = d; return o; }
-		else { msgpack_object o; o.type = MSGPACK_OBJECT_NEGATIVE_INTEGER; o.via.i64 = d; return o; } }
-
-static inline msgpack_object msgpack_unpack_float(unpack_user* u, float d)
-{ msgpack_object o; o.type = MSGPACK_OBJECT_DOUBLE; o.via.dec = d; return o; }
-
-static inline msgpack_object msgpack_unpack_double(unpack_user* u, double d)
-{ msgpack_object o; o.type = MSGPACK_OBJECT_DOUBLE; o.via.dec = d; return o; }
-
-static inline msgpack_object msgpack_unpack_nil(unpack_user* u)
-{ msgpack_object o; o.type = MSGPACK_OBJECT_NIL; return o; }
-
-static inline msgpack_object msgpack_unpack_true(unpack_user* u)
-{ msgpack_object o; o.type = MSGPACK_OBJECT_BOOLEAN; o.via.boolean = true; return o; }
-
-static inline msgpack_object msgpack_unpack_false(unpack_user* u)
-{ msgpack_object o; o.type = MSGPACK_OBJECT_BOOLEAN; o.via.boolean = false; return o; }
-
-static inline msgpack_object msgpack_unpack_array(unpack_user* u, unsigned int n)
+void msgpack_object_print(FILE* out, msgpack_object o)
 {
-	msgpack_object o;
-	o.type = MSGPACK_OBJECT_ARRAY;
-	o.via.array.size = 0;
-	o.via.array.ptr = msgpack_zone_malloc(u->z, n*sizeof(msgpack_object));
-	if(o.via.array.ptr == NULL) { u->failed = true; }
-	return o;
-}
+	switch(o.type) {
+	case MSGPACK_OBJECT_NIL:
+		fprintf(out, "nil");
+		break;
 
-static inline void msgpack_unpack_array_item(unpack_user* u, msgpack_object* c, msgpack_object o)
-{
-	if(u->failed) { return; }
-	c->via.array.ptr[ c->via.array.size++ ] = o;
-}
+	case MSGPACK_OBJECT_BOOLEAN:
+		fprintf(out, (o.via.boolean ? "true" : "false"));
+		break;
 
-static inline msgpack_object msgpack_unpack_map(unpack_user* u, unsigned int n)
-{
-	msgpack_object o;
-	o.type = MSGPACK_OBJECT_MAP;
-	o.via.map.size = 0;
-	o.via.map.ptr = msgpack_zone_malloc(u->z, n*sizeof(msgpack_object_kv));
-	if(o.via.map.ptr == NULL) { u->failed = true; }
-	return o;
-}
+	case MSGPACK_OBJECT_POSITIVE_INTEGER:
+		fprintf(out, "%"PRIu64, o.via.u64);
+		break;
 
-static inline void msgpack_unpack_map_item(unpack_user* u, msgpack_object* c, msgpack_object k, msgpack_object v)
-{
-	if(u->failed) { return; }
-	c->via.map.ptr[c->via.map.size].key = k;
-	c->via.map.ptr[c->via.map.size].val = v;
-	++c->via.map.size;
-}
+	case MSGPACK_OBJECT_NEGATIVE_INTEGER:
+		fprintf(out, "%"PRIi64, o.via.i64);
+		break;
 
-static inline msgpack_object msgpack_unpack_raw(unpack_user* u, const char* b, const char* p, unsigned int l)
-{
-	msgpack_object o;
-	o.type = MSGPACK_OBJECT_RAW;
-	o.via.raw.ptr = p;
-	o.via.raw.size = l;
-	u->referenced = true;
-	return o;
-}
+	case MSGPACK_OBJECT_DOUBLE:
+		fprintf(out, "%f", o.via.dec);
+		break;
 
-#include "msgpack/unpack_template.h"
+	case MSGPACK_OBJECT_RAW:
+		fprintf(out, "\"");
+		fwrite(o.via.raw.ptr, o.via.raw.size, 1, out);
+		fprintf(out, "\"");
+		break;
 
-msgpack_object_unpack_return
-msgpack_object_unpack(const char* data, size_t len, size_t* off,
-		msgpack_zone* z, msgpack_object* result)
-{
-	struct msgpack_unpacker_context ctx;
-	msgpack_unpacker_init(&ctx);
-	unpack_user u = {z, false, false};
-	ctx.user = u;
+	case MSGPACK_OBJECT_ARRAY:
+		fprintf(out, "[");
+		if(o.via.array.size != 0) {
+			msgpack_object* p = o.via.array.ptr;
+			msgpack_object_print(out, *p);
+			++p;
+			msgpack_object* const pend = o.via.array.ptr + o.via.array.size;
+			for(; p < pend; ++p) {
+				fprintf(out, ", ");
+				msgpack_object_print(out, *p);
+			}
+		}
+		fprintf(out, "]");
+		break;
+		// FIXME loop optimiziation
 
-	size_t noff = (off ? *off : 0);
-	int ret = msgpack_unpacker_execute(&ctx, data, len, &noff);
-	if(ret < 0 || ctx.user.failed) {
-		return MSGPACK_OBJECT_PARSE_ERROR;
-	} else if(ret == 0) {
-		return MSGPACK_OBJECT_INSUFFICIENT_BYTES;
+	case MSGPACK_OBJECT_MAP:
+		fprintf(out, "{");
+		if(o.via.map.size != 0) {
+			msgpack_object_kv* p = o.via.map.ptr;
+			msgpack_object_print(out, p->key);
+			fprintf(out, "=>");
+			msgpack_object_print(out, p->val);
+			++p;
+			msgpack_object_kv* const pend = o.via.map.ptr + o.via.map.size;
+			for(; p < pend; ++p) {
+				fprintf(out, ", ");
+				msgpack_object_print(out, p->key);
+				fprintf(out, "=>");
+				msgpack_object_print(out, p->val);
+			}
+		}
+		fprintf(out, "}");
+		break;
+		// FIXME loop optimiziation
+
+	default:
+		// FIXME
+		fprintf(out, "#<UNKNOWN %hu %"PRIu64">", o.type, o.via.u64);
 	}
-	*result = msgpack_unpacker_data(&ctx);
-	if(off) { *off = noff; }
-	if(ret == 0) {
-		return MSGPACK_OBJECT_EXTRA_BYTES;
-	}
-	return MSGPACK_OBJECT_PARSE_SUCCESS;
 }
-
 

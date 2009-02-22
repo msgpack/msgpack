@@ -1,4 +1,9 @@
+if ENABLE_CXX
+export ERB
 SUBDIRS = c cpp
+else
+SUBDIRS = c
+endif
 
 nobase_include_HEADERS = \
 		msgpack/pack_define.h \

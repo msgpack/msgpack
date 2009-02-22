@@ -21,99 +21,99 @@
 
 typedef struct {
 	int finished;
-	VALUE origstr;
-} msgpack_unpack_context;
+	VALUE source;
+} unpack_user;
 
 
 #define msgpack_unpack_struct(name) \
-	struct msgpack_unpacker ## name
+	struct template ## name
 
 #define msgpack_unpack_func(ret, name) \
-	ret msgpack_unpacker ## name
+	ret template ## name
 
 #define msgpack_unpack_callback(name) \
 	template_callback ## name
 
 #define msgpack_unpack_object VALUE
 
-#define msgpack_unpack_user msgpack_unpack_context
+#define msgpack_unpack_user unpack_user
 
 
-struct msgpack_unpacker_context;
-typedef struct msgpack_unpacker_context msgpack_unpacker;
+struct template_context;
+typedef struct template_context msgpack_unpack_t;
 
-static void msgpack_unpacker_init(msgpack_unpacker* ctx);
+static void template_init(msgpack_unpack_t* u);
 
-static VALUE msgpack_unpacker_data(msgpack_unpacker* ctx);
+static VALUE template_data(msgpack_unpack_t* u);
 
-static int msgpack_unpacker_execute(msgpack_unpacker* ctx,
+static int template_execute(msgpack_unpack_t* u,
 		const char* data, size_t len, size_t* off);
 
 
-static inline VALUE template_callback_init(msgpack_unpack_context* x)
+static inline VALUE template_callback_root(unpack_user* u)
 { return Qnil; }
 
-static inline VALUE template_callback_uint8(msgpack_unpack_context* x, uint8_t d)
-{ return INT2FIX(d); }
+static inline int template_callback_uint8(unpack_user* u, uint8_t d, VALUE* o)
+{ *o = INT2FIX(d); return 0; }
 
-static inline VALUE template_callback_uint16(msgpack_unpack_context* x, uint16_t d)
-{ return INT2FIX(d); }
+static inline int template_callback_uint16(unpack_user* u, uint16_t d, VALUE* o)
+{ *o = INT2FIX(d); return 0; }
 
-static inline VALUE template_callback_uint32(msgpack_unpack_context* x, uint32_t d)
-{ return UINT2NUM(d); }
+static inline int template_callback_uint32(unpack_user* u, uint32_t d, VALUE* o)
+{ *o = UINT2NUM(d); return 0; }
 
-static inline VALUE template_callback_uint64(msgpack_unpack_context* x, uint64_t d)
-{ return rb_ull2inum(d); }
+static inline int template_callback_uint64(unpack_user* u, uint64_t d, VALUE* o)
+{ *o = rb_ull2inum(d); return 0; }
 
-static inline VALUE template_callback_int8(msgpack_unpack_context* x, int8_t d)
-{ return INT2FIX((long)d); }
+static inline int template_callback_int8(unpack_user* u, int8_t d, VALUE* o)
+{ *o = INT2FIX((long)d); return 0; }
 
-static inline VALUE template_callback_int16(msgpack_unpack_context* x, int16_t d)
-{ return INT2FIX((long)d); }
+static inline int template_callback_int16(unpack_user* u, int16_t d, VALUE* o)
+{ *o = INT2FIX((long)d); return 0; }
 
-static inline VALUE template_callback_int32(msgpack_unpack_context* x, int32_t d)
-{ return INT2NUM((long)d); }
+static inline int template_callback_int32(unpack_user* u, int32_t d, VALUE* o)
+{ *o = INT2NUM((long)d); return 0; }
 
-static inline VALUE template_callback_int64(msgpack_unpack_context* x, int64_t d)
-{ return rb_ll2inum(d); }
+static inline int template_callback_int64(unpack_user* u, int64_t d, VALUE* o)
+{ *o = rb_ll2inum(d); return 0; }
 
-static inline VALUE template_callback_float(msgpack_unpack_context* x, float d)
-{ return rb_float_new(d); }
+static inline int template_callback_float(unpack_user* u, float d, VALUE* o)
+{ *o = rb_float_new(d); return 0; }
 
-static inline VALUE template_callback_double(msgpack_unpack_context* x, double d)
-{ return rb_float_new(d); }
+static inline int template_callback_double(unpack_user* u, double d, VALUE* o)
+{ *o = rb_float_new(d); return 0; }
 
-static inline VALUE template_callback_nil(msgpack_unpack_context* x)
-{ return Qnil; }
+static inline int template_callback_nil(unpack_user* u, VALUE* o)
+{ *o = Qnil; return 0; }
 
-static inline VALUE template_callback_true(msgpack_unpack_context* x)
-{ return Qtrue; }
+static inline int template_callback_true(unpack_user* u, VALUE* o)
+{ *o = Qtrue; return 0; }
 
-static inline VALUE template_callback_false(msgpack_unpack_context* x)
-{ return Qfalse; }
+static inline int template_callback_false(unpack_user* u, VALUE* o)
+{ *o = Qfalse; return 0;}
 
-static inline VALUE template_callback_array(msgpack_unpack_context* x, unsigned int n)
-{ return rb_ary_new2(n); }
+static inline int template_callback_array(unpack_user* u, unsigned int n, VALUE* o)
+{ *o = rb_ary_new2(n); return 0; }
 
-static inline void template_callback_array_item(msgpack_unpack_context* x, VALUE* c, VALUE o)
-{ rb_ary_push(*c, o); }  // FIXME set value directry RARRAY_PTR(obj)[RARRAY_LEN(obj)++]
+static inline int template_callback_array_item(unpack_user* u, VALUE* c, VALUE o)
+{ rb_ary_push(*c, o); return 0; }  // FIXME set value directry RARRAY_PTR(obj)[RARRAY_LEN(obj)++]
 
-static inline VALUE template_callback_map(msgpack_unpack_context* x, unsigned int n)
-{ return rb_hash_new(); }
+static inline int template_callback_map(unpack_user* u, unsigned int n, VALUE* o)
+{ *o = rb_hash_new(); return 0; }
 
-static inline void template_callback_map_item(msgpack_unpack_context* x, VALUE* c, VALUE k, VALUE v)
-{ rb_hash_aset(*c, k, v); }
+static inline int template_callback_map_item(unpack_user* u, VALUE* c, VALUE k, VALUE v)
+{ rb_hash_aset(*c, k, v); return 0; }
 
-static inline VALUE template_callback_raw(msgpack_unpack_context* x, const char* b, const char* p, unsigned int l)
-{ return l == 0 ? rb_str_new(0,0) : rb_str_substr(x->origstr, p - b, l); }
+static inline int template_callback_raw(unpack_user* u, const char* b, const char* p, unsigned int l, VALUE* o)
+{ *o = (l == 0) ? rb_str_new(0,0) : rb_str_substr(u->source, p - b, l); return 0; }
 
 
 #include "msgpack/unpack_template.h"
 
 
 #define UNPACKER(from, name) \
-	msgpack_unpacker *name = NULL; \
-	Data_Get_Struct(from, msgpack_unpacker, name); \
+	msgpack_unpack_t *name = NULL; \
+	Data_Get_Struct(from, msgpack_unpack_t, name); \
 	if(name == NULL) { \
 		rb_raise(rb_eArgError, "NULL found for " # name " when shouldn't be."); \
 	}
@@ -132,7 +132,7 @@ static void MessagePack_Unpacker_free(void* data)
 	if(data) { free(data); }
 }
 
-static void MessagePack_Unpacker_mark(msgpack_unpacker *mp)
+static void MessagePack_Unpacker_mark(msgpack_unpack_t *mp)
 {
 	unsigned int i;
 	for(i=0; i < mp->top; ++i) {
@@ -144,7 +144,7 @@ static void MessagePack_Unpacker_mark(msgpack_unpacker *mp)
 static VALUE MessagePack_Unpacker_alloc(VALUE klass)
 {
 	VALUE obj;
-	msgpack_unpacker* mp = ALLOC_N(msgpack_unpacker, 1);
+	msgpack_unpack_t* mp = ALLOC_N(msgpack_unpack_t, 1);
 	obj = Data_Wrap_Struct(klass, MessagePack_Unpacker_mark,
 			MessagePack_Unpacker_free, mp);
 	return obj;
@@ -153,9 +153,9 @@ static VALUE MessagePack_Unpacker_alloc(VALUE klass)
 static VALUE MessagePack_Unpacker_reset(VALUE self)
 {
 	UNPACKER(self, mp);
-	msgpack_unpacker_init(mp);
-	msgpack_unpack_context ctx = {0, Qnil};
-	mp->user = ctx;
+	template_init(mp);
+	unpack_user u = {0, Qnil};
+	mp->user = u;
 	return self;
 }
 
@@ -180,9 +180,9 @@ static VALUE MessagePack_Unpacker_execute_impl(VALUE args)
 		rb_raise(eUnpackError, "offset is bigger than data buffer size.");
 	}
 
-	mp->user.origstr = data;
-	ret = msgpack_unpacker_execute(mp, dptr, (size_t)dlen, &from);
-	mp->user.origstr = Qnil;
+	mp->user.source = data;
+	ret = template_execute(mp, dptr, (size_t)dlen, &from);
+	mp->user.source = Qnil;
 
 	if(ret < 0) {
 		rb_raise(eUnpackError, "parse error.");
@@ -235,13 +235,13 @@ static VALUE MessagePack_Unpacker_finished_p(VALUE self)
 static VALUE MessagePack_Unpacker_data(VALUE self)
 {
 	UNPACKER(self, mp);
-	return msgpack_unpacker_data(mp);
+	return template_data(mp);
 }
 
 
 static VALUE MessagePack_unpack_impl(VALUE args)
 {
-	msgpack_unpacker* mp = (msgpack_unpacker*)((VALUE*)args)[0];
+	msgpack_unpack_t* mp = (msgpack_unpack_t*)((VALUE*)args)[0];
 	VALUE data = ((VALUE*)args)[1];
 
 	size_t from = 0;
@@ -249,9 +249,9 @@ static VALUE MessagePack_unpack_impl(VALUE args)
 	long dlen = FIX2LONG(((VALUE*)args)[2]);
 	int ret;
 
-	mp->user.origstr = data;
-	ret = msgpack_unpacker_execute(mp, dptr, (size_t)dlen, &from);
-	mp->user.origstr = Qnil;
+	mp->user.source = data;
+	ret = template_execute(mp, dptr, (size_t)dlen, &from);
+	mp->user.source = Qnil;
 
 	if(ret < 0) {
 		rb_raise(eUnpackError, "parse error.");
@@ -261,7 +261,7 @@ static VALUE MessagePack_unpack_impl(VALUE args)
 		if(from < dlen) {
 			rb_raise(eUnpackError, "extra bytes.");
 		}
-		return msgpack_unpacker_data(mp);
+		return template_data(mp);
 	}
 }
 
@@ -278,10 +278,10 @@ static VALUE MessagePack_unpack_rescue(VALUE args)
 static VALUE MessagePack_unpack_limit(VALUE self, VALUE data, VALUE limit)
 {
 	CHECK_STRING_TYPE(data);
-	msgpack_unpacker mp;
-	msgpack_unpacker_init(&mp);
-	msgpack_unpack_context ctx = {0, Qnil};
-	mp.user = ctx;
+	msgpack_unpack_t mp;
+	template_init(&mp);
+	unpack_user u = {0, Qnil};
+	mp.user = u;
 
 	rb_gc_disable();
 	VALUE args[3] = {(VALUE)&mp, data, limit};

@@ -22,6 +22,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -39,18 +40,18 @@ typedef enum {
 	MSGPACK_OBJECT_MAP					= 0x08,
 } msgpack_object_type;
 
-struct _msgpack_object;
 
-struct _msgpack_object_kv;
+struct msgpack_object;
+struct msgpack_object_kv;
 
 typedef struct {
 	uint32_t size;
-	struct _msgpack_object* ptr;
+	struct msgpack_object* ptr;
 } msgpack_object_array;
 
 typedef struct {
 	uint32_t size;
-	struct _msgpack_object_kv* ptr;
+	struct msgpack_object_kv* ptr;
 } msgpack_object_map;
 
 typedef struct {
@@ -68,26 +69,18 @@ typedef union {
 	msgpack_object_raw raw;
 } msgpack_object_union;
 
-typedef struct _msgpack_object {
+typedef struct msgpack_object {
 	msgpack_object_type type;
 	msgpack_object_union via;
 } msgpack_object;
 
-typedef struct _msgpack_object_kv {
+typedef struct msgpack_object_kv {
 	msgpack_object key;
 	msgpack_object val;
 } msgpack_object_kv;
 
-typedef enum {
-	MSGPACK_OBJECT_PARSE_SUCCESS		=  0,
-	MSGPACK_OBJECT_EXTRA_BYTES			=  1,
-	MSGPACK_OBJECT_INSUFFICIENT_BYTES	= -1,
-	MSGPACK_OBJECT_PARSE_ERROR			= -2,
-} msgpack_object_unpack_return;
 
-msgpack_object_unpack_return
-msgpack_object_unpack(const char* data, size_t len, size_t* off,
-		msgpack_zone* z, msgpack_object* result);
+void msgpack_object_print(FILE* out, msgpack_object o);
 
 
 #ifdef __cplusplus

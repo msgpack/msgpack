@@ -15,9 +15,11 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-#ifndef MSGPACK_UNPACK_H__
-#define MSGPACK_UNPACK_H__
+#ifndef msgpack_unpacker_H__
+#define msgpack_unpacker_H__
 
+#include "msgpack/zone.h"
+#include "msgpack/object.h"
 #include <stdint.h>
 #include <stddef.h>
 
@@ -26,39 +28,76 @@ extern "C" {
 #endif
 
 
-typedef struct {
-	void* (*unpack_uint8)(void* data, uint8_t d);
-	void* (*unpack_uint16)(void* data, uint16_t d);
-	void* (*unpack_uint32)(void* data, uint32_t d);
-	void* (*unpack_uint64)(void* data, uint64_t d);
-	void* (*unpack_int8)(void* data, int8_t d);
-	void* (*unpack_int16)(void* data, int16_t d);
-	void* (*unpack_int32)(void* data, int32_t d);
-	void* (*unpack_int64)(void* data, int64_t d);
-	void* (*unpack_float)(void* data, float d);
-	void* (*unpack_double)(void* data, double d);
-	void* (*unpack_nil)(void* data);
-	void* (*unpack_true)(void* data);
-	void* (*unpack_false)(void* data);
-	void* (*unpack_array)(void* data, unsigned int n);
-	 void (*unpack_array_item)(void* data, void* c, void* o);
-	void* (*unpack_map)(void* data, unsigned int n);
-	void (*unpack_map_item)(void* data, void* c, void* k, void* v);
-	void* (*unpack_raw)(void* data, const char* b, const char* p, unsigned int l);
-} msgpack_unpack_callback;
+typedef struct msgpack_unpacker {
+	char* buf;
+	size_t used;
+	size_t free;
+	size_t off;
+	msgpack_zone* z;
+	bool referenced;
+	size_t initial_buffer_size;
+	void* ctx;
+} msgpack_unpacker;
 
-typedef struct {
-	void* data;
-	msgpack_unpack_callback callback;
-} msgpack_unpack_t;
 
-msgpack_unpack_t* msgpack_unpack_new(void* data, msgpack_unpack_callback* callback);
-void msgpack_unpack_free(msgpack_unpack_t* ctx);
+bool msgpack_unpacker_init(msgpack_unpacker* mpac, size_t initial_buffer_size);
+void msgpack_unpacker_destroy(msgpack_unpacker* mpac);
 
-int msgpack_unpack_execute(msgpack_unpack_t* ctx,
-		const char* data, size_t len, size_t* off);
-void* msgpack_unpack_data(msgpack_unpack_t* ctx);
-void msgpack_unpack_reset(msgpack_unpack_t* ctx);
+msgpack_unpacker* msgpack_unpacker_new(size_t initial_buffer_size);
+void msgpack_unpacker_free(msgpack_unpacker* mpac);
+
+static inline bool   msgpack_unpacker_reserve_buffer(msgpack_unpacker* mpac, size_t size);
+static inline char*  msgpack_unpacker_buffer(msgpack_unpacker* mpac);
+static inline size_t msgpack_unpacker_buffer_capacity(const msgpack_unpacker* mpac);
+static inline void   msgpack_unpacker_buffer_consumed(msgpack_unpacker* mpac, size_t size);
+
+
+int msgpack_unpacker_execute(msgpack_unpacker* mpac);
+
+msgpack_object msgpack_unpacker_data(msgpack_unpacker* mpac);
+
+msgpack_zone* msgpack_unpacker_release_zone(msgpack_unpacker* mpac);
+
+void msgpack_unpacker_reset(msgpack_unpacker* mpac);
+
+
+typedef enum {
+	MSGPACK_UNPACK_SUCCESS				=  2,
+	MSGPACK_UNPACK_EXTRA_BYTES			=  1,
+	MSGPACK_UNPACK_CONTINUE				=  0,
+	MSGPACK_UNPACK_PARSE_ERROR			= -1,
+} msgpack_unpack_return;
+
+msgpack_unpack_return
+msgpack_unpack(const char* data, size_t len, size_t* off,
+		msgpack_zone* z, msgpack_object* result);
+
+
+bool msgpack_unpacker_flush_zone(msgpack_unpacker* mpac);
+
+bool msgpack_unpacker_expand_buffer(msgpack_unpacker* mpac, size_t size);
+
+bool msgpack_unpacker_reserve_buffer(msgpack_unpacker* mpac, size_t size)
+{
+	if(mpac->free >= size) { return true; }
+	return msgpack_unpacker_expand_buffer(mpac, size);
+}
+
+char* msgpack_unpacker_buffer(msgpack_unpacker* mpac)
+{
+	return mpac->buf + mpac->used;
+}
+
+size_t msgpack_unpacker_buffer_capacity(const msgpack_unpacker* mpac)
+{
+	return mpac->free;
+}
+
+void msgpack_unpacker_buffer_consumed(msgpack_unpacker* mpac, size_t size)
+{
+	mpac->used += size;
+	mpac->free -= size;
+}
 
 
 #ifdef __cplusplus

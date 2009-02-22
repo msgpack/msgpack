@@ -1,9 +1,7 @@
 lib_LTLIBRARIES = libmsgpack.la
 
 libmsgpack_la_SOURCES = \
-		object.cpp \
-		unpack.cpp \
-		zone.cpp
+		object.cpp
 
 nobase_include_HEADERS = \
 		msgpack.hpp \
@@ -28,7 +26,6 @@ noinst_HEADERS = \
 # FIXME
 object.lo: msgpack/type/tuple.hpp
 unpack.lo: msgpack/type/tuple.hpp msgpack/zone.hpp
-zone.lo: msgpack/type/tuple.hpp msgpack/zone.hpp
 
 msgpack/type/tuple.hpp: msgpack/type/tuple.hpp.erb
 	$(ERB) $< > $@.tmp
@@ -41,6 +38,8 @@ msgpack/zone.hpp: msgpack/zone.hpp.erb
 MOSTLYCLEANFILES = \
 		msgpack/type/tuple.hpp \
 		msgpack/zone.hpp
+
+libmsgpack_la_LIBADD = -L../c -lmsgpackc
 
 # -version-info CURRENT:REVISION:AGE
 libmsgpack_la_LDFLAGS = -version-info 1:0:0
