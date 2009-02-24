@@ -84,7 +84,6 @@ struct fwriter {
 	void write(const char* buf, size_t buflen)
 	{
 		size_t count = fwrite(buf, buflen, 1, m_fp);
-		//if(fwrite(buf, buflen, 1, m_fp) < 1) {
 		if(count < 1) {
 			std::cout << buflen << std::endl;
 			std::cout << count << std::endl;

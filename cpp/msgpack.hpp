@@ -20,3 +20,4 @@
 #include "msgpack/pack.hpp"
 #include "msgpack/unpack.hpp"
 #include "msgpack/sbuffer.hpp"
+#include "msgpack.h"

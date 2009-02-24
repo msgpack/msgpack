@@ -16,8 +16,77 @@
  *    limitations under the License.
  */
 #include "msgpack/object.h"
+#include "msgpack/pack.h"
 #include <stdio.h>
 #include <inttypes.h>
+
+
+int msgpack_pack_object(msgpack_packer* pk, msgpack_object d)
+{
+	switch(d.type) {
+	case MSGPACK_OBJECT_NIL:
+		return msgpack_pack_nil(pk);
+
+	case MSGPACK_OBJECT_BOOLEAN:
+		if(d.via.boolean) {
+			return msgpack_pack_true(pk);
+		} else {
+			return msgpack_pack_false(pk);
+		}
+
+	case MSGPACK_OBJECT_POSITIVE_INTEGER:
+		return msgpack_pack_uint64(pk, d.via.u64);
+
+	case MSGPACK_OBJECT_NEGATIVE_INTEGER:
+		return msgpack_pack_int64(pk, d.via.i64);
+
+	case MSGPACK_OBJECT_DOUBLE:
+		return msgpack_pack_double(pk, d.via.dec);
+
+	case MSGPACK_OBJECT_RAW:
+		{
+			int ret = msgpack_pack_raw(pk, d.via.raw.size);
+			if(ret < 0) { return ret; }
+			return msgpack_pack_raw_body(pk, d.via.raw.ptr, d.via.raw.size);
+		}
+
+	case MSGPACK_OBJECT_ARRAY:
+		{
+			int ret = msgpack_pack_array(pk, d.via.array.size);
+			if(ret < 0) { return ret; }
+
+			msgpack_object* o = d.via.array.ptr;
+			msgpack_object* const oend = d.via.array.ptr + d.via.array.size;
+			for(; o != oend; ++o) {
+				ret = msgpack_pack_object(pk, *o);
+				if(ret < 0) { return ret; }
+			}
+
+			return 0;
+		}
+
+	case MSGPACK_OBJECT_MAP:
+		{
+			int ret = msgpack_pack_map(pk, d.via.map.size);
+			if(ret < 0) { return ret; }
+
+			msgpack_object_kv* kv = d.via.map.ptr;
+			msgpack_object_kv* const kvend = d.via.map.ptr + d.via.map.size;
+			for(; kv != kvend; ++kv) {
+				ret = msgpack_pack_object(pk, kv->key);
+				if(ret < 0) { return ret; }
+				ret = msgpack_pack_object(pk, kv->val);
+				if(ret < 0) { return ret; }
+			}
+
+			return 0;
+		}
+
+	default:
+		return -1;
+	}
+}
+
 
 void msgpack_object_print(FILE* out, msgpack_object o)
 {
