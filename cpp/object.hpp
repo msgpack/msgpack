@@ -162,18 +162,6 @@ inline packer<Stream>& packer<Stream>::pack(const T& v)
 	return *this;
 }
 
-template <typename Stream, typename T>
-inline void pack(Stream& s, const T& v)
-{
-	packer<Stream>(s).pack(v);
-}
-
-template <typename Stream, typename T>
-inline void pack_copy(packer<Stream>& o, T v)
-{
-	pack(o, v);
-}
-
 inline object& operator>> (object o, object& v)
 {
 	v = o;
@@ -250,6 +238,20 @@ inline void pack(packer<Stream>& o, const T& v)
 	o.pack(v);
 }
 
+// obsolete
+template <typename Stream, typename T>
+inline void pack(Stream& s, const T& v)
+{
+	packer<Stream>(s).pack(v);
+}
+
+// obsolete
+template <typename Stream, typename T>
+inline void pack_copy(packer<Stream>& o, T v)
+{
+	pack(o, v);
+}
+
 
 template <typename Stream>
 packer<Stream>& operator<< (packer<Stream>& o, const object& v)
@@ -309,7 +311,7 @@ packer<Stream>& operator<< (packer<Stream>& o, const object& v)
 		for(object* p(v.via.array.ptr),
 				* const pend(v.via.array.ptr + v.via.array.size);
 				p < pend; ++p) {
-			*p >> o;
+			o << *p;
 		}
 		return o;
 		// FIXME loop optimiziation
@@ -319,8 +321,8 @@ packer<Stream>& operator<< (packer<Stream>& o, const object& v)
 		for(object_kv* p(v.via.map.ptr),
 				* const pend(v.via.map.ptr + v.via.map.size);
 				p < pend; ++p) {
-			p->key >> o;
-			p->val >> o;
+			o << p->key;
+			o << p->val;
 		}
 		return o;
 		// FIXME loop optimiziation

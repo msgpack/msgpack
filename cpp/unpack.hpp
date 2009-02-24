@@ -243,6 +243,7 @@ inline unpack_return unpack(const char* data, size_t len, size_t* off,
 			z, reinterpret_cast<msgpack_object*>(result));
 }
 
+// obsolete
 inline object unpack(const char* data, size_t len, zone& z, size_t* off)
 {
 	object result;
