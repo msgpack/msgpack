@@ -46,6 +46,7 @@ void msgpack_unpacker_destroy(msgpack_unpacker* mpac);
 msgpack_unpacker* msgpack_unpacker_new(size_t initial_buffer_size);
 void msgpack_unpacker_free(msgpack_unpacker* mpac);
 
+static inline size_t msgpack_unpacker_buffered_size(const msgpack_unpacker* mpac);
 static inline bool   msgpack_unpacker_reserve_buffer(msgpack_unpacker* mpac, size_t size);
 static inline char*  msgpack_unpacker_buffer(msgpack_unpacker* mpac);
 static inline size_t msgpack_unpacker_buffer_capacity(const msgpack_unpacker* mpac);
@@ -76,6 +77,11 @@ msgpack_unpack(const char* data, size_t len, size_t* off,
 bool msgpack_unpacker_flush_zone(msgpack_unpacker* mpac);
 
 bool msgpack_unpacker_expand_buffer(msgpack_unpacker* mpac, size_t size);
+
+size_t msgpack_unpacker_buffered_size(const msgpack_unpacker* mpac)
+{
+	return mpac->used;
+}
 
 bool msgpack_unpacker_reserve_buffer(msgpack_unpacker* mpac, size_t size)
 {

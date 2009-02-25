@@ -43,6 +43,9 @@ public:
 	~unpacker();
 
 public:
+	/*! 0. check if the buffered size is not exceed the assumption. */
+	size_t buffered_size() const;
+
 	/*! 1. reserve buffer. at least `size' bytes of capacity will be ready */
 	void reserve_buffer(size_t size);
 
@@ -152,6 +155,12 @@ inline unpacker::unpacker(size_t initial_buffer_size)
 inline unpacker::~unpacker()
 {
 	msgpack_unpacker_destroy(this);
+}
+
+
+inline size_t unpacker::buffered_size() const
+{
+	return msgpack_unpacker_buffered_size(this);
 }
 
 inline void unpacker::reserve_buffer(size_t size)
