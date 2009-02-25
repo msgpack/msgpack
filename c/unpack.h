@@ -33,6 +33,7 @@ typedef struct msgpack_unpacker {
 	size_t used;
 	size_t free;
 	size_t off;
+	size_t parsed;
 	msgpack_zone* z;
 	bool referenced;
 	size_t initial_buffer_size;
@@ -46,7 +47,6 @@ void msgpack_unpacker_destroy(msgpack_unpacker* mpac);
 msgpack_unpacker* msgpack_unpacker_new(size_t initial_buffer_size);
 void msgpack_unpacker_free(msgpack_unpacker* mpac);
 
-static inline size_t msgpack_unpacker_buffered_size(const msgpack_unpacker* mpac);
 static inline bool   msgpack_unpacker_reserve_buffer(msgpack_unpacker* mpac, size_t size);
 static inline char*  msgpack_unpacker_buffer(msgpack_unpacker* mpac);
 static inline size_t msgpack_unpacker_buffer_capacity(const msgpack_unpacker* mpac);
@@ -60,6 +60,8 @@ msgpack_object msgpack_unpacker_data(msgpack_unpacker* mpac);
 msgpack_zone* msgpack_unpacker_release_zone(msgpack_unpacker* mpac);
 
 void msgpack_unpacker_reset(msgpack_unpacker* mpac);
+
+static inline size_t msgpack_unpacker_parsed_size(const msgpack_unpacker* mpac);
 
 
 typedef enum {
@@ -77,11 +79,6 @@ msgpack_unpack(const char* data, size_t len, size_t* off,
 bool msgpack_unpacker_flush_zone(msgpack_unpacker* mpac);
 
 bool msgpack_unpacker_expand_buffer(msgpack_unpacker* mpac, size_t size);
-
-size_t msgpack_unpacker_buffered_size(const msgpack_unpacker* mpac)
-{
-	return mpac->used;
-}
 
 bool msgpack_unpacker_reserve_buffer(msgpack_unpacker* mpac, size_t size)
 {
@@ -103,6 +100,11 @@ void msgpack_unpacker_buffer_consumed(msgpack_unpacker* mpac, size_t size)
 {
 	mpac->used += size;
 	mpac->free -= size;
+}
+
+size_t msgpack_unpacker_parsed_size(const msgpack_unpacker* mpac)
+{
+	return mpac->parsed;
 }
 
 

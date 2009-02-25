@@ -278,6 +278,7 @@ static VALUE MessagePack_unpack_rescue(VALUE args)
 static VALUE MessagePack_unpack_limit(VALUE self, VALUE data, VALUE limit)
 {
 	CHECK_STRING_TYPE(data);
+
 	msgpack_unpack_t mp;
 	template_init(&mp);
 	unpack_user u = {0, Qnil};
@@ -288,6 +289,7 @@ static VALUE MessagePack_unpack_limit(VALUE self, VALUE data, VALUE limit)
 	VALUE ret = rb_rescue(MessagePack_unpack_impl, (VALUE)args,
 			MessagePack_unpack_rescue, Qnil);
 	rb_gc_enable();
+
 	return ret;
 }
 
