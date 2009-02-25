@@ -59,7 +59,6 @@ msgpack_unpack_struct_decl(_context) {
 
 msgpack_unpack_func(void, _init)(msgpack_unpack_struct(_context)* ctx)
 {
-	/*memset(ctx, 0, sizeof( msgpack_unpack_struct(_context) ));   FIXME needed? */
 	ctx->cs = CS_HEADER;
 	ctx->trail = 0;
 	ctx->top = 0;

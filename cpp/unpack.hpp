@@ -43,9 +43,6 @@ public:
 	~unpacker();
 
 public:
-	/*! 0. check if the buffered size is not exceed the assumption. */
-	size_t buffered_size() const;
-
 	/*! 1. reserve buffer. at least `size' bytes of capacity will be ready */
 	void reserve_buffer(size_t size);
 
@@ -69,6 +66,9 @@ public:
 
 	/*! 5.3. after release_zone(), re-initialize unpacker */
 	void reset();
+
+	/*! 6. check if the parsed message size doesn't exceed assumption. */
+	size_t parsed_size() const;
 
 
 	// Basic usage of the unpacker is as following:
@@ -158,11 +158,6 @@ inline unpacker::~unpacker()
 }
 
 
-inline size_t unpacker::buffered_size() const
-{
-	return msgpack_unpacker_buffered_size(this);
-}
-
 inline void unpacker::reserve_buffer(size_t size)
 {
 	if(!msgpack_unpacker_reserve_buffer(this, size)) {
@@ -221,6 +216,11 @@ inline zone* unpacker::release_zone()
 inline void unpacker::reset()
 {
 	msgpack_unpacker_reset(this);
+}
+
+inline size_t unpacker::parsed_size() const
+{
+	return msgpack_unpacker_parsed_size(this);
 }
 
 

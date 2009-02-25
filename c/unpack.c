@@ -197,6 +197,7 @@ bool msgpack_unpacker_init(msgpack_unpacker* mpac, size_t initial_buffer_size)
 	mpac->used = COUNTER_SIZE;
 	mpac->free = initial_buffer_size - mpac->used;
 	mpac->off = COUNTER_SIZE;
+	mpac->parsed = 0;
 	mpac->initial_buffer_size = initial_buffer_size;
 	mpac->z = z;
 	mpac->referenced = false;
@@ -305,8 +306,13 @@ bool msgpack_unpacker_expand_buffer(msgpack_unpacker* mpac, size_t size)
 
 int msgpack_unpacker_execute(msgpack_unpacker* mpac)
 {
-	return template_execute(CTX_CAST(mpac->ctx),
+	size_t off = mpac->off;
+	int ret = template_execute(CTX_CAST(mpac->ctx),
 			mpac->buf, mpac->used, &mpac->off);
+	if(mpac->off > off) {
+		mpac->parsed += mpac->off - off;
+	}
+	return ret;
 }
 
 msgpack_object msgpack_unpacker_data(msgpack_unpacker* mpac)
@@ -347,10 +353,8 @@ bool msgpack_unpacker_flush_zone(msgpack_unpacker* mpac)
 
 void msgpack_unpacker_reset(msgpack_unpacker* mpac)
 {
-	msgpack_zone* z = mpac->z;
 	template_init(CTX_CAST(mpac->ctx));
-	CTX_CAST(mpac->ctx)->user.z = z;
-	CTX_CAST(mpac->ctx)->user.referenced = &mpac->referenced;
+	mpac->parsed = 0;
 }
 
 
