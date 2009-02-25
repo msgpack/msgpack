@@ -61,7 +61,8 @@ msgpack_zone* msgpack_unpacker_release_zone(msgpack_unpacker* mpac);
 
 void msgpack_unpacker_reset(msgpack_unpacker* mpac);
 
-static inline size_t msgpack_unpacker_parsed_size(const msgpack_unpacker* mpac);
+static inline size_t msgpack_unpacker_message_size(const msgpack_unpacker* mpac);
+
 
 
 typedef enum {
@@ -75,6 +76,8 @@ msgpack_unpack_return
 msgpack_unpack(const char* data, size_t len, size_t* off,
 		msgpack_zone* z, msgpack_object* result);
 
+
+static inline size_t msgpack_unpacker_parsed_size(const msgpack_unpacker* mpac);
 
 bool msgpack_unpacker_flush_zone(msgpack_unpacker* mpac);
 
@@ -100,6 +103,11 @@ void msgpack_unpacker_buffer_consumed(msgpack_unpacker* mpac, size_t size)
 {
 	mpac->used += size;
 	mpac->free -= size;
+}
+
+size_t msgpack_unpacker_message_size(const msgpack_unpacker* mpac)
+{
+	return mpac->parsed - mpac->off + mpac->used;
 }
 
 size_t msgpack_unpacker_parsed_size(const msgpack_unpacker* mpac)

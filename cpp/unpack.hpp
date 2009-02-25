@@ -67,8 +67,8 @@ public:
 	/*! 5.3. after release_zone(), re-initialize unpacker */
 	void reset();
 
-	/*! 6. check if the parsed message size doesn't exceed assumption. */
-	size_t parsed_size() const;
+	/*! 6. check if the size of message doesn't exceed assumption. */
+	size_t message_size() const;
 
 
 	// Basic usage of the unpacker is as following:
@@ -112,6 +112,7 @@ public:
 public:
 	// These functions are usable when non-MessagePack message follows after
 	// MessagePack message.
+	size_t parsed_size() const;
 
 	/*! get address of the buffer that is not parsed */
 	char* nonparsed_buffer();
@@ -218,11 +219,16 @@ inline void unpacker::reset()
 	msgpack_unpacker_reset(this);
 }
 
+inline size_t unpacker::message_size() const
+{
+	return msgpack_unpacker_message_size(this);
+}
+
+
 inline size_t unpacker::parsed_size() const
 {
 	return msgpack_unpacker_parsed_size(this);
 }
-
 
 inline char* unpacker::nonparsed_buffer()
 {
