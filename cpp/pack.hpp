@@ -30,6 +30,7 @@ template <typename Stream>
 class packer {
 public:
 	packer(Stream& s);
+	~packer();
 
 public:
 	template <typename T>
@@ -128,6 +129,9 @@ private:
 
 template <typename Stream>
 packer<Stream>::packer(Stream& s) : m_stream(s) { }
+
+template <typename Stream>
+packer<Stream>::~packer() { }
 
 template <typename Stream>
 inline packer<Stream>& packer<Stream>::pack_uint8(uint8_t d)
