@@ -128,10 +128,10 @@ private:
 
 
 typedef enum {
-	MSGPACK_UNPACK_SUCCESS				=  2,
-	MSGPACK_UNPACK_EXTRA_BYTES			=  1,
-	MSGPACK_UNPACK_CONTINUE				=  0,
-	MSGPACK_UNPACK_PARSE_ERROR			= -1,
+	UNPACK_SUCCESS				=  2,
+	UNPACK_EXTRA_BYTES			=  1,
+	UNPACK_CONTINUE				=  0,
+	UNPACK_PARSE_ERROR			= -1,
 } unpack_return;
 
 static unpack_return unpack(const char* data, size_t len, size_t* off,
@@ -249,20 +249,20 @@ inline object unpack(const char* data, size_t len, zone& z, size_t* off)
 	object result;
 
 	switch( msgpack::unpack(data, len, off, &z, &result) ) {
-	case MSGPACK_UNPACK_SUCCESS:
+	case UNPACK_SUCCESS:
 		return result;
 
-	case MSGPACK_UNPACK_EXTRA_BYTES:
+	case UNPACK_EXTRA_BYTES:
 		if(off) {
 			return result;
 		} else {
 			throw unpack_error("extra bytes");
 		}
 
-	case MSGPACK_UNPACK_CONTINUE:
+	case UNPACK_CONTINUE:
 		throw unpack_error("insufficient bytes");
 
-	case MSGPACK_UNPACK_PARSE_ERROR:
+	case UNPACK_PARSE_ERROR:
 	default:
 		throw unpack_error("parse error");
 	}

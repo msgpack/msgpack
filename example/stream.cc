@@ -113,6 +113,7 @@ int main(void)
 
 	// client thread:
 	fwriter writer(pair[1]);
+	msgpack::packer<fwriter> pk(writer);
 
 	typedef msgpack::type::tuple<std::string, std::string, std::string> put_t;
 	typedef msgpack::type::tuple<std::string, std::string> get_t;
@@ -120,9 +121,9 @@ int main(void)
 	put_t req1("put", "apple", "red");
 	put_t req2("put", "lemon", "yellow");
 	get_t req3("get", "apple");
-	msgpack::pack(writer, req1);
-	msgpack::pack(writer, req2);
-	msgpack::pack(writer, req3);
+	pk.pack(req1);
+	pk.pack(req2);
+	pk.pack(req3);
 	writer.flush();
 	writer.close();
 
