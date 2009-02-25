@@ -34,10 +34,15 @@ class Server
 				@pk.reset
 				@buffer.slice!(0, @nread)
 				@nread = 0
+
 				next unless @buffer.empty?
 			end
 
 			break
+		end
+
+		if @buffer.length > 10*1024*1024
+			raise "message is too large"
 		end
 
 	rescue

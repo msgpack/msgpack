@@ -43,6 +43,10 @@ public:
 
 			process_message(msg, life);
 		}
+
+		if(m_pac.message_size() > 10*1024*1024) {
+			throw std::runtime_error("message is too large");
+		}
 	}
 
 private:
