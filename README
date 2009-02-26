@@ -17,41 +17,43 @@ Binary-based efficient data interchange format.
 
   Simply run ./configure && make && make install to install C and C++ binding.
 
-  $ ./configure --prefix=path/to/prefix
-  $ make
-  $ make install
+    $ ./configure
+    $ make
+    $ sudo make install
 
-  To install Ruby binding, run ./gengem.sh script in ruby/ directory and install
+  To install Ruby binding, run ./gengem.sh script on ruby/ directory and install
   generated gem package.
 
-  $ cd ruby
-  $ ./gengem.sh
-  $ gem install gem/pkg/msgpack-*.gem
+    $ cd ruby
+    $ ./gengem.sh
+    $ gem install gem/pkg/msgpack-*.gem
 
 
 *Usage
 
   C++:
-    #include <msgpack.hpp>
-	// TODO
+    include msgpack.hpp header and link libmsgpack library.
+    see example/simple.cc for example.
+
+      g++ simple.cc -lmsgpack
+      g++ stream.cc -lmsgpack -lpthread
 
 
   C:
-    #include <msgpack.h>
-	/* TODO */
+    include msgpack.h   header and link libmsgpackc library.
+    see example/simple.c  for example.
+
+      gcc simple.c  -lmsgpackc
 
 
   Ruby:
-    require 'msgpack'
+    require msgpack library.
+    see example/simple.rb for example.
 
-    # serialize
-	buf = [1, 2, 3].to_msgpack
+	  ruby -rubygems simple.rb
 
-    # deserialize
-    p MessagePack::unpack(buf)
 
-    # TODO
-
+  API Document is available at http://msgpack.sourceforge.jp/.
 
 
 Copyright (C) 2008-2009 FURUHASHI Sadayuki

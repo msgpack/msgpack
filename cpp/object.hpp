@@ -314,7 +314,6 @@ packer<Stream>& operator<< (packer<Stream>& o, const object& v)
 			o << *p;
 		}
 		return o;
-		// FIXME loop optimiziation
 
 	case type::MAP:
 		o.pack_map(v.via.map.size);
@@ -325,7 +324,6 @@ packer<Stream>& operator<< (packer<Stream>& o, const object& v)
 			o << p->val;
 		}
 		return o;
-		// FIXME loop optimiziation
 
 	default:
 		throw type_error();
