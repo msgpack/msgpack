@@ -112,6 +112,13 @@ private:
 };
 
 
+template <typename Stream, typename T>
+inline void pack(Stream& s, const T& v)
+{
+	packer<Stream>(s).pack(v);
+}
+
+
 #define msgpack_pack_inline_func(name) \
 	template <typename Stream> \
 	inline void packer<Stream>::_pack ## name
