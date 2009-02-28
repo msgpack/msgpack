@@ -62,6 +62,12 @@ public:
 		return sbuf->data;
 	}
 
+	const char* data() const
+	{
+		const msgpack_sbuffer* sbuf = static_cast<const msgpack_sbuffer*>(this);
+		return sbuf->data;
+	}
+
 	size_t size() const
 	{
 		const msgpack_sbuffer* sbuf = static_cast<const msgpack_sbuffer*>(this);
