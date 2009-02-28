@@ -111,9 +111,6 @@ std::ostream& operator<< (std::ostream& s, const object o);
 
 
 template <typename Stream, typename T>
-inline void pack(Stream& s, const T& v);
-
-template <typename Stream, typename T>
 packer<Stream>& operator<< (packer<Stream>& o, const T& v);
 
 template <typename T>
@@ -236,13 +233,6 @@ template <typename Stream, typename T>
 inline void pack(packer<Stream>& o, const T& v)
 {
 	o.pack(v);
-}
-
-// obsolete
-template <typename Stream, typename T>
-inline void pack(Stream& s, const T& v)
-{
-	packer<Stream>(s).pack(v);
 }
 
 // obsolete
