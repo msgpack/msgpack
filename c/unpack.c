@@ -283,6 +283,8 @@ bool msgpack_unpacker_expand_buffer(msgpack_unpacker* mpac, size_t size)
 
 		init_count(tmp);
 
+		memcpy(tmp+COUNTER_SIZE, mpac->buffer+mpac->off, not_parsed);
+
 		if(CTX_REFERENCED(mpac)) {
 			if(!msgpack_zone_push_finalizer(mpac->z, decl_count, mpac->buffer)) {
 				free(tmp);
@@ -292,8 +294,6 @@ bool msgpack_unpacker_expand_buffer(msgpack_unpacker* mpac, size_t size)
 		} else {
 			decl_count(mpac->buffer);
 		}
-
-		memcpy(tmp+COUNTER_SIZE, mpac->buffer+mpac->off, not_parsed);
 
 		mpac->buffer = tmp;
 		mpac->used = not_parsed + COUNTER_SIZE;
