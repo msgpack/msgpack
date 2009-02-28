@@ -57,7 +57,21 @@ static inline void destroy_chunk_array(msgpack_zone_chunk_array* ca)
 	for(; chunk != ca->tail+1; ++chunk) {
 		free(chunk->alloc);
 	}
+
 	free(ca->array);
+}
+
+static inline void clear_chunk_array(msgpack_zone_chunk_array* ca)
+{
+	msgpack_zone_chunk* chunk = ca->array + 1;
+	for(; chunk != ca->tail+1; ++chunk) {
+		free(chunk->alloc);
+	}
+
+	ca->tail = ca->array;
+
+	ca->array[0].free += ca->array[0].ptr - (char*)ca->array[0].alloc;
+	ca->array[0].ptr   = (char*)ca->array[0].alloc;
 }
 
 void* msgpack_zone_malloc(msgpack_zone* zone, size_t size)
@@ -124,14 +138,25 @@ static inline void init_finalizer_array(msgpack_zone_finalizer_array* fa)
 	fa->array = NULL;
 }
 
-static inline void destroy_finalizer_array(msgpack_zone_finalizer_array* fa)
+static inline void call_finalizer_array(msgpack_zone_finalizer_array* fa)
 {
 	// 逆順に呼び出し
 	msgpack_zone_finalizer* fin = fa->tail;
 	for(; fin != fa->array; --fin) {
 		(*(fin-1)->func)((fin-1)->data);
 	}
+}
+
+static inline void destroy_finalizer_array(msgpack_zone_finalizer_array* fa)
+{
+	call_finalizer_array(fa);
 	free(fa->array);
+}
+
+static inline void clear_finalizer_array(msgpack_zone_finalizer_array* fa)
+{
+	call_finalizer_array(fa);
+	fa->tail = fa->array;
 }
 
 bool msgpack_zone_push_finalizer(msgpack_zone* zone,
@@ -208,6 +233,11 @@ void msgpack_zone_destroy(msgpack_zone* zone)
 	destroy_chunk_array(&zone->chunk_array);
 }
 
+void msgpack_zone_clear(msgpack_zone* zone)
+{
+	clear_finalizer_array(&zone->finalizer_array);
+	clear_chunk_array(&zone->chunk_array);
+}
 
 msgpack_zone* msgpack_zone_new(size_t chunk_size)
 {

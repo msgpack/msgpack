@@ -58,6 +58,8 @@ msgpack_object msgpack_unpacker_data(msgpack_unpacker* mpac);
 
 msgpack_zone* msgpack_unpacker_release_zone(msgpack_unpacker* mpac);
 
+void msgpack_unpacker_reset_zone(msgpack_unpacker* mpac);
+
 void msgpack_unpacker_reset(msgpack_unpacker* mpac);
 
 static inline size_t msgpack_unpacker_message_size(const msgpack_unpacker* mpac);

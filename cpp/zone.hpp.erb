@@ -37,6 +37,8 @@ public:
 
 	void push_finalizer(void (*func)(void*), void* data);
 
+	void clear();
+
 	<%0.upto(GENERATION_LIMIT) {|i|%>
 	template <typename T<%1.upto(i) {|j|%>, typename A<%=j%><%}%>>
 	T* allocate(<%=(1..i).map{|j|"A#{j} a#{j}"}.join(', ')%>);
@@ -76,6 +78,11 @@ inline void zone::push_finalizer(void (*func)(void*), void* data)
 	if(!msgpack_zone_push_finalizer(this, func, data)) {
 		throw std::bad_alloc();
 	}
+}
+
+inline void zone::clear()
+{
+	msgpack_zone_clear(this);
 }
 
 template <typename T>
