@@ -39,7 +39,7 @@ struct unpack_error : public std::runtime_error {
 
 class unpacker : public msgpack_unpacker {
 public:
-	unpacker(size_t initial_buffer_size = MSGPACK_UNPACKER_DEFAULT_INITIAL_BUFFER_SIZE);
+	unpacker(size_t init_buffer_size = MSGPACK_UNPACKER_DEFAULT_INITIAL_BUFFER_SIZE);
 	~unpacker();
 
 public:
@@ -127,6 +127,9 @@ public:
 	void remove_nonparsed_buffer();
 
 private:
+	typedef msgpack_unpacker base;
+
+private:
 	unpacker(const unpacker&);
 };
 
@@ -207,9 +210,9 @@ inline zone* unpacker::release_zone()
 
 	zone* r = new zone();
 
-	msgpack_zone old = *this->z;
-	*this->z = *z;
-	*z = old;
+	msgpack_zone old = *base::z;
+	*base::z = *r;
+	*static_cast<msgpack_zone*>(r) = old;
 
 	return r;
 }
@@ -232,22 +235,22 @@ inline size_t unpacker::parsed_size() const
 
 inline char* unpacker::nonparsed_buffer()
 {
-	return buf + off;
+	return base::buffer + base::off;
 }
 
 inline size_t unpacker::nonparsed_size() const
 {
-	return used - off;
+	return base::used - base::off;
 }
 
 inline void unpacker::skip_nonparsed_buffer(size_t size)
 {
-	off += size;
+	base::off += size;
 }
 
 inline void unpacker::remove_nonparsed_buffer()
 {
-	used = off;
+	base::used = base::off;
 }
 
 

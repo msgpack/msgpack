@@ -28,76 +28,69 @@ class sbuffer : public msgpack_sbuffer {
 public:
 	sbuffer(size_t initsz = MSGPACK_SBUFFER_INIT_SIZE)
 	{
-		msgpack_sbuffer* sbuf = static_cast<msgpack_sbuffer*>(this);
-
-		sbuf->data = (char*)::malloc(initsz);
-		if(!sbuf->data) {
+		base::data = (char*)::malloc(initsz);
+		if(!base::data) {
 			throw std::bad_alloc();
 		}
 
-		sbuf->size = 0;
-		sbuf->alloc = initsz;
+		base::size = 0;
+		base::alloc = initsz;
 	}
 
 	~sbuffer()
 	{
-		msgpack_sbuffer* sbuf = static_cast<msgpack_sbuffer*>(this);
-		::free(sbuf->data);
+		::free(base::data);
 	}
 
 public:
 	void write(const char* buf, unsigned int len)
 	{
-		msgpack_sbuffer* sbuf = static_cast<msgpack_sbuffer*>(this);
-		if(sbuf->alloc - sbuf->size < len) {
+		if(base::alloc - base::size < len) {
 			expand_buffer(len);
 		}
-		memcpy(sbuf->data + sbuf->size, buf, len);
-		sbuf->size += len;
+		memcpy(base::data + base::size, buf, len);
+		base::size += len;
 	}
 
 	char* data()
 	{
-		msgpack_sbuffer* sbuf = static_cast<msgpack_sbuffer*>(this);
-		return sbuf->data;
+		return base::data;
 	}
 
 	const char* data() const
 	{
-		const msgpack_sbuffer* sbuf = static_cast<const msgpack_sbuffer*>(this);
-		return sbuf->data;
+		return base::data;
 	}
 
 	size_t size() const
 	{
-		const msgpack_sbuffer* sbuf = static_cast<const msgpack_sbuffer*>(this);
-		return sbuf->size;
+		return base::size;
 	}
 
 	char* release()
 	{
-		msgpack_sbuffer* sbuf = static_cast<msgpack_sbuffer*>(this);
-		return msgpack_sbuffer_release(sbuf);
+		return msgpack_sbuffer_release(this);
 	}
 
 private:
 	void expand_buffer(size_t len)
 	{
-		msgpack_sbuffer* sbuf = static_cast<msgpack_sbuffer*>(this);
-
-		size_t nsize = (sbuf->alloc) ?
-				sbuf->alloc * 2 : MSGPACK_SBUFFER_INIT_SIZE;
+		size_t nsize = (base::alloc) ?
+				base::alloc * 2 : MSGPACK_SBUFFER_INIT_SIZE;
 	
-		while(nsize < sbuf->size + len) { nsize *= 2; }
+		while(nsize < base::size + len) { nsize *= 2; }
 	
-		void* tmp = realloc(sbuf->data, nsize);
+		void* tmp = realloc(base::data, nsize);
 		if(!tmp) {
 			throw std::bad_alloc();
 		}
 	
-		sbuf->data = (char*)tmp;
-		sbuf->alloc = nsize;
+		base::data = (char*)tmp;
+		base::alloc = nsize;
 	}
+
+private:
+	typedef msgpack_sbuffer base;
 
 private:
 	sbuffer(const sbuffer&);

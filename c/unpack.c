@@ -22,7 +22,7 @@
 
 typedef struct {
 	msgpack_zone* z;
-	bool* referenced;
+	bool referenced;
 } unpack_user;
 
 
@@ -131,7 +131,7 @@ static inline int template_callback_raw(unpack_user* u, const char* b, const cha
 	o->type = MSGPACK_OBJECT_RAW;
 	o->via.raw.ptr = p;
 	o->via.raw.size = l;
-	*u->referenced = true;
+	u->referenced = true;
 	return 0;
 }
 
@@ -139,32 +139,33 @@ static inline int template_callback_raw(unpack_user* u, const char* b, const cha
 
 
 #define CTX_CAST(m) ((template_context*)(m))
+#define CTX_REFERENCED(mpac) CTX_CAST((mpac)->ctx)->user.referenced
 
 
 static const size_t COUNTER_SIZE = sizeof(unsigned int);
 
-static inline void init_count(void* buf)
+static inline void init_count(void* buffer)
 {
-	*(volatile unsigned int*)buf = 1;
+	*(volatile unsigned int*)buffer = 1;
 }
 
-static inline void decl_count(void* buf)
+static inline void decl_count(void* buffer)
 {
-	//if(--*(unsigned int*)buf == 0) {
-	if(__sync_sub_and_fetch((unsigned int*)buf, 1) == 0) {
-		free(buf);
+	//if(--*(unsigned int*)buffer == 0) {
+	if(__sync_sub_and_fetch((unsigned int*)buffer, 1) == 0) {
+		free(buffer);
 	}
 }
 
-static inline void incr_count(void* buf)
+static inline void incr_count(void* buffer)
 {
-	//++*(unsigned int*)buf;
-	__sync_add_and_fetch((unsigned int*)buf, 1);
+	//++*(unsigned int*)buffer;
+	__sync_add_and_fetch((unsigned int*)buffer, 1);
 }
 
-static inline unsigned int get_count(void* buf)
+static inline unsigned int get_count(void* buffer)
 {
-	return *(volatile unsigned int*)buf;
+	return *(volatile unsigned int*)buffer;
 }
 
 
@@ -175,39 +176,38 @@ bool msgpack_unpacker_init(msgpack_unpacker* mpac, size_t initial_buffer_size)
 		initial_buffer_size = COUNTER_SIZE;
 	}
 
-	char* buf = (char*)malloc(initial_buffer_size);
-	if(buf == NULL) {
+	char* buffer = (char*)malloc(initial_buffer_size);
+	if(buffer == NULL) {
 		return false;
 	}
 
 	void* ctx = malloc(sizeof(template_context));
 	if(ctx == NULL) {
-		free(buf);
+		free(buffer);
 		return false;
 	}
 
 	msgpack_zone* z = msgpack_zone_new(MSGPACK_ZONE_CHUNK_SIZE);
 	if(z == NULL) {
 		free(ctx);
-		free(buf);
+		free(buffer);
 		return false;
 	}
 
-	mpac->buf = buf;
+	mpac->buffer = buffer;
 	mpac->used = COUNTER_SIZE;
 	mpac->free = initial_buffer_size - mpac->used;
 	mpac->off = COUNTER_SIZE;
 	mpac->parsed = 0;
 	mpac->initial_buffer_size = initial_buffer_size;
 	mpac->z = z;
-	mpac->referenced = false;
 	mpac->ctx = ctx;
 
-	init_count(mpac->buf);
+	init_count(mpac->buffer);
 
 	template_init(CTX_CAST(mpac->ctx));
 	CTX_CAST(mpac->ctx)->user.z = mpac->z;
-	CTX_CAST(mpac->ctx)->user.referenced = &mpac->referenced;
+	CTX_CAST(mpac->ctx)->user.referenced = false;
 
 	return true;
 }
@@ -216,7 +216,7 @@ void msgpack_unpacker_destroy(msgpack_unpacker* mpac)
 {
 	msgpack_zone_free(mpac->z);
 	free(mpac->ctx);
-	decl_count(mpac->buf);
+	decl_count(mpac->buffer);
 }
 
 
@@ -241,10 +241,10 @@ void msgpack_unpacker_free(msgpack_unpacker* mpac)
 	free(mpac);
 }
 
-
 bool msgpack_unpacker_expand_buffer(msgpack_unpacker* mpac, size_t size)
 {
-	if(mpac->used == mpac->off && get_count(mpac->buf) == 1 && !mpac->referenced) {
+	if(mpac->used == mpac->off && get_count(mpac->buffer) == 1
+			&& !CTX_REFERENCED(mpac)) {
 		// rewind buffer
 		mpac->free += mpac->used - COUNTER_SIZE;
 		mpac->used = COUNTER_SIZE;
@@ -261,12 +261,12 @@ bool msgpack_unpacker_expand_buffer(msgpack_unpacker* mpac, size_t size)
 			next_size *= 2;
 		}
 
-		char* tmp = (char*)realloc(mpac->buf, next_size);
+		char* tmp = (char*)realloc(mpac->buffer, next_size);
 		if(tmp == NULL) {
 			return false;
 		}
 
-		mpac->buf = tmp;
+		mpac->buffer = tmp;
 		mpac->free = next_size - mpac->used;
 
 	} else {
@@ -283,19 +283,19 @@ bool msgpack_unpacker_expand_buffer(msgpack_unpacker* mpac, size_t size)
 
 		init_count(tmp);
 
-		if(mpac->referenced) {
-			if(!msgpack_zone_push_finalizer(mpac->z, decl_count, mpac->buf)) {
+		if(CTX_REFERENCED(mpac)) {
+			if(!msgpack_zone_push_finalizer(mpac->z, decl_count, mpac->buffer)) {
 				free(tmp);
 				return false;
 			}
-			mpac->referenced = false;
+			CTX_REFERENCED(mpac) = false;
 		} else {
-			decl_count(mpac->buf);
+			decl_count(mpac->buffer);
 		}
 
-		memcpy(tmp+COUNTER_SIZE, mpac->buf+mpac->off, not_parsed);
+		memcpy(tmp+COUNTER_SIZE, mpac->buffer+mpac->off, not_parsed);
 
-		mpac->buf = tmp;
+		mpac->buffer = tmp;
 		mpac->used = not_parsed + COUNTER_SIZE;
 		mpac->free = next_size - mpac->used;
 		mpac->off = COUNTER_SIZE;
@@ -308,7 +308,7 @@ int msgpack_unpacker_execute(msgpack_unpacker* mpac)
 {
 	size_t off = mpac->off;
 	int ret = template_execute(CTX_CAST(mpac->ctx),
-			mpac->buf, mpac->used, &mpac->off);
+			mpac->buffer, mpac->used, &mpac->off);
 	if(mpac->off > off) {
 		mpac->parsed += mpac->off - off;
 	}
@@ -326,26 +326,26 @@ msgpack_zone* msgpack_unpacker_release_zone(msgpack_unpacker* mpac)
 		return false;
 	}
 
-	msgpack_zone* z = msgpack_zone_new(MSGPACK_ZONE_CHUNK_SIZE);
-	if(z == NULL) {
+	msgpack_zone* r = msgpack_zone_new(MSGPACK_ZONE_CHUNK_SIZE);
+	if(r == NULL) {
 		return NULL;
 	}
 
 	msgpack_zone* old = mpac->z;
-	mpac->z = z;
+	mpac->z = r;
 
 	return old;
 }
 
 bool msgpack_unpacker_flush_zone(msgpack_unpacker* mpac)
 {
-	if(mpac->referenced) {
-		if(!msgpack_zone_push_finalizer(mpac->z, decl_count, mpac->buf)) {
+	if(CTX_REFERENCED(mpac)) {
+		if(!msgpack_zone_push_finalizer(mpac->z, decl_count, mpac->buffer)) {
 			return false;
 		}
-		mpac->referenced = false;
+		CTX_REFERENCED(mpac) = false;
 
-		incr_count(mpac->buf);
+		incr_count(mpac->buffer);
 	}
 
 	return true;
@@ -354,6 +354,7 @@ bool msgpack_unpacker_flush_zone(msgpack_unpacker* mpac)
 void msgpack_unpacker_reset(msgpack_unpacker* mpac)
 {
 	template_init(CTX_CAST(mpac->ctx));
+	// don't reset referenced flag
 	mpac->parsed = 0;
 }
 
@@ -365,9 +366,8 @@ msgpack_unpack(const char* data, size_t len, size_t* off,
 	template_context ctx;
 	template_init(&ctx);
 
-	bool referenced = false;
 	ctx.user.z = z;
-	ctx.user.referenced = &referenced;
+	ctx.user.referenced = false;
 
 	size_t noff = 0;
 	if(off != NULL) { noff = *off; }
