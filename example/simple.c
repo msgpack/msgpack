@@ -23,7 +23,7 @@ int main(void)
 	msgpack_zone_init(&mempool, 2048);
 
 	msgpack_object deserialized;
-	msgpack_unpack(sbuf.ptr, sbuf.size, NULL, &mempool, &deserialized);
+	msgpack_unpack(sbuf.data, sbuf.size, NULL, &mempool, &deserialized);
 
 	/* print the deserialized object. */
 	msgpack_object_print(stdout, deserialized);

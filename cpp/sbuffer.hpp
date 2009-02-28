@@ -18,62 +18,80 @@
 #ifndef MSGPACK_SBUFFER_HPP__
 #define MSGPACK_SBUFFER_HPP__
 
-#include <string.h>
-#include <stdlib.h>
+#include "msgpack/sbuffer.h"
 #include <stdexcept>
 
 namespace msgpack {
 
 
-class sbuffer {
+class sbuffer : public msgpack_sbuffer {
 public:
-	sbuffer() : m_capacity(0), m_size(0), m_ptr(NULL) { }
+	sbuffer(size_t initsz = MSGPACK_SBUFFER_INIT_SIZE)
+	{
+		msgpack_sbuffer* sbuf = static_cast<msgpack_sbuffer*>(this);
+
+		sbuf->data = (char*)::malloc(initsz);
+		if(!sbuf->data) {
+			throw std::bad_alloc();
+		}
+
+		sbuf->size = 0;
+		sbuf->alloc = initsz;
+	}
 
 	~sbuffer()
 	{
-		free(m_ptr);
+		msgpack_sbuffer* sbuf = static_cast<msgpack_sbuffer*>(this);
+		::free(sbuf->data);
 	}
 
 public:
-	void write(const char* buf, size_t len)
+	void write(const char* buf, unsigned int len)
 	{
-		if(m_capacity - m_size < len) {
-			size_t nsize = (m_capacity ? m_capacity*2 : 2048);
-			while(nsize < m_size + len) { nsize *= 2; }
-	
-			char* tmp = (char*)realloc(m_ptr, nsize);
-			if(!tmp) { throw std::bad_alloc(); }
-	
-			m_ptr = tmp;
-			m_capacity = nsize;
+		msgpack_sbuffer* sbuf = static_cast<msgpack_sbuffer*>(this);
+		if(sbuf->alloc - sbuf->size < len) {
+			expand_buffer(len);
 		}
-		memcpy(m_ptr + m_size, buf, len);
-		m_size += len;
+		memcpy(sbuf->data + sbuf->size, buf, len);
+		sbuf->size += len;
 	}
 
 	char* data()
 	{
-		return m_ptr;
+		msgpack_sbuffer* sbuf = static_cast<msgpack_sbuffer*>(this);
+		return sbuf->data;
 	}
 
 	size_t size() const
 	{
-		return m_size;
+		const msgpack_sbuffer* sbuf = static_cast<const msgpack_sbuffer*>(this);
+		return sbuf->size;
 	}
 
 	char* release()
 	{
-		char* tmp = m_ptr;
-		m_capacity = 0;
-		m_size = 0;
-		m_ptr = NULL;
-		return tmp;
+		msgpack_sbuffer* sbuf = static_cast<msgpack_sbuffer*>(this);
+		return msgpack_sbuffer_release(sbuf);
 	}
 
 private:
-	size_t m_capacity;
-	size_t m_size;
-	char* m_ptr;
+	void expand_buffer(size_t len)
+	{
+		msgpack_sbuffer* sbuf = static_cast<msgpack_sbuffer*>(this);
+
+		size_t nsize = (sbuf->alloc) ?
+				sbuf->alloc * 2 : MSGPACK_SBUFFER_INIT_SIZE;
+	
+		while(nsize < sbuf->size + len) { nsize *= 2; }
+	
+		void* tmp = realloc(sbuf->data, nsize);
+		if(!tmp) {
+			throw std::bad_alloc();
+		}
+	
+		sbuf->data = (char*)tmp;
+		sbuf->alloc = nsize;
+	}
 
 private:
 	sbuffer(const sbuffer&);
