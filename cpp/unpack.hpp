@@ -64,6 +64,9 @@ public:
 	// otherwise the memrory will leak.
 	zone* release_zone();
 
+	/*! 5.2. this method is equivalence to `delete release_zone()` */
+	void reset_zone();
+
 	/*! 5.3. after release_zone(), re-initialize unpacker */
 	void reset();
 
@@ -215,6 +218,11 @@ inline zone* unpacker::release_zone()
 	*static_cast<msgpack_zone*>(r) = old;
 
 	return r;
+}
+
+inline void unpacker::reset_zone()
+{
+	msgpack_unpacker_reset_zone(this);
 }
 
 inline void unpacker::reset()

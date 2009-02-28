@@ -72,6 +72,8 @@ bool msgpack_zone_push_finalizer(msgpack_zone* zone,
 
 bool msgpack_zone_is_empty(msgpack_zone* zone);
 
+void msgpack_zone_clear(msgpack_zone* zone);
+
 
 #ifdef __cplusplus
 }

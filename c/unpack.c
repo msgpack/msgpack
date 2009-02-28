@@ -337,6 +337,11 @@ msgpack_zone* msgpack_unpacker_release_zone(msgpack_unpacker* mpac)
 	return old;
 }
 
+void msgpack_unpacker_reset_zone(msgpack_unpacker* mpac)
+{
+	msgpack_zone_clear(mpac->z);
+}
+
 bool msgpack_unpacker_flush_zone(msgpack_unpacker* mpac)
 {
 	if(CTX_REFERENCED(mpac)) {
