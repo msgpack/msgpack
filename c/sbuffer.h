@@ -70,9 +70,9 @@ static inline int msgpack_sbuffer_write(void* data, const char* buf, unsigned in
 static inline char* msgpack_sbuffer_release(msgpack_sbuffer* sbuf)
 {
 	char* tmp = sbuf->data;
-	sbuf->data = NULL;
 	sbuf->size = 0;
-	sbuf->alloc = NULL;
+	sbuf->data = NULL;
+	sbuf->alloc = 0;
 	return tmp;
 }
 
