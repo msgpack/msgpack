@@ -29,13 +29,12 @@ extern "C" {
 
 
 typedef struct msgpack_unpacker {
-	char* buf;
+	char* buffer;
 	size_t used;
 	size_t free;
 	size_t off;
 	size_t parsed;
 	msgpack_zone* z;
-	bool referenced;
 	size_t initial_buffer_size;
 	void* ctx;
 } msgpack_unpacker;
@@ -91,7 +90,7 @@ bool msgpack_unpacker_reserve_buffer(msgpack_unpacker* mpac, size_t size)
 
 char* msgpack_unpacker_buffer(msgpack_unpacker* mpac)
 {
-	return mpac->buf + mpac->used;
+	return mpac->buffer + mpac->used;
 }
 
 size_t msgpack_unpacker_buffer_capacity(const msgpack_unpacker* mpac)
