@@ -65,7 +65,7 @@ void msgpack_zone_destroy(msgpack_zone* zone);
 msgpack_zone* msgpack_zone_new(size_t chunk_size);
 void msgpack_zone_free(msgpack_zone* zone);
 
-void* msgpack_zone_malloc(msgpack_zone* zone, size_t size);
+static inline void* msgpack_zone_malloc(msgpack_zone* zone, size_t size);
 
 bool msgpack_zone_push_finalizer(msgpack_zone* zone,
 		void (*func)(void* data), void* data);
@@ -73,6 +73,30 @@ bool msgpack_zone_push_finalizer(msgpack_zone* zone,
 bool msgpack_zone_is_empty(msgpack_zone* zone);
 
 void msgpack_zone_clear(msgpack_zone* zone);
+
+
+
+#ifndef MSGPACK_ZONE_ALIGN
+#define MSGPACK_ZONE_ALIGN sizeof(int)
+#endif
+
+void* msgpack_zone_malloc_expand(msgpack_zone* zone, size_t size);
+
+void* msgpack_zone_malloc(msgpack_zone* zone, size_t size)
+{
+	size = ((size)+((MSGPACK_ZONE_ALIGN)-1)) & ~((MSGPACK_ZONE_ALIGN)-1);
+
+	msgpack_zone_chunk* chunk = zone->chunk_array.tail;
+
+	if(chunk->free > size) {
+		char* ptr = chunk->ptr;
+		chunk->ptr  += size;
+		chunk->free -= size;
+		return ptr;
+	}
+
+	return msgpack_zone_malloc_expand(zone, size);
+}
 
 
 #ifdef __cplusplus

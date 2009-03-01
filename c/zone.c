@@ -19,7 +19,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-
 static inline bool init_chunk_array(msgpack_zone_chunk_array* ca, size_t chunk_size)
 {
 	// glibcは72バイト以下のmallocが高速
@@ -74,25 +73,11 @@ static inline void clear_chunk_array(msgpack_zone_chunk_array* ca)
 	ca->array[0].ptr   = (char*)ca->array[0].alloc;
 }
 
-void* msgpack_zone_malloc(msgpack_zone* zone, size_t size)
+void* msgpack_zone_malloc_expand(msgpack_zone* zone, size_t size)
 {
 	msgpack_zone_chunk_array* const ca = &zone->chunk_array;
 
-	msgpack_zone_chunk* chunk = ca->tail;
-
-	if(chunk->free > size) {
-		// chunkに空き容量がある
-		// 空き容量を消費して返す
-
-		char* ptr = chunk->ptr;
-
-		chunk->ptr  += size;
-		chunk->free -= size;
-
-		return ptr;
-	}
-
-	chunk = ++ca->tail;
+	msgpack_zone_chunk* chunk = ++ca->tail;
 
 	if(chunk == ca->end) {
 		// ca->arrayに空きがない
