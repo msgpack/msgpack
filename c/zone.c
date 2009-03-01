@@ -34,7 +34,7 @@ static inline bool init_chunk_array(msgpack_zone_chunk_array* ca, size_t chunk_s
 	const size_t sz = chunk_size;
 
 	char* ptr = (char*)malloc(sz);
-	if(!ptr) {
+	if(ptr == NULL) {
 		free(array);
 		return NULL;
 	}
@@ -88,7 +88,7 @@ void* msgpack_zone_malloc_expand(msgpack_zone* zone, size_t size)
 
 		chunk = (msgpack_zone_chunk*)realloc(ca->array,
 				sizeof(msgpack_zone_chunk) * nnext);
-		if(!chunk) {
+		if(chunk == NULL) {
 			return NULL;
 		}
 
@@ -104,7 +104,7 @@ void* msgpack_zone_malloc_expand(msgpack_zone* zone, size_t size)
 	}
 
 	char* ptr = (char*)malloc(sz);
-	if(!ptr) {
+	if(ptr == NULL) {
 		return NULL;
 	}
 
@@ -144,44 +144,38 @@ static inline void clear_finalizer_array(msgpack_zone_finalizer_array* fa)
 	fa->tail = fa->array;
 }
 
-bool msgpack_zone_push_finalizer(msgpack_zone* zone,
+bool msgpack_zone_push_finalizer_expand(msgpack_zone* zone,
 		void (*func)(void* data), void* data)
 {
 	msgpack_zone_finalizer_array* const fa = &zone->finalizer_array;
 
-	msgpack_zone_finalizer* fin = fa->tail;
+	const size_t nused = fa->end - fa->array;
 
-	if(fin == fa->end) {
-		// fa->arrayに空きがない
-		// fa->arrayを拡張する
+	size_t nnext;
+	if(nused == 0) {
+		// 初回の呼び出し：fa->tail == fa->end == fa->array == NULL
 
-		size_t nnext;
-		const size_t nused = fa->end - fa->array;
+		// glibcは72バイト以下のmallocが高速
+		nnext = (sizeof(msgpack_zone_finalizer) < 72/2) ?
+				72 / sizeof(msgpack_zone_finalizer) : 8;
 
-		if(nused == 0) {
-			// 初回の呼び出し：fa->tail == fa->end == fa->array == NULL
-
-			// glibcは72バイト以下のmallocが高速
-			nnext = (sizeof(msgpack_zone_finalizer) < 72/2) ?
-					72 / sizeof(msgpack_zone_finalizer) : 8;
-
-		} else {
-			nnext = (fa->end - fa->array) * 2;
-		}
-
-		fin = (msgpack_zone_finalizer*)realloc(fa->array,
-				sizeof(msgpack_zone_finalizer) * nnext);
-		if(!fin) {
-			return false;
-		}
-
-		fa->array      = fin;
-		fa->end        = fin + nnext;
-		fin = fa->tail = fin + nused;
+	} else {
+		nnext = nused * 2;
 	}
 
-	fin->func = func;
-	fin->data = data;
+	msgpack_zone_finalizer* tmp =
+		(msgpack_zone_finalizer*)realloc(fa->array,
+				sizeof(msgpack_zone_finalizer) * nnext);
+	if(tmp == NULL) {
+		return false;
+	}
+
+	fa->array  = tmp;
+	fa->end    = tmp + nnext;
+	fa->tail   = tmp + nused;
+
+	fa->tail->func = func;
+	fa->tail->data = data;
 
 	++fa->tail;
 
