@@ -45,6 +45,8 @@ public:
 	<%}%>
 
 private:
+	void undo_malloc(size_t s);
+
 	template <typename T>
 	static void object_destructor(void* obj);
 
@@ -91,14 +93,29 @@ void zone::object_destructor(void* obj)
 	reinterpret_cast<T*>(obj)->~T();
 }
 
+inline void zone::undo_malloc(size_t s)
+{
+	msgpack_zone_chunk* chunk = chunk_array.tail;
+	chunk->ptr  -= s;
+	chunk->free += s;
+}
+
 <%0.upto(GENERATION_LIMIT) {|i|%>
 template <typename T<%1.upto(i) {|j|%>, typename A<%=j%><%}%>>
 T* zone::allocate(<%=(1..i).map{|j|"A#{j} a#{j}"}.join(', ')%>)
 {
 	void* x = malloc(sizeof(T));
-	push_finalizer(&zone::object_destructor<T>, x);
-	try { return new (x) T(<%=(1..i).map{|j|"a#{j}"}.join(', ')%>); }
-	catch (...) { --finalizer_array.tail; throw; }
+	if(!msgpack_zone_push_finalizer(this, &zone::object_destructor<T>, x)) {
+		undo_malloc(sizeof(T));
+		throw std::bad_alloc();
+	}
+	try {
+		return new (x) T(<%=(1..i).map{|j|"a#{j}"}.join(', ')%>);
+	} catch (...) {
+		--finalizer_array.tail;
+		undo_malloc(sizeof(T));
+		throw;
+	}
 }
 <%}%>
 

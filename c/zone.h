@@ -67,7 +67,7 @@ void msgpack_zone_free(msgpack_zone* zone);
 
 static inline void* msgpack_zone_malloc(msgpack_zone* zone, size_t size);
 
-bool msgpack_zone_push_finalizer(msgpack_zone* zone,
+static inline bool msgpack_zone_push_finalizer(msgpack_zone* zone,
 		void (*func)(void* data), void* data);
 
 bool msgpack_zone_is_empty(msgpack_zone* zone);
@@ -88,14 +88,37 @@ void* msgpack_zone_malloc(msgpack_zone* zone, size_t size)
 
 	msgpack_zone_chunk* chunk = zone->chunk_array.tail;
 
-	if(chunk->free > size) {
-		char* ptr = chunk->ptr;
-		chunk->ptr  += size;
-		chunk->free -= size;
-		return ptr;
+	if(chunk->free < size) {
+		return msgpack_zone_malloc_expand(zone, size);
 	}
 
-	return msgpack_zone_malloc_expand(zone, size);
+	char* ptr = chunk->ptr;
+	chunk->ptr  += size;
+	chunk->free -= size;
+
+	return ptr;
+}
+
+
+bool msgpack_zone_push_finalizer_expand(msgpack_zone* zone,
+		void (*func)(void* data), void* data);
+
+bool msgpack_zone_push_finalizer(msgpack_zone* zone,
+		void (*func)(void* data), void* data)
+{
+	msgpack_zone_finalizer_array* const fa = &zone->finalizer_array;
+	msgpack_zone_finalizer* fin = fa->tail;
+
+	if(fin == fa->end) {
+		return msgpack_zone_push_finalizer_expand(zone, func, data);
+	}
+
+	fin->func = func;
+	fin->data = data;
+
+	++fa->tail;
+
+	return true;
 }
 
 
