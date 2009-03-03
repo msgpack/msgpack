@@ -330,49 +330,49 @@ do { \
 
 msgpack_pack_inline_func_fastint(_uint8)(msgpack_pack_user x, uint8_t d)
 {
-	const unsigned char buf[2] = {0xcc, d};
+	const unsigned char buf[2] = {0xcc, STORE8_BE8(d)};
 	msgpack_pack_append_buffer(x, buf, 2);
 }
 
 msgpack_pack_inline_func_fastint(_uint16)(msgpack_pack_user x, uint16_t d)
 {
-	const unsigned char buf[3] = {0xcd, STORE_BE16(d)};
+	const unsigned char buf[3] = {0xcd, STORE16_BE16(d)};
 	msgpack_pack_append_buffer(x, buf, 3);
 }
 
 msgpack_pack_inline_func_fastint(_uint32)(msgpack_pack_user x, uint32_t d)
 {
-	const unsigned char buf[5] = {0xce, STORE_BE32(d)};
+	const unsigned char buf[5] = {0xce, STORE32_BE32(d)};
 	msgpack_pack_append_buffer(x, buf, 5);
 }
 
 msgpack_pack_inline_func_fastint(_uint64)(msgpack_pack_user x, uint64_t d)
 {
-	const unsigned char buf[9] = {0xcf, STORE_BE64(d)};
+	const unsigned char buf[9] = {0xcf, STORE64_BE64(d)};
 	msgpack_pack_append_buffer(x, buf, 9);
 }
 
 msgpack_pack_inline_func_fastint(_int8)(msgpack_pack_user x, int8_t d)
 {
-	const unsigned char buf[2] = {0xd0, d};
+	const unsigned char buf[2] = {0xd0, STORE8_BE8(d)};
 	msgpack_pack_append_buffer(x, buf, 2);
 }
 
 msgpack_pack_inline_func_fastint(_int16)(msgpack_pack_user x, int16_t d)
 {
-	const unsigned char buf[3] = {0xd1, STORE_BE16(d)};
+	const unsigned char buf[3] = {0xd1, STORE16_BE16(d)};
 	msgpack_pack_append_buffer(x, buf, 3);
 }
 
 msgpack_pack_inline_func_fastint(_int32)(msgpack_pack_user x, int32_t d)
 {
-	const unsigned char buf[5] = {0xd2, STORE_BE32(d)};
+	const unsigned char buf[5] = {0xd2, STORE32_BE32(d)};
 	msgpack_pack_append_buffer(x, buf, 5);
 }
 
 msgpack_pack_inline_func_fastint(_int64)(msgpack_pack_user x, int64_t d)
 {
-	const unsigned char buf[9] = {0xd3, STORE_BE64(d)};
+	const unsigned char buf[9] = {0xd3, STORE64_BE64(d)};
 	msgpack_pack_append_buffer(x, buf, 9);
 }
 
@@ -674,7 +674,7 @@ msgpack_pack_inline_func(_map)(msgpack_pack_user x, unsigned int n)
 {
 	if(n < 16) {
 		unsigned char d = 0x80 | n;
-		msgpack_pack_append_buffer(x, &d, 1);
+		msgpack_pack_append_buffer(x, &STORE8_BE8(d), 1);
 	} else if(n < 65536) {
 		uint16_t d = (uint16_t)n;
 		unsigned char buf[3] = {0xde, STORE16_BE16(d)};
@@ -695,7 +695,7 @@ msgpack_pack_inline_func(_raw)(msgpack_pack_user x, size_t l)
 {
 	if(l < 32) {
 		unsigned char d = 0xa0 | l;
-		msgpack_pack_append_buffer(x, &d, 1);
+		msgpack_pack_append_buffer(x, &STORE8_BE8(d), 1);
 	} else if(l < 65536) {
 		uint16_t d = (uint16_t)l;
 		unsigned char buf[3] = {0xda, STORE16_BE16(d)};
@@ -716,11 +716,16 @@ msgpack_pack_inline_func(_raw_body)(msgpack_pack_user x, const void* b, size_t l
 #undef msgpack_pack_user
 #undef msgpack_pack_append_buffer
 
+#undef STORE8_BE8
+
+#undef STORE16_BE8
 #undef STORE16_BE16
 
+#undef STORE32_BE8
 #undef STORE32_BE16
 #undef STORE32_BE32
 
+#undef STORE64_BE8
 #undef STORE64_BE16
 #undef STORE64_BE32
 #undef STORE64_BE64
