@@ -1,0 +1,52 @@
+=head1 NAME
+
+Data::MessagePack::Unpacker - messagepack streaming deserializer
+
+=head1 SYNOPSIS
+
+    use Data::Dumper;
+    my $up = Data::MessagePack::Unpacker->new;
+    my $ret = $up->execute($v, 0);
+    if ($ret != length($v)) {
+        fail "extra bytes";
+    }
+    return Dumper($up->data);
+
+=head1 DESCRIPTION
+
+This is an streaming deserializer for messagepack.
+
+=head1 METHODS
+
+=over 4
+
+=item my $up = Data::MessagePack::Unpacker->new()
+
+create new stream deserializer
+
+=item $up->execute()
+
+=item $up->execute_limit()
+
+=item $up->is_finished()
+
+is this deserializer finished?
+
+=item $up->data()
+
+returns deserialized object.
+
+=item $up->reset()
+
+reset the stream deserializer, without memory zone.
+
+=back
+
+=head1 AUTHORS
+
+Tokuhiro Matsuno
+
+=head1 SEE ALSO
+
+L<Data::MessagePack>
+
