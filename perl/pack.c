@@ -27,7 +27,6 @@ extern "C" {
 #define _PACK_WRAPPER(t) msgpack_pack_##t
 #define PACK_WRAPPER(t) _PACK_WRAPPER(t)
 
-// move to pack.c
 static void _msgpack_pack_sv(SV* buf, SV* val) {
     if (val==NULL) {
         msgpack_pack_nil(buf);

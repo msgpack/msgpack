@@ -4,6 +4,7 @@ extern "C" {
 #include "EXTERN.h"
 #include "perl.h"
 #include "XSUB.h"
+#define NEED_newCONSTSUB
 #include "ppport.h"
 #ifdef __cplusplus
 };
