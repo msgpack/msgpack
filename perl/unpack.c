@@ -5,6 +5,8 @@ extern "C" {
 #include "EXTERN.h"
 #include "perl.h"
 #include "XSUB.h"
+#define NEED_newRV_noinc
+#define NEED_sv_2pv_flags
 #include "ppport.h"
 
 #ifdef __cplusplus
@@ -87,7 +89,7 @@ static inline int template_callback_array(unpack_user* u, unsigned int n, SV** o
 { AV* a = newAV(); *o = (SV*)newRV_noinc((SV*)a); av_extend(a, n); return 0; }
 
 static inline int template_callback_array_item(unpack_user* u, SV** c, SV* o)
-{ av_push((AV*)SvRV(*c), o); SvREFCNT_inc(o); return 0; }  // FIXME set value directry RARRAY_PTR(obj)[RARRAY_LEN(obj)++]
+{ av_push((AV*)SvRV(*c), o); SvREFCNT_inc(o); return 0; }  /* FIXME set value directry RARRAY_PTR(obj)[RARRAY_LEN(obj)++] */
 
 static inline int template_callback_map(unpack_user* u, unsigned int n, SV** o)
 { HV * h = newHV(); *o = newRV_noinc((SV*)h); return 0; }
