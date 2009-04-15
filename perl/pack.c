@@ -136,7 +136,9 @@ static void _msgpack_pack_sv(enc_t *enc, SV* val) {
 
 XS(xs_pack) {
     dXSARGS;
-    PERL_UNUSED_VAR(items); /* TODO: check argument count */
+    if (items != 2) {
+        Perl_croak(aTHX_ "Usage: Data::MessagePack->pack($dat)");
+    }
 
     SV* val = ST(1);
 

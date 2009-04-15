@@ -177,6 +177,10 @@ static void _reset(SV* self) {
 
 XS(xs_unpacker_new) {
     dXSARGS;
+    if (items != 1) {
+        Perl_croak(aTHX_ "Usage: Data::MessagePack::Unpacker->new()");
+    }
+
     SV* self = sv_newmortal();
 	msgpack_unpack_t *mp;
 
@@ -218,17 +222,27 @@ static SV* _execute_impl(SV* self, SV* data, UV off, I32 limit) {
 
 XS(xs_unpacker_execute) {
     dXSARGS;
-    SV* self = ST(0);
-    SV* data = ST(1);
-    IV  off  = SvIV(ST(2));
+    if (items != 3) {
+        Perl_croak(aTHX_ "Usage: $unpacker->execute_limit(data, off)");
+    }
 
-    ST(0) = _execute_impl(self, data, off, sv_len(data));
+    {
+        SV* self = ST(0);
+        SV* data = ST(1);
+        IV  off  = SvIV(ST(2));
+
+        ST(0) = _execute_impl(self, data, off, sv_len(data));
+    }
 
     XSRETURN(1);
 }
 
 XS(xs_unpacker_execute_limit) {
     dXSARGS;
+    if (items != 4) {
+        Perl_croak(aTHX_ "Usage: $unpacker->execute_limit(data, off, limit)");
+    }
+
     SV* self = ST(0);
     SV* data = ST(1);
     IV off   = SvIV(ST(2));
@@ -241,6 +255,9 @@ XS(xs_unpacker_execute_limit) {
 
 XS(xs_unpacker_is_finished) {
     dXSARGS;
+    if (items != 1) {
+        Perl_croak(aTHX_ "Usage: $unpacker->is_finished()");
+    }
 
 	UNPACKER(ST(0), mp);
     ST(0) = (mp->user.finished) ? &PL_sv_yes : &PL_sv_no;
@@ -250,6 +267,9 @@ XS(xs_unpacker_is_finished) {
 
 XS(xs_unpacker_data) {
     dXSARGS;
+    if (items != 1) {
+        Perl_croak(aTHX_ "Usage: $unpacker->data()");
+    }
 
 	UNPACKER(ST(0), mp);
 	ST(0) = template_data(mp);
