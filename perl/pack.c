@@ -71,7 +71,6 @@ static void _msgpack_pack_sv(enc_t *enc, SV* val) {
     case SVt_PVNV:
         {
             STRLEN len = 0;
-            need(enc, 1);
             char *pv = SvPV(val, len);
             if (len == 1 && *pv == '1') {
                 msgpack_pack_true(enc);
@@ -98,7 +97,6 @@ static void _msgpack_pack_sv(enc_t *enc, SV* val) {
             AV* ary = (AV*)val;
             int len = av_len(ary) + 1;
             int i;
-            need(enc, 1);
             msgpack_pack_array(enc, len);
             for (i=0; i<len; i++) {
                 SV** svp = av_fetch(ary, i, 0);
@@ -116,7 +114,6 @@ static void _msgpack_pack_sv(enc_t *enc, SV* val) {
             int count = hv_iterinit(hval);
             HE* he;
 
-            need(enc, 1);
             msgpack_pack_map(enc, count);
 
             while (he = hv_iternext(hval)) {
