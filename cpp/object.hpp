@@ -80,13 +80,13 @@ struct object {
 	type::object_type type;
 	union_type via;
 
-	bool is_nil() { return type == type::NIL; }
+	bool is_nil() const { return type == type::NIL; }
 
 	template <typename T>
-	T as();
+	T as() const;
 
 	template <typename T>
-	void convert(T* v);
+	void convert(T* v) const;
 
 	object();
 	object(msgpack_object obj);
@@ -96,7 +96,7 @@ private:
 	struct implicit_type;
 
 public:
-	implicit_type convert();
+	implicit_type convert() const;
 };
 
 struct object_kv {
@@ -201,23 +201,23 @@ inline object::operator msgpack_object()
 }
 
 
-inline object::implicit_type object::convert()
+inline object::implicit_type object::convert() const
 {
 	return implicit_type(*this);
 }
 
 template <typename T>
-inline T object::as()
+inline void object::convert(T* v) const
+{
+	*this >> *v;
+}
+
+template <typename T>
+inline T object::as() const
 {
 	T v;
 	convert(&v);
 	return v;
-}
-
-template <typename T>
-inline void object::convert(T* v)
-{
-	*this >> *v;
 }
 
 
