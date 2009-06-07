@@ -80,13 +80,13 @@ inline std::map<K, V> operator>> (object o, std::map<K, V>& v)
 	for(; p != pend; ++p) {
 		K key;
 		p->key.convert(&key);
-		typename std::map<K,V>::iterator it(v.find(key));
-		if(it != v.end()) {
+		typename std::map<K,V>::iterator it(v.lower_bound(key));
+		if(it != v.end() && !(key < it->first)) {
+			p->val.convert(&it->second);
+		} else {
 			V val;
 			p->val.convert(&val);
-			it->insert( std::pair<K,V>(key, val) );
-		} else {
-			p->val.convert(&it->second);
+			v.insert(it, std::pair<K,V>(key, val));
 		}
 	}
 	return v;
