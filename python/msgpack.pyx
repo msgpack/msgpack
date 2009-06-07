@@ -1,5 +1,6 @@
 # coding: utf-8
 
+from cStringIO import StringIO
 
 cdef extern from "Python.h":
     ctypedef char* const_char_ptr "const char*"
@@ -32,13 +33,15 @@ cdef extern from "pack.h":
     void msgpack_pack_raw(msgpack_packer* pk, size_t l)
     void msgpack_pack_raw_body(msgpack_packer* pk, char* body, size_t l)
 
-cdef extern from "unpack.h":
-    ctypedef struct msgpack_unpacker
-
 
 cdef int BUFF_SIZE=2*1024
 
 cdef class Packer:
+    """Packer that pack data into strm.
+
+    strm must have `write(bytes)` method.
+    size specifies local buffer size.
+    """
     cdef char* buff
     cdef unsigned int length
     cdef unsigned int allocated
@@ -46,11 +49,6 @@ cdef class Packer:
     cdef object strm
 
     def __init__(self, strm, int size=0):
-        """Make packer that pack data into strm.
-
-        strm must have `write(bytes)` method.
-        size specifies local buffer size.
-        """
         if size <= 0:
             size = BUFF_SIZE
 
@@ -157,25 +155,41 @@ cdef int _packer_write(Packer packer, const_char_ptr b, unsigned int l):
         packer.length += l
     return 0
 
-cdef extern from "msgpack/zone.h":
-    ctypedef struct msgpack_zone
+def pack(object o, object stream):
+    packer = Packer(stream)
+    packer.pack(o)
+    packer.flush()
 
-cdef extern from "unpack.c":
+def packs(object o):
+    buf = StringIO()
+    packer = Packer(buf)
+    packer.pack(o)
+    packer.flush()
+    return buf.getvalue()
+
+cdef extern from "unpack.h":
     ctypedef struct template_context:
         pass
-    int template_execute(template_context* ctx, const_char_ptr data, size_t len, size_t* off)
+    int template_execute(template_context* ctx, const_char_ptr data,
+            size_t len, size_t* off)
     void template_init(template_context* ctx)
     PyObject* template_data(template_context* ctx)
 
 
-cdef class Unpacker:
-    def __init__(self):
-        pass
+def unpacks(object packed_bytes):
+    """Unpack packed_bytes to object. Returns unpacked object."""
+    cdef const_char_ptr p = packed_bytes
+    cdef template_context ctx
+    cdef size_t off = 0
+    template_init(&ctx)
+    template_execute(&ctx, p, len(packed_bytes), &off)
+    return <object> template_data(&ctx)
 
-    def unpack(self, bytes_):
-        cdef const_char_ptr p = bytes_
-        cdef template_context ctx
-        cdef size_t off = 0
-        template_init(&ctx)
-        template_execute(&ctx, p, len(bytes_), &off)
-        return <object> template_data(&ctx)
+def unpack(object stream):
+    """unpack from stream."""
+    packed = stream.read()
+    return unpacks(packed)
+
+cdef class Unpacker:
+    """Do nothing. This function is for symmetric to Packer"""
+    unpack = staticmethod(unpacks)

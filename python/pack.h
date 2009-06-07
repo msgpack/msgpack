@@ -15,9 +15,6 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-#ifndef MSGPACK_PACK_H__
-#define MSGPACK_PACK_H__
-
 #if _MSC_VER
 typedef signed char uint8_t;
 typedef unsigned char uint8_t;
@@ -27,14 +24,13 @@ typedef int int32_t;
 typedef unsigned int uint32_t;
 typedef long long int64_t;
 typedef unsigned long long uint64_t;
-#elif
+#else
 #include <stdint.h>
 #endif
 
 #include <stddef.h>
 #include <stdlib.h>
 #include "msgpack/pack_define.h"
-#include "msgpack/object.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -48,44 +44,42 @@ typedef struct msgpack_packer {
 	msgpack_packer_write callback;
 } msgpack_packer;
 
-static void msgpack_packer_init(msgpack_packer* pk, void* data, msgpack_packer_write callback);
+static inline void msgpack_packer_init(msgpack_packer* pk, void* data, msgpack_packer_write callback);
 
-static msgpack_packer* msgpack_packer_new(void* data, msgpack_packer_write callback);
-static void msgpack_packer_free(msgpack_packer* pk);
+static inline msgpack_packer* msgpack_packer_new(void* data, msgpack_packer_write callback);
+static inline void msgpack_packer_free(msgpack_packer* pk);
 
-static int msgpack_pack_short(msgpack_packer* pk, short d);
-static int msgpack_pack_int(msgpack_packer* pk, int d);
-static int msgpack_pack_long(msgpack_packer* pk, long d);
-static int msgpack_pack_long_long(msgpack_packer* pk, long long d);
-static int msgpack_pack_unsigned_short(msgpack_packer* pk, unsigned short d);
-static int msgpack_pack_unsigned_int(msgpack_packer* pk, unsigned int d);
-static int msgpack_pack_unsigned_long(msgpack_packer* pk, unsigned long d);
-static int msgpack_pack_unsigned_long_long(msgpack_packer* pk, unsigned long long d);
+static inline int msgpack_pack_short(msgpack_packer* pk, short d);
+static inline int msgpack_pack_int(msgpack_packer* pk, int d);
+static inline int msgpack_pack_long(msgpack_packer* pk, long d);
+static inline int msgpack_pack_long_long(msgpack_packer* pk, long long d);
+static inline int msgpack_pack_unsigned_short(msgpack_packer* pk, unsigned short d);
+static inline int msgpack_pack_unsigned_int(msgpack_packer* pk, unsigned int d);
+static inline int msgpack_pack_unsigned_long(msgpack_packer* pk, unsigned long d);
+static inline int msgpack_pack_unsigned_long_long(msgpack_packer* pk, unsigned long long d);
 
-static int msgpack_pack_uint8(msgpack_packer* pk, uint8_t d);
-static int msgpack_pack_uint16(msgpack_packer* pk, uint16_t d);
-static int msgpack_pack_uint32(msgpack_packer* pk, uint32_t d);
-static int msgpack_pack_uint64(msgpack_packer* pk, uint64_t d);
-static int msgpack_pack_int8(msgpack_packer* pk, int8_t d);
-static int msgpack_pack_int16(msgpack_packer* pk, int16_t d);
-static int msgpack_pack_int32(msgpack_packer* pk, int32_t d);
-static int msgpack_pack_int64(msgpack_packer* pk, int64_t d);
+static inline int msgpack_pack_uint8(msgpack_packer* pk, uint8_t d);
+static inline int msgpack_pack_uint16(msgpack_packer* pk, uint16_t d);
+static inline int msgpack_pack_uint32(msgpack_packer* pk, uint32_t d);
+static inline int msgpack_pack_uint64(msgpack_packer* pk, uint64_t d);
+static inline int msgpack_pack_int8(msgpack_packer* pk, int8_t d);
+static inline int msgpack_pack_int16(msgpack_packer* pk, int16_t d);
+static inline int msgpack_pack_int32(msgpack_packer* pk, int32_t d);
+static inline int msgpack_pack_int64(msgpack_packer* pk, int64_t d);
 
-static int msgpack_pack_float(msgpack_packer* pk, float d);
-static int msgpack_pack_double(msgpack_packer* pk, double d);
+static inline int msgpack_pack_float(msgpack_packer* pk, float d);
+static inline int msgpack_pack_double(msgpack_packer* pk, double d);
 
-static int msgpack_pack_nil(msgpack_packer* pk);
-static int msgpack_pack_true(msgpack_packer* pk);
-static int msgpack_pack_false(msgpack_packer* pk);
+static inline int msgpack_pack_nil(msgpack_packer* pk);
+static inline int msgpack_pack_true(msgpack_packer* pk);
+static inline int msgpack_pack_false(msgpack_packer* pk);
 
-static int msgpack_pack_array(msgpack_packer* pk, unsigned int n);
+static inline int msgpack_pack_array(msgpack_packer* pk, unsigned int n);
 
-static int msgpack_pack_map(msgpack_packer* pk, unsigned int n);
+static inline int msgpack_pack_map(msgpack_packer* pk, unsigned int n);
 
-static int msgpack_pack_raw(msgpack_packer* pk, size_t l);
-static int msgpack_pack_raw_body(msgpack_packer* pk, const void* b, size_t l);
-
-int msgpack_pack_object(msgpack_packer* pk, msgpack_object d);
+static inline int msgpack_pack_raw(msgpack_packer* pk, size_t l);
+static inline int msgpack_pack_raw_body(msgpack_packer* pk, const void* b, size_t l);
 
 
 
@@ -125,6 +119,3 @@ static inline void msgpack_packer_free(msgpack_packer* pk)
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* msgpack/pack.h */
-
