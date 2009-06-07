@@ -26,7 +26,7 @@ typedef struct {
 	struct template ## name
 
 #define msgpack_unpack_func(ret, name) \
-	ret template ## name
+	static inline ret template ## name
 
 #define msgpack_unpack_callback(name) \
 	template_callback ## name
@@ -39,16 +39,8 @@ typedef struct {
 struct template_context;
 typedef struct template_context template_context;
 
-static inline void template_init(template_context* ctx);
-
-static inline msgpack_unpack_object template_data(template_context* ctx);
-
-static inline int template_execute(template_context* ctx,
-		const char* data, size_t len, size_t* off);
-
-
 static inline msgpack_unpack_object template_callback_root(unpack_user* u)
-{ PyObject *o = Py_None; Py_INCREF(o); return o; }
+{ return NULL; }
 
 static inline int template_callback_uint8(unpack_user* u, uint8_t d, msgpack_unpack_object* o)
 { *o = PyInt_FromLong((long)d); return 0; }
@@ -88,13 +80,13 @@ static inline int template_callback_double(unpack_user* u, double d, msgpack_unp
 { *o = PyFloat_FromDouble(d); return 0; }
 
 static inline int template_callback_nil(unpack_user* u, msgpack_unpack_object* o)
-{ *o = Py_None; Py_INCREF(o); return 0; }
+{ Py_INCREF(Py_None); *o = Py_None; return 0; }
 
 static inline int template_callback_true(unpack_user* u, msgpack_unpack_object* o)
-{ *o = Py_True; Py_INCREF(o); return 0; }
+{ Py_INCREF(Py_True); *o = Py_True; return 0; }
 
 static inline int template_callback_false(unpack_user* u, msgpack_unpack_object* o)
-{ *o = Py_False; Py_INCREF(o); return 0; }
+{ Py_INCREF(Py_False); *o = Py_False; return 0; }
 
 static inline int template_callback_array(unpack_user* u, unsigned int n, msgpack_unpack_object* o)
 {
