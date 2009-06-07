@@ -3,15 +3,17 @@
 
 cdef extern from "Python.h":
     ctypedef char* const_char_ptr "const char*"
+    ctypedef struct PyObject
     cdef object PyString_FromStringAndSize(const_char_ptr b, Py_ssize_t len)
 
 cdef extern from "stdlib.h":
     void* malloc(int)
     void free(void*)
+
 cdef extern from "string.h":
     int memcpy(char*dst, char*src, unsigned int size)
 
-cdef extern from "msgpack/pack.h":
+cdef extern from "pack.h":
     ctypedef int (*msgpack_packer_write)(void* data, const_char_ptr buf, unsigned int len)
 
     struct msgpack_packer:
@@ -30,7 +32,7 @@ cdef extern from "msgpack/pack.h":
     void msgpack_pack_raw(msgpack_packer* pk, size_t l)
     void msgpack_pack_raw_body(msgpack_packer* pk, char* body, size_t l)
 
-cdef extern from "msgpack/unpack.h":
+cdef extern from "unpack.h":
     ctypedef struct msgpack_unpacker
 
 
@@ -98,7 +100,7 @@ cdef class Packer:
         """
         msgpack_pack_map(&self.pk, len)
 
-    def __call__(self, object o):
+    def pack(self, object o):
         cdef long long intval
         cdef double fval
         cdef char* rawval 
@@ -109,6 +111,9 @@ cdef class Packer:
             msgpack_pack_true(&self.pk)
         elif o is False:
             msgpack_pack_false(&self.pk)
+        elif isinstance(o, long):
+            intval = o
+            msgpack_pack_long_long(&self.pk, intval)
         elif isinstance(o, int):
             intval = o
             msgpack_pack_long_long(&self.pk, intval)
@@ -120,24 +125,21 @@ cdef class Packer:
             msgpack_pack_raw(&self.pk, len(o))
             msgpack_pack_raw_body(&self.pk, rawval, len(o))
         elif isinstance(o, unicode):
-            # todo
-            pass
+            o = o.encode('utf-8')
+            rawval = o
+            msgpack_pack_raw(&self.pk, len(o))
+            msgpack_pack_raw_body(&self.pk, rawval, len(o))
         elif isinstance(o, dict):
             msgpack_pack_map(&self.pk, len(o))
             for k,v in o.iteritems():
-                self(k)
-                self(v)
-        elif isinstance(o, tuple):
+                self.pack(k)
+                self.pack(v)
+        elif isinstance(o, tuple) or isinstance(o, list):
             msgpack_pack_array(&self.pk, len(o))
             for v in o:
-                self(v)
-        elif isinstance(o, list):
-            msgpack_pack_array(&self.pk, len(o))
-            for v in o:
-                self(v)
-        elif hasattr(o, "__msgpack__"):
-            o.__msgpack__(self)
+                self.pack(v)
         else:
+            # TODO: Serialize with defalt() like simplejson.
             raise TypeError, "can't serialize %r" % (o,)
 
 cdef int _packer_write(Packer packer, const_char_ptr b, unsigned int l):
@@ -155,8 +157,25 @@ cdef int _packer_write(Packer packer, const_char_ptr b, unsigned int l):
         packer.length += l
     return 0
 
+cdef extern from "msgpack/zone.h":
+    ctypedef struct msgpack_zone
+
+cdef extern from "unpack.c":
+    ctypedef struct template_context:
+        pass
+    int template_execute(template_context* ctx, const_char_ptr data, size_t len, size_t* off)
+    void template_init(template_context* ctx)
+    PyObject* template_data(template_context* ctx)
+
+
 cdef class Unpacker:
     def __init__(self):
         pass
-    def unpack(strm):
-        pass
+
+    def unpack(self, bytes_):
+        cdef const_char_ptr p = bytes_
+        cdef template_context ctx
+        cdef size_t off = 0
+        template_init(&ctx)
+        template_execute(&ctx, p, len(bytes_), &off)
+        return <object> template_data(&ctx)
