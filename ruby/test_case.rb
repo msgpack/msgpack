@@ -219,6 +219,7 @@ class MessagePackTestFormat < Test::Unit::TestCase
 
 	def match(obj, buf)
 		assert_equal(obj.to_msgpack, buf)
+		assert_equal(MessagePack::unpack(buf), obj)
 	end
 end
 
