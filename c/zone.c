@@ -27,7 +27,7 @@ static inline bool init_chunk_array(msgpack_zone_chunk_array* ca, size_t chunk_s
 
 	msgpack_zone_chunk* array = (msgpack_zone_chunk*)malloc(
 			sizeof(msgpack_zone_chunk) * nfirst);
-	if(!array) {
+	if(array == NULL) {
 		return false;
 	}
 

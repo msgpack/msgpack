@@ -34,6 +34,7 @@ public:
 
 public:
 	void* malloc(size_t size);
+	void* malloc_no_align(size_t size);
 
 	void push_finalizer(void (*func)(void*), void* data);
 
@@ -71,6 +72,15 @@ inline zone::~zone()
 inline void* zone::malloc(size_t size)
 {
 	void* ptr = msgpack_zone_malloc(this, size);
+	if(!ptr) {
+		throw std::bad_alloc();
+	}
+	return ptr;
+}
+
+inline void* zone::malloc_no_align(size_t size)
+{
+	void* ptr = msgpack_zone_malloc_no_align(this, size);
 	if(!ptr) {
 		throw std::bad_alloc();
 	}

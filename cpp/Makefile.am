@@ -6,6 +6,7 @@ libmsgpack_la_SOURCES = \
 nobase_include_HEADERS = \
 		msgpack.hpp \
 		msgpack/sbuffer.hpp \
+		msgpack/vrefbuffer.hpp \
 		msgpack/pack.hpp \
 		msgpack/unpack.hpp \
 		msgpack/object.hpp \
