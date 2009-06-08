@@ -24,6 +24,6 @@ setup(name='msgpack',
       author_email='songofacandy@gmail.com',
       version=version,
       ext_modules=[msgpack_mod],
-      description='The MessagePack serializer/desirializer.',
+      description=desc,
       long_description=long_desc,
       )
