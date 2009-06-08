@@ -173,7 +173,7 @@ cdef extern from "unpack.h":
     int template_execute(template_context* ctx, const_char_ptr data,
             size_t len, size_t* off)
     void template_init(template_context* ctx)
-    PyObject* template_data(template_context* ctx)
+    object template_data(template_context* ctx)
 
 
 def unpacks(object packed_bytes):
@@ -183,7 +183,7 @@ def unpacks(object packed_bytes):
     cdef size_t off = 0
     template_init(&ctx)
     template_execute(&ctx, p, len(packed_bytes), &off)
-    return <object> template_data(&ctx)
+    return template_data(&ctx)
 
 def unpack(object stream):
     """unpack from stream."""
