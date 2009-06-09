@@ -59,6 +59,8 @@ cdef class Packer:
 
         msgpack_packer_init(&self.pk, <void*>self, <msgpack_packer_write>_packer_write)
 
+    def __del__(self):
+        free(self.buff);
 
     def flush(self):
         """Flash local buffer and output stream if it has 'flush()' method."""
@@ -98,7 +100,7 @@ cdef class Packer:
         """
         msgpack_pack_map(&self.pk, len)
 
-    def pack(self, object o):
+    cdef __pack(self, object o):
         cdef long long intval
         cdef double fval
         cdef char* rawval 
@@ -139,6 +141,11 @@ cdef class Packer:
         else:
             # TODO: Serialize with defalt() like simplejson.
             raise TypeError, "can't serialize %r" % (o,)
+
+    def pack(self, obj, flush=True):
+        self.__pack(obj)
+        if flush:
+            self.flush()
 
 cdef int _packer_write(Packer packer, const_char_ptr b, unsigned int l):
     if packer.length + l > packer.allocated:
