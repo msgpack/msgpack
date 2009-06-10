@@ -1,7 +1,7 @@
 msgpack.c
 setup.py
-pack.h
-unpack.h
+msgpack/pack.h
+msgpack/unpack.h
 include/msgpack/pack_define.h
 include/msgpack/pack_template.h
 include/msgpack/unpack_define.h
