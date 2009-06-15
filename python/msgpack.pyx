@@ -118,7 +118,7 @@ cdef class Packer:
             intval = o
             msgpack_pack_long_long(&self.pk, intval)
         elif isinstance(o, float):
-            fval = 9
+            fval = o
             msgpack_pack_double(&self.pk, fval)
         elif isinstance(o, str):
             rawval = o
