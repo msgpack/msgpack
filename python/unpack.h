@@ -15,6 +15,8 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
+
+#define MSGPACK_MAX_STACK_SIZE  (1024)
 #include "msgpack/unpack_define.h"
 
 typedef struct {
