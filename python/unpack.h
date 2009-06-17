@@ -20,7 +20,8 @@
 #include "msgpack/unpack_define.h"
 
 typedef struct {
-    int reserved;
+    struct {unsigned int size, last} array_stack[MSGPACK_MAX_STACK_SIZE];
+    int array_current;
 } unpack_user;
 
 
@@ -42,7 +43,10 @@ struct template_context;
 typedef struct template_context template_context;
 
 static inline msgpack_unpack_object template_callback_root(unpack_user* u)
-{ return NULL; }
+{
+    u->array_current = -1;
+    return NULL;
+}
 
 static inline int template_callback_uint8(unpack_user* u, uint8_t d, msgpack_unpack_object* o)
 { *o = PyInt_FromLong((long)d); return 0; }
@@ -52,8 +56,8 @@ static inline int template_callback_uint16(unpack_user* u, uint16_t d, msgpack_u
 
 static inline int template_callback_uint32(unpack_user* u, uint32_t d, msgpack_unpack_object* o)
 {
-    if (d >= 0x80000000UL) {
-        *o = PyLong_FromUnsignedLongLong((unsigned long long)d);
+    if (d > LONG_MAX) {
+        *o = PyLong_FromUnsignedLong((unsigned long)d);
     } else {
         *o = PyInt_FromLong((long)d);
     }
@@ -92,14 +96,32 @@ static inline int template_callback_false(unpack_user* u, msgpack_unpack_object*
 
 static inline int template_callback_array(unpack_user* u, unsigned int n, msgpack_unpack_object* o)
 {
-    /* TODO: use PyList_New(n). */
-    *o = PyList_New(0);
+    if (n > 0) {
+        int cur = ++u->array_current;
+        u->array_stack[cur].size = n;
+        u->array_stack[cur].last = 0;
+        *o = PyList_New(n);
+    }
+    else {
+        *o = PyList_New(0);
+    }
     return 0;
 }
 
 static inline int template_callback_array_item(unpack_user* u, msgpack_unpack_object* c, msgpack_unpack_object o)
 {
-    PyList_Append(*c, o);
+    int cur = u->array_current;
+    int n = u->array_stack[cur].size;
+    int last = u->array_stack[cur].last;
+
+    PyList_SetItem(*c, last, o);
+    last++;
+    if (last >= n) {
+        u->array_current--;
+    }
+    else {
+        u->array_stack[cur].last = last;
+    }
     return 0;
 }
 
@@ -112,13 +134,18 @@ static inline int template_callback_map(unpack_user* u, unsigned int n, msgpack_
 static inline int template_callback_map_item(unpack_user* u, msgpack_unpack_object* c, msgpack_unpack_object k, msgpack_unpack_object v)
 {
     PyDict_SetItem(*c, k, v);
-	return 0;
+    Py_DECREF(k);
+    Py_DECREF(v);
+    return 0;
 }
 
 static inline int template_callback_raw(unpack_user* u, const char* b, const char* p, unsigned int l, msgpack_unpack_object* o)
 {
     *o = PyString_FromStringAndSize(p, l);
-	return 0;
+    if (l < 16) { // without foundation
+        PyString_InternInPlace(o);
+    }
+    return 0;
 }
 
 #include "msgpack/unpack_template.h"
