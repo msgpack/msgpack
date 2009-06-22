@@ -1,12 +1,14 @@
 from distutils.core import setup, Extension
+from Cython.Distutils import build_ext
 import os
 
-version = '0.0.1'
+version = '0.0.1dev'
 
 PACKAGE_ROOT = os.getcwdu()
 INCLUDE_PATH = os.path.join(PACKAGE_ROOT, 'include')
-msgpack_mod = Extension('msgpack',
-                        sources=['msgpack.cpp'],
+msgpack_mod = Extension('msgpack._msgpack',
+                        language="c++",
+                        sources=['msgpack/_msgpack.pyx'],
                         include_dirs=[INCLUDE_PATH])
 
 desc = 'MessagePack serializer/desirializer.'
@@ -28,6 +30,7 @@ setup(name='msgpack',
       author='Naoki INADA',
       author_email='songofacandy@gmail.com',
       version=version,
+      cmdclass={'build_ext': build_ext},
       ext_modules=[msgpack_mod],
       description=desc,
       long_description=long_desc,
