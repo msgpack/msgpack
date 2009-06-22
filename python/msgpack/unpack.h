@@ -18,17 +18,21 @@
 
 #include <map>
 #include <string>
+#include <stack>
 
 #define MSGPACK_MAX_STACK_SIZE  (1024)
 #include "msgpack/unpack_define.h"
 
 using namespace std;
 
-typedef  struct unpack_user {
-    struct array_stack_type{unsigned int size, last;};
-    array_stack_type array_stack[MSGPACK_MAX_STACK_SIZE];
-    int array_current;
-
+struct array_context {
+    unsigned int size;
+    unsigned int last;
+    stack_item(unsigned int size) : size(size), last(0)
+    {}
+};
+struct unpack_user {
+    stack<array_context> array_stack;
     map<string, PyObject*> str_cache;
 
     ~unpack_user() {
@@ -38,7 +42,7 @@ typedef  struct unpack_user {
             Py_DECREF(it->second);
         }
     }
-} unpack_user;
+};
 
 
 #define msgpack_unpack_struct(name) \
@@ -60,7 +64,6 @@ typedef struct template_context template_context;
 
 static inline msgpack_unpack_object template_callback_root(unpack_user* u)
 {
-    u->array_current = -1;
     return NULL;
 }
 
@@ -113,9 +116,7 @@ static inline int template_callback_false(unpack_user* u, msgpack_unpack_object*
 static inline int template_callback_array(unpack_user* u, unsigned int n, msgpack_unpack_object* o)
 {
     if (n > 0) {
-        int cur = ++u->array_current;
-        u->array_stack[cur].size = n;
-        u->array_stack[cur].last = 0;
+        u->array_stack.push(stack_item(n));
         *o = PyList_New(n);
     }
     else {
@@ -126,17 +127,13 @@ static inline int template_callback_array(unpack_user* u, unsigned int n, msgpac
 
 static inline int template_callback_array_item(unpack_user* u, msgpack_unpack_object* c, msgpack_unpack_object o)
 {
-    int cur = u->array_current;
-    int n = u->array_stack[cur].size;
-    int last = u->array_stack[cur].last;
+    unsigned int n = u->array_stack.top().size;
+    unsigned int &last = u->array_stack.top().last;
 
     PyList_SetItem(*c, last, o);
     last++;
     if (last >= n) {
-        u->array_current--;
-    }
-    else {
-        u->array_stack[cur].last = last;
+        u->array_stack.pop();
     }
     return 0;
 }
