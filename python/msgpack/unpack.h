@@ -28,7 +28,7 @@ using namespace std;
 struct array_context {
     unsigned int size;
     unsigned int last;
-    stack_item(unsigned int size) : size(size), last(0)
+    array_context(unsigned int size) : size(size), last(0)
     {}
 };
 struct unpack_user {
@@ -116,7 +116,7 @@ static inline int template_callback_false(unpack_user* u, msgpack_unpack_object*
 static inline int template_callback_array(unpack_user* u, unsigned int n, msgpack_unpack_object* o)
 {
     if (n > 0) {
-        u->array_stack.push(stack_item(n));
+        u->array_stack.push(array_context(n));
         *o = PyList_New(n);
     }
     else {
