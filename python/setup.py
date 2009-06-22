@@ -2,7 +2,7 @@ from distutils.core import setup, Extension
 
 version = '0.0.1'
 
-msgpack_mod = Extension('msgpack', sources=['msgpack.c'], extra_compile_args=["-O3"])
+msgpack_mod = Extension('msgpack', sources=['msgpack.cpp'])
 
 desc = 'MessagePack serializer/desirializer.'
 long_desc = desc + """

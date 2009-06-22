@@ -16,12 +16,28 @@
  *    limitations under the License.
  */
 
+#include <map>
+#include <string>
+
 #define MSGPACK_MAX_STACK_SIZE  (1024)
 #include "msgpack/unpack_define.h"
 
-typedef struct {
-    struct {unsigned int size, last} array_stack[MSGPACK_MAX_STACK_SIZE];
+using namespace std;
+
+typedef  struct unpack_user {
+    struct array_stack_type{unsigned int size, last;};
+    array_stack_type array_stack[MSGPACK_MAX_STACK_SIZE];
     int array_current;
+
+    map<string, PyObject*> str_cache;
+
+    ~unpack_user() {
+        map<string, PyObject*>::iterator it, itend;
+        itend = str_cache.end();
+        for (it = str_cache.begin(); it != itend; ++it) {
+            Py_DECREF(it->second);
+        }
+    }
 } unpack_user;
 
 
@@ -141,9 +157,21 @@ static inline int template_callback_map_item(unpack_user* u, msgpack_unpack_obje
 
 static inline int template_callback_raw(unpack_user* u, const char* b, const char* p, unsigned int l, msgpack_unpack_object* o)
 {
-    *o = PyString_FromStringAndSize(p, l);
-    if (l < 16) { // without foundation
-        PyString_InternInPlace(o);
+    if (l < 16) {
+        string s(p, l);
+        map<string,PyObject*>::iterator it = u->str_cache.find(s);
+        if (it != u->str_cache.end()) {
+            *o = it->second;
+            Py_INCREF(*o);
+        }
+        else {
+            *o = PyString_FromStringAndSize(p, l);
+            Py_INCREF(*o);
+            u->str_cache[s] = *o;
+        }
+    }
+    else {
+        *o = PyString_FromStringAndSize(p, l);
     }
     return 0;
 }
