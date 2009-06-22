@@ -1,8 +1,13 @@
 from distutils.core import setup, Extension
+import os
 
 version = '0.0.1'
 
-msgpack_mod = Extension('msgpack', sources=['msgpack.cpp'])
+PACKAGE_ROOT = os.getcwdu()
+INCLUDE_PATH = os.path.join(PACKAGE_ROOT, 'include')
+msgpack_mod = Extension('msgpack',
+                        sources=['msgpack.cpp'],
+                        include_dirs=[INCLUDE_PATH])
 
 desc = 'MessagePack serializer/desirializer.'
 long_desc = desc + """
