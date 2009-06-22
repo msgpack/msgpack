@@ -79,7 +79,7 @@ cdef class Packer:
             packer.pack('foo')
             packer.pack('bar')
 
-        This code is same as below code:
+        This is same to:
 
             packer.pack(['foo', 'bar'])
         """
@@ -94,9 +94,9 @@ cdef class Packer:
             packer.pack('foo')
             packer.pack('bar')
 
-        This code is same as below code:
+        This is same to:
 
-            packer.pack({'foo', 'bar'})
+            packer.pack({'foo': 'bar'})
         """
         msgpack_pack_map(&self.pk, len)
 
