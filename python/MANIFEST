@@ -1,4 +1,4 @@
-msgpack.c
+msgpack.cpp
 setup.py
 pack.h
 unpack.h
