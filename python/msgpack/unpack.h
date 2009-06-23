@@ -25,14 +25,8 @@
 
 using namespace std;
 
-struct array_context {
-    unsigned int size;
-    unsigned int last;
-    array_context(unsigned int size) : size(size), last(0)
-    {}
-};
 struct unpack_user {
-    stack<array_context> array_stack;
+    stack<unsigned int> array_stack;
     map<string, PyObject*> str_cache;
 
     ~unpack_user() {
@@ -116,7 +110,7 @@ static inline int template_callback_false(unpack_user* u, msgpack_unpack_object*
 static inline int template_callback_array(unpack_user* u, unsigned int n, msgpack_unpack_object* o)
 {
     if (n > 0) {
-        u->array_stack.push(array_context(n));
+        u->array_stack.push(0);
         *o = PyList_New(n);
     }
     else {
@@ -127,12 +121,12 @@ static inline int template_callback_array(unpack_user* u, unsigned int n, msgpac
 
 static inline int template_callback_array_item(unpack_user* u, msgpack_unpack_object* c, msgpack_unpack_object o)
 {
-    unsigned int n = u->array_stack.top().size;
-    unsigned int &last = u->array_stack.top().last;
-
-    PyList_SetItem(*c, last, o);
+    unsigned int &last = u->array_stack.top();
+    PyList_SET_ITEM(*c, last, o);
     last++;
-    if (last >= n) {
+
+    Py_ssize_t len = PyList_GET_SIZE(*c);
+    if (last >= len) {
         u->array_stack.pop();
     }
     return 0;
