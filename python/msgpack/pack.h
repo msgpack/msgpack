@@ -18,7 +18,7 @@
 
 #include <stddef.h>
 #include <stdlib.h>
-#include "msgpack/pack_define.h"
+#include "pack_define.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -82,7 +82,7 @@ static inline int msgpack_pack_raw_body(msgpack_packer* pk, const void* b, size_
 #define msgpack_pack_append_buffer(user, buf, len) \
 	return (*(user)->callback)((user)->data, (const char*)buf, len)
 
-#include "msgpack/pack_template.h"
+#include "pack_template.h"
 
 static inline void msgpack_packer_init(msgpack_packer* pk, void* data, msgpack_packer_write callback)
 {

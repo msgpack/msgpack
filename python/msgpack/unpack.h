@@ -21,18 +21,18 @@
 #include <stack>
 
 #define MSGPACK_MAX_STACK_SIZE  (1024)
-#include "msgpack/unpack_define.h"
+#include "unpack_define.h"
 
 using namespace std;
 
+typedef map<string, PyObject*> str_cach_t;
 struct unpack_user {
-    stack<unsigned int> array_stack;
-    map<string, PyObject*> str_cache;
+    str_cach_t strcache;
 
     ~unpack_user() {
-        map<string, PyObject*>::iterator it, itend;
-        itend = str_cache.end();
-        for (it = str_cache.begin(); it != itend; ++it) {
+        str_cach_t::iterator it, itend;
+        itend = strcache.end();
+        for (it = strcache.begin(); it != itend; ++it) {
             Py_DECREF(it->second);
         }
     }
@@ -108,35 +108,13 @@ static inline int template_callback_false(unpack_user* u, msgpack_unpack_object*
 { Py_INCREF(Py_False); *o = Py_False; return 0; }
 
 static inline int template_callback_array(unpack_user* u, unsigned int n, msgpack_unpack_object* o)
-{
-    if (n > 0) {
-        u->array_stack.push(0);
-        *o = PyList_New(n);
-    }
-    else {
-        *o = PyList_New(0);
-    }
-    return 0;
-}
+{ *o = PyList_New(n); return 0; }
 
-static inline int template_callback_array_item(unpack_user* u, msgpack_unpack_object* c, msgpack_unpack_object o)
-{
-    unsigned int &last = u->array_stack.top();
-    PyList_SET_ITEM(*c, last, o);
-    last++;
-
-    Py_ssize_t len = PyList_GET_SIZE(*c);
-    if (last >= len) {
-        u->array_stack.pop();
-    }
-    return 0;
-}
+static inline int template_callback_array_item(unpack_user* u, unsigned int current, msgpack_unpack_object* c, msgpack_unpack_object o)
+{ PyList_SET_ITEM(*c, current, o); return 0; }
 
 static inline int template_callback_map(unpack_user* u, unsigned int n, msgpack_unpack_object* o)
-{
-    *o = PyDict_New();
-    return 0;
-}
+{ *o = PyDict_New(); return 0; }
 
 static inline int template_callback_map_item(unpack_user* u, msgpack_unpack_object* c, msgpack_unpack_object k, msgpack_unpack_object v)
 {
@@ -150,16 +128,15 @@ static inline int template_callback_raw(unpack_user* u, const char* b, const cha
 {
     if (l < 16) {
         string s(p, l);
-        map<string,PyObject*>::iterator it = u->str_cache.find(s);
-        if (it != u->str_cache.end()) {
+        str_cach_t ::iterator it = u->strcache.find(s);
+        if (it != u->strcache.end()) {
             *o = it->second;
-            Py_INCREF(*o);
         }
         else {
             *o = PyString_FromStringAndSize(p, l);
-            Py_INCREF(*o);
-            u->str_cache[s] = *o;
+            u->strcache[s] = *o;
         }
+        Py_INCREF(*o);
     }
     else {
         *o = PyString_FromStringAndSize(p, l);
@@ -167,4 +144,4 @@ static inline int template_callback_raw(unpack_user* u, const char* b, const cha
     return 0;
 }
 
-#include "msgpack/unpack_template.h"
+#include "unpack_template.h"
