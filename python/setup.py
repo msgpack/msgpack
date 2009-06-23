@@ -32,6 +32,7 @@ setup(name='msgpack',
       version=version,
       cmdclass={'build_ext': build_ext},
       ext_modules=[msgpack_mod],
+      packages=['msgpack'],
       description=desc,
       long_description=long_desc,
       )
