@@ -23,9 +23,7 @@
 #define MSGPACK_MAX_STACK_SIZE  (1024)
 #include "unpack_define.h"
 
-using namespace std;
-
-typedef map<string, PyObject*> str_cach_t;
+typedef std::map<std::string, PyObject*> str_cach_t;
 struct unpack_user {
     str_cach_t strcache;
 
@@ -127,7 +125,7 @@ static inline int template_callback_map_item(unpack_user* u, msgpack_unpack_obje
 static inline int template_callback_raw(unpack_user* u, const char* b, const char* p, unsigned int l, msgpack_unpack_object* o)
 {
     if (l < 16) {
-        string s(p, l);
+        std::string s(p, l);
         str_cach_t ::iterator it = u->strcache.find(s);
         if (it != u->strcache.end()) {
             *o = it->second;

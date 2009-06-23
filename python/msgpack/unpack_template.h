@@ -43,10 +43,13 @@
 
 msgpack_unpack_struct_decl(_stack) {
 	msgpack_unpack_object obj;
-    size_t curr;
 	size_t count;
 	unsigned int ct;
-	msgpack_unpack_object map_key;
+
+    union {
+        size_t curr;
+        msgpack_unpack_object map_key;
+    };
 };
 
 msgpack_unpack_struct_decl(_context) {
