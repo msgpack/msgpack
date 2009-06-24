@@ -81,14 +81,6 @@ static void _msgpack_pack_sv(enc_t *enc, SV* val) {
             }
         }
         break;
-    case SVt_PV:
-        {
-            STRLEN len;
-            char * cval = SvPV(val, len);
-            msgpack_pack_raw(enc, len);
-            msgpack_pack_raw_body(enc, cval, len);
-        }
-        break;
     case SVt_NV:
         PACK_WRAPPER(NVTYPE)(enc, SvNV(val));
         break;
@@ -126,8 +118,16 @@ static void _msgpack_pack_sv(enc_t *enc, SV* val) {
         _msgpack_pack_sv(enc, SvRV(val));
         break;
     default:
-        sv_dump(val);
-        Perl_croak(aTHX_ "msgpack for perl doesn't supported this type: %d\n", SvTYPE(val));
+        if (SvPOKp(val)) {
+            STRLEN len;
+            char * cval = SvPV(val, len);
+            msgpack_pack_raw(enc, len);
+            msgpack_pack_raw_body(enc, cval, len);
+            return;
+        } else {
+            sv_dump(val);
+            Perl_croak(aTHX_ "msgpack for perl doesn't supported this type: %d\n", SvTYPE(val));
+        }
     }
 }
 
