@@ -4,7 +4,7 @@
 /*
 ----------------------------------------------------------------------
 
-    ppport.h -- Perl/Pollution/Portability Version 3.17
+    ppport.h -- Perl/Pollution/Portability Version 3.19
 
     Automatically created by Devel::PPPort running under perl 5.010000.
 
@@ -21,7 +21,7 @@ SKIP
 
 =head1 NAME
 
-ppport.h - Perl/Pollution/Portability version 3.17
+ppport.h - Perl/Pollution/Portability version 3.19
 
 =head1 SYNOPSIS
 
@@ -232,6 +232,7 @@ same function or variable in your project.
     my_strlcpy()              NEED_my_strlcpy              NEED_my_strlcpy_GLOBAL
     newCONSTSUB()             NEED_newCONSTSUB             NEED_newCONSTSUB_GLOBAL
     newRV_noinc()             NEED_newRV_noinc             NEED_newRV_noinc_GLOBAL
+    newSV_type()              NEED_newSV_type              NEED_newSV_type_GLOBAL
     newSVpvn_flags()          NEED_newSVpvn_flags          NEED_newSVpvn_flags_GLOBAL
     newSVpvn_share()          NEED_newSVpvn_share          NEED_newSVpvn_share_GLOBAL
     pv_display()              NEED_pv_display              NEED_pv_display_GLOBAL
@@ -377,7 +378,7 @@ use strict;
 # Disable broken TRIE-optimization
 BEGIN { eval '${^RE_TRIE_MAXBUF} = -1' if $] >= 5.009004 && $] <= 5.009005 }
 
-my $VERSION = 3.17;
+my $VERSION = 3.19;
 
 my %opt = (
   quiet     => 0,
@@ -486,6 +487,7 @@ G_NOARGS|||
 G_SCALAR|||
 G_VOID||5.004000|
 GetVars|||
+GvSVn|5.009003||p
 GvSV|||
 Gv_AMupdate|||
 HEf_SVKEY||5.004000|
@@ -498,6 +500,8 @@ HeSVKEY_set||5.004000|
 HeSVKEY||5.004000|
 HeUTF8||5.011000|
 HeVAL||5.004000|
+HvNAMELEN_get|5.009003||p
+HvNAME_get|5.009003||p
 HvNAME|||
 INT2PTR|5.006000||p
 IN_LOCALE_COMPILETIME|5.007002||p
@@ -628,6 +632,9 @@ PERL_SHORT_MAX|5.004000||p
 PERL_SHORT_MIN|5.004000||p
 PERL_SIGNALS_UNSAFE_FLAG|5.008001||p
 PERL_SUBVERSION|5.006000||p
+PERL_SYS_INIT3||5.006000|
+PERL_SYS_INIT|||
+PERL_SYS_TERM||5.011000|
 PERL_UCHAR_MAX|5.004000||p
 PERL_UCHAR_MIN|5.004000||p
 PERL_UINT_MAX|5.004000||p
@@ -661,9 +668,12 @@ PL_diehook|5.004050||p
 PL_dirty|5.004050||p
 PL_dowarn|||pn
 PL_errgv|5.004050||p
+PL_error_count|5.011000||p
 PL_expect|5.011000||p
 PL_hexdigit|5.005000||p
 PL_hints|5.005000||p
+PL_in_my_stash|5.011000||p
+PL_in_my|5.011000||p
 PL_last_in_gv|||n
 PL_laststatval|5.005000||p
 PL_lex_state|5.011000||p
@@ -769,6 +779,7 @@ SV_MUTABLE_RETURN|5.009003||p
 SV_NOSTEAL|5.009002||p
 SV_SMAGIC|5.009003||p
 SV_UTF8_NO_ENCODING|5.008001||p
+SVfARG|5.009005||p
 SVf_UTF8|5.006000||p
 SVf|5.006000||p
 SVt_IV|||
@@ -977,6 +988,7 @@ XPUSHn|||
 XPUSHp|||
 XPUSHs|||
 XPUSHu|5.004000||p
+XSPROTO|5.010000||p
 XSRETURN_EMPTY|||
 XSRETURN_IV|||
 XSRETURN_NO|||
@@ -1055,7 +1067,6 @@ boolSV|5.004000||p
 boot_core_PerlIO|||
 boot_core_UNIVERSAL|||
 boot_core_mro|||
-boot_core_xsutils|||
 bytes_from_utf8||5.007001|
 bytes_to_uni|||n
 bytes_to_utf8||5.006001|
@@ -1341,7 +1352,6 @@ get_vtbl||5.005030|
 getcwd_sv||5.007002|
 getenv_len|||
 glob_2number|||
-glob_2pv|||
 glob_assign_glob|||
 glob_assign_ref|||
 gp_dup|||
@@ -1372,7 +1382,8 @@ gv_fetchmethod_autoload||5.004000|
 gv_fetchmethod_flags||5.011000|
 gv_fetchmethod|||
 gv_fetchmeth|||
-gv_fetchpvn_flags||5.009002|
+gv_fetchpvn_flags|5.009002||p
+gv_fetchpvs|5.009004||p
 gv_fetchpv|||
 gv_fetchsv||5.009002|
 gv_fullname3||5.004000|
@@ -1384,7 +1395,7 @@ gv_init_sv|||
 gv_init|||
 gv_name_set||5.009004|
 gv_stashpvn|5.004000||p
-gv_stashpvs||5.009003|
+gv_stashpvs|5.009003||p
 gv_stashpv|||
 gv_stashsv|||
 he_dup|||
@@ -1470,6 +1481,7 @@ isBLANK|5.006001||p
 isCNTRL|5.006000||p
 isDIGIT|||
 isGRAPH|5.006000||p
+isGV_with_GP|5.009004||p
 isLOWER|||
 isPRINT|5.004000||p
 isPSXSPC|5.006001||p
@@ -1774,7 +1786,7 @@ newSTATEOP|||
 newSUB|||
 newSVOP|||
 newSVREF|||
-newSV_type||5.009005|
+newSV_type|5.009005||p
 newSVhek||5.009003|
 newSViv|||
 newSVnv|||
@@ -2195,6 +2207,7 @@ sv_derived_from||5.004000|
 sv_destroyable||5.010000|
 sv_does||5.009004|
 sv_dump|||
+sv_dup_inc_multiple|||
 sv_dup|||
 sv_eq|||
 sv_exp_grow|||
@@ -3907,6 +3920,13 @@ typedef NVTYPE NV;
           return;                                         \
       } STMT_END
 #endif
+#ifndef XSPROTO
+#  define XSPROTO(name)                  void name(pTHX_ CV* cv)
+#endif
+
+#ifndef SVfARG
+#  define SVfARG(p)                      ((void*)(p))
+#endif
 #ifndef PERL_ABS
 #  define PERL_ABS(x)                    ((x) < 0 ? -(x) : (x))
 #endif
@@ -4086,9 +4106,11 @@ extern U32 DPPP_(my_PL_signals);
 #  define PL_dirty                  dirty
 #  define PL_dowarn                 dowarn
 #  define PL_errgv                  errgv
+#  define PL_error_count            error_count
 #  define PL_expect                 expect
 #  define PL_hexdigit               hexdigit
 #  define PL_hints                  hints
+#  define PL_in_my                  in_my
 #  define PL_laststatval            laststatval
 #  define PL_lex_state              lex_state
 #  define PL_lex_stuff              lex_stuff
@@ -4171,6 +4193,10 @@ extern yy_parser DPPP_(dummy_PL_parser);
 # define PL_lex_state      D_PPP_my_PL_parser_var(lex_state)
 # define PL_lex_stuff      D_PPP_my_PL_parser_var(lex_stuff)
 # define PL_tokenbuf       D_PPP_my_PL_parser_var(tokenbuf)
+# define PL_in_my          D_PPP_my_PL_parser_var(in_my)
+# define PL_in_my_stash    D_PPP_my_PL_parser_var(in_my_stash)
+# define PL_error_count    D_PPP_my_PL_parser_var(error_count)
+
 
 #else
 
@@ -4709,6 +4735,35 @@ DPPP_(my_newCONSTSUB)(HV *stash, const char *name, SV *sv)
 
 #ifndef SvREFCNT_inc_simple_void_NN
 #  define SvREFCNT_inc_simple_void_NN(sv) (void)(++SvREFCNT((SV*)(sv)))
+#endif
+
+#ifndef newSV_type
+
+#if defined(NEED_newSV_type)
+static SV* DPPP_(my_newSV_type)(pTHX_ svtype const t);
+static
+#else
+extern SV* DPPP_(my_newSV_type)(pTHX_ svtype const t);
+#endif
+
+#ifdef newSV_type
+#  undef newSV_type
+#endif
+#define newSV_type(a) DPPP_(my_newSV_type)(aTHX_ a)
+#define Perl_newSV_type DPPP_(my_newSV_type)
+
+#if defined(NEED_newSV_type) || defined(NEED_newSV_type_GLOBAL)
+
+SV*
+DPPP_(my_newSV_type)(pTHX_ svtype const t)
+{
+  SV* const sv = newSV(0);
+  sv_upgrade(sv, t);
+  return sv;
+}
+
+#endif
+
 #endif
 
 #if (PERL_BCDVERSION < 0x5006000)
@@ -5298,6 +5353,19 @@ DPPP_(my_newSVpvn_share)(pTHX_ const char *src, I32 len, U32 hash)
 #ifndef SvSHARED_HASH
 #  define SvSHARED_HASH(sv)              (0 + SvUVX(sv))
 #endif
+#ifndef HvNAME_get
+#  define HvNAME_get(hv)                 HvNAME(hv)
+#endif
+#ifndef HvNAMELEN_get
+#  define HvNAMELEN_get(hv)              (HvNAME_get(hv) ? (I32)strlen(HvNAME_get(hv)) : 0)
+#endif
+#ifndef GvSVn
+#  define GvSVn(gv)                      GvSV(gv)
+#endif
+
+#ifndef isGV_with_GP
+#  define isGV_with_GP(gv)               isGV(gv)
+#endif
 #ifndef WARN_ALL
 #  define WARN_ALL                       0
 #endif
@@ -5560,6 +5628,17 @@ DPPP_(my_warner)(U32 err, const char *pat, ...)
 
 #ifndef hv_stores
 #  define hv_stores(hv, key, val)        hv_store(hv, key "", sizeof(key) - 1, val, 0)
+#endif
+#ifndef gv_fetchpvn_flags
+#  define gv_fetchpvn_flags(name, len, flags, svt) gv_fetchpv(name, flags, svt)
+#endif
+
+#ifndef gv_fetchpvs
+#  define gv_fetchpvs(name, flags, svt)  gv_fetchpvn_flags(name "", sizeof(name) - 1, flags, svt)
+#endif
+
+#ifndef gv_stashpvs
+#  define gv_stashpvs(name, flags)       gv_stashpvn(name "", sizeof(name) - 1, flags)
 #endif
 #ifndef SvGETMAGIC
 #  define SvGETMAGIC(x)                  STMT_START { if (SvGMAGICAL(x)) mg_get(x); } STMT_END
