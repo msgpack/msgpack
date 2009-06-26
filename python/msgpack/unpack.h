@@ -16,24 +16,10 @@
  *    limitations under the License.
  */
 
-#include <map>
-#include <string>
-#include <stack>
-
 #define MSGPACK_MAX_STACK_SIZE  (1024)
 #include "unpack_define.h"
 
-typedef std::map<std::string, PyObject*> str_cach_t;
 struct unpack_user {
-    str_cach_t strcache;
-
-    ~unpack_user() {
-        str_cach_t::iterator it, itend;
-        itend = strcache.end();
-        for (it = strcache.begin(); it != itend; ++it) {
-            Py_DECREF(it->second);
-        }
-    }
 };
 
 
@@ -181,31 +167,11 @@ static inline int template_callback_map_item(unpack_user* u, msgpack_unpack_obje
 static inline int template_callback_raw(unpack_user* u, const char* b, const char* p, unsigned int l, msgpack_unpack_object* o)
 {
     PyObject *py;
-    if (l < 16) {
-        std::string s(p, l);
-        str_cach_t ::iterator it = u->strcache.find(s);
-        if (it != u->strcache.end()) {
-            *o = it->second;
-            Py_INCREF(*o);
-            return 0;
-        }
-        else {
-            py = PyString_FromStringAndSize(p, l);
-            if (!py)
-                return -1;
-            *o = py;
-            Py_INCREF(*o);
-            u->strcache[s] = *o;
-            return 0;
-        }
-    }
-    else {
-        py = PyString_FromStringAndSize(p, l);
-        if (!py)
-            return -1;
-        *o = py;
-        return 0;
-    }
+    py = PyString_FromStringAndSize(p, l);
+    if (!py)
+        return -1;
+    *o = py;
+    return 0;
 }
 
 #include "unpack_template.h"
