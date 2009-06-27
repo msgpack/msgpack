@@ -1,0 +1,31 @@
+===========================
+MessagePack Python Binding
+===========================
+
+:author: Naoki INADA
+:version: 0.0.1
+:date: 2009-06-27
+
+HOW TO USE
+-----------
+You can read document in docstring after `import msgpack`
+
+
+INSTALL
+---------
+Cython_ is required to build the binding.
+
+.. _Cython: http://www.cython.org/
+
+Posix
+''''''
+You can install msgpack in common way.
+
+    $ python setup.py install
+
+Windows
+''''''''
+MessagePack requires gcc currently. So you need to prepare
+MinGW GCC.
+
+    $ python setup.py install -c mingw
