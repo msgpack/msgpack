@@ -19,8 +19,8 @@
 #define MSGPACK_MAX_STACK_SIZE  (1024)
 #include "unpack_define.h"
 
-struct unpack_user {
-};
+typedef struct unpack_user {
+} unpack_user;
 
 
 #define msgpack_unpack_struct(name) \

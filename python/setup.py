@@ -10,7 +10,6 @@ version = '0.0.1dev'
 PACKAGE_ROOT = os.getcwdu()
 INCLUDE_PATH = os.path.join(PACKAGE_ROOT, 'include')
 msgpack_mod = Extension('msgpack._msgpack',
-                        language="c++",
                         sources=['msgpack/_msgpack.pyx'],
                         include_dirs=[INCLUDE_PATH])
 
