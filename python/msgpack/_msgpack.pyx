@@ -7,6 +7,8 @@ cdef extern from "Python.h":
     ctypedef struct PyObject
     cdef object PyString_FromStringAndSize(const_char_ptr b, Py_ssize_t len)
     char* PyString_AsString(object o)
+    int PyMapping_Check(object o)
+    int PySequence_Check(object o)
 
 cdef extern from "stdlib.h":
     void* malloc(size_t)
@@ -37,7 +39,7 @@ cdef extern from "pack.h":
     void msgpack_pack_raw_body(msgpack_packer* pk, char* body, size_t l)
 
 
-cdef class Packer:
+cdef class Packer(object):
     """Packer that pack data into strm.
 
     strm must have `write(bytes)` method.
@@ -99,7 +101,8 @@ cdef class Packer:
         msgpack_pack_map(&self.pk, len)
 
     cdef __pack(self, object o):
-        cdef long long intval
+        cdef long long llval
+        cdef long longval
         cdef double fval
         cdef char* rawval 
 
@@ -110,11 +113,11 @@ cdef class Packer:
         elif o is False:
             msgpack_pack_false(&self.pk)
         elif isinstance(o, long):
-            intval = o
-            msgpack_pack_long_long(&self.pk, intval)
+            llval = o
+            msgpack_pack_long_long(&self.pk, llval)
         elif isinstance(o, int):
-            intval = o
-            msgpack_pack_long_long(&self.pk, intval)
+            longval = o
+            msgpack_pack_long_long(&self.pk, longval)
         elif isinstance(o, float):
             fval = o
             msgpack_pack_double(&self.pk, fval)
@@ -127,12 +130,12 @@ cdef class Packer:
             rawval = o
             msgpack_pack_raw(&self.pk, len(o))
             msgpack_pack_raw_body(&self.pk, rawval, len(o))
-        elif isinstance(o, dict):
+        elif PyMapping_Check(o):
             msgpack_pack_map(&self.pk, len(o))
             for k,v in o.iteritems():
                 self.pack(k)
                 self.pack(v)
-        elif isinstance(o, tuple) or isinstance(o, list):
+        elif PySequence_Check(o):
             msgpack_pack_array(&self.pk, len(o))
             for v in o:
                 self.pack(v)
