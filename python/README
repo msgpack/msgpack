@@ -29,3 +29,10 @@ MessagePack requires gcc currently. So you need to prepare
 MinGW GCC.
 
     $ python setup.py install -c mingw
+
+TEST
+----
+MessagePack uses nosetest for testing.
+Run test with following command:
+
+    $ nosetests test
