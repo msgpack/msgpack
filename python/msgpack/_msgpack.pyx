@@ -31,6 +31,7 @@ cdef extern from "pack.h":
     void msgpack_pack_nil(msgpack_packer* pk)
     void msgpack_pack_true(msgpack_packer* pk)
     void msgpack_pack_false(msgpack_packer* pk)
+    void msgpack_pack_long(msgpack_packer* pk, long d)
     void msgpack_pack_long_long(msgpack_packer* pk, long long d)
     void msgpack_pack_double(msgpack_packer* pk, double d)
     void msgpack_pack_array(msgpack_packer* pk, size_t l)
@@ -60,7 +61,7 @@ cdef class Packer(object):
         msgpack_packer_init(&self.pk, <void*>self, <msgpack_packer_write>_packer_write)
 
     def __del__(self):
-        free(self.buff);
+        free(self.buff)
 
     def flush(self):
         """Flash local buffer and output stream if it has 'flush()' method."""
@@ -117,7 +118,7 @@ cdef class Packer(object):
             msgpack_pack_long_long(&self.pk, llval)
         elif isinstance(o, int):
             longval = o
-            msgpack_pack_long_long(&self.pk, longval)
+            msgpack_pack_long(&self.pk, longval)
         elif isinstance(o, float):
             fval = o
             msgpack_pack_double(&self.pk, fval)
@@ -133,12 +134,12 @@ cdef class Packer(object):
         elif PyMapping_Check(o):
             msgpack_pack_map(&self.pk, len(o))
             for k,v in o.iteritems():
-                self.pack(k)
-                self.pack(v)
+                self.__pack(k)
+                self.__pack(v)
         elif PySequence_Check(o):
             msgpack_pack_array(&self.pk, len(o))
             for v in o:
-                self.pack(v)
+                self.__pack(v)
         else:
             # TODO: Serialize with defalt() like simplejson.
             raise TypeError, "can't serialize %r" % (o,)
@@ -154,7 +155,7 @@ cdef int _packer_write(Packer packer, const_char_ptr b, unsigned int l):
     if packer.length + l > packer.allocated:
         if packer.length > 0:
             packer.strm.write(PyString_FromStringAndSize(packer.buff, packer.length))
-        if l > 64:
+        if l > packer.allocated/4:
             packer.strm.write(PyString_FromStringAndSize(b, l))
             packer.length = 0
         else:
@@ -176,7 +177,6 @@ def packb(object o):
     buf = StringIO()
     packer = Packer(buf)
     packer.pack(o)
-    packer.flush()
     return buf.getvalue()
 
 packs = packb

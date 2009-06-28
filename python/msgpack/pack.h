@@ -34,9 +34,6 @@ typedef struct msgpack_packer {
 
 static inline void msgpack_packer_init(msgpack_packer* pk, void* data, msgpack_packer_write callback);
 
-static inline msgpack_packer* msgpack_packer_new(void* data, msgpack_packer_write callback);
-static inline void msgpack_packer_free(msgpack_packer* pk);
-
 static inline int msgpack_pack_short(msgpack_packer* pk, short d);
 static inline int msgpack_pack_int(msgpack_packer* pk, int d);
 static inline int msgpack_pack_long(msgpack_packer* pk, long d);
@@ -89,20 +86,6 @@ static inline void msgpack_packer_init(msgpack_packer* pk, void* data, msgpack_p
 	pk->data = data;
 	pk->callback = callback;
 }
-
-static inline msgpack_packer* msgpack_packer_new(void* data, msgpack_packer_write callback)
-{
-	msgpack_packer* pk = (msgpack_packer*)calloc(1, sizeof(msgpack_packer));
-	if(!pk) { return NULL; }
-	msgpack_packer_init(pk, data, callback);
-	return pk;
-}
-
-static inline void msgpack_packer_free(msgpack_packer* pk)
-{
-	free(pk);
-}
-
 
 #ifdef __cplusplus
 }
