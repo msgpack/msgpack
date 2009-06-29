@@ -7,7 +7,7 @@ from msgpack import packs, unpacks
 
 def check(length, obj):
     v = packs(obj)
-    assert_equal(len(v), length)
+    assert_equal(len(v), length, "%r length should be %r but get %r" % (obj, length, len(v)))
     assert_equal(unpacks(v), obj)
 
 def test_1():
