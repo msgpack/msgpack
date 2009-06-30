@@ -24,15 +24,11 @@
 extern "C" {
 #endif
 
-
-typedef int (*msgpack_packer_write)(void* data, const char* buf, unsigned int len);
-
 typedef struct msgpack_packer {
-	void* data;
-	msgpack_packer_write callback;
+    PyObject* writer;
 } msgpack_packer;
 
-static inline void msgpack_packer_init(msgpack_packer* pk, void* data, msgpack_packer_write callback);
+typedef struct Packer Packer;
 
 static inline int msgpack_pack_short(msgpack_packer* pk, short d);
 static inline int msgpack_pack_int(msgpack_packer* pk, int d);
@@ -66,7 +62,20 @@ static inline int msgpack_pack_map(msgpack_packer* pk, unsigned int n);
 static inline int msgpack_pack_raw(msgpack_packer* pk, size_t l);
 static inline int msgpack_pack_raw_body(msgpack_packer* pk, const void* b, size_t l);
 
+static inline int msgpack_pack_write(msgpack_packer* pk, const char *data, size_t l)
+{
+    PyObject *buf, *ret;
 
+    buf = PyBuffer_FromMemory((void*)data, l);
+    //buf = PyString_FromStringAndSize(data, l);
+    if (buf == NULL) return -1;
+
+    ret = PyObject_CallFunctionObjArgs(pk->writer, buf, NULL);
+    Py_DECREF(buf);
+    if (ret == NULL) return -1;
+    Py_DECREF(ret);
+    return 0;
+}
 
 #define msgpack_pack_inline_func(name) \
 	static inline int msgpack_pack ## name
@@ -77,15 +86,9 @@ static inline int msgpack_pack_raw_body(msgpack_packer* pk, const void* b, size_
 #define msgpack_pack_user msgpack_packer*
 
 #define msgpack_pack_append_buffer(user, buf, len) \
-	return (*(user)->callback)((user)->data, (const char*)buf, len)
+        return msgpack_pack_write(user, (const char*)buf, len)
 
 #include "pack_template.h"
-
-static inline void msgpack_packer_init(msgpack_packer* pk, void* data, msgpack_packer_write callback)
-{
-	pk->data = data;
-	pk->callback = callback;
-}
 
 #ifdef __cplusplus
 }

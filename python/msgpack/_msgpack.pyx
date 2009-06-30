@@ -1,16 +1,23 @@
 # coding: utf-8
 
-from cStringIO import StringIO
+import cStringIO
 
 cdef extern from "Python.h":
     ctypedef char* const_char_ptr "const char*"
     ctypedef struct PyObject
     cdef object PyString_FromStringAndSize(const_char_ptr b, Py_ssize_t len)
+    PyObject* Py_True
+    PyObject* Py_False
     char* PyString_AsString(object o)
     int PyMapping_Check(object o)
     int PySequence_Check(object o)
     long long PyLong_AsLongLong(object o)
     unsigned long long PyLong_AsUnsignedLongLong(object o)
+    int PyLong_Check(object o)
+    int PyInt_Check(object o)
+    int PyFloat_Check(object o)
+    int PyString_Check(object o)
+    int PyUnicode_Check(object o)
 
 cdef extern from "stdlib.h":
     void* malloc(size_t)
@@ -22,13 +29,9 @@ cdef extern from "string.h":
     void* memmove(char* dst, char* src, size_t size)
 
 cdef extern from "pack.h":
-    ctypedef int (*msgpack_packer_write)(void* data, const_char_ptr buf, unsigned int len)
-
     struct msgpack_packer:
-        void *data
-        msgpack_packer_write callback
+        PyObject* writer
 
-    void msgpack_packer_init(msgpack_packer* pk, void* data, msgpack_packer_write callback)
     int msgpack_pack_int(msgpack_packer* pk, int d)
     int msgpack_pack_nil(msgpack_packer* pk)
     int msgpack_pack_true(msgpack_packer* pk)
@@ -49,28 +52,17 @@ cdef class Packer(object):
     strm must have `write(bytes)` method.
     size specifies local buffer size.
     """
-    cdef char* buff
-    cdef unsigned int length
-    cdef unsigned int allocated
     cdef msgpack_packer pk
     cdef object strm
+    cdef object writer
 
-    def __init__(self, strm, int size=4*1024):
-        self.strm = strm
-        self.buff = <char*> malloc(size)
-        self.allocated = size
-        self.length = 0
-
-        msgpack_packer_init(&self.pk, <void*>self, <msgpack_packer_write>_packer_write)
-
-    def __del__(self):
-        free(self.buff)
+    def __init__(self, strm_, int size=4*1024):
+        self.strm = strm_
+        self.writer = strm_.write
+        self.pk.writer = <PyObject*>self.writer
 
     def flush(self):
         """Flash local buffer and output stream if it has 'flush()' method."""
-        if self.length > 0:
-            self.strm.write(PyString_FromStringAndSize(self.buff, self.length))
-            self.length = 0
         if hasattr(self.strm, 'flush'):
             self.strm.flush()
 
@@ -113,28 +105,28 @@ cdef class Packer(object):
 
         if o is None:
             msgpack_pack_nil(&self.pk)
-        elif o is True:
+        elif <PyObject*>o == Py_True:
             msgpack_pack_true(&self.pk)
-        elif o is False:
+        elif <PyObject*>o == Py_False:
             msgpack_pack_false(&self.pk)
-        elif isinstance(o, long):
+        elif PyLong_Check(o):
             if o > 0:
                 ullval = PyLong_AsUnsignedLongLong(o)
                 msgpack_pack_unsigned_long_long(&self.pk, ullval)
             else:
                 llval = PyLong_AsLongLong(o)
                 msgpack_pack_long_long(&self.pk, llval)
-        elif isinstance(o, int):
+        elif PyInt_Check(o):
             longval = o
             msgpack_pack_long(&self.pk, longval)
-        elif isinstance(o, float):
+        elif PyFloat_Check(o):
             fval = o
             msgpack_pack_double(&self.pk, fval)
-        elif isinstance(o, str):
+        elif PyString_Check(o):
             rawval = o
             msgpack_pack_raw(&self.pk, len(o))
             msgpack_pack_raw_body(&self.pk, rawval, len(o))
-        elif isinstance(o, unicode):
+        elif PyUnicode_Check(o):
             o = o.encode('utf-8')
             rawval = o
             msgpack_pack_raw(&self.pk, len(o))
@@ -152,27 +144,12 @@ cdef class Packer(object):
             # TODO: Serialize with defalt() like simplejson.
             raise TypeError, "can't serialize %r" % (o,)
 
-    def pack(self, obj, flush=True):
+    def pack(self, object obj, flush=True):
         self.__pack(obj)
         if flush:
             self.flush()
 
     close = flush
-
-cdef int _packer_write(Packer packer, const_char_ptr b, unsigned int l):
-    if packer.length + l > packer.allocated:
-        if packer.length > 0:
-            packer.strm.write(PyString_FromStringAndSize(packer.buff, packer.length))
-        if l > packer.allocated/4:
-            packer.strm.write(PyString_FromStringAndSize(b, l))
-            packer.length = 0
-        else:
-            memcpy(packer.buff, b, l)
-            packer.length = l
-    else:
-        memcpy(packer.buff + packer.length, b, l)
-        packer.length += l
-    return 0
 
 def pack(object o, object stream):
     u"""pack o and write to stream)."""
@@ -182,7 +159,7 @@ def pack(object o, object stream):
 
 def packb(object o):
     u"""pack o and return packed bytes."""
-    buf = StringIO()
+    buf = cStringIO.StringIO()
     packer = Packer(buf)
     packer.pack(o)
     return buf.getvalue()
