@@ -18,6 +18,7 @@ cdef extern from "Python.h":
     int PyFloat_Check(object o)
     int PyString_Check(object o)
     int PyUnicode_Check(object o)
+    object PyBuffer_FromMemory(const_char_ptr b, Py_ssize_t len)
 
 cdef extern from "stdlib.h":
     void* malloc(size_t)
@@ -30,7 +31,9 @@ cdef extern from "string.h":
 
 cdef extern from "pack.h":
     struct msgpack_packer:
-        PyObject* writer
+        char* buf
+        size_t length
+        size_t buf_size
 
     int msgpack_pack_int(msgpack_packer* pk, int d)
     int msgpack_pack_nil(msgpack_packer* pk)
@@ -56,45 +59,16 @@ cdef class Packer(object):
     cdef object strm
     cdef object writer
 
-    def __init__(self, strm_, int size=4*1024):
-        self.strm = strm_
-        self.writer = strm_.write
-        self.pk.writer = <PyObject*>self.writer
+    def __init__(self, strm):
+        self.strm = strm
 
-    def flush(self):
-        """Flash local buffer and output stream if it has 'flush()' method."""
-        if hasattr(self.strm, 'flush'):
-            self.strm.flush()
+        cdef int buf_size = 1024*1024
+        self.pk.buf = <char*> malloc(buf_size);
+        self.pk.buf_size = buf_size
+        self.pk.length = 0
 
-    def pack_list(self, len):
-        """Start packing sequential objects.
-
-        Example:
-
-            packer.pack_list(2)
-            packer.pack('foo')
-            packer.pack('bar')
-
-        This is same to:
-
-            packer.pack(['foo', 'bar'])
-        """
-        msgpack_pack_array(&self.pk, len)
-
-    def pack_dict(self, len):
-        """Start packing key-value objects.
-
-        Example:
-
-            packer.pack_dict(1)
-            packer.pack('foo')
-            packer.pack('bar')
-
-        This is same to:
-
-            packer.pack({'foo': 'bar'})
-        """
-        msgpack_pack_map(&self.pk, len)
+    def __del__(self):
+        free(self.pk.buf);
 
     cdef __pack(self, object o):
         cdef long long llval
@@ -144,10 +118,18 @@ cdef class Packer(object):
             # TODO: Serialize with defalt() like simplejson.
             raise TypeError, "can't serialize %r" % (o,)
 
-    def pack(self, object obj, flush=True):
+    def pack(self, object obj, object flush=True):
         self.__pack(obj)
+        buf = PyBuffer_FromMemory(self.pk.buf, self.pk.length)
+        self.pk.length = 0
+        self.strm.write(buf)
         if flush:
             self.flush()
+
+    def flush(self):
+        """Flash local buffer and output stream if it has 'flush()' method."""
+        if hasattr(self.strm, 'flush'):
+            self.strm.flush()
 
     close = flush
 

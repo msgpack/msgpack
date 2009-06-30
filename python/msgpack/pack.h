@@ -25,7 +25,9 @@ extern "C" {
 #endif
 
 typedef struct msgpack_packer {
-    PyObject* writer;
+    char *buf;
+    size_t length;
+    size_t buf_size;
 } msgpack_packer;
 
 typedef struct Packer Packer;
@@ -64,16 +66,21 @@ static inline int msgpack_pack_raw_body(msgpack_packer* pk, const void* b, size_
 
 static inline int msgpack_pack_write(msgpack_packer* pk, const char *data, size_t l)
 {
-    PyObject *buf, *ret;
+    char* buf = pk->buf;
+    size_t bs = pk->buf_size;
+    size_t len = pk->length;
 
-    buf = PyBuffer_FromMemory((void*)data, l);
-    //buf = PyString_FromStringAndSize(data, l);
-    if (buf == NULL) return -1;
+    if (len + l > bs) {
+        bs = (len + l) * 2;
+        buf = realloc(pk->buf, bs);
+        if (!buf) return -1;
+    }
+    memcpy(buf + len, data, l);
+    len += l;
 
-    ret = PyObject_CallFunctionObjArgs(pk->writer, buf, NULL);
-    Py_DECREF(buf);
-    if (ret == NULL) return -1;
-    Py_DECREF(ret);
+    pk->buf = buf;
+    pk->buf_size = bs;
+    pk->length = len;
     return 0;
 }
 
