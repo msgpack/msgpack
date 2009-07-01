@@ -19,3 +19,4 @@
 ^\.shipit$
 ^\.git/
 \.sw[pon]$
+^\.gitignore$

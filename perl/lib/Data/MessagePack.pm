@@ -4,7 +4,7 @@ use warnings;
 use XSLoader;
 use 5.008001;
 
-our $VERSION = 0.01;
+our $VERSION = '0.01';
 
 XSLoader::load(__PACKAGE__, $VERSION);
 
