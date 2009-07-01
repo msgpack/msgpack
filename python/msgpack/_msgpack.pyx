@@ -5,20 +5,22 @@ import cStringIO
 cdef extern from "Python.h":
     ctypedef char* const_char_ptr "const char*"
     ctypedef struct PyObject
+
     cdef object PyString_FromStringAndSize(const_char_ptr b, Py_ssize_t len)
-    PyObject* Py_True
-    PyObject* Py_False
-    char* PyString_AsString(object o)
-    int PyMapping_Check(object o)
-    int PySequence_Check(object o)
-    long long PyLong_AsLongLong(object o)
-    unsigned long long PyLong_AsUnsignedLongLong(object o)
-    int PyLong_Check(object o)
-    int PyInt_Check(object o)
-    int PyFloat_Check(object o)
-    int PyString_Check(object o)
-    int PyUnicode_Check(object o)
-    object PyBuffer_FromMemory(const_char_ptr b, Py_ssize_t len)
+    cdef PyObject* Py_True
+    cdef PyObject* Py_False
+
+    cdef char* PyString_AsString(object o)
+    cdef long long PyLong_AsLongLong(object o)
+    cdef unsigned long long PyLong_AsUnsignedLongLong(object o)
+
+    cdef int PyMapping_Check(object o)
+    cdef int PySequence_Check(object o)
+    cdef int PyLong_Check(object o)
+    cdef int PyInt_Check(object o)
+    cdef int PyFloat_Check(object o)
+    cdef int PyString_Check(object o)
+    cdef int PyUnicode_Check(object o)
 
 cdef extern from "stdlib.h":
     void* malloc(size_t)
@@ -50,101 +52,101 @@ cdef extern from "pack.h":
 
 
 cdef class Packer(object):
-    """Packer that pack data into strm.
+    """MessagePack Packer
+    
+    usage:
 
-    strm must have `write(bytes)` method.
-    size specifies local buffer size.
+        packer = Packer()
+        astream.write(packer.pack(a))
+        astream.write(packer.pack(b))
     """
     cdef msgpack_packer pk
-    cdef object strm
-    cdef object writer
 
-    def __init__(self, strm):
-        self.strm = strm
-
+    def __cinit__(self):
         cdef int buf_size = 1024*1024
         self.pk.buf = <char*> malloc(buf_size);
         self.pk.buf_size = buf_size
         self.pk.length = 0
 
-    def __del__(self):
+    def __dealloc__(self):
         free(self.pk.buf);
 
-    cdef __pack(self, object o):
+    cdef int __pack(self, object o):
         cdef long long llval
         cdef unsigned long long ullval
         cdef long longval
         cdef double fval
         cdef char* rawval 
+        cdef int ret
 
         if o is None:
-            msgpack_pack_nil(&self.pk)
+            ret = msgpack_pack_nil(&self.pk)
         elif <PyObject*>o == Py_True:
-            msgpack_pack_true(&self.pk)
+            ret = msgpack_pack_true(&self.pk)
         elif <PyObject*>o == Py_False:
-            msgpack_pack_false(&self.pk)
+            ret = msgpack_pack_false(&self.pk)
         elif PyLong_Check(o):
             if o > 0:
                 ullval = PyLong_AsUnsignedLongLong(o)
-                msgpack_pack_unsigned_long_long(&self.pk, ullval)
+                ret = msgpack_pack_unsigned_long_long(&self.pk, ullval)
             else:
                 llval = PyLong_AsLongLong(o)
-                msgpack_pack_long_long(&self.pk, llval)
+                ret = msgpack_pack_long_long(&self.pk, llval)
         elif PyInt_Check(o):
             longval = o
-            msgpack_pack_long(&self.pk, longval)
+            ret = msgpack_pack_long(&self.pk, longval)
         elif PyFloat_Check(o):
             fval = o
-            msgpack_pack_double(&self.pk, fval)
+            ret = msgpack_pack_double(&self.pk, fval)
         elif PyString_Check(o):
             rawval = o
-            msgpack_pack_raw(&self.pk, len(o))
-            msgpack_pack_raw_body(&self.pk, rawval, len(o))
+            ret = msgpack_pack_raw(&self.pk, len(o))
+            if ret == 0:
+                ret = msgpack_pack_raw_body(&self.pk, rawval, len(o))
         elif PyUnicode_Check(o):
             o = o.encode('utf-8')
             rawval = o
-            msgpack_pack_raw(&self.pk, len(o))
-            msgpack_pack_raw_body(&self.pk, rawval, len(o))
+            ret = msgpack_pack_raw(&self.pk, len(o))
+            if ret == 0:
+                ret = msgpack_pack_raw_body(&self.pk, rawval, len(o))
         elif PyMapping_Check(o):
-            msgpack_pack_map(&self.pk, len(o))
-            for k,v in o.iteritems():
-                self.__pack(k)
-                self.__pack(v)
+            ret = msgpack_pack_map(&self.pk, len(o))
+            if ret == 0:
+                for k,v in o.iteritems():
+                    ret = self.__pack(k)
+                    if ret != 0: break
+                    ret = self.__pack(v)
+                    if ret != 0: break
         elif PySequence_Check(o):
-            msgpack_pack_array(&self.pk, len(o))
-            for v in o:
-                self.__pack(v)
+            ret = msgpack_pack_array(&self.pk, len(o))
+            if ret == 0:
+                for v in o:
+                    ret = self.__pack(v)
+                    if ret != 0: break
         else:
             # TODO: Serialize with defalt() like simplejson.
             raise TypeError, "can't serialize %r" % (o,)
+        return ret
 
-    def pack(self, object obj, object flush=True):
-        self.__pack(obj)
-        buf = PyBuffer_FromMemory(self.pk.buf, self.pk.length)
+    def pack(self, object obj):
+        cdef int ret
+        ret = self.__pack(obj)
+        if ret:
+            raise TypeError
+        buf = PyString_FromStringAndSize(self.pk.buf, self.pk.length)
         self.pk.length = 0
-        self.strm.write(buf)
-        if flush:
-            self.flush()
+        return buf
 
-    def flush(self):
-        """Flash local buffer and output stream if it has 'flush()' method."""
-        if hasattr(self.strm, 'flush'):
-            self.strm.flush()
-
-    close = flush
 
 def pack(object o, object stream):
-    u"""pack o and write to stream)."""
-    packer = Packer(stream)
-    packer.pack(o)
-    packer.flush()
+    """pack a object `o` and write it to stream)."""
+    packer = Packer()
+    stream.write(packer.pack(o))
 
 def packb(object o):
-    u"""pack o and return packed bytes."""
-    buf = cStringIO.StringIO()
-    packer = Packer(buf)
-    packer.pack(o)
-    return buf.getvalue()
+    """pack o and return packed bytes."""
+    packer = Packer()
+    return packer.pack(o)
 
 packs = packb
 
@@ -222,7 +224,14 @@ cdef class Unpacker(object):
     cdef int read_size
     cdef object waiting_bytes
 
-    def __init__(self, file_like=None, int read_size=4096):
+    def __cinit__(self):
+        self.buf = NULL
+
+    def __dealloc__(self):
+        if self.buf:
+            free(self.buf);
+
+    def __init__(self, file_like=None, int read_size=1024*1024):
         self.file_like = file_like
         self.read_size = read_size
         self.waiting_bytes = []
