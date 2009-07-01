@@ -2,6 +2,7 @@ package Data::MessagePack;
 use strict;
 use warnings;
 use XSLoader;
+use 5.008001;
 
 our $VERSION = 0.01;
 
