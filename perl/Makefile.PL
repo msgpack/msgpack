@@ -6,12 +6,9 @@ perl_version '5.008005';
 license 'perl';
 can_cc or die "This module requires a C compiler";
 
-my $ccflags = '.';
-
 makemaker_args(
     OBJECT => '$(O_FILES)',
     LIBS => [''],
-    CCFLAGS => $ccflags,
     clean => {
         FILES => q{
             *.stackdump
