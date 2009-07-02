@@ -288,3 +288,14 @@ XS(xs_unpacker_reset) {
     XSRETURN(0);
 }
 
+XS(xs_unpacker_destroy) {
+    dXSARGS;
+    if (items != 1) {
+        Perl_croak(aTHX_ "Usage: $unpacker->DESTROY()");
+    }
+
+	UNPACKER(ST(0), mp);
+    Safefree(mp);
+
+    XSRETURN(0);
+}

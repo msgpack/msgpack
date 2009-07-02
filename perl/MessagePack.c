@@ -18,6 +18,7 @@ XS(xs_unpacker_execute_limit);
 XS(xs_unpacker_is_finished);
 XS(xs_unpacker_data);
 XS(xs_unpacker_reset);
+XS(xs_unpacker_destroy);
 
 XS(boot_Data__MessagePack) {
     dXSARGS;
@@ -35,6 +36,6 @@ XS(boot_Data__MessagePack) {
     newXS("Data::MessagePack::Unpacker::is_finished",   xs_unpacker_is_finished, __FILE__);
     newXS("Data::MessagePack::Unpacker::data",          xs_unpacker_data, __FILE__);
     newXS("Data::MessagePack::Unpacker::reset",         xs_unpacker_reset, __FILE__);
-
+    newXS("Data::MessagePack::Unpacker::DESTROY",       xs_unpacker_destroy, __FILE__);
 }
 
