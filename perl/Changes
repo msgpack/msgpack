@@ -1,3 +1,8 @@
+0.02
+
+    - added $Data::MessagePack::PreferInteger
+      (requested by yappo++)
+
 0.01
 
     - initial release to CPAN
