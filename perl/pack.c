@@ -131,9 +131,10 @@ static void _msgpack_pack_sv(enc_t *enc, SV* val) {
         if (SvPOKp(val)) {
             STRLEN len;
             char * cval = SvPV(val, len);
+            const int U32_STRLEN = 10; /* length(0xFFFFFFFF) */
 
             SV* pref_int = get_sv("Data::MessagePack::PreferInteger", 0);
-            if (pref_int && SvTRUE(pref_int) && looks_like_int(cval, len) && SvUV(val) < U32_MAX) {
+            if (pref_int && SvTRUE(pref_int) && len <= U32_STRLEN && looks_like_int(cval, len) && SvUV(val) < U32_MAX) {
                 PACK_WRAPPER(uint32)(enc, SvUV(val));
                 return;
             }
