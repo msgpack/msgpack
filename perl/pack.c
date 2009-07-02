@@ -26,7 +26,7 @@ typedef struct {
     char *end; /* SvEND (sv) */
     SV *sv;    /* result scalar */
 } enc_t;
-void need(enc_t *enc, STRLEN len);
+static void need(enc_t *enc, STRLEN len);
 
 #define msgpack_pack_user enc_t*
 
@@ -41,7 +41,7 @@ void need(enc_t *enc, STRLEN len);
 #define PACK_WRAPPER(t) _PACK_WRAPPER(t)
 #define INIT_SIZE   32 /* initial scalar size to be allocated */
 
-void need(enc_t *enc, STRLEN len)
+static void need(enc_t *enc, STRLEN len)
 {
     if (enc->cur + len >= enc->end) {
         STRLEN cur = enc->cur - (char *)SvPVX (enc->sv);
@@ -83,15 +83,59 @@ void boot_Data__MessagePack_pack(void) {
 }
 
 
-static int looks_like_int(const char *str, size_t len) {
-    int i;
-    for (i=0; i<len; i++) {
-        if (!isDIGIT(str[i])) {
-            return 0;
-        }
+static int try_int(enc_t* enc, const char *p, size_t len) {
+    int negative = 0;
+    const char* pe = p + len;
+    uint64_t num = 0;
+
+    if (len == 0) { return 0; }
+
+    if (*p == '-') {
+        /* length(-0x80000000) == 11 */
+        if (len <= 1 || len > 11) { return 0; }
+        negative = 1;
+        ++p;
+    } else {
+        /* length(0xFFFFFFFF) == 10 */
+        if (len > 10) { return 0; }
     }
+
+#if '9'=='8'+1 && '8'=='7'+1 && '7'=='6'+1 && '6'=='5'+1 && '5'=='4'+1 \
+               && '4'=='3'+1 && '3'=='2'+1 && '2'=='1'+1 && '1'=='0'+1
+    do {
+        unsigned int c = ((int)*(p++)) - '0';
+        if (c > 9) { return 0; }
+        num = num * 10 + c;
+    } while(p < pe);
+#else
+    do {
+        switch (*(p++)) {
+        case '0': num = num * 10 + 0; break;
+        case '1': num = num * 10 + 1; break;
+        case '2': num = num * 10 + 2; break;
+        case '3': num = num * 10 + 3; break;
+        case '4': num = num * 10 + 4; break;
+        case '5': num = num * 10 + 5; break;
+        case '6': num = num * 10 + 6; break;
+        case '7': num = num * 10 + 7; break;
+        case '8': num = num * 10 + 8; break;
+        case '9': num = num * 10 + 9; break;
+        default: return 0;
+        }
+    } while(p < pe);
+#endif
+
+    if (negative) {
+        if (num > 0x80000000) { return 0; }
+        msgpack_pack_int32(enc, ((int32_t)num) * -1);
+    } else {
+        if (num > 0xFFFFFFFF) { return 0; }
+        msgpack_pack_uint32(enc, (uint32_t)num);
+    }
+
     return 1;
 }
+
 
 static void _msgpack_pack_sv(enc_t *enc, SV* val) {
     if (val==NULL) {
@@ -163,10 +207,8 @@ static void _msgpack_pack_sv(enc_t *enc, SV* val) {
         if (SvPOKp(val)) {
             STRLEN len;
             char * cval = SvPV(val, len);
-            const int U32_STRLEN = 10; /* length(0xFFFFFFFF) */
 
-            if (s_pref_int && len <= U32_STRLEN && looks_like_int(cval, len) && SvUV(val) < U32_MAX) {
-                PACK_WRAPPER(uint32)(enc, SvUV(val));
+            if (s_pref_int && try_int(enc, cval, len)) {
                 return;
             }
 
