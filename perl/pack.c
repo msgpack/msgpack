@@ -51,6 +51,38 @@ void need(enc_t *enc, STRLEN len)
     }
 }
 
+
+static int s_pref_int = 0;
+
+static int pref_int_set(pTHX_ SV* sv, MAGIC* mg) {
+    if (SvTRUE(sv)) {
+        s_pref_int = 1;
+    } else {
+        s_pref_int = 0;
+    }
+    return 0;
+}
+
+MGVTBL pref_int_vtbl = {
+    NULL,
+    pref_int_set,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+#ifdef MGf_LOCAL
+    NULL,
+#endif
+};
+
+void boot_Data__MessagePack_pack(void) {
+    SV* var = get_sv("Data::MessagePack::PreferInteger", 0);
+    sv_magicext(var, NULL, PERL_MAGIC_ext, &pref_int_vtbl, NULL, 0);
+    SvSETMAGIC(var);
+}
+
+
 static int looks_like_int(const char *str, size_t len) {
     int i;
     for (i=0; i<len; i++) {
@@ -133,8 +165,7 @@ static void _msgpack_pack_sv(enc_t *enc, SV* val) {
             char * cval = SvPV(val, len);
             const int U32_STRLEN = 10; /* length(0xFFFFFFFF) */
 
-            SV* pref_int = get_sv("Data::MessagePack::PreferInteger", 0);
-            if (pref_int && SvTRUE(pref_int) && len <= U32_STRLEN && looks_like_int(cval, len) && SvUV(val) < U32_MAX) {
+            if (s_pref_int && len <= U32_STRLEN && looks_like_int(cval, len) && SvUV(val) < U32_MAX) {
                 PACK_WRAPPER(uint32)(enc, SvUV(val));
                 return;
             }

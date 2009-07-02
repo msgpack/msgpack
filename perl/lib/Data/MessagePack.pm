@@ -5,6 +5,7 @@ use XSLoader;
 use 5.008001;
 
 our $VERSION = '0.02';
+our $PreferInteger = 0;
 
 XSLoader::load(__PACKAGE__, $VERSION);
 
