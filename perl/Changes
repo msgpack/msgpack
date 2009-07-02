@@ -1,3 +1,8 @@
+0.03
+
+    - performance tuning for too long string
+    - fixed memory leaks in stream unpacker
+
 0.02
 
     - added $Data::MessagePack::PreferInteger
