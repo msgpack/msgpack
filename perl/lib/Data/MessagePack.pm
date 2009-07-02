@@ -28,7 +28,7 @@ Data::MessagePack is a binary packer for perl.
 
 =over 4
 
-=item $Data::MessagePack::PreferredInteger
+=item $Data::MessagePack::PreferInteger
 
 Pack the string as int when the value looks like int(EXPERIMENTAL).
 

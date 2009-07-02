@@ -31,7 +31,7 @@ my @dat = (
 );
 plan tests => 1*(scalar(@dat)/2);
 
-$Data::MessagePack::PreferredInteger = 1;
+$Data::MessagePack::PreferInteger = 1;
 for (my $i=0; $i<scalar(@dat); ) {
     pis $dat[$i++], $dat[$i++];
 }
