@@ -51,6 +51,16 @@ void need(enc_t *enc, STRLEN len)
     }
 }
 
+static int looks_like_int(const char *str, size_t len) {
+    int i;
+    for (i=0; i<len; i++) {
+        if (!isDIGIT(str[i])) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
 static void _msgpack_pack_sv(enc_t *enc, SV* val) {
     if (val==NULL) {
         msgpack_pack_nil(enc);
@@ -121,6 +131,13 @@ static void _msgpack_pack_sv(enc_t *enc, SV* val) {
         if (SvPOKp(val)) {
             STRLEN len;
             char * cval = SvPV(val, len);
+
+            SV* pref_int = get_sv("Data::MessagePack::PreferredInteger", 0);
+            if (pref_int && SvTRUE(pref_int) && looks_like_int(cval, len) && SvUV(val) < U32_MAX) {
+                PACK_WRAPPER(uint32)(enc, SvUV(val));
+                return;
+            }
+
             msgpack_pack_raw(enc, len);
             msgpack_pack_raw_body(enc, cval, len);
             return;

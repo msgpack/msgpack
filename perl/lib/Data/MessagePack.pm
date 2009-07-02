@@ -24,6 +24,16 @@ Data::MessagePack - messagepack
 
 Data::MessagePack is a binary packer for perl.
 
+=head1 Configuration Variables
+
+=over 4
+
+=item $Data::MessagePack::PreferredInteger
+
+Pack the string as int when the value looks like int(EXPERIMENTAL).
+
+=back
+
 =head1 AUTHORS
 
 Tokuhiro Matsuno
