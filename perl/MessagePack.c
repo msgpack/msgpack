@@ -20,9 +20,13 @@ XS(xs_unpacker_data);
 XS(xs_unpacker_reset);
 XS(xs_unpacker_destroy);
 
+void boot_Data__MessagePack_pack(void);
+
 XS(boot_Data__MessagePack) {
     dXSARGS;
     HV * stash;
+
+    boot_Data__MessagePack_pack();
 
     newXS("Data::MessagePack::pack", xs_pack, __FILE__);
     newXS("Data::MessagePack::unpack", xs_unpack, __FILE__);
