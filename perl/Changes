@@ -1,3 +1,11 @@
+0.04
+
+    - check SvROK first(reported by yappo++)
+    - PreferInteger: faster string to integer conversion; support negative value
+      (frsyuki++)
+    - make PreferInteger variable magical and remove get_sv from _msgpack_pack_sv
+      (frsyuki++)
+
 0.03
 
     - performance tuning for too long string
