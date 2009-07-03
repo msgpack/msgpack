@@ -163,9 +163,6 @@ static void _msgpack_pack_sv(enc_t *enc, SV* val) {
             }
         }
         break;
-    case SVt_NV:
-        PACK_WRAPPER(NVTYPE)(enc, SvNV(val));
-        break;
     case SVt_PVAV:
         {
             AV* ary = (AV*)val;
@@ -212,6 +209,8 @@ static void _msgpack_pack_sv(enc_t *enc, SV* val) {
             msgpack_pack_uint32(enc, SvUV(val));
         } else if (SvIOK(val)) {
             PACK_WRAPPER(IVTYPE)(enc, SvIV(val));
+        } else if (SvNOK(val)) {
+            PACK_WRAPPER(NVTYPE)(enc, SvNV(val));
         } else {
             sv_dump(val);
             Perl_croak(aTHX_ "msgpack for perl doesn't supported this type: %d\n", SvTYPE(val));
