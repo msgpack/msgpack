@@ -38,10 +38,20 @@ my @dat = (
     {'0' => '1'}, '81 00 01',
     {'abc' => '1'}, '81 a3 61 62 63 01',
 );
-plan tests => 1*(scalar(@dat)/2);
+plan tests => 1*(scalar(@dat)/2) + 2;
 
-$Data::MessagePack::PreferInteger = 1;
 for (my $i=0; $i<scalar(@dat); ) {
-    pis $dat[$i++], $dat[$i++];
+    local $Data::MessagePack::PreferInteger = 1;
+    my($x, $y) = ($i++, $i++);
+    pis $dat[$x], $dat[$y];
+}
+
+# flags working?
+{
+    local $Data::MessagePack::PreferInteger;
+    $Data::MessagePack::PreferInteger = 1;
+    pis '0',     '00';
+    $Data::MessagePack::PreferInteger = 0;
+    pis '0',     'a1 30';
 }
 
