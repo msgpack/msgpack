@@ -141,6 +141,9 @@ static void _msgpack_pack_sv(enc_t *enc, SV* val) {
     if (val==NULL) {
         msgpack_pack_nil(enc);
         return;
+    } else if (SvROK(val)) {
+        _msgpack_pack_sv(enc, SvRV(val));
+        return;
     }
 
     switch (SvTYPE(val)) {
@@ -199,9 +202,6 @@ static void _msgpack_pack_sv(enc_t *enc, SV* val) {
                 _msgpack_pack_sv(enc, HeVAL(he));
             }
         }
-        break;
-    case SVt_RV:
-        _msgpack_pack_sv(enc, SvRV(val));
         break;
     default:
         if (SvPOKp(val)) {
