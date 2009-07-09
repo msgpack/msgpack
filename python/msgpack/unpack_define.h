@@ -45,8 +45,21 @@ extern "C" {
 #endif
 #endif
 
+#ifdef __WIN32__
+static inline uint16_t msgpack_betoh16(uint16_t x) {
+	return  ((x <<  8) & 0xff00U) |
+			((x >>  8) & 0x00ffU);
+}
+static inline uint32_t msgpack_betoh32(uint32_t x) {
+	return	((x << 24) & 0xff000000UL ) |
+			((x <<  8) & 0x00ff0000UL ) |
+			((x >>  8) & 0x0000ff00UL ) |
+			((x >> 24) & 0x000000ffUL );
+}
+#else
 #define msgpack_betoh16(x) ntohs(x)
 #define msgpack_betoh32(x) ntohl(x)
+#endif
 
 #ifdef __LITTLE_ENDIAN__
 #if defined(__bswap_64)
