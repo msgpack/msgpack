@@ -139,7 +139,7 @@ cdef class Packer(object):
 
 
 def pack(object o, object stream):
-    """pack a object `o` and write it to stream)."""
+    """pack an object `o` and write it to stream)."""
     packer = Packer()
     stream.write(packer.pack(o))
 
@@ -164,7 +164,7 @@ cdef extern from "unpack.h":
 
 
 def unpackb(object packed_bytes):
-    """Unpack packed_bytes to object. Returns unpacked object."""
+    """Unpack packed_bytes to object. Returns an unpacked object."""
     cdef const_char_ptr p = packed_bytes
     cdef template_context ctx
     cdef size_t off = 0
@@ -179,7 +179,7 @@ def unpackb(object packed_bytes):
 unpacks = unpackb
 
 def unpack(object stream):
-    """unpack from stream."""
+    """unpack an object from stream."""
     packed = stream.read()
     return unpackb(packed)
 
@@ -196,14 +196,14 @@ cdef class UnpackIterator(object):
         return self
 
 cdef class Unpacker(object):
-    """Unpacker(file_like=None, read_size=4096)
+    """Unpacker(file_like=None, read_size=1024*1024)
 
     Streaming unpacker.
     file_like must have read(n) method.
     read_size is used like file_like.read(read_size)
 
-    If file_like is None, you can feed() bytes. feed() is useful
-    for unpack from non-blocking stream.
+    If file_like is None, you can ``feed()`` bytes. ``feed()`` is
+    useful for unpacking from non-blocking stream.
 
     exsample 1:
         unpacker = Unpacker(afile)
