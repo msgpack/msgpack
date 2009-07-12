@@ -7,18 +7,14 @@ import os
 
 version = '0.0.1dev'
 
-PACKAGE_ROOT = os.getcwdu()
-INCLUDE_PATH = os.path.join(PACKAGE_ROOT, 'include')
 msgpack_mod = Extension('msgpack._msgpack',
-                        sources=['msgpack/_msgpack.pyx'],
-                        include_dirs=[INCLUDE_PATH])
+                        sources=['msgpack/_msgpack.pyx']
+                        )
 
-desc = 'MessagePack serializer/desirializer.'
+desc = 'MessagePack (de)serializer.'
 long_desc = desc + """
 
-Python binding of MessagePack_.
-
-This package is under development.
+MessagePack_ (de)serializer for Python.
 
 .. _MessagePack: http://msgpack.sourceforge.jp/
 
@@ -37,4 +33,9 @@ setup(name='msgpack',
       packages=['msgpack'],
       description=desc,
       long_description=long_desc,
+      classifiers=[
+          'Development Status :: 4 - Beta',
+          'Intended Audience :: Developers',
+          'License :: OSI Approved :: Apache Software License',
+          ]
       )

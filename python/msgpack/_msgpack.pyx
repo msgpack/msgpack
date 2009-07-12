@@ -163,7 +163,7 @@ cdef extern from "unpack.h":
     object template_data(template_context* ctx)
 
 
-def unpacks(object packed_bytes):
+def unpackb(object packed_bytes):
     """Unpack packed_bytes to object. Returns unpacked object."""
     cdef const_char_ptr p = packed_bytes
     cdef template_context ctx
@@ -176,10 +176,12 @@ def unpacks(object packed_bytes):
     else:
         return None
 
+unpacks = unpackb
+
 def unpack(object stream):
     """unpack from stream."""
     packed = stream.read()
-    return unpacks(packed)
+    return unpackb(packed)
 
 cdef class UnpackIterator(object):
     cdef object unpacker

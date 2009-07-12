@@ -13,11 +13,11 @@ You can read document in docstring after `import msgpack`
 
 INSTALL
 ---------
-Cython_ is required to build the binding.
+Cython_ is required to build msgpack.
 
 .. _Cython: http://www.cython.org/
 
-Posix
+posix
 ''''''
 You can install msgpack in common way.
 
@@ -28,7 +28,7 @@ Windows
 MessagePack requires gcc currently. So you need to prepare
 MinGW GCC.
 
-    $ python setup.py install -c mingw
+    $ python setup.py install -c mingw32
 
 TEST
 ----
