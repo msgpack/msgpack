@@ -2,14 +2,13 @@
 # coding: utf-8
 
 from distutils.core import setup, Extension
-#from Cython.Distutils import build_ext
+from Cython.Distutils import build_ext
 import os
 
 version = '0.1.0'
 
 msgpack_mod = Extension('msgpack._msgpack',
-                        #sources=['msgpack/_msgpack.pyx']
-                        sources=['msgpack/_msgpack.c']
+                        sources=['msgpack/_msgpack.pyx']
                         )
 
 desc = 'MessagePack (de)serializer.'
@@ -29,7 +28,7 @@ setup(name='msgpack',
       author='Naoki INADA',
       author_email='songofacandy@gmail.com',
       version=version,
-      #cmdclass={'build_ext': build_ext},
+      cmdclass={'build_ext': build_ext},
       ext_modules=[msgpack_mod],
       packages=['msgpack'],
       description=desc,
