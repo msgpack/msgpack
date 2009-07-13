@@ -265,7 +265,11 @@ cdef class Unpacker(object):
         cdef Py_ssize_t add_size
 
         if self.file_like is not None:
-            self.waiting_bytes.append(self.file_like.read(self.read_size))
+            next_bytes = self.file_like.read(self.read_size)
+            if next_bytes:
+                self.waiting_bytes.append(next_bytes)
+            else:
+                self.file_like = None
 
         if not self.waiting_bytes:
             return
@@ -307,6 +311,8 @@ cdef class Unpacker(object):
         if ret == 1:
             return template_data(&self.ctx)
         elif ret == 0:
+            if self.file_like is not None:
+                return self.unpack()
             raise StopIteration, "No more unpack data."
         else:
             raise ValueError, "Unpack failed."
