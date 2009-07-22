@@ -1,3 +1,7 @@
+0.07
+
+    - do not use switch (SvTYPE(val)).
+
 0.06
 
     - use SvNOK.
