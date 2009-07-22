@@ -140,81 +140,65 @@ static int try_int(enc_t* enc, const char *p, size_t len) {
 static void _msgpack_pack_sv(enc_t *enc, SV* val) {
     if (val==NULL) {
         msgpack_pack_nil(enc);
-        return;
     } else if (SvROK(val)) {
         _msgpack_pack_sv(enc, SvRV(val));
-        return;
-    }
-
-    switch (SvTYPE(val)) {
-    case SVt_NULL:
-        msgpack_pack_nil(enc);
-        break;
-    case SVt_PVNV:
-        {
-            STRLEN len = 0;
-            char *pv = SvPV(val, len);
-            if (len == 1 && *pv == '1') {
-                msgpack_pack_true(enc);
-            } else if (len == 0 && *pv==0) {
-                msgpack_pack_false(enc);
+    } else if (SVt_PVNV == SvTYPE(val)) {
+        STRLEN len = 0;
+        char *pv = SvPV(val, len);
+        if (len == 1 && *pv == '1') {
+            msgpack_pack_true(enc);
+        } else if (len == 0 && *pv==0) {
+            msgpack_pack_false(enc);
+        } else {
+            msgpack_pack_nil(enc);
+        }
+    } else if (SvTYPE(val) == SVt_PVAV) {
+        AV* ary = (AV*)val;
+        int len = av_len(ary) + 1;
+        int i;
+        msgpack_pack_array(enc, len);
+        for (i=0; i<len; i++) {
+            SV** svp = av_fetch(ary, i, 0);
+            if (svp) {
+                _msgpack_pack_sv(enc, *svp);
             } else {
                 msgpack_pack_nil(enc);
             }
         }
-        break;
-    case SVt_PVAV:
-        {
-            AV* ary = (AV*)val;
-            int len = av_len(ary) + 1;
-            int i;
-            msgpack_pack_array(enc, len);
-            for (i=0; i<len; i++) {
-                SV** svp = av_fetch(ary, i, 0);
-                if (svp) {
-                    _msgpack_pack_sv(enc, *svp);
-                } else {
-                    msgpack_pack_nil(enc);
-                }
-            }
+    } else if (SvTYPE(val) == SVt_PVHV) {
+        HV* hval = (HV*)val;
+        int count = hv_iterinit(hval);
+        HE* he;
+
+        msgpack_pack_map(enc, count);
+
+        while (he = hv_iternext(hval)) {
+            _msgpack_pack_sv(enc, hv_iterkeysv(he));
+            _msgpack_pack_sv(enc, HeVAL(he));
         }
-        break;
-    case SVt_PVHV:
-        {
-            HV* hval = (HV*)val;
-            int count = hv_iterinit(hval);
-            HE* he;
+    } else if (SvPOKp(val)) {
+        STRLEN len;
+        char * cval = SvPV(val, len);
 
-            msgpack_pack_map(enc, count);
-
-            while (he = hv_iternext(hval)) {
-                _msgpack_pack_sv(enc, hv_iterkeysv(he));
-                _msgpack_pack_sv(enc, HeVAL(he));
-            }
-        }
-        break;
-    default:
-        if (SvPOKp(val)) {
-            STRLEN len;
-            char * cval = SvPV(val, len);
-
-            if (s_pref_int && try_int(enc, cval, len)) {
-                return;
-            }
-
-            msgpack_pack_raw(enc, len);
-            msgpack_pack_raw_body(enc, cval, len);
+        if (s_pref_int && try_int(enc, cval, len)) {
             return;
-        } else if (SvIOK_UV(val)) {
-            msgpack_pack_uint32(enc, SvUV(val));
-        } else if (SvIOK(val)) {
-            PACK_WRAPPER(IVTYPE)(enc, SvIV(val));
-        } else if (SvNOK(val)) {
-            PACK_WRAPPER(NVTYPE)(enc, SvNV(val));
-        } else {
-            sv_dump(val);
-            Perl_croak(aTHX_ "msgpack for perl doesn't supported this type: %d\n", SvTYPE(val));
         }
+
+        msgpack_pack_raw(enc, len);
+        msgpack_pack_raw_body(enc, cval, len);
+    } else if (SvIOK_UV(val)) {
+        msgpack_pack_uint32(enc, SvUV(val));
+    } else if (SvIOK(val)) {
+        PACK_WRAPPER(IVTYPE)(enc, SvIV(val));
+    } else if (SvNOK(val)) {
+        PACK_WRAPPER(NVTYPE)(enc, SvNV(val));
+    } else if (!SvOK(val)) {
+        msgpack_pack_nil(enc);
+    } else if (isGV(val)) {
+        Perl_croak(aTHX_ "msgpack cannot pack the GV\n");
+    } else {
+        sv_dump(val);
+        Perl_croak(aTHX_ "msgpack for perl doesn't supported this type: %d\n", SvTYPE(val));
     }
 }
 

@@ -17,6 +17,7 @@ my @dat = (
     0,     '00',
     (my $foo="0")+0, '00',
     {2 => undef}, '81 a1 32 c0',
+    do {no warnings; my $foo = 10; "$foo"; $foo = undef; $foo} => 'c0', # PVIV but !POK && !IOK
     1,     '01',
     127,   '7f',
     128,   'cc 80',
