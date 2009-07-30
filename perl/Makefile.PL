@@ -6,22 +6,17 @@ perl_version '5.008005';
 license 'perl';
 can_cc or die "This module requires a C compiler";
 
-makemaker_args(
-    OBJECT => '$(O_FILES)',
-    LIBS => [''],
-    clean => {
-        FILES => q{
-            *.stackdump
-            *.gcov *.gcda *.gcno
-            *.out
-            nytprof
-            cover_db
-        },
-    },
-);
-
 tests 't/*.t';
 author_tests('xt');
+use_ppport 3.19;
+
+clean_files qw{
+    *.stackdump
+    *.gcov *.gcda *.gcno
+    *.out
+    nytprof
+    cover_db
+};
 
 if ($ENV{DEBUG}) {
     cc_append_to_ccflags '-g';
