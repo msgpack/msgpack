@@ -20,3 +20,4 @@
 ^\.git/
 \.sw[pon]$
 ^\.gitignore$
+ppport.h
