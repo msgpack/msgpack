@@ -5,6 +5,7 @@ extern "C" {
 #include "EXTERN.h"
 #include "perl.h"
 #include "XSUB.h"
+#include "util.h"
 #define NEED_newRV_noinc
 #define NEED_sv_2pv_flags
 #include "ppport.h"
@@ -33,6 +34,21 @@ typedef struct {
 
 #define msgpack_unpack_user unpack_user
 
+/* ---------------------------------------------------------------------- */
+/* utility functions                                                      */
+
+static INLINE SV *
+get_bool (const char *name) {
+    SV * sv = get_sv( name, 1 );
+
+    SvREADONLY_on(sv);
+    SvREADONLY_on( SvRV(sv) );
+
+    return sv;
+}
+
+/* ---------------------------------------------------------------------- */
+
 struct template_context;
 typedef struct template_context msgpack_unpack_t;
 
@@ -43,61 +59,61 @@ static SV* template_data(msgpack_unpack_t* u);
 static int template_execute(msgpack_unpack_t* u,
     const char* data, size_t len, size_t* off);
 
-static inline SV* template_callback_root(unpack_user* u)
+static INLINE SV* template_callback_root(unpack_user* u)
 { return &PL_sv_undef; }
 
-static inline int template_callback_uint8(unpack_user* u, uint8_t d, SV** o)
+static INLINE int template_callback_uint8(unpack_user* u, uint8_t d, SV** o)
 { *o = newSVuv(d); return 0; }
 
-static inline int template_callback_uint16(unpack_user* u, uint16_t d, SV** o)
+static INLINE int template_callback_uint16(unpack_user* u, uint16_t d, SV** o)
 { *o = newSVuv(d); return 0; }
 
-static inline int template_callback_uint32(unpack_user* u, uint32_t d, SV** o)
+static INLINE int template_callback_uint32(unpack_user* u, uint32_t d, SV** o)
 { *o = newSVuv(d); return 0; }
 
-static inline int template_callback_uint64(unpack_user* u, uint64_t d, SV** o)
+static INLINE int template_callback_uint64(unpack_user* u, uint64_t d, SV** o)
 { *o = newSVuv(d); return 0; }
 
-static inline int template_callback_int8(unpack_user* u, int8_t d, SV** o)
+static INLINE int template_callback_int8(unpack_user* u, int8_t d, SV** o)
 { *o = newSViv((long)d); return 0; }
 
-static inline int template_callback_int16(unpack_user* u, int16_t d, SV** o)
+static INLINE int template_callback_int16(unpack_user* u, int16_t d, SV** o)
 { *o = newSViv((long)d); return 0; }
 
-static inline int template_callback_int32(unpack_user* u, int32_t d, SV** o)
+static INLINE int template_callback_int32(unpack_user* u, int32_t d, SV** o)
 { *o = newSViv((long)d); return 0; }
 
-static inline int template_callback_int64(unpack_user* u, int64_t d, SV** o)
+static INLINE int template_callback_int64(unpack_user* u, int64_t d, SV** o)
 { *o = newSViv(d); return 0; }
 
-static inline int template_callback_float(unpack_user* u, float d, SV** o)
+static INLINE int template_callback_float(unpack_user* u, float d, SV** o)
 { *o = newSVnv(d); return 0; }
 
-static inline int template_callback_double(unpack_user* u, double d, SV** o)
+static INLINE int template_callback_double(unpack_user* u, double d, SV** o)
 { *o = newSVnv(d); return 0; }
 
-static inline int template_callback_nil(unpack_user* u, SV** o)
+static INLINE int template_callback_nil(unpack_user* u, SV** o)
 { *o = &PL_sv_undef; return 0; }
 
-static inline int template_callback_true(unpack_user* u, SV** o)
-{ *o = &PL_sv_yes; return 0; }
+static INLINE int template_callback_true(unpack_user* u, SV** o)
+{ *o = get_bool("Data::MessagePack::true") ; return 0; }
 
-static inline int template_callback_false(unpack_user* u, SV** o)
-{ *o = &PL_sv_no; return 0;}
+static INLINE int template_callback_false(unpack_user* u, SV** o)
+{ *o = get_bool("Data::MessagePack::false") ; return 0; }
 
-static inline int template_callback_array(unpack_user* u, unsigned int n, SV** o)
+static INLINE int template_callback_array(unpack_user* u, unsigned int n, SV** o)
 { AV* a = newAV(); *o = (SV*)newRV_noinc((SV*)a); av_extend(a, n); return 0; }
 
-static inline int template_callback_array_item(unpack_user* u, SV** c, SV* o)
+static INLINE int template_callback_array_item(unpack_user* u, SV** c, SV* o)
 { av_push((AV*)SvRV(*c), o); SvREFCNT_inc(o); return 0; }  /* FIXME set value directry RARRAY_PTR(obj)[RARRAY_LEN(obj)++] */
 
-static inline int template_callback_map(unpack_user* u, unsigned int n, SV** o)
+static INLINE int template_callback_map(unpack_user* u, unsigned int n, SV** o)
 { HV * h = newHV(); *o = newRV_noinc((SV*)h); return 0; }
 
-static inline int template_callback_map_item(unpack_user* u, SV** c, SV* k, SV* v)
+static INLINE int template_callback_map_item(unpack_user* u, SV** c, SV* k, SV* v)
 { hv_store_ent((HV*)SvRV(*c), k, v, 0); SvREFCNT_inc(v); return 0; }
 
-static inline int template_callback_raw(unpack_user* u, const char* b, const char* p, unsigned int l, SV** o)
+static INLINE int template_callback_raw(unpack_user* u, const char* b, const char* p, unsigned int l, SV** o)
 { *o = (l == 0) ? newSVpv("", 0) : newSVpv(p, l); return 0; }
 
 #define UNPACKER(from, name) \

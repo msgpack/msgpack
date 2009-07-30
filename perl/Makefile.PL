@@ -23,6 +23,10 @@ makemaker_args(
 tests 't/*.t';
 author_tests('xt');
 
+if ($ENV{DEBUG}) {
+    cc_append_to_ccflags '-g';
+}
+
 # copy modules
 if ($Module::Install::AUTHOR && -d File::Spec->catfile('..', 'msgpack')) {
     mkdir 'msgpack' unless -d 'msgpack';

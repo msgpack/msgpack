@@ -137,23 +137,71 @@ static int try_int(enc_t* enc, const char *p, size_t len) {
 }
 
 
-static void _msgpack_pack_sv(enc_t *enc, SV* val) {
-    if (val==NULL) {
+static void _msgpack_pack_rv(enc_t *enc, SV* sv);
+
+static void _msgpack_pack_sv(enc_t *enc, SV* sv) {
+    SvGETMAGIC(sv);
+
+    if (sv==NULL) {
         msgpack_pack_nil(enc);
-    } else if (SvROK(val)) {
-        _msgpack_pack_sv(enc, SvRV(val));
-    } else if (SVt_PVNV == SvTYPE(val)) {
-        STRLEN len = 0;
-        char *pv = SvPV(val, len);
-        if (len == 1 && *pv == '1') {
-            msgpack_pack_true(enc);
-        } else if (len == 0 && *pv==0) {
-            msgpack_pack_false(enc);
+    } else if (SvPOKp(sv)) {
+        STRLEN len;
+        char * csv = SvPV(sv, len);
+
+        if (s_pref_int && try_int(enc, csv, len)) {
+            return;
         } else {
-            msgpack_pack_nil(enc);
+            msgpack_pack_raw(enc, len);
+            msgpack_pack_raw_body(enc, csv, len);
         }
-    } else if (SvTYPE(val) == SVt_PVAV) {
-        AV* ary = (AV*)val;
+    } else if (SvNOKp(sv)) {
+        PACK_WRAPPER(NVTYPE)(enc, SvNVX(sv));
+    } else if (SvIOK_UV(sv)) {
+        msgpack_pack_uint32(enc, SvUV(sv));
+    } else if (SvIOKp(sv)) {
+        PACK_WRAPPER(IVTYPE)(enc, SvIV(sv));
+    } else if (SvROK(sv)) {
+        _msgpack_pack_rv(enc, SvRV(sv));
+    } else if (!SvOK(sv)) {
+        msgpack_pack_nil(enc);
+    } else if (isGV(sv)) {
+        Perl_croak(aTHX_ "msgpack cannot pack the GV\n");
+    } else {
+        sv_dump(sv);
+        Perl_croak(aTHX_ "msgpack for perl doesn't supported this type: %d\n", SvTYPE(sv));
+    }
+}
+
+static void _msgpack_pack_rv(enc_t *enc, SV* sv) {
+    svtype svt;
+    SvGETMAGIC(sv);
+    svt = SvTYPE(sv);
+
+    if (SvOBJECT (sv)) {
+        HV *stash = gv_stashpv ("Data::MessagePack::Boolean", 1); // TODO: cache?
+        if (SvSTASH (sv) == stash) {
+            if (SvIV(sv)) {
+                msgpack_pack_true(enc);
+            } else {
+                msgpack_pack_false(enc);
+            }
+        } else {
+            croak ("encountered object '%s', Data::MessagePack doesn't allow the object",
+                           SvPV_nolen(sv_2mortal(newRV_inc(sv))));
+        }
+    } else if (svt == SVt_PVHV) {
+        HV* hval = (HV*)sv;
+        int count = hv_iterinit(hval);
+        HE* he;
+
+        msgpack_pack_map(enc, count);
+
+        while (he = hv_iternext(hval)) {
+            _msgpack_pack_sv(enc, hv_iterkeysv(he));
+            _msgpack_pack_sv(enc, HeVAL(he));
+        }
+    } else if (svt == SVt_PVAV) {
+        AV* ary = (AV*)sv;
         int len = av_len(ary) + 1;
         int i;
         msgpack_pack_array(enc, len);
@@ -165,40 +213,22 @@ static void _msgpack_pack_sv(enc_t *enc, SV* val) {
                 msgpack_pack_nil(enc);
             }
         }
-    } else if (SvTYPE(val) == SVt_PVHV) {
-        HV* hval = (HV*)val;
-        int count = hv_iterinit(hval);
-        HE* he;
+    } else if (svt < SVt_PVAV) {
+        STRLEN len = 0;
+        char *pv = svt ? SvPV (sv, len) : 0;
 
-        msgpack_pack_map(enc, count);
-
-        while (he = hv_iternext(hval)) {
-            _msgpack_pack_sv(enc, hv_iterkeysv(he));
-            _msgpack_pack_sv(enc, HeVAL(he));
+        if (len == 1 && *pv == '1')
+            msgpack_pack_true(enc); 
+        else if (len == 1 && *pv == '0')
+            msgpack_pack_false(enc); 
+        else {
+            sv_dump(sv);
+            croak("cannot encode reference to scalar '%s' unless the scalar is 0 or 1",
+                    SvPV_nolen (sv_2mortal (newRV_inc (sv))));
         }
-    } else if (SvPOKp(val)) {
-        STRLEN len;
-        char * cval = SvPV(val, len);
-
-        if (s_pref_int && try_int(enc, cval, len)) {
-            return;
-        }
-
-        msgpack_pack_raw(enc, len);
-        msgpack_pack_raw_body(enc, cval, len);
-    } else if (SvIOK_UV(val)) {
-        msgpack_pack_uint32(enc, SvUV(val));
-    } else if (SvIOK(val)) {
-        PACK_WRAPPER(IVTYPE)(enc, SvIV(val));
-    } else if (SvNOK(val)) {
-        PACK_WRAPPER(NVTYPE)(enc, SvNV(val));
-    } else if (!SvOK(val)) {
-        msgpack_pack_nil(enc);
-    } else if (isGV(val)) {
-        Perl_croak(aTHX_ "msgpack cannot pack the GV\n");
     } else {
-        sv_dump(val);
-        Perl_croak(aTHX_ "msgpack for perl doesn't supported this type: %d\n", SvTYPE(val));
+        croak ("encountered %s, but msgpack can only represent references to arrays or hashes",
+                   SvPV_nolen (sv_2mortal (newRV_inc (sv))));
     }
 }
 

@@ -31,8 +31,6 @@ XS(boot_Data__MessagePack) {
     newXS("Data::MessagePack::pack", xs_pack, __FILE__);
     newXS("Data::MessagePack::unpack", xs_unpack, __FILE__);
     stash = gv_stashpvn("Data::MessagePack", strlen("Data::MessagePack"), TRUE);
-    newCONSTSUB(stash, "true", &PL_sv_yes);
-    newCONSTSUB(stash, "false", &PL_sv_no);
 
     newXS("Data::MessagePack::Unpacker::new",           xs_unpacker_new, __FILE__);
     newXS("Data::MessagePack::Unpacker::execute",       xs_unpacker_execute, __FILE__);
