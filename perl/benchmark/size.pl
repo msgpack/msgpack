@@ -29,4 +29,9 @@ for my $src (@entries) {
     );
 }
 
+print "perl: $]\n";
+print "Storable: $Storable::VERSION\n";
+print "Data::MessagePack: $Data::MessagePack::VERSION\n";
+print "\n";
 print $table->draw;
+
