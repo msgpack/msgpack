@@ -6,4 +6,5 @@
 #include "msgpack/type/nil.hpp"
 #include "msgpack/type/raw.hpp"
 #include "msgpack/type/tuple.hpp"
+#include "msgpack/type/define.hpp"
 
