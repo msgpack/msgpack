@@ -103,6 +103,7 @@ tuple<A0<%1.upto(i) {|j|%>, A<%=j%><%}%>> make_tuple(typename tuple_type<A0>::tr
 
 template <>
 struct tuple<> {
+	typedef tuple<> value_type;
 };
 <%0.upto(GENERATION_LIMIT) {|i|%>
 template <typename A0<%1.upto(i) {|j|%>, typename A<%=j%><%}%>>
