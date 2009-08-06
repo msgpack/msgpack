@@ -129,6 +129,7 @@ private:
 };
 
 
+// obsolete
 template <typename Type>
 class define : public Type {
 public:
