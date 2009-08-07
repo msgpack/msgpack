@@ -52,7 +52,6 @@ struct define<> {
 		if(o.type != type::ARRAY) { throw type_error(); }
 	}
 };
-
 <%0.upto(GENERATION_LIMIT) {|i|%>
 template <typename A0<%1.upto(i) {|j|%>, typename A<%=j%><%}%>>
 struct define<A0<%1.upto(i) {|j|%>, A<%=j%><%}%>> {
@@ -79,11 +78,10 @@ struct define<A0<%1.upto(i) {|j|%>, A<%=j%><%}%>> {
 };
 <%}%>
 
-define<> make_define()
+inline define<> make_define()
 {
 	return define<>();
 }
-
 <%0.upto(GENERATION_LIMIT) {|i|%>
 template <typename A0<%1.upto(i) {|j|%>, typename A<%=j%><%}%>>
 define<A0<%1.upto(i) {|j|%>, A<%=j%><%}%>> make_define(A0& a0<%1.upto(i) {|j|%>, A<%=j%>& a<%=j%><%}%>)
@@ -91,7 +89,6 @@ define<A0<%1.upto(i) {|j|%>, A<%=j%><%}%>> make_define(A0& a0<%1.upto(i) {|j|%>,
 	return define<A0<%1.upto(i) {|j|%>, A<%=j%><%}%>>(a0<%1.upto(i) {|j|%>, a<%=j%><%}%>);
 }
 <%}%>
-
 
 }  // namespace type
 }  // namespace msgpack
