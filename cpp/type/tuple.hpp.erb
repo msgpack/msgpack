@@ -64,7 +64,6 @@ struct tuple_type<const T&> {
 	typedef const T& transparent_reference;
 };
 
-
 <%0.upto(GENERATION_LIMIT) {|i|%>
 <%0.upto(i) {|j|%>
 template <typename A0<%1.upto(i) {|k|%>, typename A<%=k%><%}%>>
@@ -78,7 +77,6 @@ private:
 <%}%>
 <%}%>
 
-
 <%0.upto(GENERATION_LIMIT) {|i|%>
 <%0.upto(i) {|j|%>
 template <typename A0<%1.upto(i) {|k|%>, typename A<%=k%><%}%>>
@@ -90,16 +88,6 @@ private:
 };
 <%}%>
 <%}%>
-
-
-<%0.upto(GENERATION_LIMIT) {|i|%>
-template <typename A0<%1.upto(i) {|j|%>, typename A<%=j%><%}%>>
-tuple<A0<%1.upto(i) {|j|%>, A<%=j%><%}%>> make_tuple(typename tuple_type<A0>::transparent_reference a0<%1.upto(i) {|j|%>, typename tuple_type<A<%=j%>>::transparent_reference a<%=j%><%}%>)
-{
-	return tuple<A0<%1.upto(i) {|j|%>, A<%=j%><%}%>>(a0<%1.upto(i) {|j|%>, a<%=j%><%}%>);
-}
-<%}%>
-
 
 template <>
 struct tuple<> {
@@ -120,6 +108,18 @@ struct tuple<A0<%1.upto(i) {|j|%>, A<%=j%><%}%>> {
 	<%0.upto(i) {|j|%>
 	A<%=j%> a<%=j%>;<%}%>
 };
+<%}%>
+
+inline tuple<> make_tuple()
+{
+	return tuple<>();
+}
+<%0.upto(GENERATION_LIMIT) {|i|%>
+template <typename A0<%1.upto(i) {|j|%>, typename A<%=j%><%}%>>
+tuple<A0<%1.upto(i) {|j|%>, A<%=j%><%}%>> make_tuple(typename tuple_type<A0>::transparent_reference a0<%1.upto(i) {|j|%>, typename tuple_type<A<%=j%>>::transparent_reference a<%=j%><%}%>)
+{
+	return tuple<A0<%1.upto(i) {|j|%>, A<%=j%><%}%>>(a0<%1.upto(i) {|j|%>, a<%=j%><%}%>);
+}
 <%}%>
 
 }  // namespace type
@@ -144,7 +144,6 @@ type::tuple<A0<%1.upto(i) {|j|%>, A<%=j%><%}%>>& operator>> (
 }
 <%}%>
 
-
 template <typename Stream>
 const packer<Stream>& operator<< (
 		packer<Stream>& o,
@@ -163,7 +162,6 @@ const packer<Stream>& operator<< (
 	return o;
 }
 <%}%>
-
 
 }  // namespace msgpack
 
