@@ -22,14 +22,14 @@ public:
 		ssize_t count =
 			read(m_sock, m_pac.buffer(), m_pac.buffer_capacity());
 
-		if(count < 0) {
+		if(count <= 0) {
+			if(count == 0) {
+				throw std::runtime_error("connection closed");
+			}
 			if(errno == EAGAIN || errno == EINTR) {
 				return;
-			} else {
-				throw std::runtime_error(strerror(errno));
 			}
-		} else if(count == 0) {
-			throw std::runtime_error("connection closed");
+			throw std::runtime_error(strerror(errno));
 		}
 
 		m_pac.buffer_consumed(count);

@@ -39,10 +39,12 @@ msgpack/zone.hpp: msgpack/zone.hpp.erb
 
 MOSTLYCLEANFILES = \
 		msgpack/type/tuple.hpp \
+		msgpack/type/define.hpp \
 		msgpack/zone.hpp
 
 EXTRA_DIST = \
 		msgpack/type/tuple.hpp.erb \
+		msgpack/type/define.hpp.erb \
 		msgpack/zone.hpp.erb
 
 libmsgpack_la_LIBADD = -L../c -lmsgpackc
