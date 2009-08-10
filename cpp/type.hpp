@@ -2,6 +2,7 @@
 #include "msgpack/type/float.hpp"
 #include "msgpack/type/int.hpp"
 #include "msgpack/type/list.hpp"
+#include "msgpack/type/deque.hpp"
 #include "msgpack/type/map.hpp"
 #include "msgpack/type/nil.hpp"
 #include "msgpack/type/pair.hpp"

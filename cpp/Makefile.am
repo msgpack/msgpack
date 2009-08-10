@@ -16,6 +16,7 @@ nobase_include_HEADERS = \
 		msgpack/type/float.hpp \
 		msgpack/type/int.hpp \
 		msgpack/type/list.hpp \
+		msgpack/type/deque.hpp \
 		msgpack/type/map.hpp \
 		msgpack/type/nil.hpp \
 		msgpack/type/pair.hpp \
