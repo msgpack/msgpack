@@ -18,7 +18,9 @@ nobase_include_HEADERS = \
 		msgpack/type/integer.hpp \
 		msgpack/type/map.hpp \
 		msgpack/type/nil.hpp \
+		msgpack/type/pair.hpp \
 		msgpack/type/raw.hpp \
+		msgpack/type/set.hpp \
 		msgpack/type/tuple.hpp \
 		msgpack/type/define.hpp
 

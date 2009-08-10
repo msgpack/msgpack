@@ -4,7 +4,9 @@
 #include "msgpack/type/integer.hpp"
 #include "msgpack/type/map.hpp"
 #include "msgpack/type/nil.hpp"
+#include "msgpack/type/pair.hpp"
 #include "msgpack/type/raw.hpp"
+#include "msgpack/type/set.hpp"
 #include "msgpack/type/tuple.hpp"
 #include "msgpack/type/define.hpp"
 
