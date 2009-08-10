@@ -37,7 +37,6 @@ inline std::set<T>& operator>> (object o, std::set<T>& v)
 	return v;
 }
 
-
 template <typename Stream, typename T>
 inline packer<Stream>& operator<< (packer<Stream>& o, const std::set<T>& v)
 {

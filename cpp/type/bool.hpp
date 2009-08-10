@@ -31,7 +31,6 @@ inline bool& operator>> (object o, bool& v)
 	return v;
 }
 
-
 template <typename Stream>
 inline packer<Stream>& operator<< (packer<Stream>& o, const bool& v)
 {
