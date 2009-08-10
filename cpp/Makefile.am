@@ -23,7 +23,7 @@ nobase_include_HEADERS = \
 		msgpack/type/define.hpp
 
 # FIXME
-object.lo: msgpack/type/tuple.hpp msgpack/zone.hpp
+object.lo: msgpack/type/tuple.hpp msgpack/type/define.hpp msgpack/zone.hpp
 
 msgpack/type/tuple.hpp: msgpack/type/tuple.hpp.erb
 	$(ERB) $< > $@.tmp
