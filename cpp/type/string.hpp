@@ -15,43 +15,33 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 //
-#ifndef MSGPACK_TYPE_ARRAY_HPP__
-#define MSGPACK_TYPE_ARRAY_HPP__
+#ifndef MSGPACK_TYPE_STRING_HPP__
+#define MSGPACK_TYPE_STRING_HPP__
 
 #include "msgpack/object.hpp"
-#include <vector>
+#include <string>
 
 namespace msgpack {
 
 
-template <typename T>
-inline std::vector<T>& operator>> (object o, std::vector<T>& v)
+inline std::string& operator>> (object o, std::string& v)
 {
-	if(o.type != type::ARRAY) { throw type_error(); }
-	v.resize(o.via.array.size);
-	object* p = o.via.array.ptr;
-	object* const pend = o.via.array.ptr + o.via.array.size;
-	T* it = &v.front();
-	for(; p < pend; ++p, ++it) {
-		p->convert(it);
-	}
+	type::raw_ref r;
+	o >> r;
+	v.assign(r.ptr, r.size);
 	return v;
 }
 
-
-template <typename Stream, typename T>
-inline packer<Stream>& operator<< (packer<Stream>& o, const std::vector<T>& v)
+template <typename Stream>
+inline packer<Stream>& operator<< (packer<Stream>& o, const std::string& v)
 {
-	o.pack_array(v.size());
-	for(typename std::vector<T>::const_iterator it(v.begin()), it_end(v.end());
-			it != it_end; ++it) {
-		o.pack(*it);
-	}
+	o.pack_raw(v.size());
+	o.pack_raw_body(v.data(), v.size());
 	return o;
 }
 
 
 }  // namespace msgpack
 
-#endif /* msgpack/type/array.hpp */
+#endif /* msgpack/type/string.hpp */
 

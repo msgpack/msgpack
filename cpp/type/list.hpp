@@ -15,33 +15,42 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 //
-#ifndef MSGPACK_TYPE_BOOLEAN_HPP__
-#define MSGPACK_TYPE_BOOLEAN_HPP__
+#ifndef MSGPACK_TYPE_LIST_HPP__
+#define MSGPACK_TYPE_LIST_HPP__
 
 #include "msgpack/object.hpp"
-#include <vector>
+#include <list>
 
 namespace msgpack {
 
 
-inline bool& operator>> (object o, bool& v)
+template <typename T>
+inline std::list<T>& operator>> (object o, std::list<T>& v)
 {
-	if(o.type != type::BOOLEAN) { throw type_error(); }
-	v = o.via.boolean;
+	if(o.type != type::ARRAY) { throw type_error(); }
+	v.resize(o.via.array.size);
+	object* p = o.via.array.ptr;
+	object* const pend = o.via.array.ptr + o.via.array.size;
+	typename std::list<T>::iterator it = v.begin();
+	for(; p < pend; ++p, ++it) {
+		p->convert(&*it);
+	}
 	return v;
 }
 
-
-template <typename Stream>
-inline packer<Stream>& operator<< (packer<Stream>& o, const bool& v)
+template <typename Stream, typename T>
+inline packer<Stream>& operator<< (packer<Stream>& o, const std::list<T>& v)
 {
-	if(v) { o.pack_true(); }
-	else { o.pack_false(); }
+	o.pack_array(v.size());
+	for(typename std::list<T>::const_iterator it(v.begin()), it_end(v.end());
+			it != it_end; ++it) {
+		o.pack(*it);
+	}
 	return o;
 }
 
 
 }  // namespace msgpack
 
-#endif /* msgpack/type/bool.hpp */
+#endif /* msgpack/type/list.hpp */
 

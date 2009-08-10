@@ -12,15 +12,17 @@ nobase_include_HEADERS = \
 		msgpack/object.hpp \
 		msgpack/zone.hpp \
 		msgpack/type.hpp \
-		msgpack/type/array.hpp \
-		msgpack/type/boolean.hpp \
+		msgpack/type/bool.hpp \
 		msgpack/type/float.hpp \
-		msgpack/type/integer.hpp \
+		msgpack/type/int.hpp \
+		msgpack/type/list.hpp \
 		msgpack/type/map.hpp \
 		msgpack/type/nil.hpp \
 		msgpack/type/pair.hpp \
 		msgpack/type/raw.hpp \
 		msgpack/type/set.hpp \
+		msgpack/type/string.hpp \
+		msgpack/type/vector.hpp \
 		msgpack/type/tuple.hpp \
 		msgpack/type/define.hpp
 

@@ -15,49 +15,42 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 //
-#ifndef MSGPACK_TYPE_FLOAT_HPP__
-#define MSGPACK_TYPE_FLOAT_HPP__
+#ifndef MSGPACK_TYPE_DEQUE_HPP__
+#define MSGPACK_TYPE_DEQUE_HPP__
 
 #include "msgpack/object.hpp"
-#include <vector>
+#include <deque>
 
 namespace msgpack {
 
 
-// FIXME check overflow, underflow
-
-
-inline float& operator>> (object o, float& v)
+template <typename T>
+inline std::deque<T>& operator>> (object o, std::deque<T>& v)
 {
-	if(o.type != type::DOUBLE) { throw type_error(); }
-	v = o.via.dec;
+	if(o.type != type::ARRAY) { throw type_error(); }
+	v.resize(o.via.array.size);
+	object* p = o.via.array.ptr;
+	object* const pend = o.via.array.ptr + o.via.array.size;
+	typename std::deque<T>::iterator it = v.begin();
+	for(; p < pend; ++p, ++it) {
+		p->convert(&*it);
+	}
 	return v;
 }
 
-template <typename Stream>
-inline packer<Stream>& operator<< (packer<Stream>& o, const float& v)
+template <typename Stream, typename T>
+inline packer<Stream>& operator<< (packer<Stream>& o, const std::deque<T>& v)
 {
-	o.pack_float(v);
-	return o;
-}
-
-
-inline double& operator>> (object o, double& v)
-{
-	if(o.type != type::DOUBLE) { throw type_error(); }
-	v = o.via.dec;
-	return v;
-}
-
-template <typename Stream>
-inline packer<Stream>& operator<< (packer<Stream>& o, const double& v)
-{
-	o.pack_double(v);
+	o.pack_array(v.size());
+	for(typename std::deque<T>::const_iterator it(v.begin()), it_end(v.end());
+			it != it_end; ++it) {
+		o.pack(*it);
+	}
 	return o;
 }
 
 
 }  // namespace msgpack
 
-#endif /* msgpack/type/float.hpp */
+#endif /* msgpack/type/deque.hpp */
 

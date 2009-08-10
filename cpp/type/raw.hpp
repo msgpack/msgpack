@@ -69,30 +69,11 @@ inline type::raw_ref& operator>> (object o, type::raw_ref& v)
 	return v;
 }
 
-
-inline std::string& operator>> (object o, std::string& v)
-{
-	type::raw_ref r;
-	o >> r;
-	v.assign(r.ptr, r.size);
-	return v;
-}
-
-
 template <typename Stream>
 inline packer<Stream>& operator<< (packer<Stream>& o, const type::raw_ref& v)
 {
 	o.pack_raw(v.size);
 	o.pack_raw_body(v.ptr, v.size);
-	return o;
-}
-
-
-template <typename Stream>
-inline packer<Stream>& operator<< (packer<Stream>& o, const std::string& v)
-{
-	o.pack_raw(v.size());
-	o.pack_raw_body(v.data(), v.size());
 	return o;
 }
 

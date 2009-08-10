@@ -15,8 +15,8 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 //
-#ifndef MSGPACK_TYPE_INTEGER_HPP__
-#define MSGPACK_TYPE_INTEGER_HPP__
+#ifndef MSGPACK_TYPE_INT_HPP__
+#define MSGPACK_TYPE_INT_HPP__
 
 #include "msgpack/object.hpp"
 #include <limits>
@@ -143,5 +143,5 @@ inline packer<Stream>& operator<< (packer<Stream>& o, const unsigned long long& 
 
 }  // namespace msgpack
 
-#endif /* msgpack/type/integer.hpp */
+#endif /* msgpack/type/int.hpp */
 

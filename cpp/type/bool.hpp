@@ -15,8 +15,8 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 //
-#ifndef MSGPACK_TYPE_FLOAT_HPP__
-#define MSGPACK_TYPE_FLOAT_HPP__
+#ifndef MSGPACK_TYPE_BOOL_HPP__
+#define MSGPACK_TYPE_BOOL_HPP__
 
 #include "msgpack/object.hpp"
 #include <vector>
@@ -24,40 +24,24 @@
 namespace msgpack {
 
 
-// FIXME check overflow, underflow
-
-
-inline float& operator>> (object o, float& v)
+inline bool& operator>> (object o, bool& v)
 {
-	if(o.type != type::DOUBLE) { throw type_error(); }
-	v = o.via.dec;
+	if(o.type != type::BOOLEAN) { throw type_error(); }
+	v = o.via.boolean;
 	return v;
 }
 
-template <typename Stream>
-inline packer<Stream>& operator<< (packer<Stream>& o, const float& v)
-{
-	o.pack_float(v);
-	return o;
-}
-
-
-inline double& operator>> (object o, double& v)
-{
-	if(o.type != type::DOUBLE) { throw type_error(); }
-	v = o.via.dec;
-	return v;
-}
 
 template <typename Stream>
-inline packer<Stream>& operator<< (packer<Stream>& o, const double& v)
+inline packer<Stream>& operator<< (packer<Stream>& o, const bool& v)
 {
-	o.pack_double(v);
+	if(v) { o.pack_true(); }
+	else { o.pack_false(); }
 	return o;
 }
 
 
 }  // namespace msgpack
 
-#endif /* msgpack/type/float.hpp */
+#endif /* msgpack/type/bool.hpp */
 

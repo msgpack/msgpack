@@ -34,7 +34,6 @@ inline std::pair<T1, T2>& operator>> (object o, std::pair<T1, T2>& v)
 	return v;
 }
 
-
 template <typename Stream, typename T1, typename T2>
 inline packer<Stream>& operator<< (packer<Stream>& o, const std::pair<T1, T2>& v)
 {
