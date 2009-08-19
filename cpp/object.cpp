@@ -16,7 +16,6 @@
 //    limitations under the License.
 //
 #include "msgpack/object.hpp"
-
 #include <string.h>
 
 namespace msgpack {
