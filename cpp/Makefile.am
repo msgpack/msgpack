@@ -27,31 +27,6 @@ nobase_include_HEADERS = \
 		msgpack/type/tuple.hpp \
 		msgpack/type/define.hpp
 
-# FIXME
-object.lo: msgpack/type/tuple.hpp msgpack/type/define.hpp msgpack/zone.hpp
-
-msgpack/type/tuple.hpp: msgpack/type/tuple.hpp.erb
-	$(ERB) $< > $@.tmp
-	mv $@.tmp $@
-
-msgpack/type/define.hpp: msgpack/type/define.hpp.erb
-	$(ERB) $< > $@.tmp
-	mv $@.tmp $@
-
-msgpack/zone.hpp: msgpack/zone.hpp.erb
-	$(ERB) $< > $@.tmp
-	mv $@.tmp $@
-
-MOSTLYCLEANFILES = \
-		msgpack/type/tuple.hpp \
-		msgpack/type/define.hpp \
-		msgpack/zone.hpp
-
-EXTRA_DIST = \
-		msgpack/type/tuple.hpp.erb \
-		msgpack/type/define.hpp.erb \
-		msgpack/zone.hpp.erb
-
 libmsgpack_la_LIBADD = -L../c -lmsgpackc
 
 # -version-info CURRENT:REVISION:AGE

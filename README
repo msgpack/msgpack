@@ -8,9 +8,7 @@ Binary-based efficient data interchange format.
   MessagePack is only tested on Linux and Mac OS X, but it may run on other
   UNIX-like platforms.
 
-  Following programs are required to build:
-    - gcc >= 4.1 with C++ support
-    - ruby >= 1.8   (ruby is used as a preprocessor)
+  gcc >= 4.1 is required to build.
 
 
 *Installation

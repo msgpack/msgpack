@@ -23,11 +23,6 @@ if test "$enable_cxx" != "no"; then
 	if test "" = "$CXXFLAGS"; then
 		CXXFLAGS="-g -O4"
 	fi
-	
-	AC_CHECK_PROG(ERB, erb, erb)
-	if test "x$ERB" = x; then
-		AC_MSG_ERROR([cannot find erb. Ruby is needed to build.])
-	fi
 fi
 
 # FIXME

@@ -31,11 +31,8 @@ if test x"$1" = x"--help"; then
 fi
 
 
-#if [ -z "$NO_NEST" ];then
-#	cd c   && ./bootstrap $@; cd ..
-#	cd cpp && ./bootstrap $@; cd ..
-#fi
 mkdir -p ac
+(cd cpp && ./preprocess.sh $@; cd ..)
 
 
 ACLOCAL="aclocal"

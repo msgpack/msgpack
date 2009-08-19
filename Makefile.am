@@ -1,5 +1,4 @@
 if ENABLE_CXX
-export ERB
 SUBDIRS = c cpp
 else
 SUBDIRS = c
