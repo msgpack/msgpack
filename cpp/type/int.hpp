@@ -37,7 +37,7 @@ namespace detail {
 					{ throw type_error(); }
 				return o.via.u64;
 			} else if(o.type == type::NEGATIVE_INTEGER) {
-				if(o.via.i64 < (int64_t)-std::numeric_limits<T>::max())
+				if(o.via.i64 < (int64_t)std::numeric_limits<T>::min())
 					{ throw type_error(); }
 				return o.via.i64;
 			}
