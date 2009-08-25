@@ -18,3 +18,11 @@ nobase_include_HEADERS = \
 # -version-info CURRENT:REVISION:AGE
 libmsgpackc_la_LDFLAGS = -version-info 1:0:0
 
+check_PROGRAMS = \
+  msgpackc_test
+
+msgpackc_test_SOURCES = test.cpp
+msgpackc_test_CXXFLAGS = -I$(top_srcdir) -I$(top_srcdir)/c
+msgpackc_test_LDFLAGS = libmsgpackc.la -lgtest_main
+
+TESTS = $(check_PROGRAMS)
