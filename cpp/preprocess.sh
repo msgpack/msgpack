@@ -1,6 +1,6 @@
 #!/bin/sh
 
-function preprocess() {
+preprocess() {
 	erb $1.erb > $1.tmp
 	mv $1.tmp $1
 }
