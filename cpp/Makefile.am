@@ -35,8 +35,8 @@ libmsgpack_la_LDFLAGS = -version-info 1:0:0
 check_PROGRAMS = \
   msgpack_test
 
-msgpackc_test_SOURCES = test.cpp
-msgpackc_test_CXXFLAGS = -I$(top_srcdir) -I$(top_srcdir)/c -I$(top_srcdir)/cpp
-msgpackc_test_LDFLAGS = libmsgpack.la -lgtest_main
+msgpack_test_SOURCES = test.cpp
+msgpack_test_CXXFLAGS = -I$(top_srcdir) -I$(top_srcdir)/c -I$(top_srcdir)/cpp
+msgpack_test_LDFLAGS = libmsgpack.la -lgtest_main
 
 TESTS = $(check_PROGRAMS)

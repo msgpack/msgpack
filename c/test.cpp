@@ -10,7 +10,7 @@ TEST(MSGPACKC, simple_buffer)
 	msgpack_packer pk;
 	msgpack_packer_init(&pk, &sbuf, msgpack_sbuffer_write);
 
-	msgpack_pack_int(pk, 1);
+	msgpack_pack_int(&pk, 1);
 
 	msgpack_zone z;
 	msgpack_zone_init(&z, 2048);
