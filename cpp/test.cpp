@@ -34,7 +34,7 @@ const double kEPS = 1e-10;
       msgpack::object obj;                                            \
       msgpack::unpack_return ret =                                    \
         msgpack::unpack(sbuf.data(), sbuf.size(), NULL, &z, &obj);    \
-      EXPECT_EQ(ret, msgpack::UNPACK_SUCCESS);                        \
+      EXPECT_EQ(msgpack::UNPACK_SUCCESS, ret);                        \
       test_type val2;                                                 \
       obj.convert(&val2);                                             \
       EXPECT_EQ(val1, val2);                                          \
@@ -145,7 +145,7 @@ TEST(MSGPACK, simple_buffer_float)
     msgpack::object obj;
     msgpack::unpack_return ret =
       msgpack::unpack(sbuf.data(), sbuf.size(), NULL, &z, &obj);
-    EXPECT_EQ(ret, msgpack::UNPACK_SUCCESS);
+    EXPECT_EQ(msgpack::UNPACK_SUCCESS, ret);
     float val2;
     obj.convert(&val2);
 
@@ -182,7 +182,7 @@ TEST(MSGPACK, simple_buffer_double)
     msgpack::object obj;
     msgpack::unpack_return ret =
       msgpack::unpack(sbuf.data(), sbuf.size(), NULL, &z, &obj);
-    EXPECT_EQ(ret, msgpack::UNPACK_SUCCESS);
+    EXPECT_EQ(msgpack::UNPACK_SUCCESS, ret);
     double val2;
     obj.convert(&val2);
 
@@ -204,7 +204,7 @@ TEST(MSGPACK, simple_buffer_true)
   msgpack::object obj;
   msgpack::unpack_return ret =
     msgpack::unpack(sbuf.data(), sbuf.size(), NULL, &z, &obj);
-  EXPECT_EQ(ret, msgpack::UNPACK_SUCCESS);
+  EXPECT_EQ(msgpack::UNPACK_SUCCESS, ret);
   bool val2;
   obj.convert(&val2);
   EXPECT_EQ(val1, val2);
@@ -219,7 +219,7 @@ TEST(MSGPACK, simple_buffer_false)
   msgpack::object obj;
   msgpack::unpack_return ret =
     msgpack::unpack(sbuf.data(), sbuf.size(), NULL, &z, &obj);
-  EXPECT_EQ(ret, msgpack::UNPACK_SUCCESS);
+  EXPECT_EQ(msgpack::UNPACK_SUCCESS, ret);
   bool val2;
   obj.convert(&val2);
   EXPECT_EQ(val1, val2);
@@ -239,7 +239,7 @@ TEST(MSGPACK_STL, simple_buffer_string)
     msgpack::object obj;
     msgpack::unpack_return ret =
       msgpack::unpack(sbuf.data(), sbuf.size(), NULL, &z, &obj);
-    EXPECT_EQ(ret, msgpack::UNPACK_SUCCESS);
+    EXPECT_EQ(msgpack::UNPACK_SUCCESS, ret);
     string val2;
     obj.convert(&val2);
     EXPECT_EQ(val1.size(), val2.size());
@@ -259,7 +259,7 @@ TEST(MSGPACK_STL, simple_buffer_vector)
     msgpack::object obj;
     msgpack::unpack_return ret =
       msgpack::unpack(sbuf.data(), sbuf.size(), NULL, &z, &obj);
-    EXPECT_EQ(ret, msgpack::UNPACK_SUCCESS);
+    EXPECT_EQ(msgpack::UNPACK_SUCCESS, ret);
     vector<int> val2;
     obj.convert(&val2);
     EXPECT_EQ(val1.size(), val2.size());
@@ -279,7 +279,7 @@ TEST(MSGPACK_STL, simple_buffer_map)
     msgpack::object obj;
     msgpack::unpack_return ret =
       msgpack::unpack(sbuf.data(), sbuf.size(), NULL, &z, &obj);
-    EXPECT_EQ(ret, msgpack::UNPACK_SUCCESS);
+    EXPECT_EQ(msgpack::UNPACK_SUCCESS, ret);
     map<int, int> val2;
     obj.convert(&val2);
     EXPECT_EQ(val1.size(), val2.size());
@@ -299,7 +299,7 @@ TEST(MSGPACK_STL, simple_buffer_deque)
     msgpack::object obj;
     msgpack::unpack_return ret =
       msgpack::unpack(sbuf.data(), sbuf.size(), NULL, &z, &obj);
-    EXPECT_EQ(ret, msgpack::UNPACK_SUCCESS);
+    EXPECT_EQ(msgpack::UNPACK_SUCCESS, ret);
     deque<int> val2;
     obj.convert(&val2);
     EXPECT_EQ(val1.size(), val2.size());
@@ -319,7 +319,7 @@ TEST(MSGPACK_STL, simple_buffer_list)
     msgpack::object obj;
     msgpack::unpack_return ret =
       msgpack::unpack(sbuf.data(), sbuf.size(), NULL, &z, &obj);
-    EXPECT_EQ(ret, msgpack::UNPACK_SUCCESS);
+    EXPECT_EQ(msgpack::UNPACK_SUCCESS, ret);
     list<int> val2;
     obj.convert(&val2);
     EXPECT_EQ(val1.size(), val2.size());
@@ -339,7 +339,7 @@ TEST(MSGPACK_STL, simple_buffer_set)
     msgpack::object obj;
     msgpack::unpack_return ret =
       msgpack::unpack(sbuf.data(), sbuf.size(), NULL, &z, &obj);
-    EXPECT_EQ(ret, msgpack::UNPACK_SUCCESS);
+    EXPECT_EQ(msgpack::UNPACK_SUCCESS, ret);
     set<int> val2;
     obj.convert(&val2);
     EXPECT_EQ(val1.size(), val2.size());
@@ -357,7 +357,7 @@ TEST(MSGPACK_STL, simple_buffer_pair)
     msgpack::object obj;
     msgpack::unpack_return ret =
       msgpack::unpack(sbuf.data(), sbuf.size(), NULL, &z, &obj);
-    EXPECT_EQ(ret, msgpack::UNPACK_SUCCESS);
+    EXPECT_EQ(msgpack::UNPACK_SUCCESS, ret);
     pair<int, int> val2;
     obj.convert(&val2);
     EXPECT_EQ(val1.first, val2.first);
@@ -384,7 +384,7 @@ TEST(MSGPACK_USER_DEFINED, simple_buffer_class)
     msgpack::object obj;
     msgpack::unpack_return ret =
       msgpack::unpack(sbuf.data(), sbuf.size(), NULL, &z, &obj);
-    EXPECT_EQ(ret, msgpack::UNPACK_SUCCESS);
+    EXPECT_EQ(msgpack::UNPACK_SUCCESS, ret);
     TestClass val2;
     val2.i = -1;
     val2.s = "";
@@ -417,7 +417,7 @@ TEST(MSGPACK_USER_DEFINED, simple_buffer_class_old_to_new)
     msgpack::object obj;
     msgpack::unpack_return ret =
       msgpack::unpack(sbuf.data(), sbuf.size(), NULL, &z, &obj);
-    EXPECT_EQ(ret, msgpack::UNPACK_SUCCESS);
+    EXPECT_EQ(msgpack::UNPACK_SUCCESS, ret);
     TestClass2 val2;
     val2.i = -1;
     val2.s = "";
@@ -439,7 +439,7 @@ TEST(MSGPACK_USER_DEFINED, simple_buffer_class_new_to_old)
     msgpack::object obj;
     msgpack::unpack_return ret =
       msgpack::unpack(sbuf.data(), sbuf.size(), NULL, &z, &obj);
-    EXPECT_EQ(ret, msgpack::UNPACK_SUCCESS);
+    EXPECT_EQ(msgpack::UNPACK_SUCCESS, ret);
     TestClass val2;
     val2.i = -1;
     val2.s = "";
@@ -478,7 +478,7 @@ TEST(MSGPACK_USER_DEFINED, simple_buffer_enum_member)
   msgpack::object obj;
   msgpack::unpack_return ret =
     msgpack::unpack(sbuf.data(), sbuf.size(), NULL, &z, &obj);
-  EXPECT_EQ(ret, msgpack::UNPACK_SUCCESS);
+  EXPECT_EQ(msgpack::UNPACK_SUCCESS, ret);
   TestEnumMemberClass val2;
   val2.t1 = TestEnumMemberClass::STATE_INVALID;
   val2.t2 = TestEnumMemberClass::STATE_INVALID;
@@ -541,7 +541,7 @@ TEST(MSGPACK_USER_DEFINED, simple_buffer_union_member)
     msgpack::object obj;
     msgpack::unpack_return ret =
       msgpack::unpack(sbuf.data(), sbuf.size(), NULL, &z, &obj);
-    EXPECT_EQ(ret, msgpack::UNPACK_SUCCESS);
+    EXPECT_EQ(msgpack::UNPACK_SUCCESS, ret);
     TestUnionMemberClass val2;
     obj.convert(&val2);
     EXPECT_EQ(val1.is_double, val2.is_double);
@@ -556,7 +556,7 @@ TEST(MSGPACK_USER_DEFINED, simple_buffer_union_member)
     msgpack::object obj;
     msgpack::unpack_return ret =
       msgpack::unpack(sbuf.data(), sbuf.size(), NULL, &z, &obj);
-    EXPECT_EQ(ret, msgpack::UNPACK_SUCCESS);
+    EXPECT_EQ(msgpack::UNPACK_SUCCESS, ret);
     TestUnionMemberClass val2;
     obj.convert(&val2);
     EXPECT_EQ(val1.is_double, val2.is_double);
