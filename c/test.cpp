@@ -41,6 +41,8 @@ const double kEPS = 1e-10;
         EXPECT_EQ(MSGPACK_OBJECT_POSITIVE_INTEGER, obj.type);   \
         EXPECT_EQ(val, obj.via.u64);                            \
       }                                                         \
+      msgpack_zone_destroy(&z);                                 \
+      msgpack_sbuffer_destroy(&sbuf);                           \
     }                                                           \
   } while(0)
 
@@ -69,6 +71,8 @@ const double kEPS = 1e-10;
       EXPECT_EQ(MSGPACK_UNPACK_SUCCESS, ret);                   \
       EXPECT_EQ(MSGPACK_OBJECT_POSITIVE_INTEGER, obj.type);     \
       EXPECT_EQ(val, obj.via.u64);                              \
+      msgpack_zone_destroy(&z);                                 \
+      msgpack_sbuffer_destroy(&sbuf);                           \
     }                                                           \
   } while(0)
 
@@ -188,6 +192,8 @@ TEST(MSGPACKC, simple_buffer_float)
       EXPECT_TRUE(isinf(obj.via.dec));
     else
       EXPECT_TRUE(fabs(obj.via.dec - val) <= kEPS);
+    msgpack_zone_destroy(&z);
+    msgpack_sbuffer_destroy(&sbuf);
   }
 }
 
@@ -228,6 +234,8 @@ TEST(MSGPACKC, simple_buffer_double)
       EXPECT_TRUE(isinf(obj.via.dec));
     else
       EXPECT_TRUE(fabs(obj.via.dec - val) <= kEPS);
+    msgpack_zone_destroy(&z);
+    msgpack_sbuffer_destroy(&sbuf);
   }
 }
 
@@ -245,6 +253,8 @@ TEST(MSGPACKC, simple_buffer_nil)
     msgpack_unpack(sbuf.data, sbuf.size, NULL, &z, &obj);
   EXPECT_EQ(MSGPACK_UNPACK_SUCCESS, ret);
   EXPECT_EQ(MSGPACK_OBJECT_NIL, obj.type);
+  msgpack_zone_destroy(&z);
+  msgpack_sbuffer_destroy(&sbuf);
 }
 
 TEST(MSGPACKC, simple_buffer_true)
@@ -262,6 +272,8 @@ TEST(MSGPACKC, simple_buffer_true)
   EXPECT_EQ(MSGPACK_UNPACK_SUCCESS, ret);
   EXPECT_EQ(MSGPACK_OBJECT_BOOLEAN, obj.type);
   EXPECT_EQ(true, obj.via.boolean);
+  msgpack_zone_destroy(&z);
+  msgpack_sbuffer_destroy(&sbuf);
 }
 
 TEST(MSGPACKC, simple_buffer_false)
@@ -279,6 +291,8 @@ TEST(MSGPACKC, simple_buffer_false)
   EXPECT_EQ(MSGPACK_UNPACK_SUCCESS, ret);
   EXPECT_EQ(MSGPACK_OBJECT_BOOLEAN, obj.type);
   EXPECT_EQ(false, obj.via.boolean);
+  msgpack_zone_destroy(&z);
+  msgpack_sbuffer_destroy(&sbuf);
 }
 
 TEST(MSGPACKC, simple_buffer_array)
@@ -325,10 +339,13 @@ TEST(MSGPACKC, simple_buffer_array)
       break;
     case 4:
       EXPECT_EQ(MSGPACK_OBJECT_NEGATIVE_INTEGER, o.type);
-      EXPECT_EQ(-10, o.via.u64);
+      EXPECT_EQ(-10, o.via.i64);
       break;
     }
   }
+
+  msgpack_zone_destroy(&z);
+  msgpack_sbuffer_destroy(&sbuf);
 }
 
 TEST(MSGPACKC, simple_buffer_map)
@@ -369,9 +386,12 @@ TEST(MSGPACKC, simple_buffer_map)
       EXPECT_EQ(10, key.via.u64);
       EXPECT_EQ(MSGPACK_OBJECT_NEGATIVE_INTEGER, val.type);
       EXPECT_EQ(-10, val.via.i64);
-      break;      
+      break;
     }
   }
+
+  msgpack_zone_destroy(&z);
+  msgpack_sbuffer_destroy(&sbuf);
 }
 
 TEST(MSGPACKC, simple_buffer_raw)
@@ -398,4 +418,7 @@ TEST(MSGPACKC, simple_buffer_raw)
   EXPECT_EQ(MSGPACK_OBJECT_RAW, obj.type);
   EXPECT_EQ(raw_size, obj.via.raw.size);
   EXPECT_EQ(0, memcmp("frsyuki", obj.via.raw.ptr, raw_size));
+
+  msgpack_zone_destroy(&z);
+  msgpack_sbuffer_destroy(&sbuf);
 }
