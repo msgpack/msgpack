@@ -156,14 +156,17 @@ TEST(MSGPACKC, simple_buffer_float)
 {
   vector<float> v;
   v.push_back(0.0);
-  v.push_back(1);
-  v.push_back(-1);
+  v.push_back(1.0);
+  v.push_back(-1.0);
   v.push_back(numeric_limits<float>::min());
   v.push_back(numeric_limits<float>::max());
   v.push_back(nanf("tag"));
   v.push_back(1.0/0.0); // inf
-  for (unsigned int i = 0; i < kLoop; i++)
+  v.push_back(-(1.0/0.0)); // -inf
+  for (unsigned int i = 0; i < kLoop; i++) {
     v.push_back(drand48());
+    v.push_back(-drand48());
+  }
 
   for (unsigned int i = 0; i < v.size() ; i++) {
     float val = v[i];
@@ -192,14 +195,18 @@ TEST(MSGPACKC, simple_buffer_double)
 {
   vector<double> v;
   v.push_back(0.0);
-  v.push_back(1);
-  v.push_back(-1);
+  v.push_back(-0.0);
+  v.push_back(1.0);
+  v.push_back(-1.0);
   v.push_back(numeric_limits<double>::min());
   v.push_back(numeric_limits<double>::max());
   v.push_back(nan("tag"));
   v.push_back(1.0/0.0); // inf
-  for (unsigned int i = 0; i < kLoop; i++)
+  v.push_back(-(1.0/0.0)); // -inf
+  for (unsigned int i = 0; i < kLoop; i++) {
     v.push_back(drand48());
+    v.push_back(-drand48());
+  }
 
   for (unsigned int i = 0; i < v.size() ; i++) {
     double val = v[i];

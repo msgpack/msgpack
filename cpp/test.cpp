@@ -124,15 +124,19 @@ TEST(MSGPACK, simple_buffer_int64)
 TEST(MSGPACK, simple_buffer_float)
 {
   vector<float> v;
-  v.push_back(0);
-  v.push_back(1);
-  v.push_back(2);
+  v.push_back(0.0);
+  v.push_back(-0.0);
+  v.push_back(1.0);
+  v.push_back(-1.0);
   v.push_back(numeric_limits<float>::min());
   v.push_back(numeric_limits<float>::max());
   v.push_back(nanf("tag"));
   v.push_back(1.0/0.0); // inf
-  for (unsigned int i = 0; i < kLoop; i++)
+  v.push_back(-(1.0/0.0)); // -inf
+  for (unsigned int i = 0; i < kLoop; i++) {
     v.push_back(drand48());
+    v.push_back(-drand48());
+  }
   for (unsigned int i = 0; i < v.size() ; i++) {
     msgpack::sbuffer sbuf;
     float val1 = v[i];
@@ -157,15 +161,19 @@ TEST(MSGPACK, simple_buffer_float)
 TEST(MSGPACK, simple_buffer_double)
 {
   vector<double> v;
-  v.push_back(0);
-  v.push_back(1);
-  v.push_back(2);
+  v.push_back(0.0);
+  v.push_back(-0.0);
+  v.push_back(1.0);
+  v.push_back(-1.0);
   v.push_back(numeric_limits<double>::min());
   v.push_back(numeric_limits<double>::max());
   v.push_back(nanf("tag"));
   v.push_back(1.0/0.0); // inf
-  for (unsigned int i = 0; i < kLoop; i++)
+  v.push_back(-(1.0/0.0)); // -inf
+  for (unsigned int i = 0; i < kLoop; i++) {
     v.push_back(drand48());
+    v.push_back(-drand48());
+  }
   for (unsigned int i = 0; i < v.size() ; i++) {
     msgpack::sbuffer sbuf;
     double val1 = v[i];
@@ -383,7 +391,7 @@ TEST(MSGPACK_USER_DEFINED, simple_buffer_class)
     obj.convert(&val2);
     EXPECT_EQ(val1.i, val2.i);
     EXPECT_EQ(val1.s, val2.s);
-  }  
+  }
 }
 
 class TestClass2
@@ -439,5 +447,120 @@ TEST(MSGPACK_USER_DEFINED, simple_buffer_class_new_to_old)
     EXPECT_EQ(val1.i, val2.i);
     EXPECT_EQ(val1.s, val2.s);
     EXPECT_FALSE(val2.s.empty());
+  }
+}
+
+class TestEnumMemberClass
+{
+public:
+  TestEnumMemberClass()
+    : t1(STATE_A), t2(STATE_B), t3(STATE_C) {}
+
+  enum TestEnumType {
+    STATE_INVALID = 0,
+    STATE_A = 1,
+    STATE_B = 2,
+    STATE_C = 3
+  };
+  TestEnumType t1;
+  TestEnumType t2;
+  TestEnumType t3;
+
+  MSGPACK_DEFINE((int&)t1, (int&)t2, (int&)t3);
+};
+
+TEST(MSGPACK_USER_DEFINED, simple_buffer_enum_member)
+{
+  TestEnumMemberClass val1;
+  msgpack::sbuffer sbuf;
+  msgpack::pack(sbuf, val1);
+  msgpack::zone z;
+  msgpack::object obj;
+  msgpack::unpack_return ret =
+    msgpack::unpack(sbuf.data(), sbuf.size(), NULL, &z, &obj);
+  EXPECT_EQ(ret, msgpack::UNPACK_SUCCESS);
+  TestEnumMemberClass val2;
+  val2.t1 = TestEnumMemberClass::STATE_INVALID;
+  val2.t2 = TestEnumMemberClass::STATE_INVALID;
+  val2.t3 = TestEnumMemberClass::STATE_INVALID;
+  obj.convert(&val2);
+  EXPECT_EQ(val1.t1, val2.t1);
+  EXPECT_EQ(val1.t2, val2.t2);
+  EXPECT_EQ(val1.t3, val2.t3);
+}
+
+class TestUnionMemberClass
+{
+public:
+  TestUnionMemberClass() {}
+  TestUnionMemberClass(double f) {
+    is_double = true;
+    value.f = f;
+  }
+  TestUnionMemberClass(int i) {
+    is_double = false;
+    value.i = i;
+  }
+
+  union {
+    double f;
+    int i;
+  } value;
+  bool is_double;
+
+  template <typename Packer>
+  void msgpack_pack(Packer& pk) const
+  {
+    if (is_double)
+      pk.pack(msgpack::type::tuple<bool, double>(true, value.f));
+    else
+      pk.pack(msgpack::type::tuple<bool, int>(false, value.i));
+  }
+
+  void msgpack_unpack(msgpack::object o)
+  {
+    msgpack::type::tuple<bool, msgpack::object> tuple;
+    o.convert(&tuple);
+
+    is_double = tuple.get<0>();
+    if (is_double)
+      tuple.get<1>().convert(&value.f);
+    else
+      tuple.get<1>().convert(&value.i);
+  }
+};
+
+TEST(MSGPACK_USER_DEFINED, simple_buffer_union_member)
+{
+  {
+    // double
+    TestUnionMemberClass val1(1.0);
+    msgpack::sbuffer sbuf;
+    msgpack::pack(sbuf, val1);
+    msgpack::zone z;
+    msgpack::object obj;
+    msgpack::unpack_return ret =
+      msgpack::unpack(sbuf.data(), sbuf.size(), NULL, &z, &obj);
+    EXPECT_EQ(ret, msgpack::UNPACK_SUCCESS);
+    TestUnionMemberClass val2;
+    obj.convert(&val2);
+    EXPECT_EQ(val1.is_double, val2.is_double);
+    EXPECT_TRUE(fabs(val1.value.f - val2.value.f) < kEPS);
+  }
+  {
+    // int
+    TestUnionMemberClass val1(1);
+    msgpack::sbuffer sbuf;
+    msgpack::pack(sbuf, val1);
+    msgpack::zone z;
+    msgpack::object obj;
+    msgpack::unpack_return ret =
+      msgpack::unpack(sbuf.data(), sbuf.size(), NULL, &z, &obj);
+    EXPECT_EQ(ret, msgpack::UNPACK_SUCCESS);
+    TestUnionMemberClass val2;
+    obj.convert(&val2);
+    EXPECT_EQ(val1.is_double, val2.is_double);
+    EXPECT_EQ(val1.value.i, 1);
+    EXPECT_EQ(val1.value.i, val2.value.i);
   }
 }
