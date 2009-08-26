@@ -9,7 +9,7 @@
 using namespace std;
 
 const unsigned int kLoop = 10000;
-const double kEPS = 10e-10;
+const double kEPS = 1e-10;
 
 #define GEN_TEST_SIGNED(test_type, func_type)                   \
   do {                                                          \
@@ -277,7 +277,7 @@ TEST(MSGPACKC, simple_buffer_false)
 TEST(MSGPACKC, simple_buffer_array)
 {
   unsigned int array_size = 5;
-  
+
   msgpack_sbuffer sbuf;
   msgpack_sbuffer_init(&sbuf);
   msgpack_packer pk;
@@ -320,6 +320,49 @@ TEST(MSGPACKC, simple_buffer_array)
       EXPECT_EQ(MSGPACK_OBJECT_NEGATIVE_INTEGER, o.type);
       EXPECT_EQ(-10, o.via.u64);
       break;
+    }
+  }
+}
+
+TEST(MSGPACKC, simple_buffer_map)
+{
+  unsigned int map_size = 2;
+
+  msgpack_sbuffer sbuf;
+  msgpack_sbuffer_init(&sbuf);
+  msgpack_packer pk;
+  msgpack_packer_init(&pk, &sbuf, msgpack_sbuffer_write);
+  msgpack_pack_map(&pk, map_size);
+  msgpack_pack_true(&pk);
+  msgpack_pack_false(&pk);
+  msgpack_pack_int(&pk, 10);
+  msgpack_pack_int(&pk, -10);
+
+  msgpack_zone z;
+  msgpack_zone_init(&z, 2048);
+  msgpack_object obj;
+  msgpack_unpack_return ret;
+  ret = msgpack_unpack(sbuf.data, sbuf.size, NULL, &z, &obj);
+  EXPECT_EQ(MSGPACK_UNPACK_SUCCESS, ret);
+  EXPECT_EQ(MSGPACK_OBJECT_MAP, obj.type);
+  EXPECT_EQ(map_size, obj.via.map.size);
+
+  for (unsigned int i = 0; i < map_size; i++) {
+    msgpack_object key = obj.via.map.ptr[i].key;
+    msgpack_object val = obj.via.map.ptr[i].val;
+    switch (i) {
+    case 0:
+      EXPECT_EQ(MSGPACK_OBJECT_BOOLEAN, key.type);
+      EXPECT_EQ(true, key.via.boolean);
+      EXPECT_EQ(MSGPACK_OBJECT_BOOLEAN, val.type);
+      EXPECT_EQ(false, val.via.boolean);
+      break;
+    case 1:
+      EXPECT_EQ(MSGPACK_OBJECT_POSITIVE_INTEGER, key.type);
+      EXPECT_EQ(10, key.via.u64);
+      EXPECT_EQ(MSGPACK_OBJECT_NEGATIVE_INTEGER, val.type);
+      EXPECT_EQ(-10, val.via.i64);
+      break;      
     }
   }
 }
