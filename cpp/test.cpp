@@ -564,3 +564,109 @@ TEST(MSGPACK_USER_DEFINED, simple_buffer_union_member)
     EXPECT_EQ(val1.value.i, val2.value.i);
   }
 }
+
+//-----------------------------------------------------------------------------
+
+#define GEN_TEST_VREF(test_type)                                        \
+  do {                                                                  \
+    vector<test_type> v;                                                \
+    v.push_back(0);                                                     \
+    for (unsigned int i = 0; i < v.size(); i++) {                       \
+      test_type val1 = v[i];                                            \
+      msgpack::vrefbuffer vbuf;                                         \
+      msgpack::pack(vbuf, val1);                                        \
+      msgpack::sbuffer sbuf;                                            \
+      const struct iovec* cur = vbuf.vector();                          \
+      const struct iovec* end = cur + vbuf.vector_size();               \
+      for(; cur != end; ++cur)                                          \
+        sbuf.write((const char*)cur->iov_base, cur->iov_len);           \
+      msgpack::zone z;                                                  \
+      msgpack::object obj;                                              \
+      msgpack::unpack_return ret =                                      \
+        msgpack::unpack(sbuf.data(), sbuf.size(), NULL, &z, &obj);      \
+      EXPECT_EQ(msgpack::UNPACK_SUCCESS, ret);                          \
+      test_type val2;                                                   \
+      obj.convert(&val2);                                               \
+      EXPECT_EQ(val1, val2);                                            \
+    }                                                                   \
+  } while(0);
+
+TEST(MSGPACK, vrefbuffer_short)
+{
+  GEN_TEST_VREF(short);
+}
+
+TEST(MSGPACK, vrefbuffer_int)
+{
+  GEN_TEST_VREF(int);
+}
+
+TEST(MSGPACK, vrefbuffer_long)
+{
+  GEN_TEST_VREF(long);
+}
+
+TEST(MSGPACK, vrefbuffer_long_long)
+{
+  GEN_TEST_VREF(long long);
+}
+
+TEST(MSGPACK, vrefbuffer_unsigned_short)
+{
+  GEN_TEST_VREF(unsigned short);
+}
+
+TEST(MSGPACK, vrefbuffer_unsigned_int)
+{
+  GEN_TEST_VREF(unsigned int);
+}
+
+TEST(MSGPACK, vrefbuffer_unsigned_long)
+{
+  GEN_TEST_VREF(unsigned long);
+}
+
+TEST(MSGPACK, vrefbuffer_unsigned_long_long)
+{
+  GEN_TEST_VREF(unsigned long long);
+}
+
+TEST(MSGPACK, vrefbuffer_uint8)
+{
+  GEN_TEST_VREF(uint8_t);
+}
+
+TEST(MSGPACK, vrefbuffer_uint16)
+{
+  GEN_TEST_VREF(uint16_t);
+}
+
+TEST(MSGPACK, vrefbuffer_uint32)
+{
+  GEN_TEST_VREF(uint32_t);
+}
+
+TEST(MSGPACK, vrefbuffer_uint64)
+{
+  GEN_TEST_VREF(uint64_t);
+}
+
+TEST(MSGPACK, vrefbuffer_int8)
+{
+  GEN_TEST_VREF(int8_t);
+}
+
+TEST(MSGPACK, vrefbuffer_int16)
+{
+  GEN_TEST_VREF(int16_t);
+}
+
+TEST(MSGPACK, vrefbuffer_int32)
+{
+  GEN_TEST_VREF(int32_t);
+}
+
+TEST(MSGPACK, vrefbuffer_int64)
+{
+  GEN_TEST_VREF(int64_t);
+}
