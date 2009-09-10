@@ -26,7 +26,7 @@ namespace type {
 
 // FIXME operator==
 // FIXME operator!=
-<% GENERATION_LIMIT = 15 %>
+<% GENERATION_LIMIT = 31 %>
 
 template <typename A0 = void<%1.upto(GENERATION_LIMIT+1) {|i|%>, typename A<%=i%> = void<%}%>>
 struct tuple;
