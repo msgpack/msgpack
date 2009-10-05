@@ -1,8 +1,14 @@
 #!/bin/sh
 
 preprocess() {
-	erb $1.erb > $1.tmp
-	mv $1.tmp $1
+	ruby -r erb -e 'puts ERB.new(ARGF.read).result' $1.erb > $1.tmp
+	if [ "$?" != 0 ]; then
+		echo ""
+		echo "** preprocess failed **"
+		echo ""
+	else
+		mv $1.tmp $1
+	fi
 }
 
 preprocess msgpack/type/tuple.hpp
