@@ -91,6 +91,8 @@ private:
 
 template <>
 struct tuple<> {
+	tuple() {}
+	tuple(object o) { o.convert(this); }
 	typedef tuple<> value_type;
 };
 <%0.upto(GENERATION_LIMIT) {|i|%>
