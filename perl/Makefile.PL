@@ -1,6 +1,7 @@
 use inc::Module::Install;
 name 'Data-MessagePack';
 all_from 'lib/Data/MessagePack.pm';
+readme_from 'lib/Data/MessagePack.pm';
 
 perl_version '5.008005';
 license 'perl';

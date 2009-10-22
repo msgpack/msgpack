@@ -44,6 +44,12 @@ Pack the string as int when the value looks like int(EXPERIMENTAL).
 
 Tokuhiro Matsuno
 
+=head1 LICENSE
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+
 =head1 SEE ALSO
 
 L<http://msgpack.sourceforge.jp/>
