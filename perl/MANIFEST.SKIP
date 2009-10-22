@@ -21,3 +21,5 @@
 \.sw[pon]$
 ^\.gitignore$
 ppport.h
+\.o$
+\.bs$
