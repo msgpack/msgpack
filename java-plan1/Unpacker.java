@@ -50,13 +50,26 @@ public class Unpacker {
 		return finished;
 	}
 
+	public void reset()
+	{
+		for(int i=0; i <= top; ++top) {
+			stack_ct[top] = 0;
+			stack_count[top] = 0;
+			stack_obj[top] = null;
+			stack_map_key[top] = null;
+		}
+		cs = CS_HEADER;
+		trail = 0;
+		top = -1;
+		finished = false;
+	}
 
 	@SuppressWarnings("unchecked")
 	public int execute(byte[] src, int off, int length) throws IOException
 	{
 		if(off >= length) { return off; }
 
-		int limit = off + length;
+		int limit = length;
 		int i = off;
 		int count;
 
@@ -64,7 +77,7 @@ public class Unpacker {
 
 		_out: do {
 		_header_again: {
-			//System.out.println("while i:"+i);
+			//System.out.println("while i:"+i+" limit:"+limit);
 
 			int b = src[i];
 
@@ -349,6 +362,7 @@ public class Unpacker {
 					((ArrayList)(stack_obj[top])).add(obj);
 					if(--stack_count[top] == 0) {
 						obj = stack_obj[top];
+						stack_obj[top] = null;
 						--top;
 						break _push;
 					}
@@ -363,6 +377,8 @@ public class Unpacker {
 					((HashMap)(stack_obj[top])).put(stack_map_key[top], obj);
 					if(--stack_count[top] == 0) {
 						obj = stack_obj[top];
+						stack_map_key[top] = null;
+						stack_obj[top] = null;
 						--top;
 						break _push;
 					}
@@ -379,7 +395,7 @@ public class Unpacker {
 		++i;
 		} while(i < limit);  // _out
 
-		return i - off;
+		return i;
 	}
 }
 
