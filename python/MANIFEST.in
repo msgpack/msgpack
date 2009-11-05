@@ -1,0 +1,2 @@
+include setup.py
+recursive-include msgpack *.h *.c *.pyx
