@@ -29,3 +29,9 @@ public class MessagePack {
 	}
 }
 
+/*
+public interface MessagePackable {
+	public void toMessagePack(Packer pk);
+}
+*/
+
