@@ -40,6 +40,11 @@
 #error msgpack_unpack_user type is not defined
 #endif
 
+#ifndef USE_CASE_RANGE
+#if !defined(_MSC_VER)
+#define USE_CASE_RANGE
+#endif
+#endif
 
 msgpack_unpack_struct_decl(_stack) {
 	msgpack_unpack_object obj;
@@ -130,16 +135,28 @@ msgpack_unpack_func(int, _execute)(msgpack_unpack_struct(_context)* ctx, const c
 #define PTR_CAST_32(ptr)  msgpack_be32(*(uint32_t*)ptr)
 #define PTR_CAST_64(ptr)  msgpack_be64(*(uint64_t*)ptr)
 
+#ifdef USE_CASE_RANGE
+#define SWITCH_RANGE_BEGIN     switch(*p) {
+#define SWITCH_RANGE(FROM, TO) case FROM ... TO:
+#define SWITCH_RANGE_DEFAULT   default:
+#define SWITCH_RANGE_END       }
+#else
+#define SWITCH_RANGE_BEGIN     { if(0) {
+#define SWITCH_RANGE(FROM, TO) } else if(FROM <= *p && *p <= TO) {
+#define SWITCH_RANGE_DEFAULT   } else {
+#define SWITCH_RANGE_END       } }
+#endif
+
 	if(p == pe) { goto _out; }
 	do {
 		switch(cs) {
 		case CS_HEADER:
-			switch(*p) {
-			case 0x00 ... 0x7f:  // Positive Fixnum
+			SWITCH_RANGE_BEGIN
+			SWITCH_RANGE(0x00, 0x7f)  // Positive Fixnum
 				push_fixed_value(_uint8, *(uint8_t*)p);
-			case 0xe0 ... 0xff:  // Negative Fixnum
+			SWITCH_RANGE(0xe0, 0xff)  // Negative Fixnum
 				push_fixed_value(_int8, *(int8_t*)p);
-			case 0xc0 ... 0xdf:  // Variable
+			SWITCH_RANGE(0xc0, 0xdf)  // Variable
 				switch(*p) {
 				case 0xc0:  // nil
 					push_simple_value(_nil);
@@ -182,16 +199,16 @@ msgpack_unpack_func(int, _execute)(msgpack_unpack_struct(_context)* ctx, const c
 				default:
 					goto _failed;
 				}
-			case 0xa0 ... 0xbf:  // FixRaw
+			SWITCH_RANGE(0xa0, 0xbf)  // FixRaw
 				again_fixed_trail_if_zero(ACS_RAW_VALUE, ((unsigned int)*p & 0x1f), _raw_zero);
-			case 0x90 ... 0x9f:  // FixArray
+			SWITCH_RANGE(0x90, 0x9f)  // FixArray
 				start_container(_array, ((unsigned int)*p) & 0x0f, CT_ARRAY_ITEM);
-			case 0x80 ... 0x8f:  // FixMap
+			SWITCH_RANGE(0x80, 0x8f)  // FixMap
 				start_container(_map, ((unsigned int)*p) & 0x0f, CT_MAP_KEY);
 
-			default:
+			SWITCH_RANGE_DEFAULT
 				goto _failed;
-			}
+			SWITCH_RANGE_END
 			// end CS_HEADER
 
 
