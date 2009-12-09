@@ -19,7 +19,16 @@
 #define MSGPACK_VREFBUFFER_H__
 
 #include "msgpack/zone.h"
+
+#ifndef _WIN32
 #include <sys/uio.h>
+#else
+struct iovec {
+	void  *iov_base;
+	size_t iov_len;
+};
+#endif
+
 
 #ifdef __cplusplus
 extern "C" {

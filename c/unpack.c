@@ -101,7 +101,7 @@ static inline int template_callback_array(unpack_user* u, unsigned int n, msgpac
 {
 	o->type = MSGPACK_OBJECT_ARRAY;
 	o->via.array.size = 0;
-	o->via.array.ptr = msgpack_zone_malloc(u->z, n*sizeof(msgpack_object));
+	o->via.array.ptr = (msgpack_object*)msgpack_zone_malloc(u->z, n*sizeof(msgpack_object));
 	if(o->via.array.ptr == NULL) { return -1; }
 	return 0;
 }
@@ -142,30 +142,47 @@ static inline int template_callback_raw(unpack_user* u, const char* b, const cha
 #define CTX_REFERENCED(mpac) CTX_CAST((mpac)->ctx)->user.referenced
 
 
-static const size_t COUNTER_SIZE = sizeof(unsigned int);
+#ifndef _MSC_VER
+typedef unsigned int counter_t;
+#else
+typedef long counter_t;
+#endif
+
+#define COUNTER_SIZE (sizeof(volatile counter_t))
+
 
 static inline void init_count(void* buffer)
 {
-	*(volatile unsigned int*)buffer = 1;
+	*(volatile counter_t*)buffer = 1;
 }
 
 static inline void decl_count(void* buffer)
 {
-	//if(--*(unsigned int*)buffer == 0) {
-	if(__sync_sub_and_fetch((unsigned int*)buffer, 1) == 0) {
+	// atomic if(--*(counter_t*)buffer == 0) { free(buffer); }
+	if(
+#ifndef _MSC_VER
+		__sync_sub_and_fetch((counter_t*)buffer, 1) == 0
+#else
+		InterlockedDecrement((volatile counter_t*)&buffer) == 0
+#endif
+			) {
 		free(buffer);
 	}
 }
 
 static inline void incr_count(void* buffer)
 {
-	//++*(unsigned int*)buffer;
-	__sync_add_and_fetch((unsigned int*)buffer, 1);
+	// atomic ++*(counter_t*)buffer;
+#ifndef _MSC_VER
+	__sync_add_and_fetch((counter_t*)buffer, 1);
+#else
+	InterlockedIncrement((volatile counter_t*)&buffer);
+#endif
 }
 
-static inline unsigned int get_count(void* buffer)
+static inline counter_t get_count(void* buffer)
 {
-	return *(volatile unsigned int*)buffer;
+	return *(volatile counter_t*)buffer;
 }
 
 

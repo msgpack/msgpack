@@ -18,7 +18,17 @@
 #include "msgpack/object.h"
 #include "msgpack/pack.h"
 #include <stdio.h>
+
+#ifndef _MSC_VER
 #include <inttypes.h>
+#else
+#ifndef PRIu64
+#define PRIu64 "I64u"
+#endif
+#ifndef PRIi64
+#define PRIi64 "I64d"
+#endif
+#endif
 
 
 int msgpack_pack_object(msgpack_packer* pk, msgpack_object d)

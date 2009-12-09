@@ -19,9 +19,7 @@
 #define MSGPACK_OBJECT_H__
 
 #include "msgpack/zone.h"
-#include <stdint.h>
-#include <stddef.h>
-#include <stdbool.h>
+#include "msgpack/sys.h"
 #include <stdio.h>
 
 #ifdef __cplusplus

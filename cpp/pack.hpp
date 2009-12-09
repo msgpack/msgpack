@@ -18,10 +18,9 @@
 #ifndef MSGPACK_PACK_HPP__
 #define MSGPACK_PACK_HPP__
 
-#include <arpa/inet.h>  // __BYTE_ORDER
+#include "msgpack/pack_define.h"
 #include <stdexcept>
 #include <limits.h>
-#include "msgpack/pack_define.h"
 
 namespace msgpack {
 

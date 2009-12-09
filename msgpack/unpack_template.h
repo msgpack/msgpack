@@ -126,9 +126,9 @@ msgpack_unpack_func(int, _execute)(msgpack_unpack_struct(_context)* ctx, const c
 	((unsigned int)*p & 0x1f)
 
 #define PTR_CAST_8(ptr)   (*(uint8_t*)ptr)
-#define PTR_CAST_16(ptr)  msgpack_betoh16(*(uint16_t*)ptr)
-#define PTR_CAST_32(ptr)  msgpack_betoh32(*(uint32_t*)ptr)
-#define PTR_CAST_64(ptr)  msgpack_betoh64(*(uint64_t*)ptr)
+#define PTR_CAST_16(ptr)  msgpack_be16(*(uint16_t*)ptr)
+#define PTR_CAST_32(ptr)  msgpack_be32(*(uint32_t*)ptr)
+#define PTR_CAST_64(ptr)  msgpack_be64(*(uint64_t*)ptr)
 
 	if(p == pe) { goto _out; }
 	do {
