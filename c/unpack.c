@@ -141,48 +141,31 @@ static inline int template_callback_raw(unpack_user* u, const char* b, const cha
 #define CTX_CAST(m) ((template_context*)(m))
 #define CTX_REFERENCED(mpac) CTX_CAST((mpac)->ctx)->user.referenced
 
-
-#ifndef _MSC_VER
-typedef unsigned int counter_t;
-#else
-typedef long counter_t;
-#endif
-
-#define COUNTER_SIZE (sizeof(volatile counter_t))
+#define COUNTER_SIZE (sizeof(_msgpack_atomic_counter_t))
 
 
 static inline void init_count(void* buffer)
 {
-	*(volatile counter_t*)buffer = 1;
+	*(volatile _msgpack_atomic_counter_t*)buffer = 1;
 }
 
 static inline void decl_count(void* buffer)
 {
-	// atomic if(--*(counter_t*)buffer == 0) { free(buffer); }
-	if(
-#ifndef _MSC_VER
-		__sync_sub_and_fetch((counter_t*)buffer, 1) == 0
-#else
-		InterlockedDecrement((volatile counter_t*)&buffer) == 0
-#endif
-			) {
+	// atomic if(--*(_msgpack_atomic_counter_t*)buffer == 0) { free(buffer); }
+	if(_msgpack_sync_decr_and_fetch((volatile _msgpack_atomic_counter_t*)buffer)) {
 		free(buffer);
 	}
 }
 
 static inline void incr_count(void* buffer)
 {
-	// atomic ++*(counter_t*)buffer;
-#ifndef _MSC_VER
-	__sync_add_and_fetch((counter_t*)buffer, 1);
-#else
-	InterlockedIncrement((volatile counter_t*)&buffer);
-#endif
+	// atomic ++*(_msgpack_atomic_counter_t*)buffer;
+	_msgpack_sync_incr_and_fetch((volatile _msgpack_atomic_counter_t*)buffer);
 }
 
-static inline counter_t get_count(void* buffer)
+static inline _msgpack_atomic_counter_t get_count(void* buffer)
 {
-	return *(volatile counter_t*)buffer;
+	return *(volatile _msgpack_atomic_counter_t*)buffer;
 }
 
 

@@ -18,7 +18,7 @@
 #ifndef MSGPACK_UNPACK_DEFINE_H__
 #define MSGPACK_UNPACK_DEFINE_H__
 
-#include "msgpack/sys.h"
+#include "msgpack/sysdep.h"
 #include <string.h>
 #include <assert.h>
 #include <stdio.h>

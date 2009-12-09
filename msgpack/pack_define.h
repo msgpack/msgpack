@@ -18,7 +18,7 @@
 #ifndef MSGPACK_PACK_DEFINE_H__
 #define MSGPACK_PACK_DEFINE_H__
 
-#include "msgpack/sys.h"
+#include "msgpack/sysdep.h"
 #include <limits.h>
 
 #endif /* msgpack/pack_define.h */
