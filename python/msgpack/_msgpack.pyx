@@ -233,7 +233,9 @@ cdef class Unpacker(object):
         if self.buf:
             free(self.buf);
 
-    def __init__(self, file_like=None, int read_size=1024*1024):
+    def __init__(self, file_like=None, int read_size=0):
+        if read_size == 0:
+            read_size = 1024*1024
         self.file_like = file_like
         self.read_size = read_size
         self.waiting_bytes = []
@@ -309,6 +311,7 @@ cdef class Unpacker(object):
         self.fill_buffer()
         ret = template_execute(&self.ctx, self.buf, self.buf_tail, &self.buf_head)
         if ret == 1:
+            template_init(&self.ctx)
             return template_data(&self.ctx)
         elif ret == 0:
             if self.file_like is not None:
@@ -319,3 +322,10 @@ cdef class Unpacker(object):
 
     def __iter__(self):
         return UnpackIterator(self)
+
+    # for debug.
+    #def _buf(self):
+    #    return PyString_FromStringAndSize(self.buf, self.buf_tail)
+
+    #def _off(self):
+    #    return self.buf_head
