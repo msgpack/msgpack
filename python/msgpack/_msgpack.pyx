@@ -311,8 +311,9 @@ cdef class Unpacker(object):
         self.fill_buffer()
         ret = template_execute(&self.ctx, self.buf, self.buf_tail, &self.buf_head)
         if ret == 1:
+            o = template_data(&self.ctx)
             template_init(&self.ctx)
-            return template_data(&self.ctx)
+            return o
         elif ret == 0:
             if self.file_like is not None:
                 return self.unpack()
