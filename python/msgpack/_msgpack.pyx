@@ -152,7 +152,7 @@ packs = packb
 
 cdef extern from "unpack.h":
     ctypedef struct msgpack_user:
-        int use_tuple
+        int use_list
 
     ctypedef struct template_context:
         msgpack_user user
@@ -174,7 +174,7 @@ def unpackb(object packed_bytes):
     cdef size_t off = 0
     cdef int ret
     template_init(&ctx)
-    ctx.user.use_tuple = 0
+    ctx.user.use_list = 0
     ret = template_execute(&ctx, p, len(packed_bytes), &off)
     if ret == 1:
         return template_data(&ctx)
@@ -230,7 +230,7 @@ cdef class Unpacker(object):
     cdef object file_like
     cdef int read_size
     cdef object waiting_bytes
-    cdef int use_tuple
+    cdef int use_list
 
     def __cinit__(self):
         self.buf = NULL
@@ -239,10 +239,10 @@ cdef class Unpacker(object):
         if self.buf:
             free(self.buf);
 
-    def __init__(self, file_like=None, int read_size=0, use_tuple=0):
+    def __init__(self, file_like=None, int read_size=0, use_list=0):
         if read_size == 0:
             read_size = 1024*1024
-        self.use_tuple = use_tuple
+        self.use_list = use_list
         self.file_like = file_like
         self.read_size = read_size
         self.waiting_bytes = []
@@ -251,7 +251,7 @@ cdef class Unpacker(object):
         self.buf_head = 0
         self.buf_tail = 0
         template_init(&self.ctx)
-        self.ctx.user.use_tuple = use_tuple
+        self.ctx.user.use_list = use_list
 
     def feed(self, next_bytes):
         if not isinstance(next_bytes, str):
