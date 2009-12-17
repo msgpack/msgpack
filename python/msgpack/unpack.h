@@ -20,6 +20,7 @@
 #include "unpack_define.h"
 
 typedef struct unpack_user {
+    int use_tuple;
 } unpack_user;
 
 
@@ -135,7 +136,8 @@ static inline int template_callback_false(unpack_user* u, msgpack_unpack_object*
 
 static inline int template_callback_array(unpack_user* u, unsigned int n, msgpack_unpack_object* o)
 {
-    PyObject *p = PyList_New(n);
+    PyObject *p = u->use_tuple ? PyTuple_New(n) : PyList_New(n);
+
     if (!p)
         return -1;
     *o = p;
@@ -143,7 +145,15 @@ static inline int template_callback_array(unpack_user* u, unsigned int n, msgpac
 }
 
 static inline int template_callback_array_item(unpack_user* u, unsigned int current, msgpack_unpack_object* c, msgpack_unpack_object o)
-{ PyList_SET_ITEM(*c, current, o); return 0; }
+{
+    if (u->use_tuple) {
+        PyTuple_SET_ITEM(*c, current, o);
+    }
+    else {
+        PyList_SET_ITEM(*c, current, o);
+    }
+    return 0;
+}
 
 static inline int template_callback_map(unpack_user* u, unsigned int n, msgpack_unpack_object* o)
 {
