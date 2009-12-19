@@ -76,6 +76,7 @@ int msgpack_vrefbuffer_append_copy(msgpack_vrefbuffer* vbuf,
 int msgpack_vrefbuffer_append_ref(msgpack_vrefbuffer* vbuf,
 		const char* buf, unsigned int len);
 
+int msgpack_vrefbuffer_migrate(msgpack_vrefbuffer* vbuf, msgpack_vrefbuffer* to);
 
 int msgpack_vrefbuffer_write(void* data, const char* buf, unsigned int len)
 {
