@@ -1,3 +1,8 @@
+0.09
+
+    - support NVTYPE=="long double" or IVTYPE=="long long" environment
+      (thanks to Jun Kuriyama++)
+
 0.08
 
     - fixed PVNV issue...

@@ -20,6 +20,6 @@
 ^\.git/
 \.sw[pon]$
 ^\.gitignore$
-ppport.h
 \.o$
 \.bs$
+^Data-MessagePack-[0-9.]+/
