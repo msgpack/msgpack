@@ -151,7 +151,11 @@ def packb(object o):
 packs = packb
 
 cdef extern from "unpack.h":
+    ctypedef struct msgpack_user:
+        int use_list
+
     ctypedef struct template_context:
+        msgpack_user user
         PyObject* obj
         size_t count
         unsigned int ct
@@ -170,6 +174,7 @@ def unpackb(object packed_bytes):
     cdef size_t off = 0
     cdef int ret
     template_init(&ctx)
+    ctx.user.use_list = 0
     ret = template_execute(&ctx, p, len(packed_bytes), &off)
     if ret == 1:
         return template_data(&ctx)
@@ -225,6 +230,7 @@ cdef class Unpacker(object):
     cdef object file_like
     cdef int read_size
     cdef object waiting_bytes
+    cdef int use_list
 
     def __cinit__(self):
         self.buf = NULL
@@ -233,7 +239,10 @@ cdef class Unpacker(object):
         if self.buf:
             free(self.buf);
 
-    def __init__(self, file_like=None, int read_size=1024*1024):
+    def __init__(self, file_like=None, int read_size=0, use_list=0):
+        if read_size == 0:
+            read_size = 1024*1024
+        self.use_list = use_list
         self.file_like = file_like
         self.read_size = read_size
         self.waiting_bytes = []
@@ -242,6 +251,7 @@ cdef class Unpacker(object):
         self.buf_head = 0
         self.buf_tail = 0
         template_init(&self.ctx)
+        self.ctx.user.use_list = use_list
 
     def feed(self, next_bytes):
         if not isinstance(next_bytes, str):
@@ -309,7 +319,9 @@ cdef class Unpacker(object):
         self.fill_buffer()
         ret = template_execute(&self.ctx, self.buf, self.buf_tail, &self.buf_head)
         if ret == 1:
-            return template_data(&self.ctx)
+            o = template_data(&self.ctx)
+            template_init(&self.ctx)
+            return o
         elif ret == 0:
             if self.file_like is not None:
                 return self.unpack()
@@ -319,3 +331,10 @@ cdef class Unpacker(object):
 
     def __iter__(self):
         return UnpackIterator(self)
+
+    # for debug.
+    #def _buf(self):
+    #    return PyString_FromStringAndSize(self.buf, self.buf_tail)
+
+    #def _off(self):
+    #    return self.buf_head

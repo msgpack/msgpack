@@ -5,7 +5,7 @@ from distutils.core import setup, Extension
 from Cython.Distutils import build_ext
 import os
 
-version = '0.1.1dev'
+version = '0.2.0dev'
 
 msgpack_mod = Extension('msgpack._msgpack',
                         sources=['msgpack/_msgpack.pyx']

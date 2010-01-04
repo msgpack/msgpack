@@ -21,6 +21,7 @@
 #include "msgpack/object.hpp"
 #include "msgpack/zone.h"
 #include <cstdlib>
+#include <memory>
 #include <vector>
 
 <% GENERATION_LIMIT = 15 %>
@@ -37,6 +38,9 @@ public:
 	void* malloc_no_align(size_t size);
 
 	void push_finalizer(void (*func)(void*), void* data);
+
+	template <typename T>
+	void push_finalizer(std::auto_ptr<T> obj);
 
 	void clear();
 
@@ -92,6 +96,15 @@ inline void zone::push_finalizer(void (*func)(void*), void* data)
 	if(!msgpack_zone_push_finalizer(this, func, data)) {
 		throw std::bad_alloc();
 	}
+}
+
+template <typename T>
+inline void zone::push_finalizer(std::auto_ptr<T> obj)
+{
+	if(!msgpack_zone_push_finalizer(this, &zone::object_destructor<T>, obj.get())) {
+		throw std::bad_alloc();
+	}
+	obj.release();
 }
 
 inline void zone::clear()

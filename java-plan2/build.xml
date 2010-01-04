@@ -1,0 +1,15 @@
+<project name="MessagePack for Java">
+	<target name="prepare">
+		<mkdir dir="build" />
+		<mkdir dir="dist" />
+	</target>
+	<target name="clean">
+		<delete dir="build"/>
+		<delete dir="dist"/>
+	</target>
+	<target name="compile" depends="prepare">
+		<javac srcdir="src" destdir="build" classpath="lib" source="1.5" target="1.5">
+			<classpath><fileset dir="lib" /> </classpath>
+		</javac>
+	</target>
+</project>

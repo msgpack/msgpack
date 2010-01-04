@@ -18,11 +18,9 @@
 #ifndef MSGPACK_PACK_H__
 #define MSGPACK_PACK_H__
 
-#include <stddef.h>
-#include <stdint.h>
-#include <stdlib.h>
 #include "msgpack/pack_define.h"
 #include "msgpack/object.h"
+#include <stdlib.h>
 
 #ifdef __cplusplus
 extern "C" {

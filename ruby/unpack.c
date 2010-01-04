@@ -127,6 +127,15 @@ static inline int template_callback_raw(unpack_user* u, const char* b, const cha
 static VALUE cUnpacker;
 static VALUE eUnpackError;
 
+// FIXME slow operation
+static void init_stack(msgpack_unpack_t* mp)
+{
+	size_t i;
+	for(i=0; i < MSGPACK_MAX_STACK_SIZE; ++i) {
+		mp->stack[i].map_key = Qnil;  /* GC */
+	}
+}
+
 static void MessagePack_Unpacker_free(void* data)
 {
 	if(data) { free(data); }
@@ -137,7 +146,7 @@ static void MessagePack_Unpacker_mark(msgpack_unpack_t *mp)
 	unsigned int i;
 	for(i=0; i < mp->top; ++i) {
 		rb_gc_mark(mp->stack[i].obj);
-		rb_gc_mark(mp->stack[i].map_key);
+		rb_gc_mark(mp->stack[i].map_key); /* maybe map_key is not initialized */
 	}
 }
 
@@ -154,6 +163,7 @@ static VALUE MessagePack_Unpacker_reset(VALUE self)
 {
 	UNPACKER(self, mp);
 	template_init(mp);
+	init_stack(mp);
 	unpack_user u = {0, Qnil};
 	mp->user = u;
 	return self;
@@ -281,6 +291,7 @@ static VALUE MessagePack_unpack_limit(VALUE self, VALUE data, VALUE limit)
 
 	msgpack_unpack_t mp;
 	template_init(&mp);
+	init_stack(&mp);
 	unpack_user u = {0, Qnil};
 	mp.user = u;
 

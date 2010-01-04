@@ -71,6 +71,13 @@ public:
 		return msgpack_vrefbuffer_veclen(this);
 	}
 
+	void migrate(vrefbuffer* to)
+	{
+		if(msgpack_vrefbuffer_migrate(this, to) < 0) {
+			throw std::bad_alloc();
+		}
+	}
+
 private:
 	typedef msgpack_vrefbuffer base;
 

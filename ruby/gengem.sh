@@ -15,6 +15,7 @@ cp ../msgpack/pack_define.h     gem/msgpack/
 cp ../msgpack/pack_template.h   gem/msgpack/
 cp ../msgpack/unpack_define.h   gem/msgpack/
 cp ../msgpack/unpack_template.h gem/msgpack/
+cp ../msgpack/sysdep.h          gem/msgpack/
 
 cd gem && rake --trace package
 

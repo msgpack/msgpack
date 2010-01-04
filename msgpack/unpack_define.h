@@ -18,14 +18,10 @@
 #ifndef MSGPACK_UNPACK_DEFINE_H__
 #define MSGPACK_UNPACK_DEFINE_H__
 
-#include <stddef.h>
-#include <stdint.h>
+#include "msgpack/sysdep.h"
 #include <string.h>
 #include <assert.h>
 #include <stdio.h>
-#ifndef __WIN32__
-#include <arpa/inet.h>
-#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -34,39 +30,6 @@ extern "C" {
 
 #ifndef MSGPACK_MAX_STACK_SIZE
 #define MSGPACK_MAX_STACK_SIZE 16
-#endif
-
-
-#if !defined(__LITTLE_ENDIAN__) && !defined(__BIG_ENDIAN__)
-#if __BYTE_ORDER == __LITTLE_ENDIAN
-#define __LITTLE_ENDIAN__
-#elif __BYTE_ORDER == __BIG_ENDIAN
-#define __BIG_ENDIAN__
-#endif
-#endif
-
-#define msgpack_betoh16(x) ntohs(x)
-#define msgpack_betoh32(x) ntohl(x)
-
-#ifdef __LITTLE_ENDIAN__
-#if defined(__bswap_64)
-#  define msgpack_betoh64(x) __bswap_64(x)
-#elif defined(__DARWIN_OSSwapInt64)
-#  define msgpack_betoh64(x) __DARWIN_OSSwapInt64(x)
-#else
-static inline uint64_t msgpack_betoh64(uint64_t x) {
-	return	((x << 56) & 0xff00000000000000ULL ) |
-			((x << 40) & 0x00ff000000000000ULL ) |
-			((x << 24) & 0x0000ff0000000000ULL ) |
-			((x <<  8) & 0x000000ff00000000ULL ) |
-			((x >>  8) & 0x00000000ff000000ULL ) |
-			((x >> 24) & 0x0000000000ff0000ULL ) |
-			((x >> 40) & 0x000000000000ff00ULL ) |
-			((x >> 56) & 0x00000000000000ffULL ) ;
-}
-#endif
-#else
-#define msgpack_betoh64(x) (x)
 #endif
 
 

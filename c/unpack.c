@@ -101,7 +101,7 @@ static inline int template_callback_array(unpack_user* u, unsigned int n, msgpac
 {
 	o->type = MSGPACK_OBJECT_ARRAY;
 	o->via.array.size = 0;
-	o->via.array.ptr = msgpack_zone_malloc(u->z, n*sizeof(msgpack_object));
+	o->via.array.ptr = (msgpack_object*)msgpack_zone_malloc(u->z, n*sizeof(msgpack_object));
 	if(o->via.array.ptr == NULL) { return -1; }
 	return 0;
 }
@@ -141,31 +141,31 @@ static inline int template_callback_raw(unpack_user* u, const char* b, const cha
 #define CTX_CAST(m) ((template_context*)(m))
 #define CTX_REFERENCED(mpac) CTX_CAST((mpac)->ctx)->user.referenced
 
+#define COUNTER_SIZE (sizeof(_msgpack_atomic_counter_t))
 
-static const size_t COUNTER_SIZE = sizeof(unsigned int);
 
 static inline void init_count(void* buffer)
 {
-	*(volatile unsigned int*)buffer = 1;
+	*(volatile _msgpack_atomic_counter_t*)buffer = 1;
 }
 
 static inline void decl_count(void* buffer)
 {
-	//if(--*(unsigned int*)buffer == 0) {
-	if(__sync_sub_and_fetch((unsigned int*)buffer, 1) == 0) {
+	// atomic if(--*(_msgpack_atomic_counter_t*)buffer == 0) { free(buffer); }
+	if(_msgpack_sync_decr_and_fetch((volatile _msgpack_atomic_counter_t*)buffer) == 0) {
 		free(buffer);
 	}
 }
 
 static inline void incr_count(void* buffer)
 {
-	//++*(unsigned int*)buffer;
-	__sync_add_and_fetch((unsigned int*)buffer, 1);
+	// atomic ++*(_msgpack_atomic_counter_t*)buffer;
+	_msgpack_sync_incr_and_fetch((volatile _msgpack_atomic_counter_t*)buffer);
 }
 
-static inline unsigned int get_count(void* buffer)
+static inline _msgpack_atomic_counter_t get_count(void* buffer)
 {
-	return *(volatile unsigned int*)buffer;
+	return *(volatile _msgpack_atomic_counter_t*)buffer;
 }
 
 

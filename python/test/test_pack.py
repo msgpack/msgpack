@@ -17,7 +17,7 @@ def testPack():
             1.0,
         "", "a", "a"*31, "a"*32,
         None, True, False,
-        [], [[]], [[], None], 
+        (), ((),), ((), None,), 
         {None: 0}, 
         (1<<23), 
         ]
