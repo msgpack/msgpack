@@ -37,9 +37,18 @@ static void need(enc_t *enc, STRLEN len);
 
 #include "msgpack/pack_template.h"
 
-#define _PACK_WRAPPER(t) msgpack_pack_##t
-#define PACK_WRAPPER(t) _PACK_WRAPPER(t)
 #define INIT_SIZE   32 /* initial scalar size to be allocated */
+
+#if   IVSIZE == 8
+#  define PACK_IV msgpack_pack_int64
+#elif IVSIZE == 4
+#  define PACK_IV msgpack_pack_int32
+#elif IVSIZE == 2
+#  define PACK_IV msgpack_pack_int16
+#else
+#  error  "msgpack only supports IVSIZE = 8,4,2 environment."
+#endif
+
 
 static void need(enc_t *enc, STRLEN len)
 {
@@ -155,11 +164,12 @@ static void _msgpack_pack_sv(enc_t *enc, SV* sv) {
             msgpack_pack_raw_body(enc, csv, len);
         }
     } else if (SvNOKp(sv)) {
-        PACK_WRAPPER(NVTYPE)(enc, SvNVX(sv));
+        /* XXX long double is not supported yet. */
+        msgpack_pack_double(enc, (double)SvNVX(sv));
     } else if (SvIOK_UV(sv)) {
         msgpack_pack_uint32(enc, SvUV(sv));
     } else if (SvIOKp(sv)) {
-        PACK_WRAPPER(IVTYPE)(enc, SvIV(sv));
+        PACK_IV(enc, SvIV(sv));
     } else if (SvROK(sv)) {
         _msgpack_pack_rv(enc, SvRV(sv));
     } else if (!SvOK(sv)) {
