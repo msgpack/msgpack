@@ -1,0 +1,18 @@
+<project name="MessagePack for Java">
+	<target name="prepare">
+		<mkdir dir="build" />
+		<mkdir dir="dist" />
+	</target>
+	<target name="clean">
+		<delete dir="build"/>
+		<delete dir="dist"/>
+	</target>
+	<target name="compile" depends="prepare">
+		<javac srcdir="src" destdir="build" source="1.5" target="1.5">
+			<compilerarg value="-Xlint:unchecked" />
+		</javac>
+	</target>
+	<target name="jar" depends="compile">
+		<jar jarfile="dist/msgpack-0.0.0.jar" basedir="build" />
+	</target>
+</project>
