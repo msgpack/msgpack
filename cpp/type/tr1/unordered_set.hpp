@@ -15,17 +15,17 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 //
-#ifndef MSGPACK_TYPE_SET_HPP__
-#define MSGPACK_TYPE_SET_HPP__
+#ifndef MSGPACK_TYPE_TR1_UNORDERED_SET_HPP__
+#define MSGPACK_TYPE_TR1_UNORDERED_SET_HPP__
 
 #include "msgpack/object.hpp"
-#include <set>
+#include <tr1/unordered_set>
 
 namespace msgpack {
 
 
 template <typename T>
-inline std::set<T>& operator>> (object o, std::set<T>& v)
+inline std::tr1::unordered_set<T>& operator>> (object o, std::tr1::unordered_set<T>& v)
 {
 	if(o.type != type::ARRAY) { throw type_error(); }
 	object* p = o.via.array.ptr + o.via.array.size;
@@ -38,10 +38,10 @@ inline std::set<T>& operator>> (object o, std::set<T>& v)
 }
 
 template <typename Stream, typename T>
-inline packer<Stream>& operator<< (packer<Stream>& o, const std::set<T>& v)
+inline packer<Stream>& operator<< (packer<Stream>& o, const std::tr1::unordered_set<T>& v)
 {
 	o.pack_array(v.size());
-	for(typename std::set<T>::const_iterator it(v.begin()), it_end(v.end());
+	for(typename std::tr1::unordered_set<T>::const_iterator it(v.begin()), it_end(v.end());
 			it != it_end; ++it) {
 		o.pack(*it);
 	}
@@ -50,7 +50,7 @@ inline packer<Stream>& operator<< (packer<Stream>& o, const std::set<T>& v)
 
 
 template <typename T>
-inline std::multiset<T>& operator>> (object o, std::multiset<T>& v)
+inline std::tr1::unordered_multiset<T>& operator>> (object o, std::tr1::unordered_multiset<T>& v)
 {
 	if(o.type != type::ARRAY) { throw type_error(); }
 	object* p = o.via.array.ptr + o.via.array.size;
@@ -63,10 +63,10 @@ inline std::multiset<T>& operator>> (object o, std::multiset<T>& v)
 }
 
 template <typename Stream, typename T>
-inline packer<Stream>& operator<< (packer<Stream>& o, const std::multiset<T>& v)
+inline packer<Stream>& operator<< (packer<Stream>& o, const std::tr1::unordered_multiset<T>& v)
 {
 	o.pack_array(v.size());
-	for(typename std::multiset<T>::const_iterator it(v.begin()), it_end(v.end());
+	for(typename std::tr1::unordered_multiset<T>::const_iterator it(v.begin()), it_end(v.end());
 			it != it_end; ++it) {
 		o.pack(*it);
 	}

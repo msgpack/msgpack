@@ -25,7 +25,9 @@ nobase_include_HEADERS = \
 		msgpack/type/string.hpp \
 		msgpack/type/vector.hpp \
 		msgpack/type/tuple.hpp \
-		msgpack/type/define.hpp
+		msgpack/type/define.hpp \
+		msgpack/type/tr1/unordered_map.hpp \
+		msgpack/type/tr1/unordered_set.hpp
 
 libmsgpack_la_LIBADD = -L../c -lmsgpackc
 
