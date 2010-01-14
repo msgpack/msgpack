@@ -120,9 +120,8 @@ void zone::object_destructor(void* obj)
 
 inline void zone::undo_malloc(size_t size)
 {
-	msgpack_zone_chunk* chunk = base::chunk_array.tail;
-	chunk->ptr  -= size;
-	chunk->free += size;
+	base::chunk_list.ptr  -= size;
+	base::chunk_list.free += size;
 }
 
 <%0.upto(GENERATION_LIMIT) {|i|%>

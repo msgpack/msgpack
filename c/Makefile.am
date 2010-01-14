@@ -16,7 +16,7 @@ nobase_include_HEADERS = \
 		msgpack/zone.h
 
 # -version-info CURRENT:REVISION:AGE
-libmsgpackc_la_LDFLAGS = -version-info 1:0:0
+libmsgpackc_la_LDFLAGS = -version-info 2:0:0
 
 check_PROGRAMS = \
   msgpackc_test

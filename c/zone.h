@@ -26,22 +26,10 @@ extern "C" {
 #endif
 
 
-typedef struct msgpack_zone_chunk {
-	size_t free;
-	char* ptr;
-	void* alloc;
-} msgpack_zone_chunk;
-
 typedef struct msgpack_zone_finalizer {
 	void (*func)(void* data);
 	void* data;
 } msgpack_zone_finalizer;
-
-typedef struct msgpack_zone_chunk_array {
-	msgpack_zone_chunk* tail;
-	msgpack_zone_chunk* end;
-	msgpack_zone_chunk* array;
-} msgpack_zone_chunk_array;
 
 typedef struct msgpack_zone_finalizer_array {
 	msgpack_zone_finalizer* tail;
@@ -49,14 +37,23 @@ typedef struct msgpack_zone_finalizer_array {
 	msgpack_zone_finalizer* array;
 } msgpack_zone_finalizer_array;
 
+struct msgpack_zone_chunk;
+typedef struct msgpack_zone_chunk msgpack_zone_chunk;
+
+typedef struct msgpack_zone_chunk_list {
+	size_t free;
+	char* ptr;
+	msgpack_zone_chunk* head;
+} msgpack_zone_chunk_list;
+
 typedef struct msgpack_zone {
-	msgpack_zone_chunk_array chunk_array;
+	msgpack_zone_chunk_list chunk_list;
 	msgpack_zone_finalizer_array finalizer_array;
 	size_t chunk_size;
 } msgpack_zone;
 
 #ifndef MSGPACK_ZONE_CHUNK_SIZE
-#define MSGPACK_ZONE_CHUNK_SIZE 2048
+#define MSGPACK_ZONE_CHUNK_SIZE 8192
 #endif
 
 bool msgpack_zone_init(msgpack_zone* zone, size_t chunk_size);
@@ -85,15 +82,15 @@ void* msgpack_zone_malloc_expand(msgpack_zone* zone, size_t size);
 
 void* msgpack_zone_malloc_no_align(msgpack_zone* zone, size_t size)
 {
-	msgpack_zone_chunk* chunk = zone->chunk_array.tail;
+	msgpack_zone_chunk_list* cl = &zone->chunk_list;
 
-	if(chunk->free < size) {
+	if(zone->chunk_list.free < size) {
 		return msgpack_zone_malloc_expand(zone, size);
 	}
 
-	char* ptr = chunk->ptr;
-	chunk->ptr  += size;
-	chunk->free -= size;
+	char* ptr = cl->ptr;
+	cl->free -= size;
+	cl->ptr  += size;
 
 	return ptr;
 }

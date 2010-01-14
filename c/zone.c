@@ -19,83 +19,61 @@
 #include <stdlib.h>
 #include <string.h>
 
-static inline bool init_chunk_array(msgpack_zone_chunk_array* ca, size_t chunk_size)
-{
-	// glibcは72バイト以下のmallocが高速
-	const size_t nfirst = (sizeof(msgpack_zone_chunk) < 72/2) ?
-			72 / sizeof(msgpack_zone_chunk) : 8;
+struct msgpack_zone_chunk {
+	struct msgpack_zone_chunk* next;
+	/* data ... */
+};
 
-	msgpack_zone_chunk* array = (msgpack_zone_chunk*)malloc(
-			sizeof(msgpack_zone_chunk) * nfirst);
-	if(array == NULL) {
+static inline bool init_chunk_list(msgpack_zone_chunk_list* cl, size_t chunk_size)
+{
+	msgpack_zone_chunk* chunk = (msgpack_zone_chunk*)malloc(
+			sizeof(msgpack_zone_chunk) + chunk_size);
+	if(chunk == NULL) {
 		return false;
 	}
 
-	const size_t sz = chunk_size;
-
-	char* ptr = (char*)malloc(sz);
-	if(ptr == NULL) {
-		free(array);
-		return NULL;
-	}
-
-	ca->tail  = array;
-	ca->end   = array + nfirst;
-	ca->array = array;
-
-	array[0].free  = sz;
-	array[0].ptr   = ptr;
-	array[0].alloc = ptr;
+	cl->head = chunk;
+	cl->free = chunk_size;
+	cl->ptr  = ((char*)chunk) + sizeof(msgpack_zone_chunk);
+	chunk->next = NULL;
 
 	return true;
 }
 
-static inline void destroy_chunk_array(msgpack_zone_chunk_array* ca)
+static inline void destroy_chunk_list(msgpack_zone_chunk_list* cl)
 {
-	msgpack_zone_chunk* chunk = ca->array;
-	for(; chunk != ca->tail+1; ++chunk) {
-		free(chunk->alloc);
+	msgpack_zone_chunk* c = cl->head;
+	while(true) {
+		msgpack_zone_chunk* n = c->next;
+		free(c);
+		if(n != NULL) {
+			c = n;
+		} else {
+			break;
+		}
 	}
-
-	free(ca->array);
 }
 
-static inline void clear_chunk_array(msgpack_zone_chunk_array* ca)
+static inline void clear_chunk_list(msgpack_zone_chunk_list* cl, size_t chunk_size)
 {
-	msgpack_zone_chunk* chunk = ca->array + 1;
-	for(; chunk != ca->tail+1; ++chunk) {
-		free(chunk->alloc);
+	msgpack_zone_chunk* c = cl->head;
+	while(true) {
+		msgpack_zone_chunk* n = c->next;
+		if(n != NULL) {
+			free(c);
+			c = n;
+		} else {
+			break;
+		}
 	}
-
-	ca->tail = ca->array;
-
-	ca->array[0].free += ca->array[0].ptr - (char*)ca->array[0].alloc;
-	ca->array[0].ptr   = (char*)ca->array[0].alloc;
+	cl->head->next = NULL;
+	cl->free = chunk_size;
+	cl->ptr  = ((char*)cl->head) + sizeof(msgpack_zone_chunk);
 }
 
 void* msgpack_zone_malloc_expand(msgpack_zone* zone, size_t size)
 {
-	msgpack_zone_chunk_array* const ca = &zone->chunk_array;
-
-	msgpack_zone_chunk* chunk = ++ca->tail;
-
-	if(chunk == ca->end) {
-		// ca->arrayに空きがない
-		// ca->arrayを拡張する
-
-		const size_t nused = ca->end - ca->array;
-		const size_t nnext = (ca->end - ca->array) * 2;
-
-		chunk = (msgpack_zone_chunk*)realloc(ca->array,
-				sizeof(msgpack_zone_chunk) * nnext);
-		if(chunk == NULL) {
-			return NULL;
-		}
-
-		ca->array        = chunk;
-		ca->end          = chunk + nnext;
-		chunk = ca->tail = chunk + nused;
-	}
+	msgpack_zone_chunk_list* const cl = &zone->chunk_list;
 
 	size_t sz = zone->chunk_size;
 
@@ -103,14 +81,15 @@ void* msgpack_zone_malloc_expand(msgpack_zone* zone, size_t size)
 		sz *= 2;
 	}
 
-	char* ptr = (char*)malloc(sz);
-	if(ptr == NULL) {
-		return NULL;
-	}
+	msgpack_zone_chunk* chunk = (msgpack_zone_chunk*)malloc(
+			sizeof(msgpack_zone_chunk) + sz);
 
-	chunk->free  = sz - size;
-	chunk->ptr   = ptr + size;
-	chunk->alloc = ptr;
+	char* ptr = ((char*)chunk) + sizeof(msgpack_zone_chunk);
+
+	chunk->next = cl->head;
+	cl->head = chunk;
+	cl->free = sz - size;
+	cl->ptr  = ptr + size;
 
 	return ptr;
 }
@@ -185,19 +164,30 @@ bool msgpack_zone_push_finalizer_expand(msgpack_zone* zone,
 
 bool msgpack_zone_is_empty(msgpack_zone* zone)
 {
-	msgpack_zone_chunk_array* const ca = &zone->chunk_array;
+	msgpack_zone_chunk_list* const cl = &zone->chunk_list;
 	msgpack_zone_finalizer_array* const fa = &zone->finalizer_array;
-	return ca->array[0].ptr == ca->array[0].alloc &&
-		ca->tail == ca->array &&
+	return cl->free == zone->chunk_size && cl->head->next == NULL &&
 		fa->tail == fa->array;
 }
 
+
+void msgpack_zone_destroy(msgpack_zone* zone)
+{
+	destroy_finalizer_array(&zone->finalizer_array);
+	destroy_chunk_list(&zone->chunk_list);
+}
+
+void msgpack_zone_clear(msgpack_zone* zone)
+{
+	clear_finalizer_array(&zone->finalizer_array);
+	clear_chunk_list(&zone->chunk_list, zone->chunk_size);
+}
 
 bool msgpack_zone_init(msgpack_zone* zone, size_t chunk_size)
 {
 	zone->chunk_size = chunk_size;
 
-	if(!init_chunk_array(&zone->chunk_array, chunk_size)) {
+	if(!init_chunk_list(&zone->chunk_list, chunk_size)) {
 		return false;
 	}
 
@@ -206,29 +196,22 @@ bool msgpack_zone_init(msgpack_zone* zone, size_t chunk_size)
 	return true;
 }
 
-void msgpack_zone_destroy(msgpack_zone* zone)
-{
-	destroy_finalizer_array(&zone->finalizer_array);
-	destroy_chunk_array(&zone->chunk_array);
-}
-
-void msgpack_zone_clear(msgpack_zone* zone)
-{
-	clear_finalizer_array(&zone->finalizer_array);
-	clear_chunk_array(&zone->chunk_array);
-}
-
 msgpack_zone* msgpack_zone_new(size_t chunk_size)
 {
-	msgpack_zone* zone = (msgpack_zone*)malloc(sizeof(msgpack_zone));
+	msgpack_zone* zone = (msgpack_zone*)malloc(
+			sizeof(msgpack_zone) + chunk_size);
 	if(zone == NULL) {
 		return NULL;
 	}
 
-	if(!msgpack_zone_init(zone, chunk_size)) {
+	zone->chunk_size = chunk_size;
+
+	if(!init_chunk_list(&zone->chunk_list, chunk_size)) {
 		free(zone);
-		return NULL;
+		return false;
 	}
+
+	init_finalizer_array(&zone->finalizer_array);
 
 	return zone;
 }

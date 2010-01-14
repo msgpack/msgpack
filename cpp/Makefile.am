@@ -32,7 +32,7 @@ nobase_include_HEADERS = \
 libmsgpack_la_LIBADD = -L../c -lmsgpackc
 
 # -version-info CURRENT:REVISION:AGE
-libmsgpack_la_LDFLAGS = -version-info 1:0:0
+libmsgpack_la_LDFLAGS = -version-info 2:0:0
 
 check_PROGRAMS = \
   msgpack_test
