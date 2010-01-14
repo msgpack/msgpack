@@ -40,24 +40,27 @@ extern "C" {
 #endif
 
 #ifndef MSGPACK_VREFBUFFER_CHUNK_SIZE
-#define MSGPACK_VREFBUFFER_CHUNK_SIZE 2048
+#define MSGPACK_VREFBUFFER_CHUNK_SIZE 8192
 #endif
 
-typedef struct msgpack_vrefbuffer_chunk {
+struct msgpack_vrefbuffer_chunk;
+typedef struct msgpack_vrefbuffer_chunk msgpack_vrefbuffer_chunk;
+
+typedef struct msgpack_vrefbuffer_inner_buffer {
 	size_t free;
-	struct msgpack_vrefbuffer_chunk* next;
-	/* data ... */
-} msgpack_vrefbuffer_chunk;
+	char*  ptr;
+	msgpack_vrefbuffer_chunk* head;
+} msgpack_vrefbuffer_inner_buffer;
 
 typedef struct msgpack_vrefbuffer {
-	size_t chunk_size;
-	size_t ref_size;
-
 	struct iovec* tail;
 	struct iovec* end;
 	struct iovec* array;
 
-	msgpack_vrefbuffer_chunk* chunk;
+	size_t chunk_size;
+	size_t ref_size;
+
+	msgpack_vrefbuffer_inner_buffer inner_buffer;
 } msgpack_vrefbuffer;
 
 

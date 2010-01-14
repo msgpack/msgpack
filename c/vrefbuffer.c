@@ -19,15 +19,14 @@
 #include <stdlib.h>
 #include <string.h>
 
+struct msgpack_vrefbuffer_chunk {
+	struct msgpack_vrefbuffer_chunk* next;
+	/* data ... */
+};
+
 bool msgpack_vrefbuffer_init(msgpack_vrefbuffer* vbuf,
 		size_t ref_size, size_t chunk_size)
 {
-	if(chunk_size < sizeof(msgpack_vrefbuffer_chunk)+72) {
-		chunk_size = 72;
-	} else {
-		chunk_size -= sizeof(msgpack_vrefbuffer_chunk);
-	}
-
 	vbuf->chunk_size = chunk_size;
 	vbuf->ref_size = ref_size;
 
@@ -45,26 +44,30 @@ bool msgpack_vrefbuffer_init(msgpack_vrefbuffer* vbuf,
 	vbuf->end   = array + nfirst;
 	vbuf->array = array;
 
-	vbuf->chunk = (msgpack_vrefbuffer_chunk*)malloc(
-			chunk_size + sizeof(msgpack_vrefbuffer_chunk));
-	if(vbuf->chunk == NULL) {
+	msgpack_vrefbuffer_chunk* chunk = (msgpack_vrefbuffer_chunk*)malloc(
+			sizeof(msgpack_vrefbuffer_chunk) + chunk_size);
+	if(chunk == NULL) {
 		free(array);
 		return false;
 	}
 
-	vbuf->chunk->next = NULL;
-	vbuf->chunk->free = chunk_size;
+	msgpack_vrefbuffer_inner_buffer* const ib = &vbuf->inner_buffer;
+
+	ib->free = chunk_size;
+	ib->ptr  = ((char*)chunk) + sizeof(msgpack_vrefbuffer_chunk);
+	ib->head = chunk;
+	chunk->next = NULL;
 
 	return true;
 }
 
 void msgpack_vrefbuffer_destroy(msgpack_vrefbuffer* vbuf)
 {
-	msgpack_vrefbuffer_chunk* c = vbuf->chunk;
+	msgpack_vrefbuffer_chunk* c = vbuf->inner_buffer.head;
 	while(true) {
 		msgpack_vrefbuffer_chunk* n = c->next;
 		free(c);
-		if(n) {
+		if(n != NULL) {
 			c = n;
 		} else {
 			break;
@@ -101,28 +104,30 @@ int msgpack_vrefbuffer_append_ref(msgpack_vrefbuffer* vbuf,
 int msgpack_vrefbuffer_append_copy(msgpack_vrefbuffer* vbuf,
 		const char* buf, unsigned int len)
 {
-	msgpack_vrefbuffer_chunk* chunk = vbuf->chunk;
-	size_t cur_size = vbuf->chunk_size;
+	msgpack_vrefbuffer_inner_buffer* const ib = &vbuf->inner_buffer;
 
-	if(chunk->free < len) {
-		cur_size = (cur_size > len) ? cur_size : len;
+	if(ib->free < len) {
+		size_t sz = vbuf->chunk_size;
+		if(sz < len) {
+			sz = len;
+		}
 
-		chunk = (msgpack_vrefbuffer_chunk*)malloc(
-				cur_size + sizeof(msgpack_vrefbuffer_chunk));
+		msgpack_vrefbuffer_chunk* chunk = (msgpack_vrefbuffer_chunk*)malloc(
+				sizeof(msgpack_vrefbuffer_chunk) + sz);
 		if(chunk == NULL) {
 			return -1;
 		}
 
-		chunk->free = cur_size;
-		chunk->next = vbuf->chunk;
-		vbuf->chunk = chunk;
+		chunk->next = ib->head;
+		ib->head = chunk;
+		ib->free = sz;
+		ib->ptr  = ((char*)chunk) + sizeof(msgpack_vrefbuffer_chunk);
 	}
 
-	char* m = ((char*)chunk) + sizeof(msgpack_vrefbuffer_chunk)
-		+ (cur_size - chunk->free);
-
+	char* m = ib->ptr;
 	memcpy(m, buf, len);
-	chunk->free -= len;
+	ib->free -= len;
+	ib->ptr  += len;
 
 	if(vbuf->tail != vbuf->array && m ==
 			(const char*)((vbuf->tail-1)->iov_base) + (vbuf->tail-1)->iov_len) {
@@ -135,28 +140,63 @@ int msgpack_vrefbuffer_append_copy(msgpack_vrefbuffer* vbuf,
 
 int msgpack_vrefbuffer_migrate(msgpack_vrefbuffer* vbuf, msgpack_vrefbuffer* to)
 {
-	const size_t tosize = to->tail - to->array;
-	if(vbuf->tail + tosize < vbuf->end) {
-		const size_t nused = vbuf->tail - vbuf->array;
-		const size_t nsize = vbuf->end  - vbuf->array;
+	size_t sz = vbuf->chunk_size;
+
+	msgpack_vrefbuffer_chunk* empty = (msgpack_vrefbuffer_chunk*)malloc(
+			sizeof(msgpack_vrefbuffer_chunk) + sz);
+	if(empty == NULL) {
+		return -1;
+	}
+
+	empty->next = NULL;
+
+
+	const size_t nused = vbuf->tail - vbuf->array;
+	if(to->tail + nused < vbuf->end) {
+		const size_t tosize = to->tail - to->array;
 		const size_t reqsize = nused + tosize;
-		size_t nnext = nsize * 2;
+		size_t nnext = (to->end - to->array) * 2;
 		while(nnext < reqsize) {
 			nnext *= 2;
 		}
 
 		struct iovec* nvec = (struct iovec*)realloc(
-				vbuf->array, sizeof(struct iovec)*nnext);
+				to->array, sizeof(struct iovec)*nnext);
 		if(nvec == NULL) {
+			free(empty);
 			return -1;
 		}
 
-		vbuf->array = nvec;
-		vbuf->end   = nvec + nnext;
-		vbuf->tail  = nvec + nused;
+		to->array = nvec;
+		to->end   = nvec + nnext;
+		to->tail  = nvec + tosize;
 	}
 
-	memcpy(vbuf->tail, vbuf->array, sizeof(struct iovec)*tosize);
+	memcpy(to->tail, vbuf->array, sizeof(struct iovec)*nused);
+
+	to->tail += nused;
+	vbuf->tail = vbuf->array;
+
+
+	msgpack_vrefbuffer_inner_buffer* const ib = &vbuf->inner_buffer;
+	msgpack_vrefbuffer_inner_buffer* const toib = &to->inner_buffer;
+
+	msgpack_vrefbuffer_chunk* last = ib->head;
+	while(last->next != NULL) {
+		last = last->next;
+	}
+	last->next = toib->head;
+	toib->head = ib->head;
+
+	if(toib->free < ib->free) {
+		toib->free = ib->free;
+		toib->ptr  = ib->ptr;
+	}
+
+	ib->head = empty;
+	ib->free = sz;
+	ib->ptr  = ((char*)empty) + sizeof(msgpack_vrefbuffer_chunk);
+
 	return 0;
 }
 
