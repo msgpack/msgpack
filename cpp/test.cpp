@@ -10,6 +10,10 @@
 
 #include <gtest/gtest.h>
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 using namespace std;
 
 const unsigned int kLoop = 10000;
@@ -227,6 +231,8 @@ TEST(MSGPACK, simple_buffer_false)
 
 //-----------------------------------------------------------------------------
 
+// STL
+
 TEST(MSGPACK_STL, simple_buffer_string)
 {
   for (unsigned int k = 0; k < kLoop; k++) {
@@ -364,6 +370,190 @@ TEST(MSGPACK_STL, simple_buffer_pair)
     EXPECT_EQ(val1.second, val2.second);
   }
 }
+
+TEST(MSGPACK_STL, simple_buffer_multimap)
+{
+  for (unsigned int k = 0; k < kLoop; k++) {
+    multimap<int, int> val1;
+    for (unsigned int i = 0; i < kElements; i++) {
+      int i1 = rand();
+      val1.insert(make_pair(i1, rand()));
+      val1.insert(make_pair(i1, rand()));
+    }
+    msgpack::sbuffer sbuf;
+    msgpack::pack(sbuf, val1);
+    msgpack::zone z;
+    msgpack::object obj;
+    msgpack::unpack_return ret =
+      msgpack::unpack(sbuf.data(), sbuf.size(), NULL, &z, &obj);
+    EXPECT_EQ(msgpack::UNPACK_SUCCESS, ret);
+    multimap<int, int> val2;
+    obj.convert(&val2);
+
+    vector<pair<int, int> > v1, v2;
+    multimap<int, int>::const_iterator it;
+    for (it = val1.begin(); it != val1.end(); ++it)
+      v1.push_back(make_pair(it->first, it->second));
+    for (it = val2.begin(); it != val2.end(); ++it)
+      v2.push_back(make_pair(it->first, it->second));
+    EXPECT_EQ(val1.size(), val2.size());
+    EXPECT_EQ(v1.size(), v2.size());
+    sort(v1.begin(), v1.end());
+    sort(v2.begin(), v2.end());
+    EXPECT_TRUE(v1 == v2);
+  }
+}
+
+TEST(MSGPACK_STL, simple_buffer_multiset)
+{
+  for (unsigned int k = 0; k < kLoop; k++) {
+    multiset<int> val1;
+    for (unsigned int i = 0; i < kElements; i++)
+      val1.insert(rand());
+    msgpack::sbuffer sbuf;
+    msgpack::pack(sbuf, val1);
+    msgpack::zone z;
+    msgpack::object obj;
+    msgpack::unpack_return ret =
+      msgpack::unpack(sbuf.data(), sbuf.size(), NULL, &z, &obj);
+    EXPECT_EQ(msgpack::UNPACK_SUCCESS, ret);
+    multiset<int> val2;
+    obj.convert(&val2);
+
+    vector<int> v1, v2;
+    multiset<int>::const_iterator it;
+    for (it = val1.begin(); it != val1.end(); ++it)
+      v1.push_back(*it);
+    for (it = val2.begin(); it != val2.end(); ++it)
+      v2.push_back(*it);
+    EXPECT_EQ(val1.size(), val2.size());
+    EXPECT_EQ(v1.size(), v2.size());
+    sort(v1.begin(), v1.end());
+    sort(v2.begin(), v2.end());
+    EXPECT_TRUE(v1 == v2);
+  }
+}
+
+// TR1
+
+#ifdef HAVE_TR1_UNORDERED_MAP
+#include <tr1/unordered_map>
+#include "cpp/type/tr1/unordered_map.hpp"
+TEST(MSGPACK_TR1, simple_buffer_unordered_map)
+{
+  for (unsigned int k = 0; k < kLoop; k++) {
+    tr1::unordered_map<int, int> val1;
+    for (unsigned int i = 0; i < kElements; i++)
+      val1[rand()] = rand();
+    msgpack::sbuffer sbuf;
+    msgpack::pack(sbuf, val1);
+    msgpack::zone z;
+    msgpack::object obj;
+    msgpack::unpack_return ret =
+      msgpack::unpack(sbuf.data(), sbuf.size(), NULL, &z, &obj);
+    EXPECT_EQ(msgpack::UNPACK_SUCCESS, ret);
+    tr1::unordered_map<int, int> val2;
+    obj.convert(&val2);
+    EXPECT_EQ(val1.size(), val2.size());
+    tr1::unordered_map<int, int>::const_iterator it;
+    for (it = val1.begin(); it != val1.end(); ++it) {
+      EXPECT_TRUE(val2.find(it->first) != val2.end());
+      EXPECT_EQ(it->second, val2.find(it->first)->second);
+    }
+  }
+}
+
+TEST(MSGPACK_TR1, simple_buffer_unordered_multimap)
+{
+  for (unsigned int k = 0; k < kLoop; k++) {
+    tr1::unordered_multimap<int, int> val1;
+    for (unsigned int i = 0; i < kElements; i++) {
+      int i1 = rand();
+      val1.insert(make_pair(i1, rand()));
+      val1.insert(make_pair(i1, rand()));
+    }
+    msgpack::sbuffer sbuf;
+    msgpack::pack(sbuf, val1);
+    msgpack::zone z;
+    msgpack::object obj;
+    msgpack::unpack_return ret =
+      msgpack::unpack(sbuf.data(), sbuf.size(), NULL, &z, &obj);
+    EXPECT_EQ(msgpack::UNPACK_SUCCESS, ret);
+    tr1::unordered_multimap<int, int> val2;
+    obj.convert(&val2);
+
+    vector<pair<int, int> > v1, v2;
+    tr1::unordered_multimap<int, int>::const_iterator it;
+    for (it = val1.begin(); it != val1.end(); ++it)
+      v1.push_back(make_pair(it->first, it->second));
+    for (it = val2.begin(); it != val2.end(); ++it)
+      v2.push_back(make_pair(it->first, it->second));
+    EXPECT_EQ(val1.size(), val2.size());
+    EXPECT_EQ(v1.size(), v2.size());
+    sort(v1.begin(), v1.end());
+    sort(v2.begin(), v2.end());
+    EXPECT_TRUE(v1 == v2);
+  }
+}
+#endif
+
+#ifdef HAVE_TR1_UNORDERED_SET
+#include <tr1/unordered_set>
+#include "cpp/type/tr1/unordered_set.hpp"
+TEST(MSGPACK_TR1, simple_buffer_unordered_set)
+{
+  for (unsigned int k = 0; k < kLoop; k++) {
+    tr1::unordered_set<int> val1;
+    for (unsigned int i = 0; i < kElements; i++)
+      val1.insert(rand());
+    msgpack::sbuffer sbuf;
+    msgpack::pack(sbuf, val1);
+    msgpack::zone z;
+    msgpack::object obj;
+    msgpack::unpack_return ret =
+      msgpack::unpack(sbuf.data(), sbuf.size(), NULL, &z, &obj);
+    EXPECT_EQ(msgpack::UNPACK_SUCCESS, ret);
+    tr1::unordered_set<int> val2;
+    obj.convert(&val2);
+    EXPECT_EQ(val1.size(), val2.size());
+    tr1::unordered_set<int>::const_iterator it;
+    for (it = val1.begin(); it != val1.end(); ++it)
+      EXPECT_TRUE(val2.find(*it) != val2.end());
+  }
+}
+
+TEST(MSGPACK_TR1, simple_buffer_unordered_multiset)
+{
+  for (unsigned int k = 0; k < kLoop; k++) {
+    tr1::unordered_multiset<int> val1;
+    for (unsigned int i = 0; i < kElements; i++)
+      val1.insert(rand());
+    msgpack::sbuffer sbuf;
+    msgpack::pack(sbuf, val1);
+    msgpack::zone z;
+    msgpack::object obj;
+    msgpack::unpack_return ret =
+      msgpack::unpack(sbuf.data(), sbuf.size(), NULL, &z, &obj);
+    EXPECT_EQ(msgpack::UNPACK_SUCCESS, ret);
+    tr1::unordered_multiset<int> val2;
+    obj.convert(&val2);
+
+    vector<int> v1, v2;
+    tr1::unordered_multiset<int>::const_iterator it;
+    for (it = val1.begin(); it != val1.end(); ++it)
+      v1.push_back(*it);
+    for (it = val2.begin(); it != val2.end(); ++it)
+      v2.push_back(*it);
+    EXPECT_EQ(val1.size(), val2.size());
+    EXPECT_EQ(v1.size(), v2.size());
+    sort(v1.begin(), v1.end());
+    sort(v2.begin(), v2.end());
+    EXPECT_TRUE(v1 == v2);
+  }
+}
+#endif
+
+// User-Defined Structures
 
 class TestClass
 {

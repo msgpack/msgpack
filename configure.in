@@ -12,7 +12,6 @@ AC_PROG_CC
 
 CFLAGS="-O4 -Wall $CFLAGS -I.."
 
-
 AC_MSG_CHECKING([if c++ api is enabled])
 AC_ARG_ENABLE(cxx,
 	AS_HELP_STRING([--disable-cxx],
@@ -30,6 +29,10 @@ AC_PROG_CXX
 
 CXXFLAGS="-O4 -Wall $CXXFLAGS -I.. -I../c"
 
+AC_LANG_PUSH([C++])
+AC_CHECK_HEADERS(tr1/unordered_map)
+AC_CHECK_HEADERS(tr1/unordered_set)
+AC_LANG_POP([C++])
 
 AM_CONDITIONAL(ENABLE_CXX, test "$enable_cxx" != "no")
 
