@@ -1,6 +1,6 @@
 AC_INIT(msgpack/unpack_template.h)
 AC_CONFIG_AUX_DIR(ac)
-AM_INIT_AUTOMAKE(msgpack, 0.4.0)
+AM_INIT_AUTOMAKE(msgpack, 0.4.1)
 AC_CONFIG_HEADER(config.h)
 
 AC_SUBST(CFLAGS)
@@ -29,6 +29,7 @@ AC_PROG_CXX
 
 CXXFLAGS="-O4 -Wall $CXXFLAGS -I.. -I../c"
 
+# FIXME enable_cxx
 AC_LANG_PUSH([C++])
 AC_CHECK_HEADERS(tr1/unordered_map)
 AC_CHECK_HEADERS(tr1/unordered_set)
