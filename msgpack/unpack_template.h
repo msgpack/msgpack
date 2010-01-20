@@ -222,13 +222,13 @@ msgpack_unpack_func(int, _execute)(msgpack_unpack_struct(_context)* ctx, const c
 			//case CS_
 			//case CS_
 			case CS_FLOAT: {
-					union { uint32_t num; char buf[4]; } f;
-					f.num = PTR_CAST_32(n);  // FIXME
-					push_fixed_value(_float, *((float*)f.buf)); }
+					union { uint32_t i; float f; } mem;
+					mem.i = PTR_CAST_32(n);
+					push_fixed_value(_float, mem.f); }
 			case CS_DOUBLE: {
-					union { uint64_t num; char buf[8]; } f;
-					f.num = PTR_CAST_64(n);  // FIXME
-					push_fixed_value(_double, *((double*)f.buf)); }
+					union { uint64_t i; double f; } mem;
+					mem.i = PTR_CAST_64(n);
+					push_fixed_value(_double, mem.f); }
 			case CS_UINT_8:
 				push_fixed_value(_uint8, (uint8_t)PTR_CAST_8(n));
 			case CS_UINT_16:
