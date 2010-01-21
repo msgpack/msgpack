@@ -35,16 +35,18 @@ AC_CHECK_HEADERS(tr1/unordered_set)
 AC_LANG_POP([C++])
 
 AC_CACHE_CHECK([for __sync_* atomic operations], msgpack_cv_atomic_ops, [
-    AC_TRY_LINK([
-        int atomic_sub(int i) { return __sync_sub_and_fetch(&i, 1); }
-        int atomic_add(int i) { return __sync_add_and_fetch(&i, 1); }
-    ], [], msgpack_cv_atomic_ops="yes")
-    ])
+	AC_TRY_LINK([
+		int atomic_sub(int i) { return __sync_sub_and_fetch(&i, 1); }
+		int atomic_add(int i) { return __sync_add_and_fetch(&i, 1); }
+	], [], msgpack_cv_atomic_ops="yes")
+	])
 if test "$msgpack_cv_atomic_ops" != "yes"; then
-    AC_MSG_ERROR([__sync_* atomic operations are not supported.
+	AC_MSG_ERROR([__sync_* atomic operations are not supported.
+
 Note that gcc < 4.1 is not supported.
-If you are using gcc-4.1 and the CPU architecture is x86, try to add
-CFLAGS"--march=i686" and CXXFLAGS="-march=i668" options to ./configure as follows:
+
+If you are using gcc >= 4.1 and the default target CPU architecture is "i386", try to
+add CFLAGS="--march=i686" and CXXFLAGS="-march=i668" options to ./configure as follows:
 
   $ ./configure CFLAGS="-march=i686" CXXFLAGS="-march=i686"
 ])
