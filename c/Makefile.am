@@ -23,6 +23,6 @@ check_PROGRAMS = \
 
 msgpackc_test_SOURCES = test.cpp
 msgpackc_test_CXXFLAGS = -I$(top_srcdir) -I$(top_srcdir)/c
-msgpackc_test_LDFLAGS = libmsgpackc.la -lgtest_main
+msgpackc_test_LDADD = libmsgpackc.la -lgtest_main
 
 TESTS = $(check_PROGRAMS)
