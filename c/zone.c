@@ -104,7 +104,6 @@ static inline void init_finalizer_array(msgpack_zone_finalizer_array* fa)
 
 static inline void call_finalizer_array(msgpack_zone_finalizer_array* fa)
 {
-	// 逆順に呼び出し
 	msgpack_zone_finalizer* fin = fa->tail;
 	for(; fin != fa->array; --fin) {
 		(*(fin-1)->func)((fin-1)->data);
@@ -132,9 +131,6 @@ bool msgpack_zone_push_finalizer_expand(msgpack_zone* zone,
 
 	size_t nnext;
 	if(nused == 0) {
-		// 初回の呼び出し：fa->tail == fa->end == fa->array == NULL
-
-		// glibcは72バイト以下のmallocが高速
 		nnext = (sizeof(msgpack_zone_finalizer) < 72/2) ?
 				72 / sizeof(msgpack_zone_finalizer) : 8;
 
