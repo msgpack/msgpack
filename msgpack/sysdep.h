@@ -46,6 +46,9 @@ typedef unsigned int _msgpack_atomic_counter_t;
 #endif
 
 
+#ifdef _WIN32
+#include <winsock2.h>
+
 #ifdef __cplusplus
 /* numeric_limits<T>::min,max */
 #ifdef max
@@ -56,9 +59,6 @@ typedef unsigned int _msgpack_atomic_counter_t;
 #endif
 #endif
 
-
-#ifdef _WIN32
-#include <winsock2.h>
 #else
 #include <arpa/inet.h>  /* __BYTE_ORDER */
 #endif
