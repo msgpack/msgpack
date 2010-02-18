@@ -29,11 +29,15 @@ inline std::vector<T>& operator>> (object o, std::vector<T>& v)
 {
 	if(o.type != type::ARRAY) { throw type_error(); }
 	v.resize(o.via.array.size);
-	object* p = o.via.array.ptr;
-	object* const pend = o.via.array.ptr + o.via.array.size;
-	T* it = &v.front();
-	for(; p < pend; ++p, ++it) {
-		p->convert(it);
+	if(o.via.array.size > 0) {
+		object* p = o.via.array.ptr;
+		object* const pend = o.via.array.ptr + o.via.array.size;
+		T* it = &v[0];
+		do {
+			p->convert(it);
+			++p;
+			++it;
+		} while(p < pend);
 	}
 	return v;
 }

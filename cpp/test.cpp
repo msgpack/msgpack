@@ -438,7 +438,7 @@ TEST(MSGPACK_STL, simple_buffer_multiset)
 
 #ifdef HAVE_TR1_UNORDERED_MAP
 #include <tr1/unordered_map>
-#include "cpp/type/tr1/unordered_map.hpp"
+#include "cpp/msgpack/type/tr1/unordered_map.hpp"
 TEST(MSGPACK_TR1, simple_buffer_unordered_map)
 {
   for (unsigned int k = 0; k < kLoop; k++) {
@@ -499,7 +499,7 @@ TEST(MSGPACK_TR1, simple_buffer_unordered_multimap)
 
 #ifdef HAVE_TR1_UNORDERED_SET
 #include <tr1/unordered_set>
-#include "cpp/type/tr1/unordered_set.hpp"
+#include "cpp/msgpack/type/tr1/unordered_set.hpp"
 TEST(MSGPACK_TR1, simple_buffer_unordered_set)
 {
   for (unsigned int k = 0; k < kLoop; k++) {
