@@ -1,7 +1,7 @@
 /*
  * MessagePack unpacking routine template
  *
- * Copyright (C) 2008-2009 FURUHASHI Sadayuki
+ * Copyright (C) 2008-2010 FURUHASHI Sadayuki
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -130,11 +130,6 @@ msgpack_unpack_func(int, _execute)(msgpack_unpack_struct(_context)* ctx, const c
 #define NEXT_CS(p) \
 	((unsigned int)*p & 0x1f)
 
-#define PTR_CAST_8(ptr)   (*(uint8_t*)ptr)
-#define PTR_CAST_16(ptr)  _msgpack_be16(*(uint16_t*)ptr)
-#define PTR_CAST_32(ptr)  _msgpack_be32(*(uint32_t*)ptr)
-#define PTR_CAST_64(ptr)  _msgpack_be64(*(uint64_t*)ptr)
-
 #ifdef USE_CASE_RANGE
 #define SWITCH_RANGE_BEGIN     switch(*p) {
 #define SWITCH_RANGE(FROM, TO) case FROM ... TO:
@@ -223,69 +218,69 @@ msgpack_unpack_func(int, _execute)(msgpack_unpack_struct(_context)* ctx, const c
 			//case CS_
 			case CS_FLOAT: {
 					union { uint32_t i; float f; } mem;
-					mem.i = PTR_CAST_32(n);
+					mem.i = _msgpack_load32(uint32_t,n);
 					push_fixed_value(_float, mem.f); }
 			case CS_DOUBLE: {
 					union { uint64_t i; double f; } mem;
-					mem.i = PTR_CAST_64(n);
+					mem.i = _msgpack_load64(uint64_t,n);
 					push_fixed_value(_double, mem.f); }
 			case CS_UINT_8:
-				push_fixed_value(_uint8, (uint8_t)PTR_CAST_8(n));
+				push_fixed_value(_uint8, *(uint8_t*)n);
 			case CS_UINT_16:
-				push_fixed_value(_uint16, (uint16_t)PTR_CAST_16(n));
+				push_fixed_value(_uint16, _msgpack_load16(uint16_t,n));
 			case CS_UINT_32:
-				push_fixed_value(_uint32, (uint32_t)PTR_CAST_32(n));
+				push_fixed_value(_uint32, _msgpack_load32(uint32_t,n));
 			case CS_UINT_64:
-				push_fixed_value(_uint64, (uint64_t)PTR_CAST_64(n));
+				push_fixed_value(_uint64, _msgpack_load64(uint64_t,n));
 
 			case CS_INT_8:
-				push_fixed_value(_int8, (int8_t)PTR_CAST_8(n));
+				push_fixed_value(_int8, *(int8_t*)n);
 			case CS_INT_16:
-				push_fixed_value(_int16, (int16_t)PTR_CAST_16(n));
+				push_fixed_value(_int16, _msgpack_load16(int16_t,n));
 			case CS_INT_32:
-				push_fixed_value(_int32, (int32_t)PTR_CAST_32(n));
+				push_fixed_value(_int32, _msgpack_load32(int32_t,n));
 			case CS_INT_64:
-				push_fixed_value(_int64, (int64_t)PTR_CAST_64(n));
+				push_fixed_value(_int64, _msgpack_load64(int64_t,n));
 
 			//case CS_
 			//case CS_
 			//case CS_BIG_INT_16:
-			//	again_fixed_trail_if_zero(ACS_BIG_INT_VALUE, (uint16_t)PTR_CAST_16(n), _big_int_zero);
+			//	again_fixed_trail_if_zero(ACS_BIG_INT_VALUE, _msgpack_load16(uint16_t,n), _big_int_zero);
 			//case CS_BIG_INT_32:
-			//	again_fixed_trail_if_zero(ACS_BIG_INT_VALUE, (uint32_t)PTR_CAST_32(n), _big_int_zero);
+			//	again_fixed_trail_if_zero(ACS_BIG_INT_VALUE, _msgpack_load32(uint32_t,n), _big_int_zero);
 			//case ACS_BIG_INT_VALUE:
 			//_big_int_zero:
 			//	// FIXME
 			//	push_variable_value(_big_int, data, n, trail);
 
 			//case CS_BIG_FLOAT_16:
-			//	again_fixed_trail_if_zero(ACS_BIG_FLOAT_VALUE, (uint16_t)PTR_CAST_16(n), _big_float_zero);
+			//	again_fixed_trail_if_zero(ACS_BIG_FLOAT_VALUE, _msgpack_load16(uint16_t,n), _big_float_zero);
 			//case CS_BIG_FLOAT_32:
-			//	again_fixed_trail_if_zero(ACS_BIG_FLOAT_VALUE, (uint32_t)PTR_CAST_32(n), _big_float_zero);
+			//	again_fixed_trail_if_zero(ACS_BIG_FLOAT_VALUE, _msgpack_load32(uint32_t,n), _big_float_zero);
 			//case ACS_BIG_FLOAT_VALUE:
 			//_big_float_zero:
 			//	// FIXME
 			//	push_variable_value(_big_float, data, n, trail);
 
 			case CS_RAW_16:
-				again_fixed_trail_if_zero(ACS_RAW_VALUE, (uint16_t)PTR_CAST_16(n), _raw_zero);
+				again_fixed_trail_if_zero(ACS_RAW_VALUE, _msgpack_load16(uint16_t,n), _raw_zero);
 			case CS_RAW_32:
-				again_fixed_trail_if_zero(ACS_RAW_VALUE, (uint32_t)PTR_CAST_32(n), _raw_zero);
+				again_fixed_trail_if_zero(ACS_RAW_VALUE, _msgpack_load32(uint32_t,n), _raw_zero);
 			case ACS_RAW_VALUE:
 			_raw_zero:
 				push_variable_value(_raw, data, n, trail);
 
 			case CS_ARRAY_16:
-				start_container(_array, (uint16_t)PTR_CAST_16(n), CT_ARRAY_ITEM);
+				start_container(_array, _msgpack_load16(uint16_t,n), CT_ARRAY_ITEM);
 			case CS_ARRAY_32:
 				/* FIXME security guard */
-				start_container(_array, (uint32_t)PTR_CAST_32(n), CT_ARRAY_ITEM);
+				start_container(_array, _msgpack_load32(uint32_t,n), CT_ARRAY_ITEM);
 
 			case CS_MAP_16:
-				start_container(_map, (uint16_t)PTR_CAST_16(n), CT_MAP_KEY);
+				start_container(_map, _msgpack_load16(uint16_t,n), CT_MAP_KEY);
 			case CS_MAP_32:
 				/* FIXME security guard */
-				start_container(_map, (uint32_t)PTR_CAST_32(n), CT_MAP_KEY);
+				start_container(_map, _msgpack_load32(uint32_t,n), CT_MAP_KEY);
 
 			default:
 				goto _failed;
@@ -371,8 +366,4 @@ _end:
 #undef start_container
 
 #undef NEXT_CS
-#undef PTR_CAST_8
-#undef PTR_CAST_16
-#undef PTR_CAST_32
-#undef PTR_CAST_64
 

@@ -1,7 +1,7 @@
 /*
  * MessagePack unpacking routine template
  *
- * Copyright (C) 2008-2009 FURUHASHI Sadayuki
+ * Copyright (C) 2008-2010 FURUHASHI Sadayuki
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@
 
 #include "msgpack/sysdep.h"
 #include <limits.h>
+#include <string.h>
 
 #endif /* msgpack/pack_define.h */
 
