@@ -1,7 +1,7 @@
 /*
  * MessagePack system dependencies
  *
- * Copyright (C) 2008-2009 FURUHASHI Sadayuki
+ * Copyright (C) 2008-2010 FURUHASHI Sadayuki
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -99,6 +99,19 @@ typedef unsigned int _msgpack_atomic_counter_t;
 #define _msgpack_be32(x) (x)
 #define _msgpack_be64(x) (x)
 #endif
+
+
+#define _msgpack_store16(to, num) \
+	do { uint16_t val = _msgpack_be16(num); memcpy(to, &val, 2); } while(0);
+#define _msgpack_store32(to, num) \
+	do { uint32_t val = _msgpack_be32(num); memcpy(to, &val, 4); } while(0);
+#define _msgpack_store64(to, num) \
+	do { uint64_t val = _msgpack_be64(num); memcpy(to, &val, 8); } while(0);
+
+
+#define _msgpack_load16(cast, from) ((cast)_msgpack_be16(*(uint16_t*)from))
+#define _msgpack_load32(cast, from) ((cast)_msgpack_be32(*(uint32_t*)from))
+#define _msgpack_load64(cast, from) ((cast)_msgpack_be64(*(uint64_t*)from))
 
 
 #endif /* msgpack/sysdep.h */
