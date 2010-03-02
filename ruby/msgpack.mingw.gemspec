@@ -1,5 +1,5 @@
 Gem::Specification.new do |s|
-  s.platform = Gem::Platform::RUBY
+  s.platform = Gem::Platform::CURRENT
   s.name = "msgpack"
   s.version = "0.3.3"
   s.summary = "MessagePack, a binary-based efficient data interchange format."

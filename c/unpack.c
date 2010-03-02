@@ -52,7 +52,7 @@ static int template_execute(template_context* ctx,
 
 
 static inline msgpack_object template_callback_root(unpack_user* u)
-{ msgpack_object o; return o; }
+{ msgpack_object o = {0}; return o; }
 
 static inline int template_callback_uint8(unpack_user* u, uint8_t d, msgpack_object* o)
 { o->type = MSGPACK_OBJECT_POSITIVE_INTEGER; o->via.u64 = d; return 0; }
