@@ -30,7 +30,6 @@ bool msgpack_vrefbuffer_init(msgpack_vrefbuffer* vbuf,
 	vbuf->chunk_size = chunk_size;
 	vbuf->ref_size = ref_size;
 
-	// glibcは72バイト以下のmallocが高速 
 	size_t nfirst = (sizeof(struct iovec) < 72/2) ?
 			72 / sizeof(struct iovec) : 8;
 

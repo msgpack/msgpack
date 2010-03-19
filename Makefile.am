@@ -11,3 +11,8 @@ nobase_include_HEADERS = \
 		msgpack/unpack_template.h \
 		msgpack/sysdep.h
 
+EXTRA_DIST = \
+		msgpack_vc8.vcproj \
+		msgpack_vc8.sln \
+		msgpack_vc8.postbuild.bat
+
