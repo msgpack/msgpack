@@ -110,8 +110,14 @@ static inline int template_callback_map(unpack_user* u, unsigned int n, VALUE* o
 static inline int template_callback_map_item(unpack_user* u, VALUE* c, VALUE k, VALUE v)
 { rb_hash_aset(*c, k, v); return 0; }
 
+#ifdef RSTRING_EMBED_LEN_MAX
+#define COW_MIN_SIZE RSTRING_EMBED_LEN_MAX
+#else
+#define COW_MIN_SIZE ((sizeof(VALUE)*3)/sizeof(char)-1)
+#endif
+
 static inline int template_callback_raw(unpack_user* u, const char* b, const char* p, unsigned int l, VALUE* o)
-{ *o = (l == 0) ? rb_str_new(0,0) : rb_str_substr(u->source, p - b, l); return 0; }
+{ *o = (l <= COW_MIN_SIZE) ? rb_str_new(p, l) : rb_str_substr(u->source, p - b, l); return 0; }
 
 
 #include "msgpack/unpack_template.h"
