@@ -29,12 +29,6 @@ struct iovec {
 };
 #endif
 
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-
 #ifndef MSGPACK_VREFBUFFER_REF_SIZE
 #define MSGPACK_VREFBUFFER_REF_SIZE 32
 #endif
@@ -42,6 +36,11 @@ extern "C" {
 #ifndef MSGPACK_VREFBUFFER_CHUNK_SIZE
 #define MSGPACK_VREFBUFFER_CHUNK_SIZE 8192
 #endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 struct msgpack_vrefbuffer_chunk;
 typedef struct msgpack_vrefbuffer_chunk msgpack_vrefbuffer_chunk;
@@ -101,6 +100,7 @@ size_t msgpack_vrefbuffer_veclen(const msgpack_vrefbuffer* vref)
 {
 	return vref->tail - vref->array;
 }
+
 
 #ifdef __cplusplus
 }

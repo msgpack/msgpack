@@ -22,12 +22,13 @@
 #include <string.h>
 
 #ifndef MSGPACK_SBUFFER_INIT_SIZE
-#define MSGPACK_SBUFFER_INIT_SIZE 2048
+#define MSGPACK_SBUFFER_INIT_SIZE 8192
 #endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
 
 typedef struct msgpack_sbuffer {
 	size_t size;

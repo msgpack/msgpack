@@ -28,6 +28,7 @@ namespace msgpack {
 template <typename Stream>
 class packer {
 public:
+	packer(Stream* s);
 	packer(Stream& s);
 	~packer();
 
@@ -112,6 +113,12 @@ private:
 
 
 template <typename Stream, typename T>
+inline void pack(Stream* s, const T& v)
+{
+	packer<Stream>(s).pack(v);
+}
+
+template <typename Stream, typename T>
 inline void pack(Stream& s, const T& v)
 {
 	packer<Stream>(s).pack(v);
@@ -132,6 +139,9 @@ inline void pack(Stream& s, const T& v)
 
 #include "msgpack/pack_template.h"
 
+
+template <typename Stream>
+packer<Stream>::packer(Stream* s) : m_stream(*s) { }
 
 template <typename Stream>
 packer<Stream>::packer(Stream& s) : m_stream(s) { }
