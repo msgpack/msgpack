@@ -18,6 +18,9 @@
 #include "ruby.h"
 #include "msgpack/pack_define.h"
 
+static ID s_to_msgpack;
+static ID s_append;
+
 #define msgpack_pack_inline_func(name) \
 	static inline void msgpack_pack ## name
 
@@ -27,7 +30,9 @@
 #define msgpack_pack_user VALUE
 
 #define msgpack_pack_append_buffer(user, buf, len) \
-	rb_str_buf_cat(user, (const void*)buf, len)
+	((TYPE(user) == T_STRING) ? \
+		rb_str_buf_cat(user, (const void*)buf, len) : \
+		rb_funcall(user, s_append, 1, rb_str_new((const void*)buf,len)))
 
 #include "msgpack/pack_template.h"
 
@@ -35,8 +40,6 @@
 #ifndef RUBY_VM
 #include "st.h"  // ruby hash
 #endif
-
-static ID s_to_msgpack;
 
 #define ARG_BUFFER(name, argc, argv) \
 	VALUE name; \
@@ -142,15 +145,24 @@ static VALUE MessagePack_Hash_to_msgpack(int argc, VALUE *argv, VALUE self)
 }
 
 
-static VALUE MessagePack_pack(VALUE self, VALUE data)
+static VALUE MessagePack_pack(int argc, VALUE* argv, VALUE self)
 {
-	return rb_funcall(data, s_to_msgpack, 0);
+	VALUE out;
+	if(argc == 1) {
+		out = rb_str_buf_new(0);
+	} else if(argc == 2) {
+		out = argv[1];
+	} else {
+		rb_raise(rb_eArgError, "wrong number of arguments (%d for 1)", argc);
+	}
+	return rb_funcall(argv[0], s_to_msgpack, 1, out);
 }
 
 
 void Init_msgpack_pack(VALUE mMessagePack)
 {
 	s_to_msgpack = rb_intern("to_msgpack");
+	s_append = rb_intern("<<");
 	rb_define_method_id(rb_cNilClass,   s_to_msgpack, MessagePack_NilClass_to_msgpack, -1);
 	rb_define_method_id(rb_cTrueClass,  s_to_msgpack, MessagePack_TrueClass_to_msgpack, -1);
 	rb_define_method_id(rb_cFalseClass, s_to_msgpack, MessagePack_FalseClass_to_msgpack, -1);
@@ -160,6 +172,6 @@ void Init_msgpack_pack(VALUE mMessagePack)
 	rb_define_method_id(rb_cString, s_to_msgpack, MessagePack_String_to_msgpack, -1);
 	rb_define_method_id(rb_cArray,  s_to_msgpack, MessagePack_Array_to_msgpack, -1);
 	rb_define_method_id(rb_cHash,   s_to_msgpack, MessagePack_Hash_to_msgpack, -1);
-	rb_define_module_function(mMessagePack, "pack", MessagePack_pack, 1);
+	rb_define_module_function(mMessagePack, "pack", MessagePack_pack, -1);
 }
 
