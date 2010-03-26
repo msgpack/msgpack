@@ -10,6 +10,7 @@ nobase_include_HEADERS = \
 		msgpack.h \
 		msgpack/sbuffer.h \
 		msgpack/vrefbuffer.h \
+		msgpack/zbuffer.h \
 		msgpack/pack.h \
 		msgpack/unpack.h \
 		msgpack/object.h \
