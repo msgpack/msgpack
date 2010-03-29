@@ -45,7 +45,7 @@ public:
 	packer<Stream>& pack_int32(uint32_t d);
 	packer<Stream>& pack_int64(uint64_t d);
 
-	packer<Stream>& pack_short(int d);
+	packer<Stream>& pack_short(short d);
 	packer<Stream>& pack_int(int d);
 	packer<Stream>& pack_long(long d);
 	packer<Stream>& pack_long_long(long long d);
@@ -183,7 +183,7 @@ inline packer<Stream>& packer<Stream>::pack_int64(uint64_t d)
 
 
 template <typename Stream>
-inline packer<Stream>& packer<Stream>::pack_short(int d)
+inline packer<Stream>& packer<Stream>::pack_short(short d)
 { _pack_short(m_stream, d); return *this; }
 
 template <typename Stream>
