@@ -1,7 +1,7 @@
 /*
  * MessagePack for Ruby unpacking routine
  *
- * Copyright (C) 2008-2009 FURUHASHI Sadayuki
+ * Copyright (C) 2008-2010 FURUHASHI Sadayuki
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 #include "msgpack/unpack_define.h"
 
 static ID s_sysread;
+static ID s_readpartial;
 
 typedef struct {
 	int finished;
@@ -28,6 +29,7 @@ typedef struct {
 	VALUE buffer;
 	VALUE stream;
 	VALUE streambuf;
+	ID stream_append_method;
 } unpack_user;
 
 
@@ -183,6 +185,15 @@ static VALUE MessagePack_Unpacker_reset(VALUE self)
 	return self;
 }
 
+static ID append_method_of(VALUE stream)
+{
+	if(rb_respond_to(stream, s_sysread)) {
+		return s_sysread;
+	} else {
+		return s_readpartial;
+	}
+}
+
 static VALUE MessagePack_Unpacker_initialize(int argc, VALUE *argv, VALUE self)
 {
 	VALUE stream;
@@ -204,6 +215,7 @@ static VALUE MessagePack_Unpacker_initialize(int argc, VALUE *argv, VALUE self)
 	mp->user.buffer = rb_str_new("",0);
 	mp->user.stream = stream;
 	mp->user.streambuf = rb_str_new("",0);
+	mp->user.stream_append_method = append_method_of(stream);
 	return self;
 }
 
@@ -299,7 +311,9 @@ static VALUE MessagePack_Unpacker_stream_get(VALUE self)
 static VALUE MessagePack_Unpacker_stream_set(VALUE self, VALUE val)
 {
 	UNPACKER(self, mp);
-	return mp->user.stream = val;
+	mp->user.stream = val;
+	mp->user.stream_append_method = append_method_of(val);
+	return val;
 }
 
 static VALUE MessagePack_Unpacker_fill(VALUE self)
@@ -312,10 +326,12 @@ static VALUE MessagePack_Unpacker_fill(VALUE self)
 
 	size_t len;
 	if(RSTRING_LEN(mp->user.buffer) == 0) {
-		rb_funcall(mp->user.stream, s_sysread, 2, LONG2FIX(64*1024), mp->user.buffer);
+		rb_funcall(mp->user.stream, mp->user.stream_append_method, 2,
+				LONG2FIX(64*1024), mp->user.buffer);
 		len = RSTRING_LEN(mp->user.buffer);
 	} else {
-		rb_funcall(mp->user.stream, s_sysread, 2, LONG2FIX(64*1024), mp->user.streambuf);
+		rb_funcall(mp->user.stream, mp->user.stream_append_method, 2,
+				LONG2FIX(64*1024), mp->user.streambuf);
 		len = RSTRING_LEN(mp->user.streambuf);
 		rb_str_cat(mp->user.buffer, RSTRING_PTR(mp->user.streambuf), RSTRING_LEN(mp->user.streambuf));
 	}
@@ -428,6 +444,7 @@ static VALUE MessagePack_unpack(VALUE self, VALUE data)
 void Init_msgpack_unpack(VALUE mMessagePack)
 {
 	s_sysread = rb_intern("sysread");
+	s_readpartial = rb_intern("readpartial");
 	eUnpackError = rb_define_class_under(mMessagePack, "UnpackError", rb_eStandardError);
 	cUnpacker = rb_define_class_under(mMessagePack, "Unpacker", rb_cObject);
 	rb_define_alloc_func(cUnpacker, MessagePack_Unpacker_alloc);
