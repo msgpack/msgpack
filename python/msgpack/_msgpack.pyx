@@ -71,7 +71,7 @@ cdef class Packer(object):
     def __dealloc__(self):
         free(self.pk.buf);
 
-    cdef int __pack(self, object o):
+    cdef int __pack(self, object o) except -1:
         cdef long long llval
         cdef unsigned long long ullval
         cdef long longval
