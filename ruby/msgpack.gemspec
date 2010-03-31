@@ -1,11 +1,11 @@
 Gem::Specification.new do |s|
   s.platform = Gem::Platform::RUBY
   s.name = "msgpack"
-  s.version = "0.3.3"
+  s.version = "0.3.4"
   s.summary = "MessagePack, a binary-based efficient data interchange format."
   s.author = "FURUHASHI Sadayuki"
   s.email = "frsyuki@users.sourceforge.jp"
-  s.homepage = "http://msgpack.sourceforge.jp/"
+  s.homepage = "http://msgpack.sourceforge.net/"
   s.rubyforge_project = "msgpack"
   s.has_rdoc = false
   s.extra_rdoc_files = ["README", "ChangeLog", "AUTHORS"]
