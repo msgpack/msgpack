@@ -13,6 +13,6 @@
 		</javac>
 	</target>
 	<target name="jar" depends="compile">
-		<jar jarfile="dist/msgpack-0.0.0.jar" basedir="build" />
+		<jar jarfile="dist/msgpack-0.0.1.jar" basedir="build" />
 	</target>
 </project>
