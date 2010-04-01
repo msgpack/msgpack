@@ -19,7 +19,9 @@ cat msgpack_test.rb | sed "s/require ['\"]msgpack['\"]/require File.dirname(__FI
 
 gem build msgpack.gemspec
 
-# ./msgpack.mingw.sh  # on msys
+# gem install gem-compile                     # on msys
+# gem compile msgpack-$version.gem            # on msys
+# gem compile msgpack-$version.gem -p mswin32 # on msys
 # gem push msgpack-$version.gem
 # gem push msgpack-$version-x86-mingw32.gem
 # gem push msgpack-$version-mswin32.gem
