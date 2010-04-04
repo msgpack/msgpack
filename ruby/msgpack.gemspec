@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.rubyforge_project = "msgpack"
   s.has_rdoc = false
   s.extra_rdoc_files = ["README", "ChangeLog", "AUTHORS"]
-  s.require_paths = ["ext"]
+  s.require_paths = ["lib"]
   s.files = Dir["ext/**/*", "msgpack/**/*", "test/**/*"]
   s.test_files = Dir["test/test_*.rb"]
   s.extensions = Dir["ext/**/extconf.rb"]

@@ -1,3 +1,3 @@
 require 'test/unit'
-require File.dirname(__FILE__) + '/../ext/msgpack'
+require File.dirname(__FILE__) + '/../lib/msgpack'
 
