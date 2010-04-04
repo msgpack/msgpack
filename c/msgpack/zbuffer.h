@@ -107,7 +107,9 @@ int msgpack_zbuffer_write(void* data, const char* buf, unsigned int len)
 
 	do {
 		if(zbuf->stream.avail_out < MSGPACK_ZBUFFER_RESERVE_SIZE) {
-			msgpack_zbuffer_expand(zbuf);
+			if(!msgpack_zbuffer_expand(zbuf)) {
+				return -1;
+			}
 		}
 
 		if(deflate(&zbuf->stream, Z_NO_FLUSH) != Z_OK) {
