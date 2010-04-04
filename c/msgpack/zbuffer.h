@@ -126,6 +126,7 @@ char* msgpack_zbuffer_flush(msgpack_zbuffer* zbuf)
 			return zbuf->data;
 		case Z_OK:
 			msgpack_zbuffer_expand(zbuf);
+			break;
 		default:
 			return NULL;
 		}
