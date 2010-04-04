@@ -385,11 +385,11 @@ public class UnpackerImpl {
 						obj = new Object[count*2];
 						if(count == 0) { break _push; }  // FIXME check IMapSchema
 						//System.out.println("fixmap count:"+count);
+						++top;
 						stack_obj[top]    = top_obj;
 						stack_ct[top]     = top_ct;
 						stack_count[top]  = top_count;
 						stack_schema[top] = top_schema;
-						++top;
 						top_obj    = obj;
 						top_ct     = CT_MAP_KEY;
 						top_count  = count;
