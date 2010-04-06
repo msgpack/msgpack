@@ -220,15 +220,18 @@ static VALUE MessagePack_Unpacker_initialize(int argc, VALUE *argv, VALUE self)
 }
 
 
-static VALUE MessagePack_Unpacker_execute_impl(VALUE args)
+static VALUE MessagePack_Unpacker_execute_do(VALUE argv)
 {
-	VALUE self = ((VALUE*)args)[0];
-	VALUE data = ((VALUE*)args)[1];
+	VALUE* args = (VALUE*)argv;
 
+	VALUE self = args[0];
 	UNPACKER(self, mp);
-	size_t from = NUM2UINT(((VALUE*)args)[2]);
+
+	VALUE data = args[1];
+
+	size_t from = (unsigned long)args[2];
 	char* dptr = RSTRING_PTR(data);
-	long dlen = FIX2LONG(((VALUE*)args)[3]);
+	size_t dlen = (unsigned long)args[3];
 	int ret;
 
 	if(from >= dlen) {
@@ -236,7 +239,7 @@ static VALUE MessagePack_Unpacker_execute_impl(VALUE args)
 	}
 
 	mp->user.source = data;
-	ret = template_execute(mp, dptr, (size_t)dlen, &from);
+	ret = template_execute(mp, dptr, dlen, &from);
 	mp->user.source = Qnil;
 
 	if(ret < 0) {
@@ -260,22 +263,32 @@ static VALUE MessagePack_Unpacker_execute_rescue(VALUE nouse)
 #endif
 }
 
-static VALUE MessagePack_Unpacker_execute_limit(VALUE self, VALUE data,
-		VALUE off, VALUE limit)
+static inline VALUE MessagePack_Unpacker_execute_impl(VALUE self, VALUE data,
+		unsigned long off, unsigned long dlen)
 {
 	// FIXME execute実行中はmp->topが更新されないのでGC markが機能しない
 	rb_gc_disable();
-	VALUE args[4] = {self, data, off, limit};
-	VALUE ret = rb_rescue(MessagePack_Unpacker_execute_impl, (VALUE)args,
+	VALUE args[4] = {self, data, (VALUE)off, (VALUE)dlen};
+	VALUE ret = rb_rescue(MessagePack_Unpacker_execute_do, (VALUE)args,
 			MessagePack_Unpacker_execute_rescue, Qnil);
 	rb_gc_enable();
+
 	return ret;
+}
+
+static VALUE MessagePack_Unpacker_execute_limit(VALUE self, VALUE data,
+		VALUE off, VALUE limit)
+{
+	CHECK_STRING_TYPE(data);
+	return MessagePack_Unpacker_execute_impl(self, data,
+			NUM2ULONG(off), NUM2ULONG(limit));
 }
 
 static VALUE MessagePack_Unpacker_execute(VALUE self, VALUE data, VALUE off)
 {
-	return MessagePack_Unpacker_execute_limit(self, data, off,
-			LONG2FIX(RSTRING_LEN(data)));
+	CHECK_STRING_TYPE(data);
+	return MessagePack_Unpacker_execute_impl(self, data,
+			NUM2ULONG(off), RSTRING_LEN(data));
 }
 
 static VALUE MessagePack_Unpacker_finished_p(VALUE self)
@@ -379,18 +392,20 @@ static VALUE MessagePack_Unpacker_each(VALUE self)
 }
 
 
-static VALUE MessagePack_unpack_impl(VALUE args)
+static VALUE MessagePack_unpack_do(VALUE argv)
 {
-	msgpack_unpack_t* mp = (msgpack_unpack_t*)((VALUE*)args)[0];
-	VALUE data = ((VALUE*)args)[1];
+	VALUE* args = (VALUE*)argv;
+
+	msgpack_unpack_t* mp = (msgpack_unpack_t*)args[0];
+	VALUE data = args[1];
 
 	size_t from = 0;
 	char* dptr = RSTRING_PTR(data);
-	long dlen = FIX2LONG(((VALUE*)args)[2]);
+	size_t dlen = (unsigned long)args[2];
 	int ret;
 
 	mp->user.source = data;
-	ret = template_execute(mp, dptr, (size_t)dlen, &from);
+	ret = template_execute(mp, dptr, dlen, &from);
 	mp->user.source = Qnil;
 
 	if(ret < 0) {
@@ -405,7 +420,7 @@ static VALUE MessagePack_unpack_impl(VALUE args)
 	}
 }
 
-static VALUE MessagePack_unpack_rescue(VALUE args)
+static VALUE MessagePack_unpack_rescue(VALUE nouse)
 {
 	rb_gc_enable();
 #ifdef RUBY_VM
@@ -415,29 +430,34 @@ static VALUE MessagePack_unpack_rescue(VALUE args)
 #endif
 }
 
-static VALUE MessagePack_unpack_limit(VALUE self, VALUE data, VALUE limit)
+static inline VALUE MessagePack_unpack_impl(VALUE self, VALUE data, unsigned long dlen)
 {
-	CHECK_STRING_TYPE(data);
-
 	msgpack_unpack_t mp;
 	template_init(&mp);
 	init_stack(&mp);
 	unpack_user u = {0, Qnil, 0, 0, Qnil, Qnil, Qnil};
 	mp.user = u;
 
+	// FIXME execute実行中はmp->topが更新されないのでGC markが機能しない
 	rb_gc_disable();
-	VALUE args[3] = {(VALUE)&mp, data, limit};
-	VALUE ret = rb_rescue(MessagePack_unpack_impl, (VALUE)args,
+	VALUE args[3] = {(VALUE)&mp, data, (VALUE)dlen};
+	VALUE ret = rb_rescue(MessagePack_unpack_do, (VALUE)args,
 			MessagePack_unpack_rescue, Qnil);
 	rb_gc_enable();
 
 	return ret;
 }
 
+static VALUE MessagePack_unpack_limit(VALUE self, VALUE data, VALUE limit)
+{
+	CHECK_STRING_TYPE(data);
+	return MessagePack_unpack_impl(self, data, NUM2ULONG(limit));
+}
+
 static VALUE MessagePack_unpack(VALUE self, VALUE data)
 {
-	return MessagePack_unpack_limit(self, data,
-			LONG2FIX(RSTRING_LEN(data)));
+	CHECK_STRING_TYPE(data);
+	return MessagePack_unpack_impl(self, data, RSTRING_LEN(data));
 }
 
 
