@@ -1,4 +1,4 @@
-//
+1//
 // MessagePack for C++ serializing routine
 //
 // Copyright (C) 2008-2009 FURUHASHI Sadayuki
@@ -40,10 +40,10 @@ public:
 	packer<Stream>& pack_uint16(uint16_t d);
 	packer<Stream>& pack_uint32(uint32_t d);
 	packer<Stream>& pack_uint64(uint64_t d);
-	packer<Stream>& pack_int8(uint8_t d);
-	packer<Stream>& pack_int16(uint16_t d);
-	packer<Stream>& pack_int32(uint32_t d);
-	packer<Stream>& pack_int64(uint64_t d);
+	packer<Stream>& pack_int8(int8_t d);
+	packer<Stream>& pack_int16(int16_t d);
+	packer<Stream>& pack_int32(int32_t d);
+	packer<Stream>& pack_int64(int64_t d);
 
 	packer<Stream>& pack_short(short d);
 	packer<Stream>& pack_int(int d);
@@ -166,19 +166,19 @@ inline packer<Stream>& packer<Stream>::pack_uint64(uint64_t d)
 { _pack_uint64(m_stream, d); return *this; }
 
 template <typename Stream>
-inline packer<Stream>& packer<Stream>::pack_int8(uint8_t d)
+inline packer<Stream>& packer<Stream>::pack_int8(int8_t d)
 { _pack_int8(m_stream, d); return *this; }
 
 template <typename Stream>
-inline packer<Stream>& packer<Stream>::pack_int16(uint16_t d)
+inline packer<Stream>& packer<Stream>::pack_int16(int16_t d)
 { _pack_int16(m_stream, d); return *this; }
 
 template <typename Stream>
-inline packer<Stream>& packer<Stream>::pack_int32(uint32_t d)
+inline packer<Stream>& packer<Stream>::pack_int32(int32_t d)
 { _pack_int32(m_stream, d); return *this; }
 
 template <typename Stream>
-inline packer<Stream>& packer<Stream>::pack_int64(uint64_t d)
+inline packer<Stream>& packer<Stream>::pack_int64(int64_t d)
 { _pack_int64(m_stream, d); return *this;}
 
 
