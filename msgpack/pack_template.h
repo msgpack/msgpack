@@ -113,17 +113,17 @@ do { \
 		} \
 	} else { \
 		if(d < (1ULL<<16)) { \
-			/* signed 16 */ \
+			/* unsigned 16 */ \
 			unsigned char buf[3]; \
 			buf[0] = 0xcd; _msgpack_store16(&buf[1], d); \
 			msgpack_pack_append_buffer(x, buf, 3); \
 		} else if(d < (1ULL<<32)) { \
-			/* signed 32 */ \
+			/* unsigned 32 */ \
 			unsigned char buf[5]; \
 			buf[0] = 0xce; _msgpack_store32(&buf[1], d); \
 			msgpack_pack_append_buffer(x, buf, 5); \
 		} else { \
-			/* signed 64 */ \
+			/* unsigned 64 */ \
 			unsigned char buf[9]; \
 			buf[0] = 0xcf; _msgpack_store64(&buf[1], d); \
 			msgpack_pack_append_buffer(x, buf, 9); \
