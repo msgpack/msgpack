@@ -87,9 +87,15 @@ struct object {
 	template <typename T>
 	void convert(T* v) const;
 
-	object();
-	object(msgpack_object obj);
 	operator msgpack_object();
+	object(msgpack_object obj);
+
+	object();
+	object(bool v);
+	object(uint64_t v);
+	object(int64_t v);
+	object(double v);
+	object(const char* ptr, size_t size);
 
 private:
 	struct implicit_type;
@@ -184,7 +190,46 @@ inline bool operator!=(const object x, const object y)
 { return !(x == y); }
 
 
-inline object::object() { }
+inline object::object()
+{
+	type = type::NIL;
+}
+
+inline object::object(bool v)
+{
+	type = type::BOOLEAN;
+	via.boolean = v;
+}
+
+inline object::object(uint64_t v)
+{
+	type = type::POSITIVE_INTEGER;
+	via.u64 = v;
+}
+
+inline object::object(int64_t v)
+{
+	if(v >= 0) {
+		type = type::POSITIVE_INTEGER;
+		via.u64 = v;
+	} else {
+		type = type::NEGATIVE_INTEGER;
+		via.i64 = v;
+	}
+}
+
+inline object::object(double v)
+{
+	type = type::DOUBLE;
+	via.dec = v;
+}
+
+inline object::object(const char* ptr, size_t size)
+{
+	type = type::RAW;
+	via.raw.size = size;
+	via.raw.ptr = ptr;
+}
 
 inline object::object(msgpack_object obj)
 {
@@ -199,7 +244,6 @@ inline object::operator msgpack_object()
 	::memcpy(&obj, this, sizeof(obj));
 	return obj;
 }
-
 
 inline object::implicit_type object::convert() const
 {

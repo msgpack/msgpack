@@ -44,6 +44,7 @@ struct template_context;
 typedef struct template_context template_context;
 
 static void template_init(template_context* ctx);
+static void template_destroy(template_context* ctx);
 
 static msgpack_object template_data(template_context* ctx);
 
@@ -215,6 +216,7 @@ bool msgpack_unpacker_init(msgpack_unpacker* mpac, size_t initial_buffer_size)
 void msgpack_unpacker_destroy(msgpack_unpacker* mpac)
 {
 	msgpack_zone_free(mpac->z);
+	template_destroy(mpac->ctx);
 	free(mpac->ctx);
 	decl_count(mpac->buffer);
 }
@@ -368,6 +370,7 @@ msgpack_unpack_return
 msgpack_unpack(const char* data, size_t len, size_t* off,
 		msgpack_zone* z, msgpack_object* result)
 {
+	msgpack_unpack_return ret = MSGPACK_UNPACK_SUCCESS;
 	template_context ctx;
 	template_init(&ctx);
 
@@ -377,23 +380,28 @@ msgpack_unpack(const char* data, size_t len, size_t* off,
 	size_t noff = 0;
 	if(off != NULL) { noff = *off; }
 
-	int ret = template_execute(&ctx, data, len, &noff);
-	if(ret < 0) {
-		return MSGPACK_UNPACK_PARSE_ERROR;
+	int e = template_execute(&ctx, data, len, &noff);
+	if(e < 0) {
+		ret = MSGPACK_UNPACK_PARSE_ERROR;
+		goto out;
 	}
 
 	if(off != NULL) { *off = noff; }
 
-	if(ret == 0) {
-		return MSGPACK_UNPACK_CONTINUE;
+	if(e == 0) {
+		ret = MSGPACK_UNPACK_CONTINUE;
+		goto out;
 	}
 
 	*result = template_data(&ctx);
 
 	if(noff < len) {
-		return MSGPACK_UNPACK_EXTRA_BYTES;
+		ret = MSGPACK_UNPACK_EXTRA_BYTES;
+		goto out;
 	}
 
-	return MSGPACK_UNPACK_SUCCESS;
+out:
+	template_destroy(&ctx);
+	return ret;
 }
 

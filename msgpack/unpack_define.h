@@ -19,6 +19,7 @@
 #define MSGPACK_UNPACK_DEFINE_H__
 
 #include "msgpack/sysdep.h"
+#include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 #include <stdio.h>
@@ -28,8 +29,8 @@ extern "C" {
 #endif
 
 
-#ifndef MSGPACK_MAX_STACK_SIZE
-#define MSGPACK_MAX_STACK_SIZE 16
+#ifndef MSGPACK_EMBED_STACK_SIZE
+#define MSGPACK_EMBED_STACK_SIZE 1
 #endif
 
 

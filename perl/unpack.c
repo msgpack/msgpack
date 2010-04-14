@@ -53,6 +53,7 @@ struct template_context;
 typedef struct template_context msgpack_unpack_t;
 
 static void template_init(msgpack_unpack_t* u);
+static void template_destroy(msgpack_unpack_t* u);
 
 static SV* template_data(msgpack_unpack_t* u);
 
@@ -132,6 +133,7 @@ SV* _msgpack_unpack(SV* data, int limit) {
 	size_t from = 0;
     STRLEN dlen;
     const char * dptr = SvPV_const(data, dlen);
+    SV* obj;
 
 	template_init(&mp);
     mp.user = u;
@@ -139,6 +141,9 @@ SV* _msgpack_unpack(SV* data, int limit) {
 	mp.user.source = data;
 	ret = template_execute(&mp, dptr, (size_t)dlen, &from);
 	mp.user.source = &PL_sv_undef;
+
+	obj = template_data(&mp);
+	template_destroy(&mp);
 
 	if(ret < 0) {
         Perl_croak(aTHX_ "parse error.");
@@ -148,7 +153,7 @@ SV* _msgpack_unpack(SV* data, int limit) {
 		if(from < dlen) {
             Perl_croak(aTHX_ "extra bytes.");
 		}
-        return template_data(&mp);
+        return obj;
 	}
 }
 
@@ -311,6 +316,7 @@ XS(xs_unpacker_destroy) {
     }
 
 	UNPACKER(ST(0), mp);
+    template_destroy(mp);
     Safefree(mp);
 
     XSRETURN(0);
