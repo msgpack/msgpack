@@ -19,6 +19,10 @@ cat msgpack_test.rb | sed "s/require ['\"]msgpack['\"]/require File.dirname(__FI
 
 gem build msgpack.gemspec
 
+if [ $? -eq 0 ]; then
+	rm -rf ext msgpack AUTHORS ChangeLog test/msgpack_test.rb
+fi
+
 # gem install gem-compile                     # on msys
 # gem compile msgpack-$version.gem            # on msys
 # gem compile msgpack-$version.gem -p mswin32 # on msys

@@ -141,15 +141,6 @@ static inline int template_callback_raw(unpack_user* u, const char* b, const cha
 static VALUE cUnpacker;
 static VALUE eUnpackError;
 
-// FIXME slow operation
-static void init_stack(msgpack_unpack_t* mp)
-{
-	size_t i;
-	for(i=0; i < MSGPACK_MAX_STACK_SIZE; ++i) {
-		mp->stack[i].map_key = Qnil;  /* GC */
-	}
-}
-
 static void MessagePack_Unpacker_free(void* data)
 {
 	if(data) { free(data); }
@@ -163,7 +154,7 @@ static void MessagePack_Unpacker_mark(msgpack_unpack_t *mp)
 	rb_gc_mark(mp->user.streambuf);
 	for(i=0; i < mp->top; ++i) {
 		rb_gc_mark(mp->stack[i].obj);
-		rb_gc_mark(mp->stack[i].map_key); /* maybe map_key is not initialized */
+		rb_gc_mark_maybe(mp->stack[i].map_key);
 	}
 }
 
@@ -180,7 +171,6 @@ static VALUE MessagePack_Unpacker_reset(VALUE self)
 {
 	UNPACKER(self, mp);
 	template_init(mp);
-	init_stack(mp);
 	mp->user.finished = 0;
 	return self;
 }
@@ -381,7 +371,6 @@ static VALUE MessagePack_Unpacker_each(VALUE self)
 		} else if(ret > 0) {
 			VALUE data = template_data(mp);
 			template_init(mp);
-			init_stack(mp);
 			rb_yield(data);
 		} else {
 			goto do_fill;
@@ -434,7 +423,6 @@ static inline VALUE MessagePack_unpack_impl(VALUE self, VALUE data, unsigned lon
 {
 	msgpack_unpack_t mp;
 	template_init(&mp);
-	init_stack(&mp);
 	unpack_user u = {0, Qnil, 0, 0, Qnil, Qnil, Qnil};
 	mp.user = u;
 

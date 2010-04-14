@@ -202,6 +202,21 @@ class MessagePackTestFormat < Test::Unit::TestCase
 #		#check_map 5, (1<<32)-1  # memory error
 #	end
 
+	it "gc mark" do
+		obj = [{["a","b"]=>["c","d"]}, ["e","f"], "d"]
+		pac = MessagePack::Unpacker.new
+		parsed = 0
+		obj.to_msgpack.split(//).each do |b|
+			pac.feed(b)
+			pac.each {|o|
+				assert_equal(obj, o)
+				parsed += 1
+			}
+			GC.start
+		end
+		assert_equal(parsed, 1)
+	end
+
 	private
 	def check(len, obj)
 		v = obj.to_msgpack
