@@ -2,22 +2,15 @@ IF NOT EXIST include                  MKDIR include
 IF NOT EXIST include\msgpack          MKDIR include\msgpack
 IF NOT EXIST include\msgpack\type     MKDIR include\msgpack\type
 IF NOT EXIST include\msgpack\type\tr1 MKDIR include\msgpack\type\tr1
-IF EXIST bootstrap (
-	copy ..\msgpack\pack_define.h      include\msgpack\
-	copy ..\msgpack\pack_template.h    include\msgpack\
-	copy ..\msgpack\unpack_define.h    include\msgpack\
-	copy ..\msgpack\unpack_template.h  include\msgpack\
-	copy ..\msgpack\sysdep.h           include\msgpack\
-) ELSE (
-	copy msgpack\pack_define.h      include\msgpack\
-	copy msgpack\pack_template.h    include\msgpack\
-	copy msgpack\unpack_define.h    include\msgpack\
-	copy msgpack\unpack_template.h  include\msgpack\
-	copy msgpack\sysdep.h           include\msgpack\
-)
+copy msgpack\pack_define.h      include\msgpack\
+copy msgpack\pack_template.h    include\msgpack\
+copy msgpack\unpack_define.h    include\msgpack\
+copy msgpack\unpack_template.h  include\msgpack\
+copy msgpack\sysdep.h           include\msgpack\
 copy msgpack.h                     include\
 copy msgpack\sbuffer.h             include\msgpack\
 copy msgpack\vrefbuffer.h          include\msgpack\
+copy msgpack\zbuffer.h             include\msgpack\
 copy msgpack\pack.h                include\msgpack\
 copy msgpack\unpack.h              include\msgpack\
 copy msgpack\object.h              include\msgpack\
@@ -25,6 +18,7 @@ copy msgpack\zone.h                include\msgpack\
 copy msgpack.hpp                   include\
 copy msgpack\sbuffer.hpp           include\msgpack\
 copy msgpack\vrefbuffer.hpp        include\msgpack\
+copy msgpack\zbuffer.hpp           include\msgpack\
 copy msgpack\pack.hpp              include\msgpack\
 copy msgpack\unpack.hpp            include\msgpack\
 copy msgpack\object.hpp            include\msgpack\

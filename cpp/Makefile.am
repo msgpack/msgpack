@@ -68,21 +68,21 @@ libmsgpack_la_CXXFLAGS = $(AM_CXXFLAGS)
 
 
 EXTRA_DIST = \
+		README.md \
+		LICENSE \
+		NOTICE \
 		msgpack_vc8.vcproj \
 		msgpack_vc8.sln \
 		msgpack_vc8.postbuild.bat
-
 
 check_PROGRAMS = \
 		msgpackc_test \
 		msgpack_test
 
 msgpackc_test_SOURCES = msgpackc_test.cpp
-msgpackc_test_CXXFLAGS = -I$(top_srcdir) -I$(top_srcdir)/c
 msgpackc_test_LDADD = libmsgpackc.la -lgtest_main
 
 msgpack_test_SOURCES = msgpack_test.cpp
-msgpack_test_CXXFLAGS = -I$(top_srcdir) -I$(top_srcdir)/c -I$(top_srcdir)/cpp
 msgpack_test_LDADD = libmsgpack.la -lgtest_main
 
 TESTS = $(check_PROGRAMS)

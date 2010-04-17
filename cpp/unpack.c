@@ -216,7 +216,7 @@ bool msgpack_unpacker_init(msgpack_unpacker* mpac, size_t initial_buffer_size)
 void msgpack_unpacker_destroy(msgpack_unpacker* mpac)
 {
 	msgpack_zone_free(mpac->z);
-	template_destroy(mpac->ctx);
+	template_destroy(CTX_CAST(mpac->ctx));
 	free(mpac->ctx);
 	decl_count(mpac->buffer);
 }

@@ -36,7 +36,7 @@ test -f AUTHORS   || touch AUTHORS
 test -f COPYING   || touch COPYING
 test -f ChangeLog || touch ChangeLog
 test -f NEWS      || touch NEWS
-test -f README    || touch README
+test -f README    || cp -f README.md README
 
 if ! ./preprocess; then
 	exit 1

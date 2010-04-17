@@ -43,7 +43,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="cpp;c;."
+				AdditionalIncludeDirectories="."
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="1"
@@ -64,7 +64,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="lib\$(ProjectName)d.lib"
+				OutputFile="lib\msgpackd.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -110,7 +110,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="cpp;c;."
+				AdditionalIncludeDirectories="."
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
@@ -129,7 +129,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="lib\$(ProjectName).lib"
+				OutputFile="lib\msgpack.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -157,7 +157,7 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\c\object.c"
+				RelativePath=".\object.c"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -181,31 +181,11 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\cpp\object.cpp"
+				RelativePath=".\object.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\c\unpack.c"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						CompileAs="2"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						CompileAs="2"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\c\vrefbuffer.c"
+				RelativePath=".\unpack.c"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -225,7 +205,27 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\c\zone.c"
+				RelativePath=".\vrefbuffer.c"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\zone.c"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
