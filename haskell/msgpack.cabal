@@ -1,0 +1,32 @@
+Name:                msgpack
+Version:             0.2.0
+License:             BSD3
+License-File:        LICENSE
+Author:              Hideyuki Tanaka
+Maintainer:          Hideyuki Tanaka <tanaka.hideyuki@gmail.com>
+Category:            Data
+Synopsis:            A Haskell binding to MessagePack
+Description:
+  A Haskell binding to MessagePack <http://msgpack.sourceforge.jp/>
+Homepage:	     http://github.com/tanakh/hsmsgpack
+Stability:	     Experimental
+Tested-with:	     GHC==6.10.4
+Cabal-Version:	     >=1.2
+Build-Type:          Simple
+
+library
+  build-depends:	base>=4 && <5, mtl, bytestring
+  ghc-options:		-O2 -Wall
+  hs-source-dirs:	src
+  extra-libraries:	msgpackc
+
+  Exposed-modules:
+    Data.MessagePack
+    Data.MessagePack.Base
+    Data.MessagePack.Class
+    Data.MessagePack.Feed
+    Data.MessagePack.Monad
+    Data.MessagePack.Stream
+
+  C-Sources:
+    cbits/msgpack.c
