@@ -9,8 +9,13 @@ import static org.junit.Assert.*;
 
 public class TestPackUnpack {
     protected Object unpackOne(ByteArrayOutputStream out) {
+        return unpackOne(out, null);
+    }
+    protected Object unpackOne(ByteArrayOutputStream out, Schema schema) {
         ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
         Unpacker upk = new Unpacker(in);
+        if (schema != null)
+            upk = upk.useSchema(schema);
         Iterator<Object> it = upk.iterator();
         assertEquals(true, it.hasNext());
         Object obj = it.next();
@@ -169,4 +174,68 @@ public class TestPackUnpack {
             assertTrue(false);
         }
     }
+
+    @Test
+    public void testArray() throws Exception {
+        for (int i = 0; i < 1000; i++) {
+            Schema schema = Schema.parse("(array int)");
+            List<Integer> l = new ArrayList<Integer>();
+            int len = (int)Math.random() % 1000 + 1;
+            for (int j = 0; j < len; j++)
+                l.add(j);
+            testArray(l, schema);
+        }
+        for (int i = 0; i < 1000; i++) {
+            Schema schema = Schema.parse("(array string)");
+            List<String> l = new ArrayList<String>();
+            int len = (int)Math.random() % 1000 + 1;
+            for (int j = 0; j < len; j++)
+                l.add(Integer.toString(j));
+            testArray(l, schema);
+        }
+    }
+    public void testArray(List val, Schema schema) throws Exception {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        new Packer(out).pack(val);
+        Object obj = unpackOne(out, schema);
+        if (obj instanceof List)
+            assertTrue(val.equals(obj));
+        else {
+            System.out.println("obj=" + obj);
+            System.out.println("Got unexpected class: " + obj.getClass());
+            assertTrue(false);
+        }
+    }
+
+    @Test
+    public void testMap() throws Exception {
+        for (int i = 0; i < 1000; i++) {
+            Schema schema = Schema.parse("(map int int)");
+            Map<Integer, Integer> m = new HashMap<Integer, Integer>();
+            int len = (int)Math.random() % 1000 + 1;
+            for (int j = 0; j < len; j++)
+                m.put(j, j);
+            testMap(m, schema);
+        }
+        for (int i = 0; i < 1000; i++) {
+            Schema schema = Schema.parse("(map string int)");
+            Map<String, Integer> m = new HashMap<String, Integer>();
+            int len = (int)Math.random() % 1000 + 1;
+            for (int j = 0; j < len; j++)
+                m.put(Integer.toString(j), j);
+            testMap(m, schema);
+        }
+    }
+    public void testMap(Map val, Schema schema) throws Exception {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        new Packer(out).pack(val);
+        Object obj = unpackOne(out, schema);
+        if (obj instanceof Map)
+            assertTrue(val.equals(obj));
+        else {
+            System.out.println("obj=" + obj);
+            System.out.println("Got unexpected class: " + obj.getClass());
+            assertTrue(false);
+        }
+    }    
 };
