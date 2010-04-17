@@ -2,6 +2,12 @@
     xmlns:ivy="antlib:org.apache.ivy.ant"
     xmlns:mvn="urn:maven-artifact-ant">
 
+  <property name="Name" value="MessagePack"/>
+  <property name="name" value="msgpack"/>
+  <property name="version" value="0.0.1"/>
+  <property name="fullname" value="${name}-${version}"/>
+  <property name="year" value="2010"/>
+
   <!-- Load user's default properties. -->
   <property file="${user.home}/build.properties" />
 
@@ -10,7 +16,11 @@
   <property name="build.dir" value="${basedir}/build"/>
   <property name="lib.dir" value="${basedir}/lib"/>
   <property name="dist.dir" value="${basedir}/dist"/>
+
   <property name="build.classes" value="${build.dir}/classes"/>
+  <property name="build.doc" value="${build.dir}/doc"/>
+  <property name="build.javadoc" value="${build.doc}/api/"/>
+  <property name="build.javadoc.log" value="${build.dir}/javadoc.log"/>
 
   <property name="test.count" value="100"/>
   <property name="test.junit.output.format" value="plain"/>
@@ -26,6 +36,10 @@
   <property name="javac.version" value="1.6"/>
   <property name="javac.args" value=""/>
   <property name="javac.args.warnings" value="-Xlint:unchecked"/>
+
+  <property name="javadoc.link.java"
+	    value="http://java.sun.com/javase/6/docs/api/"/>
+  <property name="javadoc.packages" value="org.${name}.*"/>
 
   <!-- ivy settings -->
   <property name="ivy.version" value="2.1.0"/>
@@ -138,9 +152,6 @@
       <src path="${java.src.dir}"/>
     </java-compiler>
   </target>
-  <target name="jar" depends="compile">
-    <jar jarfile="${dist.dir}/msgpack-0.0.1.jar" basedir="${build.classes}" />
-  </target>
 
   <!-- test -->
   <macrodef name="test-runner">
@@ -179,4 +190,114 @@
     <test-runner files.location="${test.java.src.dir}"
                  tests.pattern="**/${test.java.include}.java"/>
   </target>
+
+  <!-- jar -->
+  <target name="jar" depends="compile">
+    <jar jarfile="${build.dir}/${name}-${version}.jar" basedir="${build.classes}" >
+      <manifest>
+        <section name="org/${name}">
+          <attribute name="Implementation-Title" value="${Name}"/>
+          <attribute name="Implementation-Version" value="${version}"/>
+        </section>
+      </manifest>
+    </jar>
+  </target>
+
+  <!-- javadoc -->
+  <target name="javadoc" depends="compile" description="Generate javadoc">
+    <mkdir dir="${build.javadoc}"/>
+    <record name="${build.javadoc.log}" action="start"/>
+    <javadoc
+      Locale="en_US"
+      packagenames="org.${org}.${name}.*"
+      destdir="${build.javadoc}"
+      encoding="UTF-8"
+      docencoding="UTF-8"
+      author="true"
+      version="true"
+      use="true"
+      windowtitle="${Name} ${version} API"
+      doctitle="${Name} ${version} API"
+      bottom="Copyright &amp;copy; ${year} The ${Name} Project"
+      >
+        <packageset dir="${java.src.dir}"/>
+        <link href="${javadoc.link.java}"/>
+        <classpath >
+          <path refid="java.classpath" />
+        </classpath>
+    </javadoc>
+    <record name="${build.javadoc.log}" action="stop"/>
+    <condition property="javadoc.warnings">
+      <isfileselected file="${build.javadoc.log}">
+	<contains text=": warning - "/>
+      </isfileselected>
+    </condition>
+    <fail if="javadoc.warnings">Javadoc warnings!</fail>
+  </target>
+  <target name="javadoc-jar" depends="javadoc">
+    <jar jarfile="${build.dir}/${fullname}-javadoc.jar">
+      <fileset dir="${build.javadoc}" includes="**/*"/>
+    </jar>
+  </target>
+
+  <!-- sources -->
+  <target name="source">
+    <jar jarfile="${build.dir}/${fullname}-sources.jar">
+      <fileset dir="${java.src.dir}" includes="**/*.java"/>
+    </jar>
+  </target>
+
+  <!-- pom -->
+  <target name="pom" depends="ivy-init">
+    <ivy:makepom ivyfile="${basedir}/ivy.xml"
+		 pomfile="${dist.dir}/${fullname}.pom">
+      <mapping conf="default" scope="compile"/>
+      <mapping conf="test" scope="test"/>
+    </ivy:makepom>
+  </target>
+
+  <!-- dist -->
+  <target name="dist" depends="jar, pom, source, javadoc-jar"
+	  description="Build distribution">
+    <mkdir dir="${dist.dir}"/>
+    <copy todir="${dist.dir}"> 
+      <fileset file="${build.dir}/${fullname}.jar"/>
+      <fileset file="${build.dir}/${fullname}-sources.jar"/>
+      <fileset file="${build.dir}/${fullname}-javadoc.jar"/>
+    </copy>
+  </target>
+
+  <!-- maven: install msgpack into local m2 cache -->
+  <target name="mvn-install" depends="jar, pom, source, javadoc-jar"
+	  description="Installs msgpack to local m2 cache">
+    <typedef resource="org/apache/maven/artifact/ant/antlib.xml"
+	     uri="urn:maven-artifact-ant"
+	     classpathref="java.classpath"/>
+    <mvn:pom file="${dist.dir}/${fullname}.pom" id="msgpack"/>
+    <mvn:install file="${build.dir}/${fullname}.jar">
+      <attach file="${build.dir}/${fullname}-sources.jar"
+           classifier="sources" />
+      <attach file="${build.dir}/${fullname}-javadoc.jar"
+           classifier="javadoc" />
+      <pom refid="msgpack"/>
+    </mvn:install>
+  </target>
+
+  <!-- maven: create local repository into ${basedir}/maven2 -->
+  <target name="mvn-deploy" depends="jar, pom, source, javadoc-jar"
+     description="Deploys MessagePack to Maven repo.">
+    <typedef resource="org/apache/maven/artifact/ant/antlib.xml"
+	     uri="urn:maven-artifact-ant"
+	     classpathref="java.classpath"/>
+    <mvn:pom file="${dist.dir}/${fullname}.pom" id="msgpack"/>
+    <mvn:deploy file="${build.dir}/${fullname}.jar">
+      <remoteRepository url="file://localhost/${basedir}/maven2/"/>
+      <attach file="${build.dir}/${fullname}-sources.jar"
+           classifier="sources" />
+      <attach file="${build.dir}/${fullname}-javadoc.jar"
+           classifier="javadoc" />
+      <pom refid="msgpack"/>
+    </mvn:deploy>
+  </target>
+
 </project>
