@@ -1,7 +1,7 @@
 <ivy-module version="2.0"
             xmlns:e="http://ant.apache.org/ivy/extra">
 
-  <info organisation="org.messagepack"
+  <info organisation="org.msgpack"
     module="${name}" revision="${version}">
     <ivyauthor name="MessagePack Project" url="http://msgpack.sourceforge.net/"/>
     <description>MessagePack</description>
