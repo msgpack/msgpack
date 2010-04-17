@@ -16,10 +16,16 @@
  *    limitations under the License.
  */
 #include "ruby.h"
+
 #include "msgpack/unpack_define.h"
 
 static ID s_sysread;
 static ID s_readpartial;
+
+#ifdef HAVE_RUBY_ENCODING_H
+#include "ruby/encoding.h"
+int s_ascii_8bit;
+#endif
 
 typedef struct {
 	int finished;
@@ -426,12 +432,22 @@ static inline VALUE MessagePack_unpack_impl(VALUE self, VALUE data, unsigned lon
 	unpack_user u = {0, Qnil, 0, 0, Qnil, Qnil, Qnil};
 	mp.user = u;
 
+#ifdef HAVE_RUBY_ENCODING_H
+	// FIXME encodingをASCII-8BITにする
+	int enc_orig = rb_enc_get_index(data);
+	rb_enc_set_index(data, s_ascii_8bit);
+#endif
+
 	// FIXME execute実行中はmp->topが更新されないのでGC markが機能しない
 	rb_gc_disable();
 	VALUE args[3] = {(VALUE)&mp, data, (VALUE)dlen};
 	VALUE ret = rb_rescue(MessagePack_unpack_do, (VALUE)args,
 			MessagePack_unpack_rescue, Qnil);
 	rb_gc_enable();
+
+#ifdef HAVE_RUBY_ENCODING_H
+	rb_enc_set_index(data, enc_orig);
+#endif
 
 	return ret;
 }
@@ -453,6 +469,11 @@ void Init_msgpack_unpack(VALUE mMessagePack)
 {
 	s_sysread = rb_intern("sysread");
 	s_readpartial = rb_intern("readpartial");
+
+#ifdef HAVE_RUBY_ENCODING_H
+	s_ascii_8bit = rb_enc_find_index("ASCII-8BIT");
+#endif
+
 	eUnpackError = rb_define_class_under(mMessagePack, "UnpackError", rb_eStandardError);
 	cUnpacker = rb_define_class_under(mMessagePack, "Unpacker", rb_cObject);
 	rb_define_alloc_func(cUnpacker, MessagePack_Unpacker_alloc);
