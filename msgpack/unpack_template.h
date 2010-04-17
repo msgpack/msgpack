@@ -99,6 +99,7 @@ msgpack_unpack_func(int, _execute)(msgpack_unpack_struct(_context)* ctx, const c
 	unsigned int cs = ctx->cs;
 	unsigned int top = ctx->top;
 	msgpack_unpack_struct(_stack)* stack = ctx->stack;
+	unsigned int stack_size = ctx->stack_size;
 	msgpack_unpack_user* user = &ctx->user;
 
 	msgpack_unpack_object obj;
@@ -135,21 +136,21 @@ msgpack_unpack_func(int, _execute)(msgpack_unpack_struct(_context)* ctx, const c
 	++top; \
 	/*printf("container %d count %d stack %d\n",stack[top].obj,count_,top);*/ \
 	/*printf("stack push %d\n", top);*/ \
-	if(top >= ctx->stack_size) { \
-		if(ctx->stack_size == MSGPACK_EMBED_STACK_SIZE) { \
+	if(top >= stack_size) { \
+		if(stack_size == MSGPACK_EMBED_STACK_SIZE) { \
 			size_t csize = sizeof(msgpack_unpack_struct(_stack)) * MSGPACK_EMBED_STACK_SIZE; \
 			size_t nsize = csize * 2; \
 			msgpack_unpack_struct(_stack)* tmp = (msgpack_unpack_struct(_stack)*)malloc(nsize); \
 			if(tmp == NULL) { goto _failed; } \
 			memcpy(tmp, ctx->stack, csize); \
-			ctx->stack = tmp; \
-			ctx->stack_size = MSGPACK_EMBED_STACK_SIZE * 2; \
+			ctx->stack = stack = tmp; \
+			ctx->stack_size = stack_size = MSGPACK_EMBED_STACK_SIZE * 2; \
 		} else { \
 			size_t nsize = sizeof(msgpack_unpack_struct(_stack)) * ctx->stack_size * 2; \
 			msgpack_unpack_struct(_stack)* tmp = (msgpack_unpack_struct(_stack)*)realloc(ctx->stack, nsize); \
 			if(tmp == NULL) { goto _failed; } \
-			ctx->stack = tmp; \
-			ctx->stack_size *= 2; \
+			ctx->stack = stack = tmp; \
+			ctx->stack_size = stack_size = stack_size * 2; \
 		} \
 	} \
 	goto _header_again
