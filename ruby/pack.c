@@ -112,6 +112,16 @@ static VALUE MessagePack_String_to_msgpack(int argc, VALUE *argv, VALUE self)
 	return out;
 }
 
+static VALUE MessagePack_Symbol_to_msgpack(int argc, VALUE *argv, VALUE self)
+{
+	ARG_BUFFER(out, argc, argv);
+	const char* name = rb_id2name(SYM2ID(self));
+	size_t len = strlen(name);
+	msgpack_pack_raw(out, len);
+	msgpack_pack_raw_body(out, name, len);
+	return out;
+}
+
 static VALUE MessagePack_Array_to_msgpack(int argc, VALUE *argv, VALUE self)
 {
 	ARG_BUFFER(out, argc, argv);
@@ -172,6 +182,7 @@ void Init_msgpack_pack(VALUE mMessagePack)
 	rb_define_method_id(rb_cString, s_to_msgpack, MessagePack_String_to_msgpack, -1);
 	rb_define_method_id(rb_cArray,  s_to_msgpack, MessagePack_Array_to_msgpack, -1);
 	rb_define_method_id(rb_cHash,   s_to_msgpack, MessagePack_Hash_to_msgpack, -1);
+	rb_define_method_id(rb_cSymbol, s_to_msgpack, MessagePack_Symbol_to_msgpack, -1);
 	rb_define_module_function(mMessagePack, "pack", MessagePack_pack, -1);
 }
 
