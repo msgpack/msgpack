@@ -14,4 +14,8 @@ preprocess() {
 preprocess msgpack/type/tuple.hpp
 preprocess msgpack/type/define.hpp
 preprocess msgpack/zone.hpp
+cp -f ../msgpack/pack_define.h     msgpack/
+cp -f ../msgpack/pack_template.h   msgpack/
+cp -f ../msgpack/unpack_define.h   msgpack/
+cp -f ../msgpack/unpack_template.h msgpack/
 

@@ -1,35 +1,21 @@
-AC_INIT(msgpack/unpack_template.h)
+AC_INIT(object.cpp)
 AC_CONFIG_AUX_DIR(ac)
 AM_INIT_AUTOMAKE(msgpack, 0.4.3)
 AC_CONFIG_HEADER(config.h)
 
 AC_SUBST(CFLAGS)
-if test "" = "$CFLAGS"; then
-	CFLAGS="-g -O4"
-fi
+CFLAGS="-O4 -Wall $CFLAGS"
+
+AC_SUBST(CXXFLAGS)
+CXXFLAGS="-O4 -Wall $CXXFLAGS"
 
 AC_PROG_CC
-
-CFLAGS="-O4 -Wall $CFLAGS -I.."
-
-AC_MSG_CHECKING([if c++ api is enabled])
-AC_ARG_ENABLE(cxx,
-	AS_HELP_STRING([--disable-cxx],
-				   [don't build c++ api.]) )
-AC_MSG_RESULT($enable_cxx)
-if test "$enable_cxx" != "no"; then
-	AC_SUBST(CXXFLAGS)
-	if test "" = "$CXXFLAGS"; then
-		CXXFLAGS="-g -O4"
-	fi
-fi
-
-# FIXME enable_cxx
 AC_PROG_CXX
 
-CXXFLAGS="-O4 -Wall $CXXFLAGS -I.. -I../c"
+AC_PROG_LIBTOOL
+AM_PROG_AS
+AM_PROG_CC_C_O
 
-# FIXME enable_cxx
 AC_LANG_PUSH([C++])
 AC_CHECK_HEADERS(tr1/unordered_map)
 AC_CHECK_HEADERS(tr1/unordered_set)
@@ -53,9 +39,5 @@ add CFLAGS="--march=i686" and CXXFLAGS="-march=i668" options to ./configure as f
 ])
 fi
 
-AM_CONDITIONAL(ENABLE_CXX, test "$enable_cxx" != "no")
-
-AC_PROG_LIBTOOL
-
-AC_OUTPUT([Makefile c/Makefile cpp/Makefile])
+AC_OUTPUT([Makefile])
 
