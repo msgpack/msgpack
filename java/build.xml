@@ -5,25 +5,18 @@
   <!-- Load user's default properties. -->
   <property file="${user.home}/build.properties" />
 
-  <property name="Org" value="MessagePack"/>
-  <property name="org" value="msgpack123"/>
-  <property name="Name" value="MessagePack"/>
-  <property name="name" value="msgpack456"/>
-
   <property name="src.dir" value="${basedir}/src"/>  	
   <property name="java.src.dir" value="${src.dir}/"/>
   <property name="build.dir" value="${basedir}/build"/>
   <property name="lib.dir" value="${basedir}/lib"/>
   <property name="dist.dir" value="${basedir}/dist"/>
+  <property name="build.classes" value="${build.dir}/classes"/>
 
   <property name="test.count" value="100"/>
   <property name="test.junit.output.format" value="plain"/>
   <property name="test.java.src.dir" value="${basedir}/test"/>
   <property name="test.java.build.dir" value="${build.dir}/test"/>
-  <property name="test.java.generated.build.dir" value="${test.java.build.dir}/generated"/>
-  <property name="test.java.generated.dir" value="${test.java.generated.build.dir}/src"/>
   <property name="test.java.classes" value="${test.java.build.dir}/classes"/>
-  <property name="test.java.generated.classes" value="${test.java.generated.build.dir}/classes"/>
   <property name="test.java.include" value="Test*"/>
 
   <property name="javac.encoding" value="ISO-8859-1"/>
@@ -65,13 +58,9 @@
     <fileset dir="${ivy.test.lib}">
       <include name="**/*.jar" />
     </fileset>
-    <fileset dir="${dist.dir}">
-      <include name="**/*.jar" />
-    </fileset>
   </path>
   <path id="test.java.classpath">
     <pathelement location="${test.java.classes}" />
-    <pathelement location="${test.java.generated.classes}" />
     <path refid="java.classpath"/>
     <path refid="test.libs"/>
   </path>
@@ -80,10 +69,10 @@
   <target name="init">
     <mkdir dir="${build.dir}" />
     <mkdir dir="${lib.dir}" />
+    <mkdir dir="${build.classes}" />
 
     <mkdir dir="${test.java.build.dir}"/>
     <mkdir dir="${test.java.classes}"/>
-    <mkdir dir="${test.java.generated.classes}"/>
 
     <mkdir dir="${ivy.lib}"/>
     <mkdir dir="${ivy.test.lib}"/>
@@ -145,12 +134,12 @@
 
   <!-- compile -->
   <target name="compile" depends="init,ivy-retrieve-build">
-    <javac srcdir="src" destdir="build" source="1.5" target="1.5">
-      <compilerarg value="-Xlint:unchecked" />
-    </javac>
+    <java-compiler>
+      <src path="${java.src.dir}"/>
+    </java-compiler>
   </target>
   <target name="jar" depends="compile">
-    <jar jarfile="${dist.dir}/msgpack-0.0.1.jar" basedir="build" />
+    <jar jarfile="${dist.dir}/msgpack-0.0.1.jar" basedir="${build.classes}" />
   </target>
 
   <!-- test -->
@@ -166,8 +155,6 @@
              errorProperty="tests.failed" failureProperty="tests.failed">
         <sysproperty key="test.count" value="${test.count}"/>
         <sysproperty key="test.dir" value="@{test.dir}"/>
-        <sysproperty key="share.dir" value="${share.dir}"/>
-        <sysproperty key="test.validate" value="${test.validate}"/>
         <classpath refid="test.java.classpath"/>
         <formatter type="${test.junit.output.format}"/>
         <batchtest todir="${test.java.build.dir}" unless="testcase">
@@ -182,7 +169,7 @@
       <fail if="tests.failed">Tests Failed!</fail>
     </sequential>
   </macrodef>
-  <target name="compile-test" depends="ivy-retrieve-test,jar">
+  <target name="compile-test" depends="ivy-retrieve-test,compile">
     <java-compiler dest="${test.java.classes}"
 		   classpath="test.java.classpath">
       <src path="${test.java.src.dir}/org" />
