@@ -14,6 +14,7 @@
   <property name="java.src.dir" value="${src.dir}/"/>
   <property name="build.dir" value="${basedir}/build"/>
   <property name="lib.dir" value="${basedir}/lib"/>
+  <property name="dist.dir" value="${basedir}/dist"/>
 
   <property name="test.count" value="100"/>
   <property name="test.junit.output.format" value="plain"/>
@@ -62,6 +63,9 @@
   </path>
   <path id="test.libs">
     <fileset dir="${ivy.test.lib}">
+      <include name="**/*.jar" />
+    </fileset>
+    <fileset dir="${dist.dir}">
       <include name="**/*.jar" />
     </fileset>
   </path>
@@ -146,7 +150,7 @@
     </javac>
   </target>
   <target name="jar" depends="compile">
-    <jar jarfile="dist/msgpack-0.0.1.jar" basedir="build" />
+    <jar jarfile="${dist.dir}/msgpack-0.0.1.jar" basedir="build" />
   </target>
 
   <!-- test -->
@@ -178,7 +182,7 @@
       <fail if="tests.failed">Tests Failed!</fail>
     </sequential>
   </macrodef>
-  <target name="compile-test" depends="ivy-retrieve-test,compile">
+  <target name="compile-test" depends="ivy-retrieve-test,jar">
     <java-compiler dest="${test.java.classes}"
 		   classpath="test.java.classpath">
       <src path="${test.java.src.dir}/org" />
