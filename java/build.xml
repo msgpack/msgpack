@@ -1,18 +1,191 @@
-<project name="MessagePack for Java">
-	<target name="prepare">
-		<mkdir dir="build" />
-		<mkdir dir="dist" />
-	</target>
-	<target name="clean">
-		<delete dir="build"/>
-		<delete dir="dist"/>
-	</target>
-	<target name="compile" depends="prepare">
-		<javac srcdir="src" destdir="build" source="1.5" target="1.5">
-			<compilerarg value="-Xlint:unchecked" />
-		</javac>
-	</target>
-	<target name="jar" depends="compile">
-		<jar jarfile="dist/msgpack-0.0.1.jar" basedir="build" />
-	</target>
+<project name="MessagePack for Java" default="jar"
+    xmlns:ivy="antlib:org.apache.ivy.ant"
+    xmlns:mvn="urn:maven-artifact-ant">
+
+  <!-- Load user's default properties. -->
+  <property file="${user.home}/build.properties" />
+
+  <property name="Org" value="MessagePack"/>
+  <property name="org" value="msgpack123"/>
+  <property name="Name" value="MessagePack"/>
+  <property name="name" value="msgpack456"/>
+
+  <property name="src.dir" value="${basedir}/src"/>  	
+  <property name="java.src.dir" value="${src.dir}/"/>
+  <property name="build.dir" value="${basedir}/build"/>
+  <property name="lib.dir" value="${basedir}/lib"/>
+
+  <property name="test.count" value="100"/>
+  <property name="test.junit.output.format" value="plain"/>
+  <property name="test.java.src.dir" value="${basedir}/test"/>
+  <property name="test.java.build.dir" value="${build.dir}/test"/>
+  <property name="test.java.generated.build.dir" value="${test.java.build.dir}/generated"/>
+  <property name="test.java.generated.dir" value="${test.java.generated.build.dir}/src"/>
+  <property name="test.java.classes" value="${test.java.build.dir}/classes"/>
+  <property name="test.java.generated.classes" value="${test.java.generated.build.dir}/classes"/>
+  <property name="test.java.include" value="Test*"/>
+
+  <property name="javac.encoding" value="ISO-8859-1"/>
+  <property name="javac.debug" value="on"/>
+  <property name="javac.optimize" value="on"/>
+  <property name="javac.deprecation" value="off"/>
+  <property name="javac.version" value="1.6"/>
+  <property name="javac.args" value=""/>
+  <property name="javac.args.warnings" value="-Xlint:unchecked"/>
+
+  <!-- ivy settings -->
+  <property name="ivy.version" value="2.1.0"/>
+  <property name="ivy.url"
+	    value="http://repo2.maven.org/maven2/org/apache/ivy/ivy" />
+  <property name="ivy.home" value="${user.home}/.ant" />
+  <property name="ivy.lib" value="${build.dir}/lib"/>
+  <property name="ivy.test.lib" value="${build.dir}/test/lib"/>
+  <property name="mvn.repo"
+	    value="https://repository.apache.org/content/repositories/snapshots"/>
+
+  <!-- the normal classpath -->
+  <path id="libs">
+    <fileset dir="${ivy.lib}">
+      <include name="**/*.jar" />
+    </fileset>
+  </path>
+  <path id="java.classpath">
+    <pathelement location="${build.classes}"/>
+    <fileset dir="${lib.dir}">
+      <include name="**/*.jar" />
+      <exclude name="**/excluded/" />
+    </fileset>
+    <fileset dir="${ant.home}/lib">
+      <include name="ant.jar" />
+    </fileset>
+    <path refid="libs" />
+  </path>
+  <path id="test.libs">
+    <fileset dir="${ivy.test.lib}">
+      <include name="**/*.jar" />
+    </fileset>
+  </path>
+  <path id="test.java.classpath">
+    <pathelement location="${test.java.classes}" />
+    <pathelement location="${test.java.generated.classes}" />
+    <path refid="java.classpath"/>
+    <path refid="test.libs"/>
+  </path>
+
+  <!-- init & clean -->
+  <target name="init">
+    <mkdir dir="${build.dir}" />
+    <mkdir dir="${lib.dir}" />
+
+    <mkdir dir="${test.java.build.dir}"/>
+    <mkdir dir="${test.java.classes}"/>
+    <mkdir dir="${test.java.generated.classes}"/>
+
+    <mkdir dir="${ivy.lib}"/>
+    <mkdir dir="${ivy.test.lib}"/>
+    <condition property="ivy.jar.exists">
+      <available file="${lib.dir}/ivy-${ivy.version}.jar"/>
+    </condition>
+  </target>
+  <target name="clean">
+    <delete dir="${build.dir}" />
+  </target>
+
+  <!-- ivy targets -->
+  <target name="ivy-download" unless="ivy.jar.exists" depends="init">
+    <delete dir="${lib.dir}"
+	    includes="ivy-*.jar" excludes="ivy-${ivy.version}.jar"/>
+    <get src="${ivy.url}/${ivy.version}/ivy-${ivy.version}.jar"
+         dest="${lib.dir}/ivy-${ivy.version}.jar" usetimestamp="true"/>
+  </target>
+  <target name="ivy-init" depends="ivy-download" unless="ivy.initialized">
+    <taskdef resource="org/apache/ivy/ant/antlib.xml"
+             uri="antlib:org.apache.ivy.ant" classpathref="java.classpath"/>
+    <!-- ensure that ivy taskdef is only run once, otw ant will error -->
+    <property name="ivy.initialized" value="true"/>
+  </target>
+   
+ <target name="ivy-retrieve-build" depends="init,ivy-init">
+    <ivy:retrieve type="jar" conf="build"
+		  pattern="${ivy.lib}/[artifact]-[revision].[ext]"/>
+ </target>
+ <target name="ivy-retrieve-test" depends="init,ivy-init">
+    <ivy:retrieve type="jar" conf="test"
+		  pattern="${ivy.test.lib}/[artifact]-[revision].[ext]"/>
+ </target>
+
+  <!-- compiler -->
+  <macrodef name="java-compiler">
+    <attribute name="dest" default="${build.classes}"/>
+    <attribute name="includes" default="**/*.java"/>
+    <attribute name="excludes" default=""/>
+    <attribute name="classpath" default="java.classpath"/>
+    <element name="src" implicit="yes"/>
+    <sequential>
+      <javac 
+	 destdir="@{dest}"
+         includes="@{includes}"
+         excludes="@{excludes}" 
+	 encoding="${javac.encoding}" 
+	 debug="${javac.debug}"
+	 optimize="${javac.optimize}"
+	 target="${javac.version}"
+	 source="${javac.version}"
+	 deprecation="${javac.deprecation}">
+	<compilerarg line="${javac.args} ${javac.args.warnings}" />
+	<classpath refid="@{classpath}"/>
+        <src />
+      </javac>
+    </sequential>
+  </macrodef>
+
+  <!-- compile -->
+  <target name="compile" depends="init,ivy-retrieve-build">
+    <javac srcdir="src" destdir="build" source="1.5" target="1.5">
+      <compilerarg value="-Xlint:unchecked" />
+    </javac>
+  </target>
+  <target name="jar" depends="compile">
+    <jar jarfile="dist/msgpack-0.0.1.jar" basedir="build" />
+  </target>
+
+  <!-- test -->
+  <macrodef name="test-runner">
+    <attribute name="files.location" />
+    <attribute name="tests.pattern" />
+    <attribute name="test.dir" default="${test.java.build.dir}" />
+    <sequential>
+      <junit showoutput="yes"
+             printsummary="withOutAndErr"
+             haltonfailure="no"
+             fork="yes" forkMode="once"
+             errorProperty="tests.failed" failureProperty="tests.failed">
+        <sysproperty key="test.count" value="${test.count}"/>
+        <sysproperty key="test.dir" value="@{test.dir}"/>
+        <sysproperty key="share.dir" value="${share.dir}"/>
+        <sysproperty key="test.validate" value="${test.validate}"/>
+        <classpath refid="test.java.classpath"/>
+        <formatter type="${test.junit.output.format}"/>
+        <batchtest todir="${test.java.build.dir}" unless="testcase">
+          <fileset dir="@{files.location}"
+		   includes="@{tests.pattern}"
+		   excludes="**/${test.java.exclude}.java" />
+        </batchtest>
+        <batchtest todir="${test.java.build.dir}" if="testcase">
+          <fileset dir="@{files.location}" includes="**/${testcase}.java"/>
+        </batchtest>
+      </junit>
+      <fail if="tests.failed">Tests Failed!</fail>
+    </sequential>
+  </macrodef>
+  <target name="compile-test" depends="ivy-retrieve-test,compile">
+    <java-compiler dest="${test.java.classes}"
+		   classpath="test.java.classpath">
+      <src path="${test.java.src.dir}/org" />
+    </java-compiler>
+  </target>
+  <target name="test" depends="init,compile-test">
+    <test-runner files.location="${test.java.src.dir}"
+                 tests.pattern="**/${test.java.include}.java"/>
+  </target>
 </project>
