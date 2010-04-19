@@ -4,7 +4,7 @@
   <groupId>org.msgpack</groupId>
   <artifactId>msgpack</artifactId>
   <name>MessagePack for Java</name>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>1.0-SNAPSHOT</version>
   <description>MessagePack for Java</description>
 
   <licenses>
@@ -20,9 +20,6 @@
   </scm>
 
   <build>
-    <sourceDirectory>src</sourceDirectory>
-    <testSourceDirectory>test</testSourceDirectory>
-
     <resources>
       <resource>
         <directory>src/main/resources</directory>
@@ -77,17 +74,11 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jxr-plugin</artifactId>
-	<configuration>
-          <aggregate>true</aggregate>
-        </configuration>
       </plugin>
       
       <plugin>
 	<groupId>org.apache.maven.plugins</groupId>
 	<artifactId>maven-surefire-report-plugin</artifactId>
-	<configuration>
-          <aggregate>true</aggregate>
-	</configuration>
       </plugin>
     </plugins>
   </reporting>
@@ -111,13 +102,6 @@
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>4.8.1</version>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.apache.activemq.protobuf</groupId>
-      <artifactId>activemq-protobuf</artifactId>
-      <version>1.0</version>
       <scope>test</scope>
     </dependency>
 

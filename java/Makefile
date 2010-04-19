@@ -1,6 +1,14 @@
 
-.PHONY: compile test eclipse clean
+.PHONY: compile test eclipse clean package
 
+all:
+	compile
+
+package:
+	mvn package
+
+install:
+	mvn install
 
 compile:
 	mvn compile
