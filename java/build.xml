@@ -11,7 +11,7 @@
   <!-- Load user's default properties. -->
   <property file="${user.home}/build.properties" />
 
-  <property name="src.dir" value="${basedir}/src"/>  	
+  <property name="src.dir" value="${basedir}/src/main/java"/>  	
   <property name="java.src.dir" value="${src.dir}/"/>
   <property name="build.dir" value="${basedir}/build"/>
   <property name="lib.dir" value="${basedir}/lib"/>
@@ -24,11 +24,11 @@
 
   <property name="test.count" value="100"/>
   <property name="test.junit.output.format" value="plain"/>
-  <property name="test.java.src.dir" value="${basedir}/test"/>
+  <property name="test.java.src.dir" value="${basedir}/src/test/java"/>
   <property name="test.java.build.dir" value="${build.dir}/test"/>
   <property name="test.java.classes" value="${test.java.build.dir}/classes"/>
   <property name="test.java.include" value="Test*"/>
-
+ 
   <property name="javac.encoding" value="ISO-8859-1"/>
   <property name="javac.debug" value="on"/>
   <property name="javac.optimize" value="on"/>
