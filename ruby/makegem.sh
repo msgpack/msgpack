@@ -8,8 +8,6 @@ cp pack.h       ext/
 cp rbinit.c     ext/
 cp unpack.c     ext/
 cp unpack.h     ext/
-cp ../AUTHORS   ./
-cp ../ChangeLog ./
 cp ../msgpack/pack_define.h     msgpack/
 cp ../msgpack/pack_template.h   msgpack/
 cp ../msgpack/unpack_define.h   msgpack/
@@ -20,7 +18,7 @@ cat msgpack_test.rb | sed "s/require ['\"]msgpack['\"]/require File.dirname(__FI
 gem build msgpack.gemspec
 
 if [ $? -eq 0 ]; then
-	rm -rf ext msgpack AUTHORS ChangeLog test/msgpack_test.rb
+	rm -rf ext msgpack test/msgpack_test.rb
 fi
 
 # gem install gem-compile                     # on msys
