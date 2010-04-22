@@ -58,9 +58,12 @@ msgpack_unpack_struct_decl(_context) {
 	unsigned int cs;
 	unsigned int trail;
 	unsigned int top;
+	/*
 	msgpack_unpack_struct(_stack)* stack;
 	unsigned int stack_size;
 	msgpack_unpack_struct(_stack) embed_stack[MSGPACK_EMBED_STACK_SIZE];
+	*/
+	msgpack_unpack_struct(_stack) stack[MSGPACK_EMBED_STACK_SIZE];
 };
 
 
@@ -69,17 +72,21 @@ msgpack_unpack_func(void, _init)(msgpack_unpack_struct(_context)* ctx)
 	ctx->cs = CS_HEADER;
 	ctx->trail = 0;
 	ctx->top = 0;
+	/*
 	ctx->stack = ctx->embed_stack;
 	ctx->stack_size = MSGPACK_EMBED_STACK_SIZE;
+	*/
 	ctx->stack[0].obj = msgpack_unpack_callback(_root)(&ctx->user);
 }
 
+/*
 msgpack_unpack_func(void, _destroy)(msgpack_unpack_struct(_context)* ctx)
 {
 	if(ctx->stack_size != MSGPACK_EMBED_STACK_SIZE) {
 		free(ctx->stack);
 	}
 }
+*/
 
 msgpack_unpack_func(msgpack_unpack_object, _data)(msgpack_unpack_struct(_context)* ctx)
 {
@@ -99,7 +106,9 @@ msgpack_unpack_func(int, _execute)(msgpack_unpack_struct(_context)* ctx, const c
 	unsigned int cs = ctx->cs;
 	unsigned int top = ctx->top;
 	msgpack_unpack_struct(_stack)* stack = ctx->stack;
+	/*
 	unsigned int stack_size = ctx->stack_size;
+	*/
 	msgpack_unpack_user* user = &ctx->user;
 
 	msgpack_unpack_object obj;
@@ -129,6 +138,7 @@ msgpack_unpack_func(int, _execute)(msgpack_unpack_struct(_context)* ctx, const c
 	goto _fixed_trail_again
 
 #define start_container(func, count_, ct_) \
+	if(top >= MSGPACK_EMBED_STACK_SIZE) { goto _failed; } /* FIXME */ \
 	if(msgpack_unpack_callback(func)(user, count_, &stack[top].obj) < 0) { goto _failed; } \
 	if((count_) == 0) { obj = stack[top].obj; goto _push; } \
 	stack[top].ct = ct_; \
@@ -136,6 +146,7 @@ msgpack_unpack_func(int, _execute)(msgpack_unpack_struct(_context)* ctx, const c
 	++top; \
 	/*printf("container %d count %d stack %d\n",stack[top].obj,count_,top);*/ \
 	/*printf("stack push %d\n", top);*/ \
+	/* FIXME \
 	if(top >= stack_size) { \
 		if(stack_size == MSGPACK_EMBED_STACK_SIZE) { \
 			size_t csize = sizeof(msgpack_unpack_struct(_stack)) * MSGPACK_EMBED_STACK_SIZE; \
@@ -153,6 +164,7 @@ msgpack_unpack_func(int, _execute)(msgpack_unpack_struct(_context)* ctx, const c
 			ctx->stack_size = stack_size = stack_size * 2; \
 		} \
 	} \
+	*/ \
 	goto _header_again
 
 #define NEXT_CS(p) \

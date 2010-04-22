@@ -30,7 +30,7 @@ extern "C" {
 
 
 #ifndef MSGPACK_EMBED_STACK_SIZE
-#define MSGPACK_EMBED_STACK_SIZE 16
+#define MSGPACK_EMBED_STACK_SIZE 32
 #endif
 
 
