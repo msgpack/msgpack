@@ -31,7 +31,6 @@ typedef struct {
 	int finished;
 	VALUE source;
 	size_t offset;
-	size_t parsed;
 	VALUE buffer;
 	VALUE stream;
 	VALUE streambuf;
@@ -144,8 +143,70 @@ static inline int template_callback_raw(unpack_user* u, const char* b, const cha
 		rb_raise(rb_eTypeError, "instance of String needed"); \
 	}
 
+
+static VALUE template_execute_rescue(VALUE nouse)
+{
+	rb_gc_enable();
+#ifdef RUBY_VM
+	rb_exc_raise(rb_errinfo());
+#else
+	rb_exc_raise(ruby_errinfo);
+#endif
+}
+
+static VALUE template_execute_do(VALUE argv)
+{
+	VALUE* args = (VALUE*)argv;
+
+	msgpack_unpack_t* mp = (msgpack_unpack_t*)args[0];
+	char* dptr   = (char*)args[1];
+	size_t dlen  = (size_t)args[2];
+	size_t* from = (size_t*)args[3];
+
+	int ret = template_execute(mp, dptr, dlen, from);
+
+	return (VALUE)ret;
+}
+
+static int template_execute_wrap(msgpack_unpack_t* mp,
+		VALUE str, size_t dlen, size_t* from)
+{
+	VALUE args[4] = {
+		(VALUE)mp,
+		(VALUE)RSTRING_PTR(str),
+		(VALUE)dlen,
+		(VALUE)from,
+	};
+
+#ifdef HAVE_RUBY_ENCODING_H
+	// FIXME encodingをASCII-8BITにする
+	int enc_orig = rb_enc_get_index(str);
+	rb_enc_set_index(str, s_ascii_8bit);
+#endif
+
+	// FIXME execute実行中はmp->topが更新されないのでGC markが機能しない
+	rb_gc_disable();
+
+	mp->user.source = str;
+
+	int ret = (int)rb_rescue(template_execute_do, (VALUE)args,
+			template_execute_rescue, Qnil);
+
+	mp->user.source = Qnil;
+
+	rb_gc_enable();
+
+#ifdef HAVE_RUBY_ENCODING_H
+	rb_enc_set_index(str, enc_orig);
+#endif
+
+	return ret;
+}
+
+
 static VALUE cUnpacker;
 static VALUE eUnpackError;
+
 
 static void MessagePack_Unpacker_free(void* data)
 {
@@ -173,14 +234,6 @@ static VALUE MessagePack_Unpacker_alloc(VALUE klass)
 	return obj;
 }
 
-static VALUE MessagePack_Unpacker_reset(VALUE self)
-{
-	UNPACKER(self, mp);
-	template_init(mp);
-	mp->user.finished = 0;
-	return self;
-}
-
 static ID append_method_of(VALUE stream)
 {
 	if(rb_respond_to(stream, s_sysread)) {
@@ -204,111 +257,15 @@ static VALUE MessagePack_Unpacker_initialize(int argc, VALUE *argv, VALUE self)
 		rb_raise(rb_eArgError, "wrong number of arguments (%d for 0)", argc);
 	}
 
-	MessagePack_Unpacker_reset(self);
 	UNPACKER(self, mp);
+	template_init(mp);
+	mp->user.finished = 0;
 	mp->user.offset = 0;
-	mp->user.parsed = 0;
 	mp->user.buffer = rb_str_new("",0);
 	mp->user.stream = stream;
 	mp->user.streambuf = rb_str_new("",0);
 	mp->user.stream_append_method = append_method_of(stream);
 	return self;
-}
-
-
-static VALUE MessagePack_Unpacker_execute_do(VALUE argv)
-{
-	VALUE* args = (VALUE*)argv;
-
-	VALUE self = args[0];
-	UNPACKER(self, mp);
-
-	VALUE data = args[1];
-
-	size_t from = (unsigned long)args[2];
-	char* dptr = RSTRING_PTR(data);
-	size_t dlen = (unsigned long)args[3];
-	int ret;
-
-	if(from >= dlen) {
-		rb_raise(eUnpackError, "offset is bigger than data buffer size.");
-	}
-
-	mp->user.source = data;
-	ret = template_execute(mp, dptr, dlen, &from);
-	mp->user.source = Qnil;
-
-	if(ret < 0) {
-		rb_raise(eUnpackError, "parse error.");
-	} else if(ret > 0) {
-		mp->user.finished = 1;
-		return ULONG2NUM(from);
-	} else {
-		mp->user.finished = 0;
-		return ULONG2NUM(from);
-	}
-}
-
-static VALUE MessagePack_Unpacker_execute_rescue(VALUE nouse)
-{
-	rb_gc_enable();
-#ifdef RUBY_VM
-	rb_exc_raise(rb_errinfo());
-#else
-	rb_exc_raise(ruby_errinfo);
-#endif
-}
-
-static inline VALUE MessagePack_Unpacker_execute_impl(VALUE self, VALUE data,
-		unsigned long off, unsigned long dlen)
-{
-	// FIXME execute実行中はmp->topが更新されないのでGC markが機能しない
-	rb_gc_disable();
-	VALUE args[4] = {self, data, (VALUE)off, (VALUE)dlen};
-	VALUE ret = rb_rescue(MessagePack_Unpacker_execute_do, (VALUE)args,
-			MessagePack_Unpacker_execute_rescue, Qnil);
-	rb_gc_enable();
-
-	return ret;
-}
-
-static VALUE MessagePack_Unpacker_execute_limit(VALUE self, VALUE data,
-		VALUE off, VALUE limit)
-{
-	CHECK_STRING_TYPE(data);
-	return MessagePack_Unpacker_execute_impl(self, data,
-			NUM2ULONG(off), NUM2ULONG(limit));
-}
-
-static VALUE MessagePack_Unpacker_execute(VALUE self, VALUE data, VALUE off)
-{
-	CHECK_STRING_TYPE(data);
-	return MessagePack_Unpacker_execute_impl(self, data,
-			NUM2ULONG(off), RSTRING_LEN(data));
-}
-
-static VALUE MessagePack_Unpacker_finished_p(VALUE self)
-{
-	UNPACKER(self, mp);
-	if(mp->user.finished) {
-		return Qtrue;
-	}
-	return Qfalse;
-}
-
-static VALUE MessagePack_Unpacker_data(VALUE self)
-{
-	UNPACKER(self, mp);
-	return template_data(mp);
-}
-
-
-static VALUE MessagePack_Unpacker_feed(VALUE self, VALUE data)
-{
-	UNPACKER(self, mp);
-	StringValue(data);
-	rb_str_cat(mp->user.buffer, RSTRING_PTR(data), RSTRING_LEN(data));
-	return Qnil;
 }
 
 static VALUE MessagePack_Unpacker_stream_get(VALUE self)
@@ -325,6 +282,14 @@ static VALUE MessagePack_Unpacker_stream_set(VALUE self, VALUE val)
 	return val;
 }
 
+static VALUE MessagePack_Unpacker_feed(VALUE self, VALUE data)
+{
+	UNPACKER(self, mp);
+	StringValue(data);
+	rb_str_cat(mp->user.buffer, RSTRING_PTR(data), RSTRING_LEN(data));
+	return Qnil;
+}
+
 static VALUE MessagePack_Unpacker_fill(VALUE self)
 {
 	UNPACKER(self, mp);
@@ -333,7 +298,7 @@ static VALUE MessagePack_Unpacker_fill(VALUE self)
 		return Qnil;
 	}
 
-	size_t len;
+	long len;
 	if(RSTRING_LEN(mp->user.buffer) == 0) {
 		rb_funcall(mp->user.stream, mp->user.stream_append_method, 2,
 				LONG2FIX(64*1024), mp->user.buffer);
@@ -368,16 +333,17 @@ static VALUE MessagePack_Unpacker_each(VALUE self)
 			}
 		}
 
-		mp->user.source = mp->user.buffer;
-		ret = template_execute(mp, RSTRING_PTR(mp->user.buffer), RSTRING_LEN(mp->user.buffer), &mp->user.offset);
-		mp->user.source = Qnil;
+		ret = template_execute_wrap(mp, mp->user.buffer,
+				RSTRING_LEN(mp->user.buffer), &mp->user.offset);
 
 		if(ret < 0) {
 			rb_raise(eUnpackError, "parse error.");
+
 		} else if(ret > 0) {
 			VALUE data = template_data(mp);
 			template_init(mp);
 			rb_yield(data);
+
 		} else {
 			goto do_fill;
 		}
@@ -386,70 +352,28 @@ static VALUE MessagePack_Unpacker_each(VALUE self)
 	return Qnil;
 }
 
-
-static VALUE MessagePack_unpack_do(VALUE argv)
-{
-	VALUE* args = (VALUE*)argv;
-
-	msgpack_unpack_t* mp = (msgpack_unpack_t*)args[0];
-	VALUE data = args[1];
-
-	size_t from = 0;
-	char* dptr = RSTRING_PTR(data);
-	size_t dlen = (unsigned long)args[2];
-	int ret;
-
-	mp->user.source = data;
-	ret = template_execute(mp, dptr, dlen, &from);
-	mp->user.source = Qnil;
-
-	if(ret < 0) {
-		rb_raise(eUnpackError, "parse error.");
-	} else if(ret == 0) {
-		rb_raise(eUnpackError, "insufficient bytes.");
-	} else {
-		if(from < dlen) {
-			rb_raise(eUnpackError, "extra bytes.");
-		}
-		return template_data(mp);
-	}
-}
-
-static VALUE MessagePack_unpack_rescue(VALUE nouse)
-{
-	rb_gc_enable();
-#ifdef RUBY_VM
-	rb_exc_raise(rb_errinfo());
-#else
-	rb_exc_raise(ruby_errinfo);
-#endif
-}
-
 static inline VALUE MessagePack_unpack_impl(VALUE self, VALUE data, unsigned long dlen)
 {
 	msgpack_unpack_t mp;
 	template_init(&mp);
-	unpack_user u = {0, Qnil, 0, 0, Qnil, Qnil, Qnil};
-	mp.user = u;
 
-#ifdef HAVE_RUBY_ENCODING_H
-	// FIXME encodingをASCII-8BITにする
-	int enc_orig = rb_enc_get_index(data);
-	rb_enc_set_index(data, s_ascii_8bit);
-#endif
+	mp.user.finished = 0;
 
-	// FIXME execute実行中はmp->topが更新されないのでGC markが機能しない
-	rb_gc_disable();
-	VALUE args[3] = {(VALUE)&mp, data, (VALUE)dlen};
-	VALUE ret = rb_rescue(MessagePack_unpack_do, (VALUE)args,
-			MessagePack_unpack_rescue, Qnil);
-	rb_gc_enable();
+	size_t from = 0;
+	int ret = template_execute_wrap(&mp, data, dlen, &from);
 
-#ifdef HAVE_RUBY_ENCODING_H
-	rb_enc_set_index(data, enc_orig);
-#endif
+	if(ret < 0) {
+		rb_raise(eUnpackError, "parse error.");
 
-	return ret;
+	} else if(ret == 0) {
+		rb_raise(eUnpackError, "insufficient bytes.");
+
+	} else {
+		if(from < dlen) {
+			rb_raise(eUnpackError, "extra bytes.");
+		}
+		return template_data(&mp);
+	}
 }
 
 static VALUE MessagePack_unpack_limit(VALUE self, VALUE data, VALUE limit)
@@ -462,6 +386,54 @@ static VALUE MessagePack_unpack(VALUE self, VALUE data)
 {
 	CHECK_STRING_TYPE(data);
 	return MessagePack_unpack_impl(self, data, RSTRING_LEN(data));
+}
+
+
+/* compat */
+static VALUE MessagePack_Unpacker_execute_limit(VALUE self, VALUE data,
+		VALUE off, VALUE limit)
+{
+	CHECK_STRING_TYPE(data);
+	UNPACKER(self, mp);
+	size_t from = (size_t)NUM2ULONG(off);
+	int ret = template_execute_wrap(mp, data, NUM2ULONG(limit), &from);
+	return INT2FIX(ret);
+}
+
+/* compat */
+static VALUE MessagePack_Unpacker_execute(VALUE self, VALUE data, VALUE off)
+{
+	CHECK_STRING_TYPE(data);
+	UNPACKER(self, mp);
+	size_t from = (size_t)NUM2ULONG(off);
+	int ret = template_execute_wrap(mp, data, RSTRING_LEN(data), &from);
+	return INT2FIX(ret);
+}
+
+/* compat */
+static VALUE MessagePack_Unpacker_finished_p(VALUE self)
+{
+	UNPACKER(self, mp);
+	if(mp->user.finished) {
+		return Qtrue;
+	}
+	return Qfalse;
+}
+
+/* compat */
+static VALUE MessagePack_Unpacker_data(VALUE self)
+{
+	UNPACKER(self, mp);
+	return template_data(mp);
+}
+
+/* compat */
+static VALUE MessagePack_Unpacker_reset(VALUE self)
+{
+	UNPACKER(self, mp);
+	template_init(mp);
+	mp->user.finished = 0;
+	return self;
 }
 
 
@@ -478,11 +450,6 @@ void Init_msgpack_unpack(VALUE mMessagePack)
 	cUnpacker = rb_define_class_under(mMessagePack, "Unpacker", rb_cObject);
 	rb_define_alloc_func(cUnpacker, MessagePack_Unpacker_alloc);
 	rb_define_method(cUnpacker, "initialize", MessagePack_Unpacker_initialize, -1);
-	rb_define_method(cUnpacker, "execute", MessagePack_Unpacker_execute, 2);
-	rb_define_method(cUnpacker, "execute_limit", MessagePack_Unpacker_execute_limit, 3);
-	rb_define_method(cUnpacker, "finished?", MessagePack_Unpacker_finished_p, 0);
-	rb_define_method(cUnpacker, "data", MessagePack_Unpacker_data, 0);
-	rb_define_method(cUnpacker, "reset", MessagePack_Unpacker_reset, 0);
 	rb_define_method(cUnpacker, "feed", MessagePack_Unpacker_feed, 1);
 	rb_define_method(cUnpacker, "fill", MessagePack_Unpacker_fill, 0);
 	rb_define_method(cUnpacker, "each", MessagePack_Unpacker_each, 0);
@@ -490,5 +457,12 @@ void Init_msgpack_unpack(VALUE mMessagePack)
 	rb_define_method(cUnpacker, "stream=", MessagePack_Unpacker_stream_set, 1);
 	rb_define_module_function(mMessagePack, "unpack", MessagePack_unpack, 1);
 	rb_define_module_function(mMessagePack, "unpack_limit", MessagePack_unpack_limit, 2);
+
+	/* backward compatibility */
+	rb_define_method(cUnpacker, "execute", MessagePack_Unpacker_execute, 2);
+	rb_define_method(cUnpacker, "execute_limit", MessagePack_Unpacker_execute_limit, 3);
+	rb_define_method(cUnpacker, "finished?", MessagePack_Unpacker_finished_p, 0);
+	rb_define_method(cUnpacker, "data", MessagePack_Unpacker_data, 0);
+	rb_define_method(cUnpacker, "reset", MessagePack_Unpacker_reset, 0);
 }
 

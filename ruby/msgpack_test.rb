@@ -209,6 +209,7 @@ class MessagePackTestFormat < Test::Unit::TestCase
 		obj.to_msgpack.split(//).each do |b|
 			pac.feed(b)
 			pac.each {|o|
+				GC.start
 				assert_equal(obj, o)
 				parsed += 1
 			}

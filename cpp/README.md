@@ -28,7 +28,7 @@ To use the library in your program, include msgpack.hpp header and link msgpack 
         std::vector<std::string> target;
         target.push_back("Hello,");
         target.push_back("World!");
-
+    
         // Serialize it.
         msgpack::sbuffer buffer;  // simple buffer
         msgpack::pack(&buffer, target);
@@ -38,7 +38,7 @@ To use the library in your program, include msgpack.hpp header and link msgpack 
         msgpack::object obj;
         msgpack::unpack_return ret =
                 msgpack::unpack(buffer.data, buffer.size, NULL, &mempool, &obj);
-
+    
         if(ret != msgapck::UNPACK_SUCCESS) {
             // error check
             exit(1);
