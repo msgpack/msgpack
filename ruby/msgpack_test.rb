@@ -204,9 +204,11 @@ class MessagePackTestFormat < Test::Unit::TestCase
 
 	it "gc mark" do
 		obj = [{["a","b"]=>["c","d"]}, ["e","f"], "d"]
+		num = 4
+		raw = obj.to_msgpack * num
 		pac = MessagePack::Unpacker.new
 		parsed = 0
-		obj.to_msgpack.split(//).each do |b|
+		raw.split(//).each do |b|
 			pac.feed(b)
 			pac.each {|o|
 				GC.start
@@ -215,16 +217,18 @@ class MessagePackTestFormat < Test::Unit::TestCase
 			}
 			GC.start
 		end
-		assert_equal(parsed, 1)
+		assert_equal(parsed, num)
 	end
 
 	it "streaming backward compatibility" do
 		obj = [{["a","b"]=>["c","d"]}, ["e","f"], "d"]
+		num = 4
+		raw = obj.to_msgpack * num
 		pac = MessagePack::Unpacker.new
 		buffer = ""
 		nread  = 0
 		parsed = 0
-		obj.to_msgpack.split(//).each do |b|
+		raw.split(//).each do |b|
 			buffer << b
 			nread = pac.execute(buffer, nread)
 			if pac.finished?
@@ -237,7 +241,7 @@ class MessagePackTestFormat < Test::Unit::TestCase
 				next unless buffer.empty?
 			end
 		end
-		assert_equal(parsed, 1)
+		assert_equal(parsed, num)
 	end
 
 	private
