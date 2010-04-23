@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
   s.platform = Gem::Platform::RUBY
   s.name = "msgpack"
-  s.version = "0.3.8"
+  s.version = "0.3.9"
   s.summary = "MessagePack, a binary-based efficient data interchange format."
   s.author = "FURUHASHI Sadayuki"
   s.email = "frsyuki@users.sourceforge.jp"
