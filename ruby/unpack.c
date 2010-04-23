@@ -389,25 +389,43 @@ static VALUE MessagePack_unpack(VALUE self, VALUE data)
 }
 
 
+static VALUE MessagePack_Unpacker_execute_impl(VALUE self, VALUE data,
+		size_t from, size_t limit)
+{
+	UNPACKER(self, mp);
+
+	if(from >= limit) {
+		rb_raise(eUnpackError, "offset is bigger than data buffer size.");
+	}
+
+	int ret = template_execute_wrap(mp, data, limit, &from);
+
+	if(ret < 0) {
+		rb_raise(eUnpackError, "parse error.");
+	} else if(ret > 0) {
+		mp->user.finished = 1;
+		return ULONG2NUM(from);
+	} else {
+		mp->user.finished = 0;
+		return ULONG2NUM(from);
+	}
+}
+
 /* compat */
 static VALUE MessagePack_Unpacker_execute_limit(VALUE self, VALUE data,
 		VALUE off, VALUE limit)
 {
 	CHECK_STRING_TYPE(data);
-	UNPACKER(self, mp);
-	size_t from = (size_t)NUM2ULONG(off);
-	int ret = template_execute_wrap(mp, data, NUM2ULONG(limit), &from);
-	return INT2FIX(ret);
+	return MessagePack_Unpacker_execute_impl(self, data,
+			(size_t)NUM2ULONG(off), (size_t)NUM2ULONG(limit));
 }
 
 /* compat */
 static VALUE MessagePack_Unpacker_execute(VALUE self, VALUE data, VALUE off)
 {
 	CHECK_STRING_TYPE(data);
-	UNPACKER(self, mp);
-	size_t from = (size_t)NUM2ULONG(off);
-	int ret = template_execute_wrap(mp, data, RSTRING_LEN(data), &from);
-	return INT2FIX(ret);
+	return MessagePack_Unpacker_execute_impl(self, data,
+			(size_t)NUM2ULONG(off), (size_t)RSTRING_LEN(data));
 }
 
 /* compat */

@@ -218,6 +218,28 @@ class MessagePackTestFormat < Test::Unit::TestCase
 		assert_equal(parsed, 1)
 	end
 
+	it "streaming backward compatibility" do
+		obj = [{["a","b"]=>["c","d"]}, ["e","f"], "d"]
+		pac = MessagePack::Unpacker.new
+		buffer = ""
+		nread  = 0
+		parsed = 0
+		obj.to_msgpack.split(//).each do |b|
+			buffer << b
+			nread = pac.execute(buffer, nread)
+			if pac.finished?
+				o = pac.data
+				assert_equal(obj, o)
+				parsed += 1
+				pac.reset
+				buffer.slice!(0, nread)
+				nread = 0
+				next unless buffer.empty?
+			end
+		end
+		assert_equal(parsed, 1)
+	end
+
 	private
 	def check(len, obj)
 		v = obj.to_msgpack
