@@ -90,8 +90,10 @@ struct object {
 
 	object();
 
+	object(msgpack_object o);
+
 	template <typename T>
-	object(const T& v);
+	explicit object(const T& v);
 
 	template <typename T>
 	object(const T& v, zone* z);
@@ -130,6 +132,15 @@ bool operator!=(const object x, const object y);
 
 template <typename T>
 bool operator==(const object x, const T& y);
+
+template <typename T>
+bool operator==(const T& y, const object x);
+
+template <typename T>
+bool operator!=(const object x, const T& y);
+
+template <typename T>
+bool operator!=(const T& y, const object x);
 
 std::ostream& operator<< (std::ostream& s, const object o);
 
@@ -217,9 +228,6 @@ void operator<< (object::with_zone& o, const T& v)
 }
 
 
-inline bool operator!=(const object x, const object y)
-{ return !(x == y); }
-
 template <typename T>
 inline bool operator==(const object x, const T& y)
 try {
@@ -227,6 +235,21 @@ try {
 } catch (msgpack::type_error&) {
 	return false;
 }
+
+inline bool operator!=(const object x, const object y)
+{ return !(x == y); }
+
+template <typename T>
+inline bool operator==(const T& y, const object x)
+{ return x == y; }
+
+template <typename T>
+inline bool operator!=(const object x, const T& y)
+{ return !(x == y); }
+
+template <typename T>
+inline bool operator!=(const T& y, const object x)
+{ return x != y; }
 
 
 inline object::implicit_type object::convert() const
@@ -276,6 +299,12 @@ object::object(const T& v, zone* z)
 	via = oz.via;
 }
 
+
+inline object::object(msgpack_object o)
+{
+	// FIXME beter way?
+	::memcpy(this, &o, sizeof(o));
+}
 
 inline object::operator msgpack_object()
 {

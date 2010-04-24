@@ -28,7 +28,8 @@
 	{ \
 		msgpack::type::make_define(__VA_ARGS__).msgpack_unpack(o); \
 	}\
-	void msgpack_object(msgpack::object* o, msgpack::zone* z) const \
+	template <typename MSGPACK_OBJECT> \
+	void msgpack_object(MSGPACK_OBJECT* o, msgpack::zone* z) const \
 	{ \
 		msgpack::type::make_define(__VA_ARGS__).msgpack_object(o, z); \
 	}
