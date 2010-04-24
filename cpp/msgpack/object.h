@@ -79,6 +79,8 @@ typedef struct msgpack_object_kv {
 
 void msgpack_object_print(FILE* out, msgpack_object o);
 
+bool msgpack_object_equal(const msgpack_object x, const msgpack_object y);
+
 
 #ifdef __cplusplus
 }

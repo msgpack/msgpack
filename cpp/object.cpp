@@ -16,7 +16,6 @@
 //    limitations under the License.
 //
 #include "msgpack/object.hpp"
-#include <string.h>
 
 namespace msgpack {
 
@@ -61,7 +60,6 @@ std::ostream& operator<< (std::ostream& s, const object o)
 		}
 		s << "]";
 		break;
-		// FIXME loop optimiziation
 
 	case type::MAP:
 		s << "{";
@@ -76,64 +74,12 @@ std::ostream& operator<< (std::ostream& s, const object o)
 		}
 		s << "}";
 		break;
-		// FIXME loop optimiziation
 
 	default:
 		// FIXME
 		s << "#<UNKNOWN " << (uint16_t)o.type << ">";
 	}
 	return s;
-}
-
-
-bool operator==(const object x, const object y)
-{
-	if(x.type != y.type) { return false; }
-
-	switch(x.type) {
-	case type::NIL:
-		return true;
-
-	case type::BOOLEAN:
-		return x.via.boolean == y.via.boolean;
-
-	case type::POSITIVE_INTEGER:
-		return x.via.u64 == y.via.u64;
-
-	case type::NEGATIVE_INTEGER:
-		return x.via.i64 == y.via.i64;
-
-	case type::DOUBLE:
-		return x.via.dec == y.via.dec;
-
-	case type::RAW:
-		return x.via.raw.size == y.via.raw.size &&
-			memcmp(x.via.raw.ptr, y.via.raw.ptr, x.via.raw.size) == 0;
-
-	case type::ARRAY:
-		if(x.via.array.size != y.via.array.size) { return false; }
-		for(object* px(x.via.array.ptr),
-				* const pxend(x.via.array.ptr + x.via.array.size),
-				* py(y.via.array.ptr);
-				px < pxend; ++px, ++py) {
-			if(*px != *py) { return false; }
-		}
-		return true;
-		// FIXME loop optimiziation
-
-	case type::MAP:
-		if(x.via.map.size != y.via.map.size) { return false; }
-		for(object_kv* px(x.via.map.ptr),
-				* const pxend(x.via.map.ptr + x.via.map.size),
-				* py(y.via.map.ptr);
-				px < pxend; ++px, ++py) {
-			if(px->key != py->key || px->val != py->val) { return false; }
-		}
-		return true;
-
-	default:
-		return false;
-	}
 }
 
 

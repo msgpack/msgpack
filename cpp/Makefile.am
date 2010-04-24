@@ -66,7 +66,7 @@ check_PROGRAMS = \
 		msgpack_test
 
 msgpackc_test_SOURCES = msgpackc_test.cpp
-msgpackc_test_LDADD = libmsgpackc.la -lgtest_main
+msgpackc_test_LDADD = libmsgpack.la -lgtest_main
 
 msgpack_test_SOURCES = msgpack_test.cpp
 msgpack_test_LDADD = libmsgpack.la -lgtest_main

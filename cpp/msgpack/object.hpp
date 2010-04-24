@@ -101,7 +101,7 @@ struct object {
 	template <typename T>
 	object& operator=(const T& v);
 
-	operator msgpack_object();
+	operator msgpack_object() const;
 
 	struct with_zone;
 
@@ -226,6 +226,11 @@ void operator<< (object::with_zone& o, const T& v)
 }
 
 
+inline bool operator==(const object x, const object y)
+{
+	return msgpack_object_equal(x, y);
+}
+
 template <typename T>
 inline bool operator==(const object x, const T& y)
 try {
@@ -310,7 +315,7 @@ inline void operator<< (object& o, msgpack_object v)
 	::memcpy(&o, &v, sizeof(v));
 }
 
-inline object::operator msgpack_object()
+inline object::operator msgpack_object() const
 {
 	// FIXME beter way?
 	msgpack_object obj;

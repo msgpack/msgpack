@@ -18,6 +18,7 @@
 #include "msgpack/object.h"
 #include "msgpack/pack.h"
 #include <stdio.h>
+#include <string.h>
 
 #ifndef _MSC_VER
 #include <inttypes.h>
@@ -141,7 +142,6 @@ void msgpack_object_print(FILE* out, msgpack_object o)
 		}
 		fprintf(out, "]");
 		break;
-		// FIXME loop optimiziation
 
 	case MSGPACK_OBJECT_MAP:
 		fprintf(out, "{");
@@ -161,11 +161,77 @@ void msgpack_object_print(FILE* out, msgpack_object o)
 		}
 		fprintf(out, "}");
 		break;
-		// FIXME loop optimiziation
 
 	default:
 		// FIXME
 		fprintf(out, "#<UNKNOWN %hu %"PRIu64">", o.type, o.via.u64);
+	}
+}
+
+bool msgpack_object_equal(const msgpack_object x, const msgpack_object y)
+{
+	if(x.type != y.type) { return false; }
+
+	switch(x.type) {
+	case MSGPACK_OBJECT_NIL:
+		return true;
+
+	case MSGPACK_OBJECT_BOOLEAN:
+		return x.via.boolean == y.via.boolean;
+
+	case MSGPACK_OBJECT_POSITIVE_INTEGER:
+		return x.via.u64 == y.via.u64;
+
+	case MSGPACK_OBJECT_NEGATIVE_INTEGER:
+		return x.via.i64 == y.via.i64;
+
+	case MSGPACK_OBJECT_DOUBLE:
+		return x.via.dec == y.via.dec;
+
+	case MSGPACK_OBJECT_RAW:
+		return x.via.raw.size == y.via.raw.size &&
+			memcmp(x.via.raw.ptr, y.via.raw.ptr, x.via.raw.size) == 0;
+
+	case MSGPACK_OBJECT_ARRAY:
+		if(x.via.array.size != y.via.array.size) {
+			return false;
+		} else if(x.via.array.size == 0) {
+			return true;
+		} else {
+			msgpack_object* px = x.via.array.ptr;
+			msgpack_object* const pxend = x.via.array.ptr + x.via.array.size;
+			msgpack_object* py = y.via.array.ptr;
+			do {
+				if(!msgpack_object_equal(*px, *py)) {
+					return false;
+				}
+				++px;
+				++py;
+			} while(px < pxend);
+			return true;
+		}
+
+	case MSGPACK_OBJECT_MAP:
+		if(x.via.map.size != y.via.map.size) {
+			return false;
+		} else if(x.via.map.size == 0) {
+			return true;
+		} else {
+			msgpack_object_kv* px = x.via.map.ptr;
+			msgpack_object_kv* const pxend = x.via.map.ptr + x.via.map.size;
+			msgpack_object_kv* py = y.via.map.ptr;
+			do {
+				if(!msgpack_object_equal(px->key, py->key) || !msgpack_object_equal(px->val, py->val)) {
+					return false;
+				}
+				++px;
+				++py;
+			} while(px < pxend);
+			return true;
+		}
+
+	default:
+		return false;
 	}
 }
 
