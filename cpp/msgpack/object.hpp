@@ -306,18 +306,18 @@ inline object::object(msgpack_object o)
 	::memcpy(this, &o, sizeof(o));
 }
 
+inline void operator<< (object& o, msgpack_object v)
+{
+	// FIXME beter way?
+	::memcpy(&o, &v, sizeof(v));
+}
+
 inline object::operator msgpack_object()
 {
 	// FIXME beter way?
 	msgpack_object obj;
 	::memcpy(&obj, this, sizeof(obj));
 	return obj;
-}
-
-inline void operator<< (object& o, msgpack_object v)
-{
-	// FIXME beter way?
-	::memcpy(&o, &v, sizeof(v));
 }
 
 
@@ -389,6 +389,10 @@ packer<Stream>& operator<< (packer<Stream>& o, const object& v)
 				o.pack_int64(v.via.i64);
 			}
 		}
+		return o;
+
+	case type::DOUBLE:
+		o.pack_double(v.via.dec);
 		return o;
 
 	case type::RAW:
