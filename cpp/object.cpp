@@ -103,6 +103,9 @@ bool operator==(const object x, const object y)
 	case type::NEGATIVE_INTEGER:
 		return x.via.i64 == y.via.i64;
 
+	case type::DOUBLE:
+		return x.via.dec == y.via.dec;
+
 	case type::RAW:
 		return x.via.raw.size == y.via.raw.size &&
 			memcmp(x.via.raw.ptr, y.via.raw.ptr, x.via.raw.size) == 0;

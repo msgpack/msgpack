@@ -128,6 +128,9 @@ private:
 bool operator==(const object x, const object y);
 bool operator!=(const object x, const object y);
 
+template <typename T>
+bool operator==(const object x, const T& y);
+
 std::ostream& operator<< (std::ostream& s, const object o);
 
 
@@ -206,6 +209,14 @@ inline packer<Stream>& operator<< (packer<Stream>& o, const T& v)
 
 inline bool operator!=(const object x, const object y)
 { return !(x == y); }
+
+template <typename T>
+inline bool operator==(const object x, const T& y)
+try {
+	return x == object(y);
+} catch (msgpack::type_error&) {
+	return false;
+}
 
 
 inline object::implicit_type object::convert() const

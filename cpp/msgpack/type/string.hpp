@@ -48,6 +48,13 @@ inline void operator<< (object::object_zone& o, const std::string& v)
 	memcpy(ptr, v.data(), v.size());
 }
 
+inline void operator<< (object& o, const std::string& v)
+{
+	o.type = type::RAW;
+	o.via.raw.ptr = v.data();
+	o.via.raw.size = v.size();
+}
+
 
 }  // namespace msgpack
 
