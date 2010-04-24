@@ -84,6 +84,9 @@ inline void operator<< (object& o, const type::raw_ref& v)
 	o.via.raw.size = v.size;
 }
 
+inline void operator<< (object::with_zone& o, const type::raw_ref& v)
+	{ static_cast<object&>(o) << v; }
+
 
 }  // namespace msgpack
 

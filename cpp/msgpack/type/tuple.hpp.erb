@@ -166,7 +166,7 @@ const packer<Stream>& operator<< (
 <%}%>
 
 inline void operator<< (
-		object::object_zone& o,
+		object::with_zone& o,
 		const type::tuple<>& v) {
 	o.type = type::ARRAY;
 	o.via.array.ptr = NULL;
@@ -175,7 +175,7 @@ inline void operator<< (
 <%0.upto(GENERATION_LIMIT) {|i|%>
 template <typename A0<%1.upto(i) {|j|%>, typename A<%=j%><%}%>>
 inline void operator<< (
-		object::object_zone& o,
+		object::with_zone& o,
 		const type::tuple<A0<%1.upto(i) {|j|%>, A<%=j%><%}%>>& v) {
 	o.type = type::ARRAY;
 	o.via.array.ptr = (object*)o.zone->malloc(sizeof(object)*<%=i+1%>);

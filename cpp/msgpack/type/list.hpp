@@ -50,7 +50,7 @@ inline packer<Stream>& operator<< (packer<Stream>& o, const std::list<T>& v)
 }
 
 template <typename T>
-inline void operator<< (object::object_zone& o, const std::list<T>& v)
+inline void operator<< (object::with_zone& o, const std::list<T>& v)
 {
 	o.type = type::ARRAY;
 	object* p = (object*)o.zone->malloc(sizeof(object)*v.size());

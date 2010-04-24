@@ -47,6 +47,9 @@ inline void operator<< (object& o, type::nil v)
 	o.type = type::NIL;
 }
 
+inline void operator<< (object::with_zone& o, type::nil v)
+	{ static_cast<object&>(o) << v; }
+
 
 }  // namespace msgpack
 

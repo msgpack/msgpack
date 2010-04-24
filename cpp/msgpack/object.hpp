@@ -106,7 +106,7 @@ private:
 
 public:
 	// FIXME private?
-	struct object_zone;
+	struct with_zone;
 
 public:
 	implicit_type convert() const;
@@ -117,11 +117,11 @@ struct object_kv {
 	object val;
 };
 
-struct object::object_zone : object {
-	object_zone(msgpack::zone* zone) : zone(zone) { }
+struct object::with_zone : object {
+	with_zone(msgpack::zone* zone) : zone(zone) { }
 	msgpack::zone* zone;
 private:
-	object_zone();
+	with_zone();
 };
 
 
@@ -141,6 +141,10 @@ packer<Stream>& operator<< (packer<Stream>& o, const T& v);
 // convert operator
 template <typename T>
 T& operator>> (object o, T& v);
+
+// deconvert operator
+template <typename T>
+void operator<< (object::with_zone& o, const T& v);
 
 
 struct object::implicit_type {
@@ -206,6 +210,12 @@ inline packer<Stream>& operator<< (packer<Stream>& o, const T& v)
 	return o;
 }
 
+template <typename T>
+void operator<< (object::with_zone& o, const T& v)
+{
+	v.msgpack_object(static_cast<object*>(&o), o.zone);
+}
+
 
 inline bool operator!=(const object x, const object y)
 { return !(x == y); }
@@ -253,14 +263,14 @@ inline object::object(const T& v)
 template <typename T>
 inline object& object::operator=(const T& v)
 {
-	*this << v;
+	*this = object(v);
 	return *this;
 }
 
 template <typename T>
 object::object(const T& v, zone* z)
 {
-	object_zone oz(z);
+	with_zone oz(z);
 	oz << v;
 	type = oz.type;
 	via = oz.via;

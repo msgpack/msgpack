@@ -173,6 +173,38 @@ inline void operator<< (object& o, unsigned long long v)
 	{ o.type = type::POSITIVE_INTEGER, o.via.u64 = v; }
 
 
+inline void operator<< (object::with_zone& o, signed char v)
+	{ static_cast<object&>(o) << v; }
+
+inline void operator<< (object::with_zone& o, signed short v)
+	{ static_cast<object&>(o) << v; }
+
+inline void operator<< (object::with_zone& o, signed int v)
+	{ static_cast<object&>(o) << v; }
+
+inline void operator<< (object::with_zone& o, signed long v)
+	{ static_cast<object&>(o) << v; }
+
+inline void operator<< (object::with_zone& o, signed long long v)
+	{ static_cast<object&>(o) << v; }
+
+
+inline void operator<< (object::with_zone& o, unsigned char v)
+	{ static_cast<object&>(o) << v; }
+
+inline void operator<< (object::with_zone& o, unsigned short v)
+	{ static_cast<object&>(o) << v; }
+
+inline void operator<< (object::with_zone& o, unsigned int v)
+	{ static_cast<object&>(o) << v; }
+
+inline void operator<< (object::with_zone& o, unsigned long v)
+	{ static_cast<object&>(o) << v; }
+
+inline void operator<< (object::with_zone& o, unsigned long long v)
+	{ static_cast<object&>(o) << v; }
+
+
 }  // namespace msgpack
 
 #endif /* msgpack/type/int.hpp */

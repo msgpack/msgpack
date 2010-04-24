@@ -39,7 +39,7 @@ inline packer<Stream>& operator<< (packer<Stream>& o, const std::string& v)
 	return o;
 }
 
-inline void operator<< (object::object_zone& o, const std::string& v)
+inline void operator<< (object::with_zone& o, const std::string& v)
 {
 	o.type = type::RAW;
 	char* ptr = (char*)o.zone->malloc(v.size());

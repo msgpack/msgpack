@@ -44,7 +44,7 @@ inline packer<Stream>& operator<< (packer<Stream>& o, const std::pair<T1, T2>& v
 }
 
 template <typename T1, typename T2>
-inline void operator<< (object::object_zone& o, const std::pair<T1, T2>& v)
+inline void operator<< (object::with_zone& o, const std::pair<T1, T2>& v)
 {
 	o.type = type::ARRAY;
 	object* p = (object*)o.zone->malloc(sizeof(object)*2);

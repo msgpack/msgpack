@@ -69,6 +69,12 @@ inline void operator<< (object& o, double v)
 	o.via.dec = v;
 }
 
+inline void operator<< (object::with_zone& o, float v)
+	{ static_cast<object&>(o) << v; }
+
+inline void operator<< (object::with_zone& o, double v)
+	{ static_cast<object&>(o) << v; }
+
 
 }  // namespace msgpack
 
