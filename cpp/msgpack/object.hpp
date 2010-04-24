@@ -363,35 +363,11 @@ packer<Stream>& operator<< (packer<Stream>& o, const object& v)
 		return o;
 
 	case type::POSITIVE_INTEGER:
-		if(v.via.u64 <= (uint64_t)std::numeric_limits<uint16_t>::max()) {
-			if(v.via.u64 <= (uint16_t)std::numeric_limits<uint8_t>::max()) {
-				o.pack_uint8(v.via.u64);
-			} else {
-				o.pack_uint16(v.via.u64);
-			}
-		} else {
-			if(v.via.u64 <= (uint64_t)std::numeric_limits<uint32_t>::max()) {
-				o.pack_uint32(v.via.u64);
-			} else {
-				o.pack_uint64(v.via.u64);
-			}
-		}
+		o.pack_uint64(v.via.u64);
 		return o;
 
 	case type::NEGATIVE_INTEGER:
-		if(v.via.i64 >= (int64_t)std::numeric_limits<int16_t>::min()) {
-			if(v.via.i64 >= (int64_t)std::numeric_limits<int8_t>::min()) {
-				o.pack_int8(v.via.i64);
-			} else {
-				o.pack_int16(v.via.i64);
-			}
-		} else {
-			if(v.via.i64 >= (int64_t)std::numeric_limits<int32_t>::min()) {
-				o.pack_int64(v.via.i64);
-			} else {
-				o.pack_int64(v.via.i64);
-			}
-		}
+		o.pack_int64(v.via.i64);
 		return o;
 
 	case type::DOUBLE:
