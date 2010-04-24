@@ -35,14 +35,14 @@ class type_error : public std::bad_cast { };
 
 namespace type {
 	enum object_type {
-		NIL					= 0x01,
-		BOOLEAN				= 0x02,
-		POSITIVE_INTEGER	= 0x03,
-		NEGATIVE_INTEGER	= 0x04,
-		DOUBLE				= 0x05,
-		RAW					= 0x06,
-		ARRAY				= 0x07,
-		MAP					= 0x08,
+		NIL					= MSGPACK_OBJECT_NIL,
+		BOOLEAN				= MSGPACK_OBJECT_BOOLEAN,
+		POSITIVE_INTEGER	= MSGPACK_OBJECT_POSITIVE_INTEGER,
+		NEGATIVE_INTEGER	= MSGPACK_OBJECT_NEGATIVE_INTEGER,
+		DOUBLE				= MSGPACK_OBJECT_DOUBLE,
+		RAW					= MSGPACK_OBJECT_RAW,
+		ARRAY				= MSGPACK_OBJECT_ARRAY,
+		MAP					= MSGPACK_OBJECT_MAP,
 	};
 }
 
