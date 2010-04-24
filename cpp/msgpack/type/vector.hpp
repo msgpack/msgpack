@@ -53,6 +53,22 @@ inline packer<Stream>& operator<< (packer<Stream>& o, const std::vector<T>& v)
 	return o;
 }
 
+template <typename T>
+inline void operator<< (object::object_zone& o, const std::vector<T>& v)
+{
+	o.type = type::ARRAY;
+	object* p = (object*)o.zone->malloc(sizeof(object)*v.size());
+	object* const pend = p + v.size();
+	o.via.array.ptr = p;
+	o.via.array.size = v.size();
+	typename std::vector<T>::const_iterator it(v.begin());
+	do {
+		*p = object(*it, o.zone);
+		++p;
+		++it;
+	} while(p < pend);
+}
+
 
 }  // namespace msgpack
 

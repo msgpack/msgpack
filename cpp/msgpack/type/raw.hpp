@@ -77,6 +77,13 @@ inline packer<Stream>& operator<< (packer<Stream>& o, const type::raw_ref& v)
 	return o;
 }
 
+inline void operator<< (object& o, const type::raw_ref& v)
+{
+	o.type = type::RAW;
+	o.via.raw.ptr = v.ptr;
+	o.via.raw.size = v.size;
+}
+
 
 }  // namespace msgpack
 

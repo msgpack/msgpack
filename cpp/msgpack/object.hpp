@@ -20,6 +20,7 @@
 
 #include "msgpack/object.h"
 #include "msgpack/pack.hpp"
+#include "msgpack/zone.hpp"
 #include <string.h>
 #include <stdexcept>
 #include <typeinfo>
@@ -93,12 +94,19 @@ struct object {
 	object(const T& v);
 
 	template <typename T>
+	object(const T& v, zone* z);
+
+	template <typename T>
 	object& operator=(const T& v);
 
 	operator msgpack_object();
 
 private:
 	struct implicit_type;
+
+public:
+	// FIXME private?
+	struct object_zone;
 
 public:
 	implicit_type convert() const;
@@ -108,6 +116,14 @@ struct object_kv {
 	object key;
 	object val;
 };
+
+struct object::object_zone : object {
+	object_zone(msgpack::zone* zone) : zone(zone) { }
+	msgpack::zone* zone;
+private:
+	object_zone();
+};
+
 
 bool operator==(const object x, const object y);
 bool operator!=(const object x, const object y);
@@ -228,6 +244,15 @@ inline object& object::operator=(const T& v)
 {
 	*this << v;
 	return *this;
+}
+
+template <typename T>
+object::object(const T& v, zone* z)
+{
+	object_zone oz(z);
+	oz << v;
+	type = oz.type;
+	via = oz.via;
 }
 
 

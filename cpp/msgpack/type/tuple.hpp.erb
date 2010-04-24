@@ -165,6 +165,26 @@ const packer<Stream>& operator<< (
 }
 <%}%>
 
+inline void operator<< (
+		object::object_zone& o,
+		const type::tuple<>& v) {
+	o.type = type::ARRAY;
+	o.via.array.ptr = NULL;
+	o.via.array.size = 0;
+}
+<%0.upto(GENERATION_LIMIT) {|i|%>
+template <typename A0<%1.upto(i) {|j|%>, typename A<%=j%><%}%>>
+inline void operator<< (
+		object::object_zone& o,
+		const type::tuple<A0<%1.upto(i) {|j|%>, A<%=j%><%}%>>& v) {
+	o.type = type::ARRAY;
+	o.via.array.ptr = (object*)o.zone->malloc(sizeof(object)*<%=i+1%>);
+	o.via.array.size = <%=i+1%>;
+	<%0.upto(i) {|j|%>
+	o.via.array.ptr[<%=j%>] = object(v.template get<<%=j%>>(), o.zone);<%}%>
+}
+<%}%>
+
 }  // namespace msgpack
 
 #endif /* msgpack/type/tuple.hpp */

@@ -39,6 +39,15 @@ inline packer<Stream>& operator<< (packer<Stream>& o, const std::string& v)
 	return o;
 }
 
+inline void operator<< (object::object_zone& o, const std::string& v)
+{
+	o.type = type::RAW;
+	char* ptr = (char*)o.zone->malloc(v.size());
+	o.via.raw.ptr = ptr;
+	o.via.raw.size = v.size();
+	memcpy(ptr, v.data(), v.size());
+}
+
 
 }  // namespace msgpack
 

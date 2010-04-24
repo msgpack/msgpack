@@ -43,6 +43,17 @@ inline packer<Stream>& operator<< (packer<Stream>& o, const std::pair<T1, T2>& v
 	return o;
 }
 
+template <typename T1, typename T2>
+inline void operator<< (object::object_zone& o, const std::pair<T1, T2>& v)
+{
+	o.type = type::ARRAY;
+	object* p = (object*)o.zone->malloc(sizeof(object)*2);
+	o.via.array.ptr = p;
+	o.via.array.size = 2;
+	p[0] = object(v.first, o.zone);
+	p[1] = object(v.second, o.zone);
+}
+
 
 }  // namespace msgpack
 
