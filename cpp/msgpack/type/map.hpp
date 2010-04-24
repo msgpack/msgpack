@@ -70,6 +70,28 @@ inline packer<Stream>& operator<< (packer<Stream>& o, const type::assoc_vector<K
 	return o;
 }
 
+template <typename K, typename V>
+inline void operator<< (object::with_zone& o, const type::assoc_vector<K,V>& v)
+{
+	o.type = type::MAP;
+	if(v.empty()) {
+		o.via.map.ptr  = NULL;
+		o.via.map.size = 0;
+	} else {
+		object_kv* p = (object_kv*)o.zone->malloc(sizeof(object_kv)*v.size());
+		object_kv* const pend = p + v.size();
+		o.via.map.ptr  = p;
+		o.via.map.size = v.size();
+		typename type::assoc_vector<K,V>::const_iterator it(v.begin());
+		do {
+			p->key = object(it->first, o.zone);
+			p->val = object(it->second, o.zone);
+			++p;
+			++it;
+		} while(p < pend);
+	}
+}
+
 
 template <typename K, typename V>
 inline std::map<K, V> operator>> (object o, std::map<K, V>& v)
@@ -104,6 +126,28 @@ inline packer<Stream>& operator<< (packer<Stream>& o, const std::map<K,V>& v)
 	return o;
 }
 
+template <typename K, typename V>
+inline void operator<< (object::with_zone& o, const std::map<K,V>& v)
+{
+	o.type = type::MAP;
+	if(v.empty()) {
+		o.via.map.ptr  = NULL;
+		o.via.map.size = 0;
+	} else {
+		object_kv* p = (object_kv*)o.zone->malloc(sizeof(object_kv)*v.size());
+		object_kv* const pend = p + v.size();
+		o.via.map.ptr  = p;
+		o.via.map.size = v.size();
+		typename std::map<K,V>::const_iterator it(v.begin());
+		do {
+			p->key = object(it->first, o.zone);
+			p->val = object(it->second, o.zone);
+			++p;
+			++it;
+		} while(p < pend);
+	}
+}
+
 
 template <typename K, typename V>
 inline std::multimap<K, V> operator>> (object o, std::multimap<K, V>& v)
@@ -130,6 +174,28 @@ inline packer<Stream>& operator<< (packer<Stream>& o, const std::multimap<K,V>& 
 		o.pack(it->second);
 	}
 	return o;
+}
+
+template <typename K, typename V>
+inline void operator<< (object::with_zone& o, const std::multimap<K,V>& v)
+{
+	o.type = type::MAP;
+	if(v.empty()) {
+		o.via.map.ptr  = NULL;
+		o.via.map.size = 0;
+	} else {
+		object_kv* p = (object_kv*)o.zone->malloc(sizeof(object_kv)*v.size());
+		object_kv* const pend = p + v.size();
+		o.via.map.ptr  = p;
+		o.via.map.size = v.size();
+		typename std::multimap<K,V>::const_iterator it(v.begin());
+		do {
+			p->key = object(it->first, o.zone);
+			p->val = object(it->second, o.zone);
+			++p;
+			++it;
+		} while(p < pend);
+	}
 }
 
 

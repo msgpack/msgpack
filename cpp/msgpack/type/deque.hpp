@@ -53,16 +53,21 @@ template <typename T>
 inline void operator<< (object::with_zone& o, const std::deque<T>& v)
 {
 	o.type = type::ARRAY;
-	object* p = (object*)o.zone->malloc(sizeof(object)*v.size());
-	object* const pend = p + v.size();
-	o.via.array.ptr = p;
-	o.via.array.size = v.size();
-	typename std::deque<T>::const_iterator it(v.begin());
-	do {
-		*p = object(*it, o.zone);
-		++p;
-		++it;
-	} while(p < pend);
+	if(v.empty()) {
+		o.via.array.ptr = NULL;
+		o.via.array.size = 0;
+	} else {
+		object* p = (object*)o.zone->malloc(sizeof(object)*v.size());
+		object* const pend = p + v.size();
+		o.via.array.ptr = p;
+		o.via.array.size = v.size();
+		typename std::deque<T>::const_iterator it(v.begin());
+		do {
+			*p = object(*it, o.zone);
+			++p;
+			++it;
+		} while(p < pend);
+	}
 }
 
 

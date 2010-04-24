@@ -48,6 +48,27 @@ inline packer<Stream>& operator<< (packer<Stream>& o, const std::tr1::unordered_
 	return o;
 }
 
+template <typename T>
+inline void operator<< (object::with_zone& o, const std::tr1::unordered_set<T>& v)
+{
+	o.type = type::ARRAY;
+	if(v.empty()) {
+		o.via.array.ptr = NULL;
+		o.via.array.size = 0;
+	} else {
+		object* p = (object*)o.zone->malloc(sizeof(object)*v.size());
+		object* const pend = p + v.size();
+		o.via.array.ptr = p;
+		o.via.array.size = v.size();
+		typename std::tr1::unordered_set<T>::const_iterator it(v.begin());
+		do {
+			*p = object(*it, o.zone);
+			++p;
+			++it;
+		} while(p < pend);
+	}
+}
+
 
 template <typename T>
 inline std::tr1::unordered_multiset<T>& operator>> (object o, std::tr1::unordered_multiset<T>& v)
@@ -71,6 +92,27 @@ inline packer<Stream>& operator<< (packer<Stream>& o, const std::tr1::unordered_
 		o.pack(*it);
 	}
 	return o;
+}
+
+template <typename T>
+inline void operator<< (object::with_zone& o, const std::tr1::unordered_multiset<T>& v)
+{
+	o.type = type::ARRAY;
+	if(v.empty()) {
+		o.via.array.ptr = NULL;
+		o.via.array.size = 0;
+	} else {
+		object* p = (object*)o.zone->malloc(sizeof(object)*v.size());
+		object* const pend = p + v.size();
+		o.via.array.ptr = p;
+		o.via.array.size = v.size();
+		typename std::tr1::unordered_multiset<T>::const_iterator it(v.begin());
+		do {
+			*p = object(*it, o.zone);
+			++p;
+			++it;
+		} while(p < pend);
+	}
 }
 
 

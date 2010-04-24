@@ -103,12 +103,10 @@ struct object {
 
 	operator msgpack_object();
 
+	struct with_zone;
+
 private:
 	struct implicit_type;
-
-public:
-	// FIXME private?
-	struct with_zone;
 
 public:
 	implicit_type convert() const;

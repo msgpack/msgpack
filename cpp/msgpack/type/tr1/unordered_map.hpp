@@ -50,6 +50,28 @@ inline packer<Stream>& operator<< (packer<Stream>& o, const std::tr1::unordered_
 	return o;
 }
 
+template <typename K, typename V>
+inline void operator<< (object::with_zone& o, const std::tr1::unordered_map<K,V>& v)
+{
+	o.type = type::MAP;
+	if(v.empty()) {
+		o.via.map.ptr  = NULL;
+		o.via.map.size = 0;
+	} else {
+		object_kv* p = (object_kv*)o.zone->malloc(sizeof(object_kv)*v.size());
+		object_kv* const pend = p + v.size();
+		o.via.map.ptr  = p;
+		o.via.map.size = v.size();
+		typename std::tr1::unordered_map<K,V>::const_iterator it(v.begin());
+		do {
+			p->key = object(it->first, o.zone);
+			p->val = object(it->second, o.zone);
+			++p;
+			++it;
+		} while(p < pend);
+	}
+}
+
 
 template <typename K, typename V>
 inline std::tr1::unordered_multimap<K, V> operator>> (object o, std::tr1::unordered_multimap<K, V>& v)
@@ -76,6 +98,28 @@ inline packer<Stream>& operator<< (packer<Stream>& o, const std::tr1::unordered_
 		o.pack(it->second);
 	}
 	return o;
+}
+
+template <typename K, typename V>
+inline void operator<< (object::with_zone& o, const std::tr1::unordered_multimap<K,V>& v)
+{
+	o.type = type::MAP;
+	if(v.empty()) {
+		o.via.map.ptr  = NULL;
+		o.via.map.size = 0;
+	} else {
+		object_kv* p = (object_kv*)o.zone->malloc(sizeof(object_kv)*v.size());
+		object_kv* const pend = p + v.size();
+		o.via.map.ptr  = p;
+		o.via.map.size = v.size();
+		typename std::tr1::unordered_multimap<K,V>::const_iterator it(v.begin());
+		do {
+			p->key = object(it->first, o.zone);
+			p->val = object(it->second, o.zone);
+			++p;
+			++it;
+		} while(p < pend);
+	}
 }
 
 
