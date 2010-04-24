@@ -1,22 +1,15 @@
-lib_LTLIBRARIES = libmsgpackc.la libmsgpack.la
 
-libmsgpackc_la_SOURCES = \
-		unpack.c \
-		object.c \
-		vrefbuffer.c \
-		zone.c
-
-# -version-info CURRENT:REVISION:AGE
-libmsgpackc_la_LDFLAGS = -version-info 2:0:0
-
+lib_LTLIBRARIES = libmsgpack.la
 
 libmsgpack_la_SOURCES = \
+		unpack.c \
+		objectc.c \
+		vrefbuffer.c \
+		zone.c \
 		object.cpp
 
-libmsgpack_la_LIBADD = -lmsgpackc
-
 # -version-info CURRENT:REVISION:AGE
-libmsgpack_la_LDFLAGS = -version-info 2:0:0
+libmsgpack_la_LDFLAGS = -version-info 3:0:0
 
 
 nobase_include_HEADERS = \
@@ -58,13 +51,6 @@ nobase_include_HEADERS = \
 		msgpack/type/define.hpp \
 		msgpack/type/tr1/unordered_map.hpp \
 		msgpack/type/tr1/unordered_set.hpp
-
-
-# work around for duplicated object file name
-libmsgpackc_la_CFLAGS = $(AM_CFLAGS)
-libmsgpackc_la_CXXFLAGS = $(AM_CXXFLAGS)
-libmsgpack_la_CFLAGS = $(AM_CFLAGS)
-libmsgpack_la_CXXFLAGS = $(AM_CXXFLAGS)
 
 
 EXTRA_DIST = \
