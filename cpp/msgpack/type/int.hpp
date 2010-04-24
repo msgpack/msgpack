@@ -56,7 +56,7 @@ namespace detail {
 			throw type_error();
 		}
 	};
-	
+
 	template <typename T>
 	static inline T convert_integer(object o)
 	{
@@ -139,6 +139,38 @@ inline packer<Stream>& operator<< (packer<Stream>& o, const unsigned long& v)
 template <typename Stream>
 inline packer<Stream>& operator<< (packer<Stream>& o, const unsigned long long& v)
 	{ o.pack_unsigned_long_long(v); return o; }
+
+
+inline void operator<< (object& o, signed char v)
+	{ v < 0 ? o.type = type::NEGATIVE_INTEGER, o.via.i64 = v : o.type = type::POSITIVE_INTEGER, o.via.u64 = v; }
+
+inline void operator<< (object& o, signed short v)
+	{ v < 0 ? o.type = type::NEGATIVE_INTEGER, o.via.i64 = v : o.type = type::POSITIVE_INTEGER, o.via.u64 = v; }
+
+inline void operator<< (object& o, signed int v)
+	{ v < 0 ? o.type = type::NEGATIVE_INTEGER, o.via.i64 = v : o.type = type::POSITIVE_INTEGER, o.via.u64 = v; }
+
+inline void operator<< (object& o, signed long v)
+	{ v < 0 ? o.type = type::NEGATIVE_INTEGER, o.via.i64 = v : o.type = type::POSITIVE_INTEGER, o.via.u64 = v; }
+
+inline void operator<< (object& o, signed long long v)
+	{ v < 0 ? o.type = type::NEGATIVE_INTEGER, o.via.i64 = v : o.type = type::POSITIVE_INTEGER, o.via.u64 = v; }
+
+
+inline void operator<< (object& o, unsigned char v)
+	{ o.type = type::POSITIVE_INTEGER, o.via.u64 = v; }
+
+inline void operator<< (object& o, unsigned short v)
+	{ o.type = type::POSITIVE_INTEGER, o.via.u64 = v; }
+
+inline void operator<< (object& o, unsigned int v)
+	{ o.type = type::POSITIVE_INTEGER, o.via.u64 = v; }
+
+inline void operator<< (object& o, unsigned long v)
+	{ o.type = type::POSITIVE_INTEGER, o.via.u64 = v; }
+
+inline void operator<< (object& o, unsigned long long v)
+	{ o.type = type::POSITIVE_INTEGER, o.via.u64 = v; }
 
 
 }  // namespace msgpack

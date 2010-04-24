@@ -39,6 +39,12 @@ inline packer<Stream>& operator<< (packer<Stream>& o, const bool& v)
 	return o;
 }
 
+inline void operator<< (object& o, bool v)
+{
+	o.type = type::BOOLEAN;
+	o.via.boolean = v;
+}
+
 
 }  // namespace msgpack
 

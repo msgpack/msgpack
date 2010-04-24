@@ -42,6 +42,11 @@ inline packer<Stream>& operator<< (packer<Stream>& o, const type::nil& v)
 	return o;
 }
 
+inline void operator<< (object& o, type::nil v)
+{
+	o.type = type::NIL;
+}
+
 
 }  // namespace msgpack
 

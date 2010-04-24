@@ -87,15 +87,15 @@ struct object {
 	template <typename T>
 	void convert(T* v) const;
 
-	operator msgpack_object();
-	object(msgpack_object obj);
-
 	object();
-	object(bool v);
-	object(uint64_t v);
-	object(int64_t v);
-	object(double v);
-	object(const char* ptr, size_t size);
+
+	template <typename T>
+	object(const T& v);
+
+	template <typename T>
+	object& operator=(const T& v);
+
+	operator msgpack_object();
 
 private:
 	struct implicit_type;
@@ -115,9 +115,11 @@ bool operator!=(const object x, const object y);
 std::ostream& operator<< (std::ostream& s, const object o);
 
 
+// serialize operator
 template <typename Stream, typename T>
 packer<Stream>& operator<< (packer<Stream>& o, const T& v);
 
+// convert operator
 template <typename T>
 T& operator>> (object o, T& v);
 
@@ -190,61 +192,6 @@ inline bool operator!=(const object x, const object y)
 { return !(x == y); }
 
 
-inline object::object()
-{
-	type = type::NIL;
-}
-
-inline object::object(bool v)
-{
-	type = type::BOOLEAN;
-	via.boolean = v;
-}
-
-inline object::object(uint64_t v)
-{
-	type = type::POSITIVE_INTEGER;
-	via.u64 = v;
-}
-
-inline object::object(int64_t v)
-{
-	if(v >= 0) {
-		type = type::POSITIVE_INTEGER;
-		via.u64 = v;
-	} else {
-		type = type::NEGATIVE_INTEGER;
-		via.i64 = v;
-	}
-}
-
-inline object::object(double v)
-{
-	type = type::DOUBLE;
-	via.dec = v;
-}
-
-inline object::object(const char* ptr, size_t size)
-{
-	type = type::RAW;
-	via.raw.size = size;
-	via.raw.ptr = ptr;
-}
-
-inline object::object(msgpack_object obj)
-{
-	// FIXME beter way?
-	::memcpy(this, &obj, sizeof(obj));
-}
-
-inline object::operator msgpack_object()
-{
-	// FIXME beter way?
-	msgpack_object obj;
-	::memcpy(&obj, this, sizeof(obj));
-	return obj;
-}
-
 inline object::implicit_type object::convert() const
 {
 	return implicit_type(*this);
@@ -262,6 +209,40 @@ inline T object::as() const
 	T v;
 	convert(&v);
 	return v;
+}
+
+
+inline object::object()
+{
+	type = type::NIL;
+}
+
+template <typename T>
+inline object::object(const T& v)
+{
+	*this << v;
+}
+
+template <typename T>
+inline object& object::operator=(const T& v)
+{
+	*this << v;
+	return *this;
+}
+
+
+inline object::operator msgpack_object()
+{
+	// FIXME beter way?
+	msgpack_object obj;
+	::memcpy(&obj, this, sizeof(obj));
+	return obj;
+}
+
+inline void operator<< (object& o, msgpack_object v)
+{
+	// FIXME beter way?
+	::memcpy(&o, &v, sizeof(v));
 }
 
 
