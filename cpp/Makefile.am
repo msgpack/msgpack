@@ -61,6 +61,8 @@ EXTRA_DIST = \
 		msgpack_vc8.sln \
 		msgpack_vc8.postbuild.bat
 
+SUBDIRS = test
+
 check_PROGRAMS = \
 		msgpackc_test \
 		msgpack_test

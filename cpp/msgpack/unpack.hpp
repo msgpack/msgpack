@@ -81,7 +81,7 @@ public:
 	// while( /* readable */ ) {
 	//
 	//     // 1.
-	//     pac.reserve(1024);
+	//     pac.reserve_buffer(1024);
 	//
 	//     // 2.
 	//     ssize_t bytes =

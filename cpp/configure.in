@@ -39,5 +39,5 @@ add CFLAGS="--march=i686" and CXXFLAGS="-march=i686" options to ./configure as f
 ])
 fi
 
-AC_OUTPUT([Makefile])
+AC_OUTPUT([Makefile test/Makefile])
 
