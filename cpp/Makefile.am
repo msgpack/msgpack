@@ -12,6 +12,22 @@ libmsgpack_la_SOURCES = \
 libmsgpack_la_LDFLAGS = -version-info 3:0:0
 
 
+# backward compatibility
+lib_LTLIBRARIES += libmsgpackc.la
+
+libmsgpackc_la_SOURCES = \
+		unpack.c \
+		objectc.c \
+		vrefbuffer.c \
+		zone.c
+
+libmsgpackc_la_LDFLAGS = -version-info 2:0:0
+
+# work around for duplicated file name
+kumo_manager_CFLAGS = $(AM_CFLAGS)
+kumo_manager_CXXFLAGS = $(AM_CXXFLAGS)
+
+
 nobase_include_HEADERS = \
 		msgpack/pack_define.h \
 		msgpack/pack_template.h \
