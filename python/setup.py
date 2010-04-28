@@ -14,7 +14,7 @@ except ImportError:
     from distutils.command.build_ext import build_ext
     have_cython = False
 
-version = '0.2.0dev'
+version = '0.1.3'
 
 # take care of extension modules.
 if have_cython:
@@ -42,11 +42,7 @@ del sources
 
 
 desc = 'MessagePack (de)serializer.'
-long_desc = desc + """
-
-MessagePack_ (de)serializer for Python.
-
-.. _MessagePack: http://msgpack.sourceforge.jp/
+long_desc = """MessagePack (de)serializer for Python.
 
 What's MessagePack? (from http://msgpack.sourceforge.jp/)
 
@@ -54,7 +50,7 @@ What's MessagePack? (from http://msgpack.sourceforge.jp/)
  focused on high performance. It is like JSON, but very fast and small.
 """
 
-setup(name='msgpack',
+setup(name='msgpack-python',
       author='INADA Naoki',
       author_email='songofacandy@gmail.com',
       version=version,
@@ -63,7 +59,7 @@ setup(name='msgpack',
       packages=['msgpack'],
       description=desc,
       long_description=long_desc,
-      url="http://msgpack.sourceforge.jp/",
+      url='http://msgpack.sourceforge.jp/',
       download_url='http://pypi.python.org/pypi/msgpack/',
       classifiers=[
           'Development Status :: 4 - Beta',
