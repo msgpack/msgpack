@@ -512,9 +512,9 @@ msgpack_pack_inline_func_cint(_unsigned_long)(msgpack_pack_user x, unsigned long
 	msgpack_pack_real_uint64(x, d);
 #endif
 #else
-if(sizeof(unsigned int) == 2) {
+if(sizeof(unsigned long) == 2) {
 	msgpack_pack_real_uint16(x, d);
-} else if(sizeof(unsigned int) == 4) {
+} else if(sizeof(unsigned long) == 4) {
 	msgpack_pack_real_uint32(x, d);
 } else {
 	msgpack_pack_real_uint64(x, d);
