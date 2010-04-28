@@ -29,6 +29,10 @@ if have_cython:
 else:
     sources = ['msgpack/_msgpack.c']
 
+    for f in sources:
+        if not os.path.exists(f):
+            raise ImportError("Building msgpack from VCS needs Cython. Install Cython or use sdist package.")
+
     Sdist = sdist
 
 msgpack_mod = Extension('msgpack._msgpack',
@@ -60,6 +64,7 @@ setup(name='msgpack',
       description=desc,
       long_description=long_desc,
       url="http://msgpack.sourceforge.jp/",
+      download_url='http://pypi.python.org/pypi/msgpack/',
       classifiers=[
           'Development Status :: 4 - Beta',
           'Intended Audience :: Developers',
