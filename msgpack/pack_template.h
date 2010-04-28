@@ -16,12 +16,12 @@
  *    limitations under the License.
  */
 
-#ifdef __LITTLE_ENDIAN__
+#if defined(__LITTLE_ENDIAN__)
 #define TAKE8_8(d)  ((uint8_t*)&d)[0]
 #define TAKE8_16(d) ((uint8_t*)&d)[0]
 #define TAKE8_32(d) ((uint8_t*)&d)[0]
 #define TAKE8_64(d) ((uint8_t*)&d)[0]
-#elif __BIG_ENDIAN__
+#elif defined(__BIG_ENDIAN__)
 #define TAKE8_8(d)  ((uint8_t*)&d)[0]
 #define TAKE8_16(d) ((uint8_t*)&d)[1]
 #define TAKE8_32(d) ((uint8_t*)&d)[3]
@@ -377,14 +377,24 @@ msgpack_pack_inline_func(_int64)(msgpack_pack_user x, int64_t d)
 
 msgpack_pack_inline_func_cint(_short)(msgpack_pack_user x, short d)
 {
-#if defined(SIZEOF_SHORT) || defined(SHRT_MAX)
-#if SIZEOF_SHORT == 2 || SHRT_MAX == 0x7fff
+#if defined(SIZEOF_SHORT)
+#if SIZEOF_SHORT == 2
 	msgpack_pack_real_int16(x, d);
-#elif SIZEOF_SHORT == 4 || SHRT_MAX == 0x7fffffff
+#elif SIZEOF_SHORT == 4
 	msgpack_pack_real_int32(x, d);
 #else
 	msgpack_pack_real_int64(x, d);
 #endif
+
+#elif defined(SHRT_MAX)
+#if SHRT_MAX == 0x7fff
+	msgpack_pack_real_int16(x, d);
+#elif SHRT_MAX == 0x7fffffff
+	msgpack_pack_real_int32(x, d);
+#else
+	msgpack_pack_real_int64(x, d);
+#endif
+
 #else
 if(sizeof(short) == 2) {
 	msgpack_pack_real_int16(x, d);
@@ -398,14 +408,24 @@ if(sizeof(short) == 2) {
 
 msgpack_pack_inline_func_cint(_int)(msgpack_pack_user x, int d)
 {
-#if defined(SIZEOF_INT) || defined(INT_MAX)
-#if SIZEOF_INT == 2 || INT_MAX == 0x7fff
+#if defined(SIZEOF_INT)
+#if SIZEOF_INT == 2
 	msgpack_pack_real_int16(x, d);
-#elif SIZEOF_INT == 4 || INT_MAX == 0x7fffffff
+#elif SIZEOF_INT == 4
 	msgpack_pack_real_int32(x, d);
 #else
 	msgpack_pack_real_int64(x, d);
 #endif
+
+#elif defined(INT_MAX)
+#if INT_MAX == 0x7fff
+	msgpack_pack_real_int16(x, d);
+#elif INT_MAX == 0x7fffffff
+	msgpack_pack_real_int32(x, d);
+#else
+	msgpack_pack_real_int64(x, d);
+#endif
+
 #else
 if(sizeof(int) == 2) {
 	msgpack_pack_real_int16(x, d);
@@ -419,14 +439,24 @@ if(sizeof(int) == 2) {
 
 msgpack_pack_inline_func_cint(_long)(msgpack_pack_user x, long d)
 {
-#if defined(SIZEOF_LONG) || defined(LONG_MAX)
-#if SIZEOF_LONG == 2 || LONG_MAX == 0x7fffL
+#if defined(SIZEOF_LONG)
+#if SIZEOF_LONG == 2
 	msgpack_pack_real_int16(x, d);
-#elif SIZEOF_LONG == 4 || LONG_MAX == 0x7fffffffL
+#elif SIZEOF_LONG == 4
 	msgpack_pack_real_int32(x, d);
 #else
 	msgpack_pack_real_int64(x, d);
 #endif
+
+#elif defined(LONG_MAX)
+#if LONG_MAX == 0x7fffL
+	msgpack_pack_real_int16(x, d);
+#elif LONG_MAX == 0x7fffffffL
+	msgpack_pack_real_int32(x, d);
+#else
+	msgpack_pack_real_int64(x, d);
+#endif
+
 #else
 if(sizeof(long) == 2) {
 	msgpack_pack_real_int16(x, d);
@@ -440,14 +470,24 @@ if(sizeof(long) == 2) {
 
 msgpack_pack_inline_func_cint(_long_long)(msgpack_pack_user x, long long d)
 {
-#if defined(SIZEOF_LONG_LONG) || defined(LLONG_MAX)
-#if SIZEOF_LONG_LONG == 2 || LLONG_MAX == 0x7fffL
+#if defined(SIZEOF_LONG_LONG)
+#if SIZEOF_LONG_LONG == 2
 	msgpack_pack_real_int16(x, d);
-#elif SIZEOF_LONG_LONG == 4 || LLONG_MAX == 0x7fffffffL
+#elif SIZEOF_LONG_LONG == 4
 	msgpack_pack_real_int32(x, d);
 #else
 	msgpack_pack_real_int64(x, d);
 #endif
+
+#elif defined(LLONG_MAX)
+#if LLONG_MAX == 0x7fffL
+	msgpack_pack_real_int16(x, d);
+#elif LLONG_MAX == 0x7fffffffL
+	msgpack_pack_real_int32(x, d);
+#else
+	msgpack_pack_real_int64(x, d);
+#endif
+
 #else
 if(sizeof(long long) == 2) {
 	msgpack_pack_real_int16(x, d);
@@ -461,14 +501,24 @@ if(sizeof(long long) == 2) {
 
 msgpack_pack_inline_func_cint(_unsigned_short)(msgpack_pack_user x, unsigned short d)
 {
-#if defined(SIZEOF_SHORT) || defined(USHRT_MAX)
-#if SIZEOF_SHORT == 2 || USHRT_MAX == 0xffffU
+#if defined(SIZEOF_SHORT)
+#if SIZEOF_SHORT == 2
 	msgpack_pack_real_uint16(x, d);
-#elif SIZEOF_SHORT == 4 || USHRT_MAX == 0xffffffffU
+#elif SIZEOF_SHORT == 4
 	msgpack_pack_real_uint32(x, d);
 #else
 	msgpack_pack_real_uint64(x, d);
 #endif
+
+#elif defined(USHRT_MAX)
+#if USHRT_MAX == 0xffffU
+	msgpack_pack_real_uint16(x, d);
+#elif USHRT_MAX == 0xffffffffU
+	msgpack_pack_real_uint32(x, d);
+#else
+	msgpack_pack_real_uint64(x, d);
+#endif
+
 #else
 if(sizeof(unsigned short) == 2) {
 	msgpack_pack_real_uint16(x, d);
@@ -482,14 +532,24 @@ if(sizeof(unsigned short) == 2) {
 
 msgpack_pack_inline_func_cint(_unsigned_int)(msgpack_pack_user x, unsigned int d)
 {
-#if defined(SIZEOF_INT) || defined(UINT_MAX)
-#if SIZEOF_INT == 2 || UINT_MAX == 0xffffU
+#if defined(SIZEOF_INT)
+#if SIZEOF_INT == 2
 	msgpack_pack_real_uint16(x, d);
-#elif SIZEOF_INT == 4 || UINT_MAX == 0xffffffffU
+#elif SIZEOF_INT == 4
 	msgpack_pack_real_uint32(x, d);
 #else
 	msgpack_pack_real_uint64(x, d);
 #endif
+
+#elif defined(UINT_MAX)
+#if UINT_MAX == 0xffffU
+	msgpack_pack_real_uint16(x, d);
+#elif UINT_MAX == 0xffffffffU
+	msgpack_pack_real_uint32(x, d);
+#else
+	msgpack_pack_real_uint64(x, d);
+#endif
+
 #else
 if(sizeof(unsigned int) == 2) {
 	msgpack_pack_real_uint16(x, d);
@@ -503,14 +563,24 @@ if(sizeof(unsigned int) == 2) {
 
 msgpack_pack_inline_func_cint(_unsigned_long)(msgpack_pack_user x, unsigned long d)
 {
-#if defined(SIZEOF_LONG) || defined(ULONG_MAX)
-#if SIZEOF_LONG == 2 || ULONG_MAX == 0xffffUL
+#if defined(SIZEOF_LONG)
+#if SIZEOF_LONG == 2
 	msgpack_pack_real_uint16(x, d);
-#elif SIZEOF_LONG == 4 || ULONG_MAX == 0xffffffffUL
+#elif SIZEOF_LONG == 4
 	msgpack_pack_real_uint32(x, d);
 #else
 	msgpack_pack_real_uint64(x, d);
 #endif
+
+#elif defined(ULONG_MAX)
+#if ULONG_MAX == 0xffffUL
+	msgpack_pack_real_uint16(x, d);
+#elif ULONG_MAX == 0xffffffffUL
+	msgpack_pack_real_uint32(x, d);
+#else
+	msgpack_pack_real_uint64(x, d);
+#endif
+
 #else
 if(sizeof(unsigned long) == 2) {
 	msgpack_pack_real_uint16(x, d);
@@ -524,14 +594,24 @@ if(sizeof(unsigned long) == 2) {
 
 msgpack_pack_inline_func_cint(_unsigned_long_long)(msgpack_pack_user x, unsigned long long d)
 {
-#if defined(SIZEOF_LONG_LONG) || defined(ULLONG_MAX)
-#if SIZEOF_LONG_LONG == 2 || ULLONG_MAX == 0xffffUL
+#if defined(SIZEOF_LONG_LONG)
+#if SIZEOF_LONG_LONG == 2
 	msgpack_pack_real_uint16(x, d);
-#elif SIZEOF_LONG_LONG == 4 || ULLONG_MAX == 0xffffffffUL
+#elif SIZEOF_LONG_LONG == 4
 	msgpack_pack_real_uint32(x, d);
 #else
 	msgpack_pack_real_uint64(x, d);
 #endif
+
+#elif defined(ULLONG_MAX)
+#if ULLONG_MAX == 0xffffUL
+	msgpack_pack_real_uint16(x, d);
+#elif ULLONG_MAX == 0xffffffffUL
+	msgpack_pack_real_uint32(x, d);
+#else
+	msgpack_pack_real_uint64(x, d);
+#endif
+
 #else
 if(sizeof(unsigned long long) == 2) {
 	msgpack_pack_real_uint16(x, d);
