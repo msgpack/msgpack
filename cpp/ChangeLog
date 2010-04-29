@@ -1,0 +1,10 @@
+
+2010-04-29 version 0.5.0:
+
+  * msgpack_object_type is changed. MSGPACK_OBJECT_NIL is now 0x00.
+  * New safe streaming deserializer API.
+  * Add object::object(const T&) and object::operator=(const T&)
+  * Add operator==(object, const T&)
+  * MSGPACK_DEFINE macro defines msgpack_object(object* obj, zone* z)
+  * C++ programs doesn't need to link "msgpackc" library.
+
