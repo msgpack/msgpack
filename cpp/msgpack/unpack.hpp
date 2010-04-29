@@ -37,6 +37,31 @@ struct unpack_error : public std::runtime_error {
 };
 
 
+class unpacked {
+public:
+	unpacked() { }
+
+	unpacked(object obj, std::auto_ptr<msgpack::zone> z) :
+		m_obj(obj), m_zone(z) { }
+
+	object& get()
+		{ return m_obj; }
+
+	const object& get() const
+		{ return m_obj; }
+
+	std::auto_ptr<msgpack::zone>& zone()
+		{ return m_zone; }
+
+	const std::auto_ptr<msgpack::zone>& zone() const
+		{ return m_zone; }
+
+private:
+	object m_obj;
+	std::auto_ptr<msgpack::zone> m_zone;
+};
+
+
 class unpacker : public msgpack_unpacker {
 public:
 	unpacker(size_t init_buffer_size = MSGPACK_UNPACKER_DEFAULT_INITIAL_BUFFER_SIZE);
@@ -53,39 +78,22 @@ public:
 	/*! 3. specify the number of bytes actually copied */
 	void buffer_consumed(size_t size);
 
-	/*! 4. repeat execute() until it retunrs false */
-	bool execute();
+	/*! 4. repeat next() until it retunrs false */
+	bool next(unpacked* result);
 
-	/*! 5.1. if execute() returns true, take out the parsed object */
-	object data();
-
-	/*! 5.2. the object is valid until the zone is deleted */
-	// Note that once release_zone() from unpacker, you must delete it
-	// otherwise the memrory will leak.
-	zone* release_zone();
-
-	/*! 5.2. this method is equivalence to `delete release_zone()` */
-	void reset_zone();
-
-	/*! 5.3. after release_zone(), re-initialize unpacker */
-	void reset();
-
-	/*! 6. check if the size of message doesn't exceed assumption. */
+	/*! 5. check if the size of message doesn't exceed assumption. */
 	size_t message_size() const;
-
 
 	// Basic usage of the unpacker is as following:
 	//
 	// msgpack::unpacker pac;
-	//
-	// while( /* readable */ ) {
+	// while( /* input is readable */ ) {
 	//
 	//     // 1.
-	//     pac.reserve_buffer(1024);
+	//     pac.reserve_buffer(32*1024);
 	//
 	//     // 2.
-	//     ssize_t bytes =
-	//         read(the_source, pac.buffer(), pac.buffer_capacity());
+	//     size_t bytes = input.readsome(pac.buffer(), pac.buffer_capacity());
 	//
 	//     // error handling ...
 	//
@@ -93,24 +101,39 @@ public:
 	//     pac.buffer_consumed(bytes);
 	//
 	//     // 4.
-	//     while(pac.execute()) {
-	//         // 5.1
-	//         object o = pac.data();
+	//     msgpack::unpacked result;
+	//     while(pac.next(&result)) {
+	//         // do some with the object with the zone.
+	//         msgpack::object obj = result.get();
+	//         std::auto_ptr<msgpack:zone> z = result.zone();
+	//         on_message(obj, z);
 	//
-	//         // 5.2
-	//         std::auto_ptr<msgpack::zone> olife( pac.release_zone() );
+	//         //// boost::shared_ptr is also usable:
+	//         // boost::shared_ptr<msgpack::zone> life(z.release());
+	//         // on_message(result.get(), life);
+	//     }
 	//
-	//         // boost::shared_ptr is also usable:
-	//         // boost::shared_ptr<msgpack::zone> olife( pac.release_zone() );
-	//
-	//         // 5.3
-	//         pac.reset();
-	//
-	//         // do some with the object with the old zone.
-	//         do_something(o, olife);
+	//     // 5.
+	//     if(pac.message_size() > 10*1024*1024) {
+	//         throw std::runtime_error("message is too large");
 	//     }
 	// }
 	//
+
+	/*! for backward compatibility */
+	bool execute();
+
+	/*! for backward compatibility */
+	object data();
+
+	/*! for backward compatibility */
+	zone* release_zone();
+
+	/*! for backward compatibility */
+	void reset_zone();
+
+	/*! for backward compatibility */
+	void reset();
 
 public:
 	// These functions are usable when non-MessagePack message follows after
@@ -137,6 +160,11 @@ private:
 };
 
 
+static bool unpack(unpacked* result,
+		const char* data, size_t len, size_t* offset = NULL);
+
+
+// obsolete
 typedef enum {
 	UNPACK_SUCCESS				=  2,
 	UNPACK_EXTRA_BYTES			=  1,
@@ -144,6 +172,7 @@ typedef enum {
 	UNPACK_PARSE_ERROR			= -1,
 } unpack_return;
 
+// obsolete
 static unpack_return unpack(const char* data, size_t len, size_t* off,
 		zone* z, object* result);
 
@@ -185,6 +214,20 @@ inline size_t unpacker::buffer_capacity() const
 inline void unpacker::buffer_consumed(size_t size)
 {
 	return msgpack_unpacker_buffer_consumed(this, size);
+}
+
+inline bool unpacker::next(unpacked* result)
+{
+	int ret = msgpack_unpacker_execute(this);
+	if(ret < 0) {
+		throw unpack_error("parse error");
+	}
+
+	result->zone().reset( release_zone() );
+	result->get() = data();
+	reset();
+
+	return ret > 0;
 }
 
 
@@ -230,11 +273,11 @@ inline void unpacker::reset()
 	msgpack_unpacker_reset(this);
 }
 
+
 inline size_t unpacker::message_size() const
 {
 	return msgpack_unpacker_message_size(this);
 }
-
 
 inline size_t unpacker::parsed_size() const
 {
@@ -262,6 +305,38 @@ inline void unpacker::remove_nonparsed_buffer()
 }
 
 
+inline bool unpack(unpacked* result,
+		const char* data, size_t len, size_t* offset)
+{
+	msgpack::object obj;
+	std::auto_ptr<msgpack::zone> z(new zone());
+
+	unpack_return ret = (unpack_return)msgpack_unpack(
+			data, len, offset, z.get(),
+			reinterpret_cast<msgpack_object*>(&obj));
+
+	switch(ret) {
+	case UNPACK_SUCCESS:
+		result->get() = obj;
+		result->zone() = z;
+		return false;
+
+	case UNPACK_EXTRA_BYTES:
+		result->get() = obj;
+		result->zone() = z;
+		return true;
+
+	case UNPACK_CONTINUE:
+		throw unpack_error("insufficient bytes");
+
+	case UNPACK_PARSE_ERROR:
+	default:
+		throw unpack_error("parse error");
+	}
+}
+
+
+// obsolete
 inline unpack_return unpack(const char* data, size_t len, size_t* off,
 		zone* z, object* result)
 {
