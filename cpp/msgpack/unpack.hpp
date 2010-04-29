@@ -219,15 +219,22 @@ inline void unpacker::buffer_consumed(size_t size)
 inline bool unpacker::next(unpacked* result)
 {
 	int ret = msgpack_unpacker_execute(this);
+
 	if(ret < 0) {
 		throw unpack_error("parse error");
 	}
 
-	result->zone().reset( release_zone() );
-	result->get() = data();
-	reset();
+	if(ret == 0) {
+		result->zone().reset();
+		result->get() = object();
+		return false;
 
-	return ret > 0;
+	} else {
+		result->zone().reset( release_zone() );
+		result->get() = data();
+		reset();
+		return true;
+	}
 }
 
 
