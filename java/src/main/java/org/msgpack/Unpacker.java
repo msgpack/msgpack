@@ -21,6 +21,7 @@ import java.lang.Iterable;
 import java.io.InputStream;
 import java.io.IOException;
 import java.util.Iterator;
+import java.nio.ByteBuffer;
 import org.msgpack.impl.UnpackerImpl;
 
 public class Unpacker extends UnpackerImpl implements Iterable<Object> {
@@ -101,6 +102,14 @@ public class Unpacker extends UnpackerImpl implements Iterable<Object> {
 
 	public void bufferConsumed(int size) {
 		used += size;
+	}
+
+	public void feed(ByteBuffer buffer) {
+		int length = buffer.remaining();
+		if (length == 0) return;
+		reserveBuffer(length);
+		buffer.get(this.buffer, this.offset, length);
+		bufferConsumed(length);
 	}
 
 	public void feed(byte[] buffer) {
