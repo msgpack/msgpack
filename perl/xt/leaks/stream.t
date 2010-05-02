@@ -54,6 +54,14 @@ sub trace {
             my $x = $unpacker->data;
     #       is_deeply($x, $input) if $i % 100 == 0;
         }
+        $unpacker->reset();
+        $unpacker->execute($r, 0);
+        $unpacker->reset();
+        $unpacker->execute(substr($r, 0, 1), 0);
+        $unpacker->execute(substr($r, 0, 2), 1);
+        $unpacker->execute($r, 2);
+        $unpacker->reset();
+        $r or die;
     }
     my $after  = memoryusage();
     diag("$n\t: $after - $before");
