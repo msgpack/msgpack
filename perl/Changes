@@ -1,3 +1,7 @@
+0.09_01
+
+    - fixed memory leak issue(reported by Maxime Soulé)
+
 0.09
 
     - support NVTYPE=="long double" or IVTYPE=="long long" environment
