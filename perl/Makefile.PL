@@ -8,7 +8,7 @@ license 'perl';
 can_cc or die "This module requires a C compiler";
 
 tests 't/*.t';
-author_tests('xt');
+recursive_author_tests('xt');
 use_ppport 3.19;
 
 clean_files qw{
@@ -31,6 +31,8 @@ if ($Module::Install::AUTHOR && -d File::Spec->catfile('..', 'msgpack')) {
         File::Copy::copy($src, 'msgpack/') or die "copy failed: $!";
     }
 }
+
+requires 'Test::More' => 0.95;
 
 auto_set_repository;
 build_requires 'Test::More';
