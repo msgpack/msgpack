@@ -23,10 +23,21 @@ sub pis ($$) {
 
 my @dat = do 't/data.pl';
 
-plan tests => 1*(scalar(@dat)/2) + 1;
+plan tests => 1*(scalar(@dat)/2) + 3;
 
 isa_ok $up, 'Data::MessagePack::Unpacker';
 for (my $i=0; $i<scalar(@dat); ) {
     pis $dat[$i++], $dat[$i++];
+}
+
+# devided.
+{
+    my $up = Data::MessagePack::Unpacker->new();
+    $up->execute("\x95", 0); # array marker
+    for (1..5) {
+        $up->execute("\xc0", 0); # nil
+    }
+    ok $up->is_finished;
+    is_deeply $up->data, [undef, undef, undef, undef, undef];
 }
 
