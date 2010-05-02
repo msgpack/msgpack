@@ -22,21 +22,26 @@ This is an streaming deserializer for messagepack.
 
 =item my $up = Data::MessagePack::Unpacker->new()
 
-create new stream deserializer
+create new instance of stream deserializer.
 
-=item $up->execute()
+=item my $ret = $up->execute($data, $offset);
 
-=item $up->execute_limit()
+=item my $ret = $up->execute_limit($data, $offset, $limit)
 
-=item $up->is_finished()
+    $up->execute(substr($data, 0, 3), 0);
+    $up->execute($data,               3);
+
+$offset is the offset of $data.
+
+=item my $bool = $up->is_finished();
 
 is this deserializer finished?
 
-=item $up->data()
+=item my $data = $up->data();
 
 returns deserialized object.
 
-=item $up->reset()
+=item $up->reset();
 
 reset the stream deserializer, without memory zone.
 

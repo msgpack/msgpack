@@ -30,6 +30,20 @@ Data::MessagePack - messagepack
 
 Data::MessagePack is a binary packer for perl.
 
+=head1 METHODS
+
+=over 4
+
+=item my $packed = Data::MessagePack->pack($data);
+
+pack the $data to messagepack format string.
+
+=item my $unpacked = Data::MessagePack->unpack($msgpackstr);
+
+unpack the $msgpackstr to messagepack format string.
+
+=back
+
 =head1 Configuration Variables
 
 =over 4
