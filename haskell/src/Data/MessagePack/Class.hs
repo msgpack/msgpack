@@ -27,7 +27,6 @@ module Data.MessagePack.Class(
 import Control.Monad.Error
 import Data.ByteString.Char8 (ByteString)
 import qualified Data.ByteString.Char8 as C8
-import Data.Either
 
 import Data.MessagePack.Base
 

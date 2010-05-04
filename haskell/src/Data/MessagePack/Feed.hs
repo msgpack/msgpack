@@ -21,7 +21,6 @@ module Data.MessagePack.Feed(
   feederFromString,
   ) where
 
-import Control.Monad
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
 import Data.IORef
@@ -37,9 +36,9 @@ feederFromHandle h = return $ do
   if BS.length bs > 0
     then do return $ Just bs
     else do
-    bs <- BS.hGet h 1
-    if BS.length bs > 0
-      then do return $ Just bs
+    c <- BS.hGet h 1
+    if BS.length c > 0
+      then do return $ Just c
       else do
       hClose h
       return Nothing
