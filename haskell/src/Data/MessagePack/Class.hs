@@ -46,6 +46,11 @@ instance OBJECT Object where
 fromObjectError :: String
 fromObjectError = "fromObject: cannot cast"
 
+instance OBJECT () where
+  toObject = const ObjectNil
+  fromObject ObjectNil = Right ()
+  fromObject _ = Left fromObjectError
+
 instance OBJECT Int where
   toObject = ObjectInteger
   fromObject (ObjectInteger n) = Right n
