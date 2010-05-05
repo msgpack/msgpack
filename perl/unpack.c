@@ -2,6 +2,7 @@
 extern "C" {
 #endif
 
+#define PERL_NO_GET_CONTEXT
 #include "EXTERN.h"
 #include "perl.h"
 #include "XSUB.h"
@@ -40,7 +41,7 @@ typedef struct {
 
 static INLINE SV *
 get_bool (const char *name) {
-    SV * sv = get_sv( name, 1 );
+    SV * sv = sv_mortalcopy(get_sv( name, 1 ));
 
     SvREADONLY_on(sv);
     SvREADONLY_on( SvRV(sv) );
@@ -73,7 +74,14 @@ static INLINE int template_callback_uint32(unpack_user* u, uint32_t d, SV** o)
 { *o = sv_2mortal(newSVuv(d)); return 0; }
 
 static INLINE int template_callback_uint64(unpack_user* u, uint64_t d, SV** o)
-{ *o = sv_2mortal(newSVuv(d)); return 0; }
+{
+#if IVSIZE==4
+    *o = sv_2mortal(newSVnv(d));
+#else
+    *o = sv_2mortal(newSVuv(d));
+#endif
+    return 0;
+}
 
 static INLINE int template_callback_int8(unpack_user* u, int8_t d, SV** o)
 { *o = sv_2mortal(newSViv((long)d)); return 0; }
@@ -93,8 +101,9 @@ static INLINE int template_callback_float(unpack_user* u, float d, SV** o)
 static INLINE int template_callback_double(unpack_user* u, double d, SV** o)
 { *o = sv_2mortal(newSVnv(d)); return 0; }
 
+/* &PL_sv_undef is not so good. see http://gist.github.com/387743 */
 static INLINE int template_callback_nil(unpack_user* u, SV** o)
-{ *o = &PL_sv_undef; return 0; }
+{ *o = sv_newmortal(); return 0; }
 
 static INLINE int template_callback_true(unpack_user* u, SV** o)
 { *o = get_bool("Data::MessagePack::true") ; return 0; }
@@ -115,7 +124,8 @@ static INLINE int template_callback_map_item(unpack_user* u, SV** c, SV* k, SV* 
 { hv_store_ent((HV*)SvRV(*c), k, v, 0); SvREFCNT_inc(v); return 0; }
 
 static INLINE int template_callback_raw(unpack_user* u, const char* b, const char* p, unsigned int l, SV** o)
-{ *o = sv_2mortal((l == 0) ? newSVpv("", 0) : newSVpv(p, l)); return 0; }
+{ *o = sv_2mortal((l==0) ? newSVpv("", 0) : newSVpv(p, l)); return 0; }
+/* { *o = newSVpvn_flags(p, l, SVs_TEMP); return 0; }  <= this does not works. */
 
 #define UNPACKER(from, name) \
 	msgpack_unpack_t *name; \
