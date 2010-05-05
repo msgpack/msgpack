@@ -1,0 +1,34 @@
+NAME
+    Data::MessagePack - messagepack
+
+SYNOPSIS
+        my $packed = Data::MessagePack->pack($dat);
+        my $unpacked = Data::MessagePack->unpack($dat);
+
+DESCRIPTION
+    Data::MessagePack is a binary packer for perl.
+
+METHODS
+    my $packed = Data::MessagePack->pack($data);
+        pack the $data to messagepack format string.
+
+    my $unpacked = Data::MessagePack->unpack($msgpackstr);
+        unpack the $msgpackstr to messagepack format string.
+
+Configuration Variables
+    $Data::MessagePack::PreferInteger
+        Pack the string as int when the value looks like int(EXPERIMENTAL).
+
+AUTHORS
+    Tokuhiro Matsuno
+
+THANKS TO
+    Jun Kuriyama
+
+LICENSE
+    This library is free software; you can redistribute it and/or modify it
+    under the same terms as Perl itself.
+
+SEE ALSO
+    <http://msgpack.sourceforge.jp/>
+
