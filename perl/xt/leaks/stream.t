@@ -2,7 +2,6 @@ use strict;
 use warnings;
 use Test::More;
 use Data::MessagePack;
-use Test::Requires 'Test::LeakTrace';
 use Devel::Peek;
 
 plan skip_all => '$ENV{LEAK_TEST} is required' unless $ENV{LEAK_TEST};
