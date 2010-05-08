@@ -36,7 +36,6 @@ requires 'Test::More' => 0.95; # done_testing
 test_requires('Test::Requires');
 
 auto_set_repository();
-build_requires 'Test::More';
 auto_include;
 WriteAll;
 
