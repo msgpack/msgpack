@@ -32,7 +32,7 @@ if ($Module::Install::AUTHOR && -d File::Spec->catfile('..', 'msgpack')) {
     }
 }
 
-requires 'Test::More' => 0.95; # done_testing
+requires 'Test::More' => 0.94; # done_testing
 test_requires('Test::Requires');
 
 auto_set_repository();
