@@ -323,7 +323,7 @@ msgpack_object msgpack_unpacker_data(msgpack_unpacker* mpac)
 msgpack_zone* msgpack_unpacker_release_zone(msgpack_unpacker* mpac)
 {
 	if(!msgpack_unpacker_flush_zone(mpac)) {
-		return false;
+		return NULL;
 	}
 
 	msgpack_zone* r = msgpack_zone_new(MSGPACK_ZONE_CHUNK_SIZE);
