@@ -204,7 +204,7 @@ msgpack_zone* msgpack_zone_new(size_t chunk_size)
 
 	if(!init_chunk_list(&zone->chunk_list, chunk_size)) {
 		free(zone);
-		return false;
+		return NULL;
 	}
 
 	init_finalizer_array(&zone->finalizer_array);
