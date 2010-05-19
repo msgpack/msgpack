@@ -19,9 +19,7 @@ module Data.MessagePack.Stream(
   unpackObjectsFromString,
   ) where
 
-import Control.Monad
 import Data.ByteString (ByteString)
-import qualified Data.ByteString as BS
 import System.IO
 import System.IO.Unsafe
 

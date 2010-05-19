@@ -21,7 +21,6 @@ module Data.MessagePack.Feed(
   feederFromString,
   ) where
 
-import Control.Monad
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
 import Data.IORef
@@ -33,12 +32,16 @@ type Feeder = IO (Maybe ByteString)
 -- | Feeder from Handle
 feederFromHandle :: Handle -> IO Feeder
 feederFromHandle h = return $ do
-  bs <- BS.hGet h bufSize
+  bs <- BS.hGetNonBlocking h bufSize
   if BS.length bs > 0
-    then return $ Just bs
+    then do return $ Just bs
     else do
-    hClose h
-    return Nothing
+    c <- BS.hGet h 1
+    if BS.length c > 0
+      then do return $ Just c
+      else do
+      hClose h
+      return Nothing
   where
     bufSize = 4096
 

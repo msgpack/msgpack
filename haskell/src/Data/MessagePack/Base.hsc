@@ -297,7 +297,7 @@ foreign import ccall "msgpack_pack_raw_body_wrap" msgpack_pack_raw_body ::
 -- | Pack a single byte stream. It calls 'packRAW' and 'packRAWBody'.
 packRAW' :: Packer -> ByteString -> IO Int
 packRAW' pc bs = do
-  packRAW pc (BS.length bs)
+  _ <- packRAW pc (BS.length bs)
   packRAWBody pc bs
 
 type Unpacker = ForeignPtr ()
@@ -475,7 +475,7 @@ peekObject ptr = do
     (#const MSGPACK_OBJECT_MAP) ->
       peekObjectMap ptr
     _ ->
-      fail "peekObject: unknown object type"
+      fail $ "peekObject: unknown object type (" ++ show typ ++ ")"
 
 peekObjectBool :: Ptr a -> IO Object
 peekObjectBool ptr = do
@@ -541,11 +541,11 @@ packObject pc (ObjectDouble d) = packDouble pc d >> return ()
 packObject pc (ObjectRAW bs) = packRAW' pc bs >> return ()
 
 packObject pc (ObjectArray ls) = do
-  packArray pc (length ls)
+  _ <- packArray pc (length ls)
   mapM_ (packObject pc) ls
 
 packObject pc (ObjectMap ls) = do
-  packMap pc (length ls)
+  _ <- packMap pc (length ls)
   mapM_ (\(a, b) -> packObject pc a >> packObject pc b) ls
 
 data UnpackReturn =

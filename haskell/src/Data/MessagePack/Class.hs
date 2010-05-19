@@ -27,7 +27,6 @@ module Data.MessagePack.Class(
 import Control.Monad.Error
 import Data.ByteString.Char8 (ByteString)
 import qualified Data.ByteString.Char8 as C8
-import Data.Either
 
 import Data.MessagePack.Base
 
@@ -45,6 +44,11 @@ instance OBJECT Object where
 
 fromObjectError :: String
 fromObjectError = "fromObject: cannot cast"
+
+instance OBJECT () where
+  toObject = const ObjectNil
+  fromObject ObjectNil = Right ()
+  fromObject _ = Left fromObjectError
 
 instance OBJECT Int where
   toObject = ObjectInteger

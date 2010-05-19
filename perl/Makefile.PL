@@ -1,7 +1,7 @@
 use inc::Module::Install;
 name 'Data-MessagePack';
 all_from 'lib/Data/MessagePack.pm';
-readme_from 'lib/Data/MessagePack.pm';
+readme_from('lib/Data/MessagePack.pm');
 
 perl_version '5.008005';
 license 'perl';
@@ -32,11 +32,10 @@ if ($Module::Install::AUTHOR && -d File::Spec->catfile('..', 'msgpack')) {
     }
 }
 
-requires 'Test::More' => 0.95; # done_testing
+requires 'Test::More' => 0.94; # done_testing
+test_requires('Test::Requires');
 
-auto_set_repository;
-build_requires 'Test::More';
-use_test_base;
+auto_set_repository();
 auto_include;
 WriteAll;
 

@@ -3,9 +3,11 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.msgpack</groupId>
   <artifactId>msgpack</artifactId>
-  <name>MessagePack for Java</name>
-  <version>1.0-SNAPSHOT</version>
+  <version>0.2</version>
   <description>MessagePack for Java</description>
+
+  <name>MessagePack for Java</name>
+  <url>http://msgpack.sourceforge.net/</url>
 
   <licenses>
     <license>
@@ -16,8 +18,18 @@
   </licenses>
 
   <scm>
-    <connection>scm:git://github.com/msgpack/msgpack.git</connection>
+    <connection>scm:git:git://github.com/msgpack/msgpack.git</connection>
+    <url>scm:git:git://github.com/msgpack/msgpack.git</url>
   </scm>
+
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.8.1</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
 
   <build>
     <resources>
@@ -83,27 +95,50 @@
     </plugins>
   </reporting>
 
+  <repositories>
+    <repository>
+      <id>msgpack.sourceforge.net</id>
+      <name>MessagePack Maven2 Repository</name>
+      <url>http://msgpack.sourceforge.net/maven2</url>
+    </repository>
+    <repository>
+      <id>msgpack.sourceforge.net</id>
+      <name>MessagePack Maven2 Snapshot Repository</name>
+      <url>http://msgpack.sourceforge.net/maven2-snapshot</url>
+    </repository>
+  </repositories>
+
+  <distributionManagement>
+    <repository>
+      <uniqueVersion>false</uniqueVersion>
+      <id>shell.sourceforge.net</id>
+      <name>Repository at sourceforge.net</name>
+      <url>scp://shell.sourceforge.net/home/groups/m/ms/msgpack/htdocs/maven2/</url>
+    </repository>
+    <snapshotRepository>
+       <uniqueVersion>true</uniqueVersion>
+       <id>shell.sourceforge.net</id>
+       <name>Repository Name</name>
+       <url>scp://shell.sourceforge.net/home/groups/m/ms/msgpack/htdocs/maven2-snapshot/</url>
+    </snapshotRepository>
+  </distributionManagement>
+
   <profiles>
-    <!-- for sending artifacts to sourceforge.net repository -->
     <profile>
-      <id>sourceforge</id>
-      <distributionManagement>
-	<repository>
-          <id>sourceforge.net</id>
-          <name>Repository at sourceforge.net</name>
-          <url>scpexe://shell.sourceforge.net/home/groups/m/ms/msgpack/htdocs/maven2/</url>
-	</repository>
-      </distributionManagement>
+      <id>release</id>
+      <build>
+        <plugins>
+          <plugin>
+            <inherited>true</inherited>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-deploy-plugin</artifactId>
+            <version>2.4</version>
+            <configuration>
+              <updateReleaseInfo>true</updateReleaseInfo>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
     </profile>
   </profiles>
-
-  <dependencies>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.8.1</version>
-      <scope>test</scope>
-    </dependency>
-
-  </dependencies>
 </project>

@@ -79,7 +79,7 @@ packToString :: MonadIO m => PackerT m r -> m ByteString
 packToString m = do
   sb <- liftIO $ newSimpleBuffer
   pc <- liftIO $ newPacker sb
-  runPackerT m pc
+  _ <- runPackerT m pc
   liftIO $ simpleBufferData sb
 
 -- | Execcute given serializer and write byte sequence to Handle.
@@ -115,18 +115,21 @@ instance MonadIO m => MonadIO (UnpackerT m) where
 
 instance MonadIO m => MonadUnpacker (UnpackerT m) where
   get = UnpackerT $ \up feed -> liftIO $ do
-    resp <- unpackerExecute up
-    guard $ resp>=0
-    when (resp==0) $ do
-      Just bs <- feed
-      unpackerFeed up bs
-      resp2 <- unpackerExecute up
-      guard $ resp2==1
+    executeOne up feed
     obj <- unpackerData up
     freeZone =<< unpackerReleaseZone up
     unpackerReset up
     let Right r = fromObject obj
     return r
+    
+    where
+      executeOne up feed = do
+        resp <- unpackerExecute up
+        guard $ resp>=0
+        when (resp==0) $ do
+          Just bs <- feed
+          unpackerFeed up bs
+          executeOne up feed
 
 -- | Execute deserializer using given feeder.
 unpackFrom :: MonadIO m => Feeder -> UnpackerT m r -> m r
