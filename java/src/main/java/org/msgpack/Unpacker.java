@@ -40,7 +40,7 @@ public class Unpacker implements Iterable<Object> {
 	protected int bufferReserveSize;
 	protected InputStream stream;
 
-	class BufferedUnpackerMixin extends BufferedUnpackerImpl {
+	final class BufferedUnpackerMixin extends BufferedUnpackerImpl {
 		boolean fill() throws IOException {
 			if(stream == null) {
 				return false;
@@ -107,6 +107,16 @@ public class Unpacker implements Iterable<Object> {
 		reserveBuffer(length);
 		System.arraycopy(buffer, offset, impl.buffer, impl.offset, length);
 		bufferConsumed(length);
+	}
+
+	public void wrap(byte[] buffer) {
+		wrap(buffer, 0, buffer.length);
+	}
+
+	public void wrap(byte[] buffer, int offset, int length) {
+		impl.buffer = buffer;
+		impl.offset = offset;
+		impl.filled = length;
 	}
 
 	public boolean fill() throws IOException {
@@ -226,51 +236,51 @@ public class Unpacker implements Iterable<Object> {
 	}
 
 
-	final public byte unpackByte() throws IOException, MessageTypeException {
+	public byte unpackByte() throws IOException, MessageTypeException {
 		return impl.unpackByte();
 	}
 
-	final public short unpackShort() throws IOException, MessageTypeException {
+	public short unpackShort() throws IOException, MessageTypeException {
 		return impl.unpackShort();
 	}
 
-	final public int unpackInt() throws IOException, MessageTypeException {
+	public int unpackInt() throws IOException, MessageTypeException {
 		return impl.unpackInt();
 	}
 
-	final public long unpackLong() throws IOException, MessageTypeException {
+	public long unpackLong() throws IOException, MessageTypeException {
 		return impl.unpackLong();
 	}
 
-	final public float unpackFloat() throws IOException, MessageTypeException {
+	public float unpackFloat() throws IOException, MessageTypeException {
 		return impl.unpackFloat();
 	}
 
-	final public double unpackDouble() throws IOException, MessageTypeException {
+	public double unpackDouble() throws IOException, MessageTypeException {
 		return impl.unpackDouble();
 	}
 
-	final public Object unpackNull() throws IOException, MessageTypeException {
+	public Object unpackNull() throws IOException, MessageTypeException {
 		return impl.unpackNull();
 	}
 
-	final public boolean unpackBoolean() throws IOException, MessageTypeException {
+	public boolean unpackBoolean() throws IOException, MessageTypeException {
 		return impl.unpackBoolean();
 	}
 
-	final public int unpackArray() throws IOException, MessageTypeException {
+	public int unpackArray() throws IOException, MessageTypeException {
 		return impl.unpackArray();
 	}
 
-	final public int unpackMap() throws IOException, MessageTypeException {
+	public int unpackMap() throws IOException, MessageTypeException {
 		return impl.unpackMap();
 	}
 
-	final public int unpackRaw() throws IOException, MessageTypeException {
+	public int unpackRaw() throws IOException, MessageTypeException {
 		return impl.unpackRaw();
 	}
 
-	final public byte[] unpackRawBody(int length) throws IOException, MessageTypeException {
+	public byte[] unpackRawBody(int length) throws IOException, MessageTypeException {
 		return impl.unpackRawBody(length);
 	}
 
