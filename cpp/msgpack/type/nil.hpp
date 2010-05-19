@@ -51,6 +51,14 @@ inline void operator<< (object::with_zone& o, type::nil v)
 	{ static_cast<object&>(o) << v; }
 
 
+template <>
+inline void object::as<void>() const
+{
+	msgpack::type::nil v;
+	convert(&v);
+}
+
+
 }  // namespace msgpack
 
 #endif /* msgpack/type/nil.hpp */

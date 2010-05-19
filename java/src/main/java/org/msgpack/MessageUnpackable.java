@@ -17,7 +17,9 @@
 //
 package org.msgpack;
 
-public interface MessageMergeable {
-	public void messageMerge(Object obj) throws MessageTypeException;
+import java.io.IOException;
+
+public interface MessageUnpackable {
+	public void messageUnpack(Unpacker pk) throws IOException, MessageTypeException;
 }
 

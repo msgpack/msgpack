@@ -21,41 +21,27 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-public class UnpackIterator implements Iterator<Object> {
+public class UnpackIterator extends UnpackResult implements Iterator<Object> {
 	private Unpacker pac;
-	private boolean have;
-	private Object data;
 
 	UnpackIterator(Unpacker pac) {
+		super();
 		this.pac = pac;
-		this.have = false;
 	}
 
 	public boolean hasNext() {
-		if(have) { return true; }
 		try {
-			while(true) {
-				if(pac.execute()) {
-					data = pac.getData();
-					pac.reset();
-					have = true;
-					return true;
-				}
-
-				if(!pac.fill()) {
-					return false;
-				}
-			}
+			return pac.next(this);
 		} catch (IOException e) {
 			return false;
 		}
 	}
 
 	public Object next() {
-		if(!have && !hasNext()) {
+		if(!finished && !hasNext()) {
 			throw new NoSuchElementException();
 		}
-		have = false;
+		finished = false;
 		return data;
 	}
 

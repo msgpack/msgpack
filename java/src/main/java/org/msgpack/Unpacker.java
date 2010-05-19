@@ -22,18 +22,43 @@ import java.io.InputStream;
 import java.io.IOException;
 import java.util.Iterator;
 import java.nio.ByteBuffer;
-import org.msgpack.impl.UnpackerImpl;
 
-public class Unpacker extends UnpackerImpl implements Iterable<Object> {
+public class Unpacker implements Iterable<Object> {
 
-	public static final int DEFAULT_BUFFER_SIZE = 32*1024;
+	// buffer:
+	// +---------------------------------------------+
+	// | [object] | [obje| unparsed ... | unused  ...|
+	// +---------------------------------------------+
+	//            ^ parsed
+	//                   ^ offset
+	//                                  ^ filled
+	//                                               ^ buffer.length
 
-	private int used;
-	private int offset;
-	private int parsed;
-	private byte[] buffer;
-	private int bufferReserveSize;
-	private InputStream stream;
+	private static final int DEFAULT_BUFFER_SIZE = 32*1024;
+
+	protected int offset;
+	protected int parsed;
+	protected int bufferReserveSize;
+	protected InputStream stream;
+
+	class BufferedUnpackerMixin extends BufferedUnpackerImpl {
+		boolean fill() throws IOException {
+			if(stream == null) {
+				return false;
+			}
+			reserveBuffer(bufferReserveSize);
+			int rl = stream.read(buffer, filled, buffer.length - filled);
+			// equals: stream.read(getBuffer(), getBufferOffset(), getBufferCapacity());
+			if(rl <= 0) {
+				return false;
+			}
+			bufferConsumed(rl);
+			return true;
+		}
+	};
+
+	final BufferedUnpackerMixin impl = new BufferedUnpackerMixin();
+
 
 	public Unpacker() {
 		this(DEFAULT_BUFFER_SIZE);
@@ -48,67 +73,31 @@ public class Unpacker extends UnpackerImpl implements Iterable<Object> {
 	}
 
 	public Unpacker(InputStream stream, int bufferReserveSize) {
-		super();
-		this.used = 0;
 		this.offset = 0;
 		this.parsed = 0;
-		this.buffer = new byte[bufferReserveSize];
 		this.bufferReserveSize = bufferReserveSize/2;
 		this.stream = stream;
 	}
 
 	public Unpacker useSchema(Schema s) {
-		super.setSchema(s);
+		impl.setSchema(s);
 		return this;
 	}
 
-	public void reserveBuffer(int size) {
-		if(buffer.length - used >= size) {
-			return;
-		}
-		/*
-		if(used == parsed && buffer.length >= size) {
-			// rewind buffer
-			used = 0;
-			offset = 0;
-			return;
-		}
-		*/
 
-		int nextSize = buffer.length * 2;
-		while(nextSize < size + used) {
-			nextSize *= 2;
-		}
-
-		byte[] tmp = new byte[nextSize];
-		System.arraycopy(buffer, offset, tmp, 0, used - offset);
-
-		buffer = tmp;
-		used -= offset;
-		offset = 0;
+	public InputStream getStream() {
+		return this.stream;
 	}
 
-	public byte[] getBuffer() {
-		return buffer;
-	}
-
-	public int getBufferOffset() {
-		return used;
-	}
-
-	public int getBufferCapacity() {
-		return buffer.length - used;
-	}
-
-	public void bufferConsumed(int size) {
-		used += size;
+	public void setStream(InputStream stream) {
+		this.stream = stream;
 	}
 
 	public void feed(ByteBuffer buffer) {
 		int length = buffer.remaining();
 		if (length == 0) return;
 		reserveBuffer(length);
-		buffer.get(this.buffer, this.offset, length);
+		buffer.get(impl.buffer, this.offset, length);
 		bufferConsumed(length);
 	}
 
@@ -118,48 +107,116 @@ public class Unpacker extends UnpackerImpl implements Iterable<Object> {
 
 	public void feed(byte[] buffer, int offset, int length) {
 		reserveBuffer(length);
-		System.arraycopy(buffer, offset, this.buffer, this.offset, length);
+		System.arraycopy(buffer, offset, impl.buffer, this.offset, length);
 		bufferConsumed(length);
 	}
 
 	public boolean fill() throws IOException {
-		if(stream == null) {
-			return false;
-		}
-		reserveBuffer(bufferReserveSize);
-		int rl = stream.read(getBuffer(), getBufferOffset(), getBufferCapacity());
-		if(rl <= 0) {
-			return false;
-		}
-		bufferConsumed(rl);
-		return true;
+		return impl.fill();
 	}
 
 	public Iterator<Object> iterator() {
 		return new UnpackIterator(this);
 	}
 
+	public UnpackResult next() throws IOException, UnpackException {
+		UnpackResult result = new UnpackResult();
+		this.offset = impl.next(this.offset, result);
+		return result;
+	}
+
+	public boolean next(UnpackResult result) throws IOException, UnpackException {
+		this.offset = impl.next(this.offset, result);
+		return result.isFinished();
+	}
+
+
+	public void reserveBuffer(int require) {
+		if(impl.buffer == null) {
+			int nextSize = (bufferReserveSize < require) ? require : bufferReserveSize;
+			impl.buffer = new byte[nextSize];
+			return;
+		}
+
+		if(impl.buffer.length - impl.filled >= require) {
+			return;
+		}
+
+		int nextSize = impl.buffer.length * 2;
+		int notParsed = impl.filled - this.offset;
+		while(nextSize < require + notParsed) {
+			nextSize *= 2;
+		}
+
+		byte[] tmp = new byte[nextSize];
+		System.arraycopy(impl.buffer, this.offset, tmp, 0, impl.filled - this.offset);
+
+		impl.buffer = tmp;
+		impl.filled = notParsed;
+		this.offset = 0;
+	}
+
+	public byte[] getBuffer() {
+		return impl.buffer;
+	}
+
+	public int getBufferOffset() {
+		return impl.filled;
+	}
+
+	public int getBufferCapacity() {
+		return impl.buffer.length - impl.filled;
+	}
+
+	public void bufferConsumed(int size) {
+		impl.filled += size;
+	}
+
 	public boolean execute() throws UnpackException {
-		int noffset = super.execute(buffer, offset, used);
+		int noffset = impl.execute(impl.buffer, offset, impl.filled);
 		if(noffset <= offset) {
 			return false;
 		}
 		parsed += noffset - offset;
 		offset = noffset;
-		return super.isFinished();
+		return impl.isFinished();
+	}
+
+
+	public int execute(byte[] buffer) throws UnpackException {
+		return execute(buffer, 0, buffer.length);
+	}
+
+	public int execute(byte[] buffer, int offset, int length) throws UnpackException {
+		int noffset = impl.execute(buffer, offset + this.offset, length);
+		this.offset = noffset - offset;
+		if(impl.isFinished()) {
+			impl.resetState();
+		}
+		return noffset;
+	}
+
+	public boolean isFinished() {
+		return impl.isFinished();
 	}
 
 	public Object getData() {
-		return super.getData();
+		return impl.getData();
 	}
 
 	public void reset() {
-		super.reset();
-		parsed = 0;
+		impl.reset();
 	}
 
+
+	public UnpackCursor begin()
+	{
+		return new UnpackCursor(this, offset);
+	}
+
+
 	public int getMessageSize() {
-		return parsed - offset + used;
+		return parsed - offset + impl.filled;
 	}
 
 	public int getParsedSize() {
@@ -167,7 +224,7 @@ public class Unpacker extends UnpackerImpl implements Iterable<Object> {
 	}
 
 	public int getNonParsedSize() {
-		return used - offset;
+		return impl.filled - offset;
 	}
 
 	public void skipNonparsedBuffer(int size) {
@@ -175,80 +232,14 @@ public class Unpacker extends UnpackerImpl implements Iterable<Object> {
 	}
 
 	public void removeNonparsedBuffer() {
-		used = offset;
+		impl.filled = offset;
 	}
 
-	/*
-	public static class Context {
-		private boolean finished;
-		private Object data;
-		private int offset;
-		private UnpackerImpl impl;
 
-		public Context()
-		{
-			this.finished = false;
-			this.impl = new UnpackerImpl();
-		}
-
-		public boolean isFinished()
-		{
-			return finished;
-		}
-
-		public Object getData()
-		{
-			return data;
-		}
-
-		int getOffset()
-		{
-			return offset;
-		}
-
-		void setFinished(boolean finished)
-		{
-			this.finished = finished;
-		}
-
-		void setData(Object data)
-		{
-			this.data = data;
-		}
-
-		void setOffset(int offset)
-		{
-			this.offset = offset;
-		}
-
-		UnpackerImpl getImpl()
-		{
-			return impl;
-		}
-	}
-
-	public static int unpack(Context ctx, byte[] buffer) throws UnpackException
+	void setOffset(int offset)
 	{
-		return unpack(ctx, buffer, 0, buffer.length);
+		parsed += offset - this.offset;
+		this.offset = offset;
 	}
-
-	public static int unpack(Context ctx, byte[] buffer, int offset, int length) throws UnpackException
-	{
-		UnpackerImpl impl = ctx.getImpl();
-		int noffset = impl.execute(buffer, offset + ctx.getOffset(), length);
-		ctx.setOffset(noffset - offset);
-		if(impl.isFinished()) {
-			ctx.setData(impl.getData());
-			ctx.setFinished(false);
-			impl.reset();
-		} else {
-			ctx.setData(null);
-			ctx.setFinished(true);
-		}
-		int parsed = noffset - offset;
-		ctx.setOffset(parsed);
-		return noffset;
-	}
-	*/
 }
 

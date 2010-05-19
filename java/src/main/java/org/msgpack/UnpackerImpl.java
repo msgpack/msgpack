@@ -15,7 +15,7 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 //
-package org.msgpack.impl;
+package org.msgpack;
 
 import java.nio.ByteBuffer;
 //import java.math.BigInteger;
@@ -47,7 +47,7 @@ public class UnpackerImpl {
 	static final int CT_MAP_KEY     = 0x01;
 	static final int CT_MAP_VALUE   = 0x02;
 
-	static final int MAX_STACK_SIZE = 16;
+	static final int MAX_STACK_SIZE = 32;
 
 	private int cs;
 	private int trail;
@@ -67,41 +67,45 @@ public class UnpackerImpl {
 	private static final Schema GENERIC_SCHEMA = new GenericSchema();
 	private Schema rootSchema;
 
-	protected UnpackerImpl()
+	public UnpackerImpl()
 	{
 		setSchema(GENERIC_SCHEMA);
 	}
 
-	protected void setSchema(Schema schema)
+	public void setSchema(Schema schema)
 	{
 		this.rootSchema = schema;
 		reset();
 	}
 
-	protected Object getData()
+	public final Object getData()
 	{
 		return data;
 	}
 
-	protected boolean isFinished()
+	public final boolean isFinished()
 	{
 		return finished;
 	}
 
-	protected void reset()
-	{
+	public final void resetState() {
 		cs = CS_HEADER;
 		top = -1;
-		finished = false;
-		data = null;
 		top_ct = 0;
 		top_count = 0;
 		top_obj = null;
 		top_schema = rootSchema;
 	}
 
+	public final void reset()
+	{
+		resetState();
+		finished = false;
+		data = null;
+	}
+
 	@SuppressWarnings("unchecked")
-	protected int execute(byte[] src, int off, int length) throws UnpackException
+	public final int execute(byte[] src, int off, int length) throws UnpackException
 	{
 		if(off >= length) { return off; }
 

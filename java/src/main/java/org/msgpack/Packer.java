@@ -401,7 +401,7 @@ public class Packer {
 		} else if(o instanceof Double) {
 			return packDouble((Double)o);
 		} else {
-			throw new IOException("unknown object "+o+" ("+o.getClass()+")");
+			throw new MessageTypeException("unknown object "+o+" ("+o.getClass()+")");
 		}
 	}
 }

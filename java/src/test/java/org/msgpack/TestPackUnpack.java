@@ -237,5 +237,5 @@ public class TestPackUnpack {
             System.out.println("Got unexpected class: " + obj.getClass());
             assertTrue(false);
         }
-    }    
+    }
 };

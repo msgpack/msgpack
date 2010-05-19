@@ -17,21 +17,26 @@
 //
 package org.msgpack;
 
-public class MessageTypeException extends RuntimeException {
-	public MessageTypeException() { }
+public class UnpackResult {
+	protected boolean finished = false;
+	protected Object data = null;
 
-	public MessageTypeException(String s) {
-		super(s);
+	public boolean isFinished() {
+		return finished;
 	}
 
-	public static MessageTypeException invalidConvert(Object from, Schema to) {
-		return new MessageTypeException(from.getClass().getName()+" cannot be convert to "+to.getExpression());
+	public Object getData() {
+		return data;
 	}
 
-	/* FIXME
-	public static MessageTypeException schemaMismatch(Schema to) {
-		return new MessageTypeException("schema mismatch "+to.getExpression());
+	public void reset() {
+		finished = false;
+		data = null;
 	}
-	*/
+
+	void done(Object obj) {
+		finished = true;
+		data = obj;
+	}
 }
 

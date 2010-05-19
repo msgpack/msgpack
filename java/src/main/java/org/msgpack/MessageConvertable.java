@@ -17,21 +17,7 @@
 //
 package org.msgpack;
 
-public class MessageTypeException extends RuntimeException {
-	public MessageTypeException() { }
-
-	public MessageTypeException(String s) {
-		super(s);
-	}
-
-	public static MessageTypeException invalidConvert(Object from, Schema to) {
-		return new MessageTypeException(from.getClass().getName()+" cannot be convert to "+to.getExpression());
-	}
-
-	/* FIXME
-	public static MessageTypeException schemaMismatch(Schema to) {
-		return new MessageTypeException("schema mismatch "+to.getExpression());
-	}
-	*/
+public interface MessageConvertable {
+	public void messageConvert(Object obj) throws MessageTypeException;
 }
 
