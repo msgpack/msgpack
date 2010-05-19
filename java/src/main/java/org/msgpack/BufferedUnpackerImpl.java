@@ -22,16 +22,17 @@ import java.nio.ByteBuffer;
 //import java.math.BigInteger;
 
 abstract class BufferedUnpackerImpl extends UnpackerImpl {
+	int offset = 0;
 	int filled = 0;
 	byte[] buffer = null;
 	private ByteBuffer castBuffer = ByteBuffer.allocate(8);
 
 	abstract boolean fill() throws IOException;
 
-	final int next(int offset, UnpackResult result) throws IOException, UnpackException {
+	final boolean next(UnpackResult result) throws IOException, UnpackException {
 		if(filled == 0) {
 			if(!fill()) {
-				return offset;
+				return false;
 			}
 		}
 
@@ -39,8 +40,9 @@ abstract class BufferedUnpackerImpl extends UnpackerImpl {
 			int noffset = super.execute(buffer, offset, filled);
 			if(noffset <= offset) {
 				if(!fill()) {
-					return offset;
+					return false;
 				}
+				continue;
 			}
 			offset = noffset;
 		} while(!super.isFinished());
@@ -49,10 +51,10 @@ abstract class BufferedUnpackerImpl extends UnpackerImpl {
 		super.reset();
 		result.done(obj);
 
-		return offset;
+		return true;
 	}
 
-	private final void more(int offset, int require) throws IOException, UnpackException {
+	private final void more(int require) throws IOException, UnpackException {
 		while(filled - offset < require) {
 			if(!fill()) {
 				// FIXME
@@ -61,41 +63,46 @@ abstract class BufferedUnpackerImpl extends UnpackerImpl {
 		}
 	}
 
-	final byte unpackByte(UnpackCursor c, int offset) throws IOException, MessageTypeException {
-		int o = unpackInt(c, offset);
+	private final void advance(int length) {
+		offset += length;
+	}
+
+	final byte unpackByte() throws IOException, MessageTypeException {
+		int o = unpackInt();
 		if(0x7f < o || o < -0x80) {
 			throw new MessageTypeException();
 		}
 		return (byte)o;
 	}
 
-	final short unpackShort(UnpackCursor c, int offset) throws IOException, MessageTypeException {
-		int o = unpackInt(c, offset);
+	final short unpackShort() throws IOException, MessageTypeException {
+		int o = unpackInt();
 		if(0x7fff < o || o < -0x8000) {
 			throw new MessageTypeException();
 		}
 		return (short)o;
 	}
 
-	final int unpackInt(UnpackCursor c, int offset) throws IOException, MessageTypeException {
-		more(offset, 1);
+	final int unpackInt() throws IOException, MessageTypeException {
+		more(1);
 		int b = buffer[offset];
 		if((b & 0x80) == 0 || (b & 0xe0) == 0xe0) {  // Fixnum
+			advance(1);
 			return (int)b;
 		}
 		switch(b & 0xff) {
 		case 0xcc:  // unsigned int  8
-			more(offset, 2);
-			c.advance(2);
+			more(2);
+			advance(2);
 			return (int)((short)buffer[offset+1] & 0xff);
 		case 0xcd:  // unsigned int 16
-			more(offset, 3);
+			more(3);
 			castBuffer.rewind();
 			castBuffer.put(buffer, offset+1, 2);
-			c.advance(3);
+			advance(3);
 			return (int)((int)castBuffer.getShort(0) & 0xffff);
 		case 0xce:  // unsigned int 32
-			more(offset, 5);
+			more(5);
 			castBuffer.rewind();
 			castBuffer.put(buffer, offset+1, 4);
 			{
@@ -103,11 +110,11 @@ abstract class BufferedUnpackerImpl extends UnpackerImpl {
 				if(o < 0) {
 					throw new MessageTypeException();
 				}
-				c.advance(5);
+				advance(5);
 				return o;
 			}
 		case 0xcf:  // unsigned int 64
-			more(offset, 9);
+			more(9);
 			castBuffer.rewind();
 			castBuffer.put(buffer, offset+1, 8);
 			{
@@ -115,27 +122,27 @@ abstract class BufferedUnpackerImpl extends UnpackerImpl {
 				if(o < 0 || o > 0x7fffffffL) {
 					throw new MessageTypeException();
 				}
-				c.advance(9);
+				advance(9);
 				return (int)o;
 			}
 		case 0xd0:  // signed int  8
-			more(offset, 2);
-			c.advance(2);
+			more(2);
+			advance(2);
 			return (int)buffer[offset+1];
 		case 0xd1:  // signed int 16
-			more(offset, 3);
+			more(3);
 			castBuffer.rewind();
 			castBuffer.put(buffer, offset+1, 2);
-			c.advance(3);
+			advance(3);
 			return (int)castBuffer.getShort(0);
 		case 0xd2:  // signed int 32
-			more(offset, 4);
+			more(4);
 			castBuffer.rewind();
 			castBuffer.put(buffer, offset+1, 4);
-			c.advance(4);
+			advance(4);
 			return (int)castBuffer.getInt(0);
 		case 0xd3:  // signed int 64
-			more(offset, 9);
+			more(9);
 			castBuffer.rewind();
 			castBuffer.put(buffer, offset+1, 8);
 			{
@@ -143,7 +150,7 @@ abstract class BufferedUnpackerImpl extends UnpackerImpl {
 				if(0x7fffffffL < o || o < -0x80000000L) {
 					throw new MessageTypeException();
 				}
-				c.advance(9);
+				advance(9);
 				return (int)o;
 			}
 		default:
@@ -151,31 +158,32 @@ abstract class BufferedUnpackerImpl extends UnpackerImpl {
 		}
 	}
 
-	final long unpackLong(UnpackCursor c, int offset) throws IOException, MessageTypeException {
-		more(offset, 1);
+	final long unpackLong() throws IOException, MessageTypeException {
+		more(1);
 		int b = buffer[offset];
 		if((b & 0x80) == 0 || (b & 0xe0) == 0xe0) {  // Fixnum
+			advance(1);
 			return (long)b;
 		}
 		switch(b & 0xff) {
 		case 0xcc:  // unsigned int  8
-			more(offset, 2);
-			c.advance(2);
+			more(2);
+			advance(2);
 			return (long)((short)buffer[offset+1] & 0xff);
 		case 0xcd:  // unsigned int 16
-			more(offset, 3);
+			more(3);
 			castBuffer.rewind();
 			castBuffer.put(buffer, offset+1, 2);
-			c.advance(3);
+			advance(3);
 			return (long)((int)castBuffer.getShort(0) & 0xffff);
 		case 0xce:  // unsigned int 32
-			more(offset, 5);
+			more(5);
 			castBuffer.rewind();
 			castBuffer.put(buffer, offset+1, 4);
-			c.advance(5);
+			advance(5);
 			return ((long)castBuffer.getInt(0) & 0xffffffffL);
 		case 0xcf:  // unsigned int 64
-			more(offset, 9);
+			more(9);
 			castBuffer.rewind();
 			castBuffer.put(buffer, offset+1, 8);
 			{
@@ -184,51 +192,51 @@ abstract class BufferedUnpackerImpl extends UnpackerImpl {
 					// FIXME
 					throw new MessageTypeException("uint 64 bigger than 0x7fffffff is not supported");
 				}
-				c.advance(9);
+				advance(9);
 				return o;
 			}
 		case 0xd0:  // signed int  8
-			more(offset, 2);
-			c.advance(2);
+			more(2);
+			advance(2);
 			return (long)buffer[offset+1];
 		case 0xd1:  // signed int 16
-			more(offset, 3);
+			more(3);
 			castBuffer.rewind();
 			castBuffer.put(buffer, offset+1, 2);
-			c.advance(3);
+			advance(3);
 			return (long)castBuffer.getShort(0);
 		case 0xd2:  // signed int 32
-			more(offset, 4);
+			more(4);
 			castBuffer.rewind();
 			castBuffer.put(buffer, offset+1, 4);
-			c.advance(4);
+			advance(4);
 			return (long)castBuffer.getInt(0);
 		case 0xd3:  // signed int 64
-			more(offset, 9);
+			more(9);
 			castBuffer.rewind();
 			castBuffer.put(buffer, offset+1, 8);
-			c.advance(9);
+			advance(9);
 			return (long)castBuffer.getLong(0);
 		default:
 			throw new MessageTypeException();
 		}
 	}
 
-	final float unpackFloat(UnpackCursor c, int offset) throws IOException, MessageTypeException {
-		more(offset, 1);
+	final float unpackFloat() throws IOException, MessageTypeException {
+		more(1);
 		int b = buffer[offset];
 		switch(b & 0xff) {
 		case 0xca:  // float
-			more(offset, 5);
+			more(5);
 			castBuffer.rewind();
 			castBuffer.put(buffer, offset+1, 4);
-			c.advance(5);
+			advance(5);
 			return castBuffer.getFloat(0);
 		case 0xcb:  // double
-			more(offset, 9);
+			more(9);
 			castBuffer.rewind();
 			castBuffer.put(buffer, offset+1, 8);
-			c.advance(9);
+			advance(9);
 			// FIXME overflow check
 			return (float)castBuffer.getDouble(0);
 		default:
@@ -236,70 +244,70 @@ abstract class BufferedUnpackerImpl extends UnpackerImpl {
 		}
 	}
 
-	final double unpackDouble(UnpackCursor c, int offset) throws IOException, MessageTypeException {
-		more(offset, 1);
+	final double unpackDouble() throws IOException, MessageTypeException {
+		more(1);
 		int b = buffer[offset];
 		switch(b & 0xff) {
 		case 0xca:  // float
-			more(offset, 5);
+			more(5);
 			castBuffer.rewind();
 			castBuffer.put(buffer, offset+1, 4);
-			c.advance(5);
+			advance(5);
 			return (double)castBuffer.getFloat(0);
 		case 0xcb:  // double
-			more(offset, 9);
+			more(9);
 			castBuffer.rewind();
 			castBuffer.put(buffer, offset+1, 8);
-			c.advance(9);
+			advance(9);
 			return castBuffer.getDouble(0);
 		default:
 			throw new MessageTypeException();
 		}
 	}
 
-	final Object unpackNull(UnpackCursor c, int offset) throws IOException, MessageTypeException {
-		more(offset, 1);
+	final Object unpackNull() throws IOException, MessageTypeException {
+		more(1);
 		int b = buffer[offset] & 0xff;
 		if(b != 0xc0) {  // nil
 			throw new MessageTypeException();
 		}
-		c.advance(1);
+		advance(1);
 		return null;
 	}
 
-	final boolean unpackBoolean(UnpackCursor c, int offset) throws IOException, MessageTypeException {
-		more(offset, 1);
+	final boolean unpackBoolean() throws IOException, MessageTypeException {
+		more(1);
 		int b = buffer[offset] & 0xff;
 		if(b == 0xc2) {  // false
-			c.advance(1);
+			advance(1);
 			return false;
 		} else if(b == 0xc3) {  // true
-			c.advance(1);
+			advance(1);
 			return true;
 		} else {
 			throw new MessageTypeException();
 		}
 	}
 
-	final int unpackArray(UnpackCursor c, int offset) throws IOException, MessageTypeException {
-		more(offset, 1);
+	final int unpackArray() throws IOException, MessageTypeException {
+		more(1);
 		int b = buffer[offset];
 		if((b & 0xf0) == 0x90) {  // FixArray
-			c.advance(1);
+			advance(1);
 			return (int)(b & 0x0f);
 		}
 		switch(b & 0xff) {
 		case 0xdc:  // array 16
-			more(offset, 3);
+			more(3);
 			castBuffer.rewind();
 			castBuffer.put(buffer, offset+1, 2);
-			c.advance(3);
+			advance(3);
 			return (int)castBuffer.getShort(0) & 0xffff;
 		case 0xdd:  // array 32
-			more(offset, 5);
+			more(5);
 			castBuffer.rewind();
 			castBuffer.put(buffer, offset+1, 4);
-			c.advance(5);
+			advance(5);
 			// FIXME overflow check
 			return castBuffer.getInt(0) & 0x7fffffff;
 		default:
@@ -307,25 +315,25 @@ abstract class BufferedUnpackerImpl extends UnpackerImpl {
 		}
 	}
 
-	final int unpackMap(UnpackCursor c, int offset) throws IOException, MessageTypeException {
-		more(offset, 1);
+	final int unpackMap() throws IOException, MessageTypeException {
+		more(1);
 		int b = buffer[offset];
 		if((b & 0xf0) == 0x80) {  // FixMap
-			c.advance(1);
+			advance(1);
 			return (int)(b & 0x0f);
 		}
 		switch(b & 0xff) {
 		case 0xde:  // map 16
-			more(offset, 3);
+			more(3);
 			castBuffer.rewind();
 			castBuffer.put(buffer, offset+1, 2);
-			c.advance(3);
+			advance(3);
 			return (int)castBuffer.getShort(0) & 0xffff;
 		case 0xdf:  // map 32
-			more(offset, 5);
+			more(5);
 			castBuffer.rewind();
 			castBuffer.put(buffer, offset+1, 4);
-			c.advance(5);
+			advance(5);
 			// FIXME overflow check
 			return castBuffer.getInt(0) & 0x7fffffff;
 		default:
@@ -333,25 +341,25 @@ abstract class BufferedUnpackerImpl extends UnpackerImpl {
 		}
 	}
 
-	final int unpackRaw(UnpackCursor c, int offset) throws IOException, MessageTypeException {
-		more(offset, 1);
+	final int unpackRaw() throws IOException, MessageTypeException {
+		more(1);
 		int b = buffer[offset];
 		if((b & 0xe0) == 0xa0) {  // FixRaw
-			c.advance(1);
-			return (int)(b & 0x0f);
+			advance(1);
+			return (int)(b & 0x1f);
 		}
 		switch(b & 0xff) {
 		case 0xda:  // raw 16
-			more(offset, 3);
+			more(3);
 			castBuffer.rewind();
 			castBuffer.put(buffer, offset+1, 2);
-			c.advance(3);
+			advance(3);
 			return (int)castBuffer.getShort(0) & 0xffff;
 		case 0xdb:  // raw 32
-			more(offset, 5);
+			more(5);
 			castBuffer.rewind();
 			castBuffer.put(buffer, offset+1, 4);
-			c.advance(5);
+			advance(5);
 			// FIXME overflow check
 			return castBuffer.getInt(0) & 0x7fffffff;
 		default:
@@ -359,26 +367,35 @@ abstract class BufferedUnpackerImpl extends UnpackerImpl {
 		}
 	}
 
-	final byte[] unpackRawBody(UnpackCursor c, int offset, int length) throws IOException, MessageTypeException {
-		more(offset, length);
+	final byte[] unpackRawBody(int length) throws IOException, MessageTypeException {
+		more(length);
 		byte[] bytes = new byte[length];
 		System.arraycopy(buffer, offset, bytes, 0, length);
-		c.advance(length);
+		advance(length);
 		return bytes;
 	}
 
-	final String unpackString(UnpackCursor c, int offset) throws IOException, MessageTypeException {
-		int length = unpackRaw(c, offset);
-		offset = c.getOffset();
-		more(offset, length);
+	final String unpackString() throws IOException, MessageTypeException {
+		int length = unpackRaw();
+		more(length);
 		String s;
 		try {
 			s = new String(buffer, offset, length, "UTF-8");
 		} catch (Exception e) {
 			throw new MessageTypeException();
 		}
-		c.advance(length);
+		advance(length);
 		return s;
+	}
+
+	final Object unpackObject() throws IOException, MessageTypeException {
+		// FIXME save state, restore state
+		UnpackResult result = new UnpackResult();
+		if(!next(result)) {
+			super.reset();
+			throw new MessageTypeException();
+		}
+		return result.getData();
 	}
 }
 

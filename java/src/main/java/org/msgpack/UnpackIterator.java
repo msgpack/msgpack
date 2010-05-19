@@ -30,6 +30,7 @@ public class UnpackIterator extends UnpackResult implements Iterator<Object> {
 	}
 
 	public boolean hasNext() {
+		if(finished) { return true; }
 		try {
 			return pac.next(this);
 		} catch (IOException e) {

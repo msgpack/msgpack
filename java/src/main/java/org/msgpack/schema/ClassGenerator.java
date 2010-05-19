@@ -105,7 +105,7 @@ public class ClassGenerator {
 
 	private void writeClass() throws IOException {
 		line();
-		line("public final class "+schema.getName()+" implements MessagePackable, MessageMergeable");
+		line("public final class "+schema.getName()+" implements MessagePackable, MessageConvertable");
 		line("{");
 		pushIndent();
 			writeSchema();
@@ -117,7 +117,7 @@ public class ClassGenerator {
 
 	private void writeSubclass() throws IOException {
 		line();
-		line("final class "+schema.getName()+" implements MessagePackable, MessageMergeable");
+		line("final class "+schema.getName()+" implements MessagePackable, MessageConvertable");
 		line("{");
 		pushIndent();
 			writeSchema();
@@ -150,7 +150,7 @@ public class ClassGenerator {
 		writeConstructors();
 		writeAccessors();
 		writePackFunction();
-		writeMergeFunction();
+		writeConvertFunction();
 		writeFactoryFunction();
 	}
 
@@ -184,11 +184,11 @@ public class ClassGenerator {
 		line("}");
 	}
 
-	private void writeMergeFunction() throws IOException {
+	private void writeConvertFunction() throws IOException {
 		line();
 		line("@Override");
 		line("@SuppressWarnings(\"unchecked\")");
-		line("public void messageMerge(Object obj) throws MessageTypeException");
+		line("public void messageConvert(Object obj) throws MessageTypeException");
 		line("{");
 		pushIndent();
 			line("Object[] _source = ((List)obj).toArray();");

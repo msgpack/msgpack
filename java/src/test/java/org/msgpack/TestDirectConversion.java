@@ -8,12 +8,6 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 public class TestDirectConversion {
-    private UnpackCursor prepareCursor(ByteArrayOutputStream out) {
-        ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-        Unpacker upk = new Unpacker(in);
-        return upk.begin();
-    }
-
     @Test
     public void testInt() throws Exception {
         testInt(0);
@@ -28,9 +22,9 @@ public class TestDirectConversion {
     public void testInt(int val) throws Exception {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         new Packer(out).pack(val);
-        UnpackCursor c = prepareCursor(out);
-        assertEquals(val, c.unpackInt());
-        c.commit();
+        ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+        Unpacker upk = new Unpacker(in);
+        assertEquals(val, upk.unpackInt());
     }
 
     @Test
@@ -51,14 +45,14 @@ public class TestDirectConversion {
     public void testFloat(float val) throws Exception {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         new Packer(out).pack(val);
-        UnpackCursor c = prepareCursor(out);
-        float f = c.unpackFloat();
+        ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+        Unpacker upk = new Unpacker(in);
+        float f = upk.unpackFloat();
         if(Float.isNaN(val)) {
             assertTrue(Float.isNaN(f));
         } else {
             assertEquals(val, f, 10e-10);
         }
-        c.commit();
     }
 
     @Test
@@ -79,23 +73,23 @@ public class TestDirectConversion {
     public void testDouble(double val) throws Exception {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         new Packer(out).pack(val);
-        UnpackCursor c = prepareCursor(out);
-        double f = c.unpackDouble();
+        ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+        Unpacker upk = new Unpacker(in);
+        double f = upk.unpackDouble();
         if(Double.isNaN(val)) {
             assertTrue(Double.isNaN(f));
         } else {
             assertEquals(val, f, 10e-10);
         }
-        c.commit();
     }
 
     @Test
     public void testNil() throws Exception {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         new Packer(out).packNil();
-        UnpackCursor c = prepareCursor(out);
-        assertEquals(null, c.unpackNull());
-        c.commit();
+        ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+        Unpacker upk = new Unpacker(in);
+        assertEquals(null, upk.unpackNull());
     }
 
     @Test
@@ -106,9 +100,9 @@ public class TestDirectConversion {
     public void testBoolean(boolean val) throws Exception {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         new Packer(out).pack(val);
-        UnpackCursor c = prepareCursor(out);
-        assertEquals(val, c.unpackBoolean());
-        c.commit();
+        ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+        Unpacker upk = new Unpacker(in);
+        assertEquals(val, upk.unpackBoolean());
     }
 
     @Test
@@ -145,9 +139,9 @@ public class TestDirectConversion {
     public void testString(String val) throws Exception {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         new Packer(out).pack(val);
-        UnpackCursor c = prepareCursor(out);
-        assertEquals(val, c.unpackString());
-        c.commit();
+        ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+        Unpacker upk = new Unpacker(in);
+        assertEquals(val, upk.unpackString());
     }
 
     // FIXME container types

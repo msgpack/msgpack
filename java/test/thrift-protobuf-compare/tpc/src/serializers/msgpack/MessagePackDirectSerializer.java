@@ -5,10 +5,10 @@ import java.util.*;
 import org.msgpack.*;
 import serializers.ObjectSerializer;
 
-public class MessagePackSpecificSerializer implements ObjectSerializer<MediaContent>
+public class MessagePackDirectSerializer implements ObjectSerializer<MediaContent>
 {
 	public String getName() {
-		return "msgpack-specific";
+		return "msgpack-direct";
 	}
 
 	public MediaContent create() throws Exception {
@@ -58,9 +58,11 @@ public class MessagePackSpecificSerializer implements ObjectSerializer<MediaCont
 	}
 
 	public MediaContent deserialize(byte[] array) throws Exception {
-		Unpacker pac = new Unpacker().useSchema(MediaContent.getSchema());
-		pac.execute(array);
-		return (MediaContent)pac.getData();
+		Unpacker pac = new Unpacker();
+		pac.feed(array);
+		MediaContent obj = new MediaContent();
+		obj.messageUnpack(pac);
+		return obj;
 	}
 }
 

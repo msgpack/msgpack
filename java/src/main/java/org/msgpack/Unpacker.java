@@ -36,7 +36,6 @@ public class Unpacker implements Iterable<Object> {
 
 	private static final int DEFAULT_BUFFER_SIZE = 32*1024;
 
-	protected int offset;
 	protected int parsed;
 	protected int bufferReserveSize;
 	protected InputStream stream;
@@ -73,7 +72,6 @@ public class Unpacker implements Iterable<Object> {
 	}
 
 	public Unpacker(InputStream stream, int bufferReserveSize) {
-		this.offset = 0;
 		this.parsed = 0;
 		this.bufferReserveSize = bufferReserveSize/2;
 		this.stream = stream;
@@ -97,7 +95,7 @@ public class Unpacker implements Iterable<Object> {
 		int length = buffer.remaining();
 		if (length == 0) return;
 		reserveBuffer(length);
-		buffer.get(impl.buffer, this.offset, length);
+		buffer.get(impl.buffer, impl.offset, length);
 		bufferConsumed(length);
 	}
 
@@ -107,7 +105,7 @@ public class Unpacker implements Iterable<Object> {
 
 	public void feed(byte[] buffer, int offset, int length) {
 		reserveBuffer(length);
-		System.arraycopy(buffer, offset, impl.buffer, this.offset, length);
+		System.arraycopy(buffer, offset, impl.buffer, impl.offset, length);
 		bufferConsumed(length);
 	}
 
@@ -121,13 +119,12 @@ public class Unpacker implements Iterable<Object> {
 
 	public UnpackResult next() throws IOException, UnpackException {
 		UnpackResult result = new UnpackResult();
-		this.offset = impl.next(this.offset, result);
+		impl.next(result);
 		return result;
 	}
 
 	public boolean next(UnpackResult result) throws IOException, UnpackException {
-		this.offset = impl.next(this.offset, result);
-		return result.isFinished();
+		return impl.next(result);
 	}
 
 
@@ -143,17 +140,17 @@ public class Unpacker implements Iterable<Object> {
 		}
 
 		int nextSize = impl.buffer.length * 2;
-		int notParsed = impl.filled - this.offset;
+		int notParsed = impl.filled - impl.offset;
 		while(nextSize < require + notParsed) {
 			nextSize *= 2;
 		}
 
 		byte[] tmp = new byte[nextSize];
-		System.arraycopy(impl.buffer, this.offset, tmp, 0, impl.filled - this.offset);
+		System.arraycopy(impl.buffer, impl.offset, tmp, 0, impl.filled - impl.offset);
 
 		impl.buffer = tmp;
 		impl.filled = notParsed;
-		this.offset = 0;
+		impl.offset = 0;
 	}
 
 	public byte[] getBuffer() {
@@ -173,12 +170,12 @@ public class Unpacker implements Iterable<Object> {
 	}
 
 	public boolean execute() throws UnpackException {
-		int noffset = impl.execute(impl.buffer, offset, impl.filled);
-		if(noffset <= offset) {
+		int noffset = impl.execute(impl.buffer, impl.offset, impl.filled);
+		if(noffset <= impl.offset) {
 			return false;
 		}
-		parsed += noffset - offset;
-		offset = noffset;
+		parsed += noffset - impl.offset;
+		impl.offset = noffset;
 		return impl.isFinished();
 	}
 
@@ -188,8 +185,8 @@ public class Unpacker implements Iterable<Object> {
 	}
 
 	public int execute(byte[] buffer, int offset, int length) throws UnpackException {
-		int noffset = impl.execute(buffer, offset + this.offset, length);
-		this.offset = noffset - offset;
+		int noffset = impl.execute(buffer, offset + impl.offset, length);
+		impl.offset = noffset - offset;
 		if(impl.isFinished()) {
 			impl.resetState();
 		}
@@ -208,15 +205,8 @@ public class Unpacker implements Iterable<Object> {
 		impl.reset();
 	}
 
-
-	public UnpackCursor begin()
-	{
-		return new UnpackCursor(this, offset);
-	}
-
-
 	public int getMessageSize() {
-		return parsed - offset + impl.filled;
+		return parsed - impl.offset + impl.filled;
 	}
 
 	public int getParsedSize() {
@@ -224,22 +214,72 @@ public class Unpacker implements Iterable<Object> {
 	}
 
 	public int getNonParsedSize() {
-		return impl.filled - offset;
+		return impl.filled - impl.offset;
 	}
 
 	public void skipNonparsedBuffer(int size) {
-		offset += size;
+		impl.offset += size;
 	}
 
 	public void removeNonparsedBuffer() {
-		impl.filled = offset;
+		impl.filled = impl.offset;
 	}
 
 
-	void setOffset(int offset)
-	{
-		parsed += offset - this.offset;
-		this.offset = offset;
+	final public byte unpackByte() throws IOException, MessageTypeException {
+		return impl.unpackByte();
+	}
+
+	final public short unpackShort() throws IOException, MessageTypeException {
+		return impl.unpackShort();
+	}
+
+	final public int unpackInt() throws IOException, MessageTypeException {
+		return impl.unpackInt();
+	}
+
+	final public long unpackLong() throws IOException, MessageTypeException {
+		return impl.unpackLong();
+	}
+
+	final public float unpackFloat() throws IOException, MessageTypeException {
+		return impl.unpackFloat();
+	}
+
+	final public double unpackDouble() throws IOException, MessageTypeException {
+		return impl.unpackDouble();
+	}
+
+	final public Object unpackNull() throws IOException, MessageTypeException {
+		return impl.unpackNull();
+	}
+
+	final public boolean unpackBoolean() throws IOException, MessageTypeException {
+		return impl.unpackBoolean();
+	}
+
+	final public int unpackArray() throws IOException, MessageTypeException {
+		return impl.unpackArray();
+	}
+
+	final public int unpackMap() throws IOException, MessageTypeException {
+		return impl.unpackMap();
+	}
+
+	final public int unpackRaw() throws IOException, MessageTypeException {
+		return impl.unpackRaw();
+	}
+
+	final public byte[] unpackRawBody(int length) throws IOException, MessageTypeException {
+		return impl.unpackRawBody(length);
+	}
+
+	final public String unpackString() throws IOException, MessageTypeException {
+		return impl.unpackString();
+	}
+
+	final public Object unpackObject() throws IOException, MessageTypeException {
+		return impl.unpackObject();
 	}
 }
 

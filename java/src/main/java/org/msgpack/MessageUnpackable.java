@@ -20,6 +20,6 @@ package org.msgpack;
 import java.io.IOException;
 
 public interface MessageUnpackable {
-	public void messageUnpack(Unpacker pk) throws IOException, MessageTypeException;
+	public void messageUnpack(Unpacker pac) throws IOException, MessageTypeException;
 }
 

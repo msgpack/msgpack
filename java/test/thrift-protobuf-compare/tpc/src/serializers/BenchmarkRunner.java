@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
 
+import serializers.msgpack.MessagePackDirectSerializer;
 import serializers.msgpack.MessagePackSpecificSerializer;
 import serializers.msgpack.MessagePackIndirectSerializer;
 import serializers.msgpack.MessagePackDynamicSerializer;
@@ -39,6 +40,7 @@ public class BenchmarkRunner
     BenchmarkRunner runner = new BenchmarkRunner();
 
     // binary codecs first
+    runner.addObjectSerializer(new MessagePackDirectSerializer());
     runner.addObjectSerializer(new MessagePackSpecificSerializer());
     runner.addObjectSerializer(new MessagePackIndirectSerializer());
     runner.addObjectSerializer(new MessagePackDynamicSerializer());

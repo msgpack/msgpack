@@ -59,8 +59,8 @@ public class SpecificClassSchema extends ClassSchema {
 				cacheConstructor();
 			}
 			try {
-				MessageMergeable o = (MessageMergeable)constructorCache.newInstance((Object[])null);
-				o.messageMerge(obj);
+				MessageConvertable o = (MessageConvertable)constructorCache.newInstance((Object[])null);
+				o.messageConvert(obj);
 				return o;
 			} catch (InvocationTargetException e) {
 				throw new RuntimeException("can't instantiate "+fqdn+": "+e.getMessage());

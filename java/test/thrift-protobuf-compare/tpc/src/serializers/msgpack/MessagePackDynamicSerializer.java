@@ -60,7 +60,7 @@ public class MessagePackDynamicSerializer implements ObjectSerializer<Object>
 	}
 
 	public Object deserialize(byte[] array) throws Exception {
-		UnbufferedUnpacker pac = new UnbufferedUnpacker();
+		Unpacker pac = new Unpacker();
 		pac.execute(array);
 		return (Object)pac.getData();
 	}

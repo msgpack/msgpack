@@ -6,7 +6,7 @@ import org.msgpack.*;
 import org.msgpack.schema.ClassSchema;
 import org.msgpack.schema.FieldSchema;
 
-public final class MediaContent implements MessagePackable, MessageMergeable
+public final class MediaContent implements MessagePackable, MessageConvertable, MessageUnpackable
 {
 	private static final ClassSchema _SCHEMA = (ClassSchema)Schema.load("(class MediaContent (package serializers.msgpack) (field image (array (class Image (package serializers.msgpack) (field uri string) (field title string) (field width int) (field height int) (field size int)))) (field media (class Media (package serializers.msgpack) (field uri string) (field title string) (field width int) (field height int) (field format string) (field duration long) (field size long) (field bitrate int) (field person (array string)) (field player int) (field copyright string))))");
 	public static ClassSchema getSchema() { return _SCHEMA; }
@@ -27,12 +27,29 @@ public final class MediaContent implements MessagePackable, MessageMergeable
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public void messageMerge(Object obj) throws MessageTypeException
+	public void messageConvert(Object obj) throws MessageTypeException
 	{
 		Object[] _source = ((List)obj).toArray();
 		FieldSchema[] _fields = _SCHEMA.getFields();
 		if(_source.length <= 0) { return; } this.image = (List<Image>)_fields[0].getSchema().convert(_source[0]);
 		if(_source.length <= 1) { return; } this.media = (Media)_fields[1].getSchema().convert(_source[1]);
+	}
+
+	@Override
+	public void messageUnpack(Unpacker _pac) throws IOException, MessageTypeException {
+		int _length = _pac.unpackArray();
+		if(_length <= 0) { return; }
+		int _image_length = _pac.unpackArray();
+		this.image = new ArrayList(_image_length);
+		for(int _i=0; _i < _image_length; ++_i) {
+			Image _image_i = new Image();
+			_image_i.messageUnpack(_pac);
+			this.image.add(_image_i);
+		}
+		if(_length <= 1) { return; }
+		this.media = new Media();
+		this.media.messageUnpack(_pac);
+		for(int _i=2; _i < _length; ++_i) { _pac.unpackObject(); }
 	}
 
 	@SuppressWarnings("unchecked")
@@ -45,7 +62,7 @@ public final class MediaContent implements MessagePackable, MessageMergeable
 	}
 }
 
-final class Image implements MessagePackable, MessageMergeable
+final class Image implements MessagePackable, MessageConvertable, MessageUnpackable
 {
 	private static final ClassSchema _SCHEMA = (ClassSchema)Schema.load("(class Image (package serializers.msgpack) (field uri string) (field title string) (field width int) (field height int) (field size int))");
 	public static ClassSchema getSchema() { return _SCHEMA; }
@@ -72,7 +89,7 @@ final class Image implements MessagePackable, MessageMergeable
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public void messageMerge(Object obj) throws MessageTypeException
+	public void messageConvert(Object obj) throws MessageTypeException
 	{
 		Object[] _source = ((List)obj).toArray();
 		FieldSchema[] _fields = _SCHEMA.getFields();
@@ -81,6 +98,22 @@ final class Image implements MessagePackable, MessageMergeable
 		if(_source.length <= 2) { return; } this.width = (Integer)_fields[2].getSchema().convert(_source[2]);
 		if(_source.length <= 3) { return; } this.height = (Integer)_fields[3].getSchema().convert(_source[3]);
 		if(_source.length <= 4) { return; } this.size = (Integer)_fields[4].getSchema().convert(_source[4]);
+	}
+
+	@Override
+	public void messageUnpack(Unpacker _pac) throws IOException, MessageTypeException {
+		int _length = _pac.unpackArray();
+		if(_length <= 0) { return; }
+		this.uri = _pac.unpackString();
+		if(_length <= 1) { return; }
+		this.title = _pac.unpackString();
+		if(_length <= 2) { return; }
+		this.width = _pac.unpackInt();
+		if(_length <= 3) { return; }
+		this.height = _pac.unpackInt();
+		if(_length <= 4) { return; }
+		this.size = _pac.unpackInt();
+		for(int _i=5; _i < _length; ++_i) { _pac.unpackObject(); }
 	}
 
 	@SuppressWarnings("unchecked")
@@ -96,7 +129,7 @@ final class Image implements MessagePackable, MessageMergeable
 	}
 }
 
-final class Media implements MessagePackable, MessageMergeable
+final class Media implements MessagePackable, MessageConvertable, MessageUnpackable
 {
 	private static final ClassSchema _SCHEMA = (ClassSchema)Schema.load("(class Media (package serializers.msgpack) (field uri string) (field title string) (field width int) (field height int) (field format string) (field duration long) (field size long) (field bitrate int) (field person (array string)) (field player int) (field copyright string))");
 	public static ClassSchema getSchema() { return _SCHEMA; }
@@ -135,7 +168,7 @@ final class Media implements MessagePackable, MessageMergeable
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public void messageMerge(Object obj) throws MessageTypeException
+	public void messageConvert(Object obj) throws MessageTypeException
 	{
 		Object[] _source = ((List)obj).toArray();
 		FieldSchema[] _fields = _SCHEMA.getFields();
@@ -150,6 +183,39 @@ final class Media implements MessagePackable, MessageMergeable
 		if(_source.length <= 8) { return; } this.person = (List<String>)_fields[8].getSchema().convert(_source[8]);
 		if(_source.length <= 9) { return; } this.player = (Integer)_fields[9].getSchema().convert(_source[9]);
 		if(_source.length <= 10) { return; } this.copyright = (String)_fields[10].getSchema().convert(_source[10]);
+	}
+
+	@Override
+	public void messageUnpack(Unpacker _pac) throws IOException, MessageTypeException {
+		int _length = _pac.unpackArray();
+		if(_length <= 0) { return; }
+		this.uri = _pac.unpackString();
+		if(_length <= 1) { return; }
+		this.title = _pac.unpackString();
+		if(_length <= 2) { return; }
+		this.width = _pac.unpackInt();
+		if(_length <= 3) { return; }
+		this.height = _pac.unpackInt();
+		if(_length <= 4) { return; }
+		this.format = _pac.unpackString();
+		if(_length <= 5) { return; }
+		this.duration = _pac.unpackLong();
+		if(_length <= 6) { return; }
+		this.size = _pac.unpackLong();
+		if(_length <= 7) { return; }
+		this.bitrate = _pac.unpackInt();
+		if(_length <= 8) { return; }
+		int _person_length = _pac.unpackArray();
+		this.person = new ArrayList(_person_length);
+		for(int _i=0; _i < _person_length; ++_i) {
+			String _person_i = _pac.unpackString();
+			this.person.add(_person_i);
+		}
+		if(_length <= 9) { return; }
+		this.player = _pac.unpackInt();
+		if(_length <= 10) { return; }
+		this.copyright = _pac.unpackString();
+		for(int _i=11; _i < _length; ++_i) { _pac.unpackObject(); }
 	}
 
 	@SuppressWarnings("unchecked")
