@@ -367,7 +367,7 @@ abstract class BufferedUnpackerImpl extends UnpackerImpl {
 		}
 	}
 
-	final byte[] unpackRawBody(int length) throws IOException, MessageTypeException {
+	final byte[] unpackRawBody(int length) throws IOException {
 		more(length);
 		byte[] bytes = new byte[length];
 		System.arraycopy(buffer, offset, bytes, 0, length);
@@ -388,12 +388,12 @@ abstract class BufferedUnpackerImpl extends UnpackerImpl {
 		return s;
 	}
 
-	final Object unpackObject() throws IOException, MessageTypeException {
+	final Object unpackObject() throws IOException {
 		// FIXME save state, restore state
 		UnpackResult result = new UnpackResult();
 		if(!next(result)) {
 			super.reset();
-			throw new MessageTypeException();
+			throw new UnpackException("insufficient buffer");
 		}
 		return result.getData();
 	}

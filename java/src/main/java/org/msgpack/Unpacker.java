@@ -23,6 +23,82 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.nio.ByteBuffer;
 
+/**
+ * Deserializer class that includes Buffered API, Unbuffered API,
+ * Schema API and Direct Conversion API.
+ *
+ * Buffered API uses the internal buffer of the Unpacker.
+ * Following code uses Buffered API with an input stream:
+ * <pre>
+ * // create an unpacker with input stream
+ * Unpacker pac = new Unpacker(System.in);
+ *
+ * // take a object out using next() method, or ...
+ * UnpackResult result = pac.next();
+ *
+ * // use an iterator.
+ * for(Object obj : pac) {
+ *   // use MessageConvertable interface to convert the
+ *   // the generic object to the specific type.
+ * }
+ * </pre>
+ *
+ * Following code doesn't use the input stream and feeds buffer
+ * using {@link feed(byte[])} method. This is useful to use
+ * special stream like zlib or event-driven I/O library.
+ * <pre>
+ * // create an unpacker without input stream
+ * Unpacker pac = new Unpacker();
+ *
+ * // feed buffer to the internal buffer.
+ * pac.feed(input_bytes);
+ *
+ * // use next() method or iterators.
+ * for(Object obj : pac) {
+ *   // ...
+ * }
+ * </pre>
+ *
+ * The combination of {@link reserveBuffer()}, {@link getBuffer()},
+ * {@link getBufferOffset()}, {@link getBufferCapacity()} and
+ * {@link bufferConsumed()} is useful to omit copying.
+ * <pre>
+ * // create an unpacker without input stream
+ * Unpacker pac = new Unpacker();
+ *
+ * // reserve internal buffer at least 1024 bytes.
+ * pac.reserveBuffer(1024);
+ *
+ * // feed buffer to the internal buffer upto pac.getBufferCapacity() bytes.
+ * System.in.read(pac.getBuffer(), pac.getBufferOffset(), pac.getBufferCapacity());
+ *
+ * // use next() method or iterators.
+ * for(Object obj : pac) {
+ *     // ...
+ * }
+ * </pre>
+ *
+ * Unbuffered API doesn't initialize the internal buffer.
+ * You can manage the buffer manually.
+ * <pre>
+ * // create an unpacker with input stream
+ * Unpacker pac = new Unpacker(System.in);
+ *
+ * // manage the buffer manually.
+ * byte[] buffer = new byte[1024];
+ * int filled = System.in.read(buffer);
+ * int offset = 0;
+ *
+ * // deserialize objects using execute() method.
+ * int nextOffset = pac.execute(buffer, offset, filled);
+ *
+ * // take out object if deserialized object is ready.
+ * if(pac.isFinished()) {
+ *     Object obj = pac.getData();
+ *     // ...
+ * }
+ * </pre>
+ */
 public class Unpacker implements Iterable<Object> {
 
 	// buffer:
@@ -59,38 +135,86 @@ public class Unpacker implements Iterable<Object> {
 	final BufferedUnpackerMixin impl = new BufferedUnpackerMixin();
 
 
+	/**
+	 * Calls {@link Unpacker(DEFAULT_BUFFER_SIZE)}
+	 */
 	public Unpacker() {
 		this(DEFAULT_BUFFER_SIZE);
 	}
 
+	/**
+	 * Calls {@link Unpacker(null, bufferReserveSize)}
+	 */
 	public Unpacker(int bufferReserveSize) {
 		this(null, bufferReserveSize);
 	}
 
+	/**
+	 * Calls {@link Unpacker(stream, DEFAULT_BUFFER_SIZE)}
+	 */
 	public Unpacker(InputStream stream) {
 		this(stream, DEFAULT_BUFFER_SIZE);
 	}
 
+	/**
+	 * Constructs the unpacker.
+	 * The stream is used to fill the buffer when more buffer is required by {@link next()} or {@link UnpackIterator#hasNext()} method.
+	 * @param stream input stream to fill the buffer
+	 * @param bufferReserveSize threshold size to expand the size of buffer
+	 */
 	public Unpacker(InputStream stream, int bufferReserveSize) {
 		this.parsed = 0;
 		this.bufferReserveSize = bufferReserveSize/2;
 		this.stream = stream;
 	}
 
+	/**
+	 * Sets schema to convert deserialized object into specific type.
+	 * Default schema is {@link GenericSchema} that leaves objects for generic type. Use {@link MessageConvertable#messageConvert(Object)} method to convert the generic object.
+	 * @param s schem to use
+	 */
 	public Unpacker useSchema(Schema s) {
 		impl.setSchema(s);
 		return this;
 	}
 
 
+	/**
+	 * Gets the input stream.
+	 * @return the input stream. it may be null.
+	 */
 	public InputStream getStream() {
 		return this.stream;
 	}
 
+	/**
+	 * Sets the input stream.
+	 * @param stream the input stream to set.
+	 */
 	public void setStream(InputStream stream) {
 		this.stream = stream;
 	}
 
+
+	/**
+	 * Fills the buffer with the specified buffer.
+	 */
+	public void feed(byte[] buffer) {
+		feed(buffer, 0, buffer.length);
+	}
+
+	/**
+	 * Fills the buffer with the specified buffer.
+	 */
+	public void feed(byte[] buffer, int offset, int length) {
+		reserveBuffer(length);
+		System.arraycopy(buffer, offset, impl.buffer, impl.offset, length);
+		bufferConsumed(length);
+	}
+
+	/**
+	 * Fills the buffer with the specified buffer.
+	 */
 	public void feed(ByteBuffer buffer) {
 		int length = buffer.remaining();
 		if (length == 0) return;
@@ -99,45 +223,62 @@ public class Unpacker implements Iterable<Object> {
 		bufferConsumed(length);
 	}
 
-	public void feed(byte[] buffer) {
-		feed(buffer, 0, buffer.length);
-	}
-
-	public void feed(byte[] buffer, int offset, int length) {
-		reserveBuffer(length);
-		System.arraycopy(buffer, offset, impl.buffer, impl.offset, length);
-		bufferConsumed(length);
-	}
-
+	/**
+	 * Swaps the internal buffer with the specified buffer.
+	 * This method doesn't copy the buffer and the its contents will be rewritten by {@link fill()} or {@link feed(byte[])} method.
+	 */
 	public void wrap(byte[] buffer) {
 		wrap(buffer, 0, buffer.length);
 	}
 
+	/**
+	 * Swaps the internal buffer with the specified buffer.
+	 * This method doesn't copy the buffer and the its contents will be rewritten by {@link fill()} or {@link feed(byte[])} method.
+	 */
 	public void wrap(byte[] buffer, int offset, int length) {
 		impl.buffer = buffer;
 		impl.offset = offset;
 		impl.filled = length;
 	}
 
+	/**
+	 * Fills the internal using the input stream.
+	 * @return false if the stream is null or stream.read returns <= 0.
+	 */
 	public boolean fill() throws IOException {
 		return impl.fill();
 	}
 
+
+	/**
+	 * Returns the iterator that calls {@link next()} method repeatedly.
+	 */
 	public Iterator<Object> iterator() {
 		return new UnpackIterator(this);
 	}
 
+	/**
+	 * Deserializes one object and returns it.
+	 * @return {@link UnpackResult#isFinished()} returns false if the buffer is insufficient to deserialize one object.
+	 */
 	public UnpackResult next() throws IOException, UnpackException {
 		UnpackResult result = new UnpackResult();
 		impl.next(result);
 		return result;
 	}
 
+	/**
+	 * Deserializes one object and returns it.
+	 * @return false if the buffer is insufficient to deserialize one object.
+	 */
 	public boolean next(UnpackResult result) throws IOException, UnpackException {
 		return impl.next(result);
 	}
 
 
+	/**
+	 * Reserve free space of the internal buffer at least specified size and expands {@link getBufferCapacity()}.
+	 */
 	public void reserveBuffer(int require) {
 		if(impl.buffer == null) {
 			int nextSize = (bufferReserveSize < require) ? require : bufferReserveSize;
@@ -163,22 +304,40 @@ public class Unpacker implements Iterable<Object> {
 		impl.offset = 0;
 	}
 
+	/**
+	 * Returns the internal buffer.
+	 */
 	public byte[] getBuffer() {
 		return impl.buffer;
 	}
 
-	public int getBufferOffset() {
-		return impl.filled;
-	}
-
+	/**
+	 * Returns the size of free space of the internal buffer.
+	 */
 	public int getBufferCapacity() {
 		return impl.buffer.length - impl.filled;
 	}
 
+	/**
+	 * Returns the offset of free space in the internal buffer.
+	 */
+	public int getBufferOffset() {
+		return impl.filled;
+	}
+
+	/**
+	 * Moves front the offset of the free space in the internal buffer.
+	 * Call this method after fill the buffer manually using {@link reserveBuffer()}, {@link getBuffer()}, {@link getBufferOffset()} and {@link getBufferCapacity()} methods.
+	 */
 	public void bufferConsumed(int size) {
 		impl.filled += size;
 	}
 
+	/**
+	 * Deserializes one object upto the offset of the internal buffer.
+	 * Call {@link reset()} method before calling this method again.
+	 * @return true if one object is deserialized. Use {@link getData()} to get the deserialized object.
+	 */
 	public boolean execute() throws UnpackException {
 		int noffset = impl.execute(impl.buffer, impl.offset, impl.filled);
 		if(noffset <= impl.offset) {
@@ -190,10 +349,24 @@ public class Unpacker implements Iterable<Object> {
 	}
 
 
+	/**
+	 * Deserializes one object over the specified buffer.
+	 * This method doesn't use the internal buffer.
+	 * Use {@link isFinished()} method to known a object is ready to get.
+	 * Call {@link reset()} method before calling this method again.
+	 * @return offset position that is parsed.
+	 */
 	public int execute(byte[] buffer) throws UnpackException {
 		return execute(buffer, 0, buffer.length);
 	}
 
+	/**
+	 * Deserializes one object over the specified buffer.
+	 * This method doesn't use the internal buffer.
+	 * Use {@link isFinished()} method to known a object is ready to get.
+	 * Call {@link reset()} method before calling this method again.
+	 * @return offset position that is parsed.
+	 */
 	public int execute(byte[] buffer, int offset, int length) throws UnpackException {
 		int noffset = impl.execute(buffer, offset + impl.offset, length);
 		impl.offset = noffset - offset;
@@ -203,14 +376,23 @@ public class Unpacker implements Iterable<Object> {
 		return noffset;
 	}
 
-	public boolean isFinished() {
-		return impl.isFinished();
-	}
-
+	/**
+	 * Gets the object deserialized by {@link execute(byte[])} method.
+	 */
 	public Object getData() {
 		return impl.getData();
 	}
 
+	/**
+	 * Returns true if an object is ready to get with {@link getData()} method.
+	 */
+	public boolean isFinished() {
+		return impl.isFinished();
+	}
+
+	/**
+	 * Resets the internal state of the unpacker.
+	 */
 	public void reset() {
 		impl.reset();
 	}
@@ -236,59 +418,130 @@ public class Unpacker implements Iterable<Object> {
 	}
 
 
+	/**
+	 * Gets one {@code byte} value from the buffer.
+	 * This method calls {@link fill()} method if needed.
+	 * @throws MessageTypeException the first value of the buffer is not a {@code byte}.
+	 */
 	public byte unpackByte() throws IOException, MessageTypeException {
 		return impl.unpackByte();
 	}
 
+	/**
+	 * Gets one {@code short} value from the buffer.
+	 * This method calls {@link fill()} method if needed.
+	 * @throws MessageTypeException the first value of the buffer is not a {@code short}.
+	 */
 	public short unpackShort() throws IOException, MessageTypeException {
 		return impl.unpackShort();
 	}
 
+	/**
+	 * Gets one {@code int} value from the buffer.
+	 * This method calls {@link fill()} method if needed.
+	 * @throws MessageTypeException the first value of the buffer is not a {@code int}.
+	 */
 	public int unpackInt() throws IOException, MessageTypeException {
 		return impl.unpackInt();
 	}
 
+	/**
+	 * Gets one {@code long} value from the buffer.
+	 * This method calls {@link fill()} method if needed.
+	 * @throws MessageTypeException the first value of the buffer is not a {@code long}.
+	 */
 	public long unpackLong() throws IOException, MessageTypeException {
 		return impl.unpackLong();
 	}
 
+	/**
+	 * Gets one {@code float} value from the buffer.
+	 * This method calls {@link fill()} method if needed.
+	 * @throws MessageTypeException the first value of the buffer is not a {@code float}.
+	 */
 	public float unpackFloat() throws IOException, MessageTypeException {
 		return impl.unpackFloat();
 	}
 
+	/**
+	 * Gets one {@code double} value from the buffer.
+	 * This method calls {@link fill()} method if needed.
+	 * @throws MessageTypeException the first value of the buffer is not a {@code double}.
+	 */
 	public double unpackDouble() throws IOException, MessageTypeException {
 		return impl.unpackDouble();
 	}
 
+	/**
+	 * Gets one {@code null} value from the buffer.
+	 * This method calls {@link fill()} method if needed.
+	 * @throws MessageTypeException the first value of the buffer is not a {@code null}.
+	 */
 	public Object unpackNull() throws IOException, MessageTypeException {
 		return impl.unpackNull();
 	}
 
+	/**
+	 * Gets one {@code boolean} value from the buffer.
+	 * This method calls {@link fill()} method if needed.
+	 * @throws MessageTypeException the first value of the buffer is not a {@code boolean}.
+	 */
 	public boolean unpackBoolean() throws IOException, MessageTypeException {
 		return impl.unpackBoolean();
 	}
 
+	/**
+	 * Gets one array header from the buffer.
+	 * This method calls {@link fill()} method if needed.
+	 * @return the length of the map. There are {@code retval} objects to get.
+	 * @throws MessageTypeException the first value of the buffer is not a array.
+	 */
 	public int unpackArray() throws IOException, MessageTypeException {
 		return impl.unpackArray();
 	}
 
+	/**
+	 * Gets one map header from the buffer.
+	 * This method calls {@link fill()} method if needed.
+	 * @return the length of the map. There are {@code retval * 2} objects to get.
+	 * @throws MessageTypeException the first value of the buffer is not a map.
+	 */
 	public int unpackMap() throws IOException, MessageTypeException {
 		return impl.unpackMap();
 	}
 
+	/**
+	 * Gets one raw header from the buffer.
+	 * This method calls {@link fill()} method if needed.
+	 * @return the length of the raw bytes. There are {@code retval} bytes to get.
+	 * @throws MessageTypeException the first value of the buffer is not a raw bytes.
+	 */
 	public int unpackRaw() throws IOException, MessageTypeException {
 		return impl.unpackRaw();
 	}
 
-	public byte[] unpackRawBody(int length) throws IOException, MessageTypeException {
+	/**
+	 * Gets one raw header from the buffer.
+	 * This method calls {@link fill()} method if needed.
+	 */
+	public byte[] unpackRawBody(int length) throws IOException {
 		return impl.unpackRawBody(length);
 	}
 
+	/**
+	 * Gets one {@code String} value from the buffer.
+	 * This method calls {@link fill()} method if needed.
+	 * @throws MessageTypeException the first value of the buffer is not a {@code String}.
+	 */
 	final public String unpackString() throws IOException, MessageTypeException {
 		return impl.unpackString();
 	}
 
-	final public Object unpackObject() throws IOException, MessageTypeException {
+	/**
+	 * Gets one {@code Object} value from the buffer.
+	 * This method calls {@link fill()} method if needed.
+	 */
+	final public Object unpackObject() throws IOException {
 		return impl.unpackObject();
 	}
 }
