@@ -63,6 +63,15 @@ abstract class BufferedUnpackerImpl extends UnpackerImpl {
 		}
 	}
 
+	private final boolean tryMore(int require) throws IOException, UnpackException {
+		while(filled - offset < require) {
+			if(!fill()) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 	private final void advance(int length) {
 		offset += length;
 	}
@@ -275,6 +284,18 @@ abstract class BufferedUnpackerImpl extends UnpackerImpl {
 		return null;
 	}
 
+	final boolean tryUnpackNull() throws IOException {
+		if(!tryMore(1)) {
+			return false;
+		}
+		int b = buffer[offset] & 0xff;
+		if(b != 0xc0) {  // nil
+			return false;
+		}
+		advance(1);
+		return 1;
+	}
+
 	final boolean unpackBoolean() throws IOException, MessageTypeException {
 		more(1);
 		int b = buffer[offset] & 0xff;
@@ -389,7 +410,6 @@ abstract class BufferedUnpackerImpl extends UnpackerImpl {
 	}
 
 	final Object unpackObject() throws IOException {
-		// FIXME save state, restore state
 		UnpackResult result = new UnpackResult();
 		if(!next(result)) {
 			super.reset();

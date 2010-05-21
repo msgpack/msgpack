@@ -544,5 +544,13 @@ public class Unpacker implements Iterable<Object> {
 	final public Object unpackObject() throws IOException {
 		return impl.unpackObject();
 	}
+
+	final void unpack(MessageUnpackable obj) throws IOException, MessageTypeException {
+		obj.unpackMessage(this);
+	}
+
+	final boolean tryUnpackNull() throws IOException {
+		return impl.tryUnpackNull();
+	}
 }
 
