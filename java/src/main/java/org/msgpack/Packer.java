@@ -34,7 +34,7 @@ public class Packer {
 
 	public Packer packByte(byte d) throws IOException {
 		if(d < -(1<<5)) {
-			castBytes[0] = (byte)0xd1;
+			castBytes[0] = (byte)0xd0;
 			castBytes[1] = d;
 			out.write(castBytes, 0, 2);
 		} else {
