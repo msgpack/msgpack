@@ -348,7 +348,10 @@ public class UnpackerImpl {
 						castBuffer.put(src, n, 2);
 						count = ((int)castBuffer.getShort(0)) & 0xffff;
 						obj = new Object[count];
-						if(count == 0) { break _push; }  // FIXME check IArraySchema
+						if(count == 0) {
+							obj = ((IArraySchema)top_schema).createFromArray((Object[])obj);
+							break _push;
+						}
 						++top;
 						stack_obj[top]    = top_obj;
 						stack_ct[top]     = top_ct;
@@ -371,7 +374,10 @@ public class UnpackerImpl {
 						// FIXME overflow check
 						count = castBuffer.getInt(0) & 0x7fffffff;
 						obj = new Object[count];
-						if(count == 0) { break _push; }  // FIXME check IArraySchema
+						if(count == 0) {
+							obj = ((IArraySchema)top_schema).createFromArray((Object[])obj);
+							break _push;
+						}
 						++top;
 						stack_obj[top]    = top_obj;
 						stack_ct[top]     = top_ct;
@@ -393,7 +399,10 @@ public class UnpackerImpl {
 						castBuffer.put(src, n, 2);
 						count = ((int)castBuffer.getShort(0)) & 0xffff;
 						obj = new Object[count*2];
-						if(count == 0) { break _push; }  // FIXME check IMapSchema
+						if(count == 0) {
+							obj = ((IMapSchema)top_schema).createFromMap((Object[])obj);
+							break _push;
+						}
 						//System.out.println("fixmap count:"+count);
 						++top;
 						stack_obj[top]    = top_obj;
@@ -417,7 +426,10 @@ public class UnpackerImpl {
 						// FIXME overflow check
 						count = castBuffer.getInt(0) & 0x7fffffff;
 						obj = new Object[count*2];
-						if(count == 0) { break _push; }  // FIXME check IMapSchema
+						if(count == 0) {
+							obj = ((IMapSchema)top_schema).createFromMap((Object[])obj);
+							break _push;
+						}
 						//System.out.println("fixmap count:"+count);
 						++top;
 						stack_obj[top]    = top_obj;
