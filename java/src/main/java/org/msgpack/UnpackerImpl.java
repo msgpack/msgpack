@@ -157,7 +157,10 @@ public class UnpackerImpl {
 						count = b & 0x0f;
 						//System.out.println("fixarray count:"+count);
 						obj = new Object[count];
-						if(count == 0) { break _push; }  // FIXME check IArraySchema
+						if(count == 0) {
+							obj = ((IArraySchema)top_schema).createFromArray((Object[])obj);
+							break _push;
+						}
 						++top;
 						stack_obj[top]    = top_obj;
 						stack_ct[top]     = top_ct;
@@ -179,7 +182,10 @@ public class UnpackerImpl {
 						}
 						count = b & 0x0f;
 						obj = new Object[count*2];
-						if(count == 0) { break _push; }  // FIXME check IMapSchema
+						if(count == 0) {
+							obj = ((IMapSchema)top_schema).createFromMap((Object[])obj);
+							break _push;
+						}
 						//System.out.println("fixmap count:"+count);
 						++top;
 						stack_obj[top]    = top_obj;
