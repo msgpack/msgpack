@@ -177,6 +177,9 @@ public class TestPackUnpack {
 
     @Test
     public void testArray() throws Exception {
+        List<Integer> emptyList = new ArrayList<Integer>();
+        testArray(emptyList, Schema.parse("(array int)"));
+
         for (int i = 0; i < 1000; i++) {
             Schema schema = Schema.parse("(array int)");
             List<Integer> l = new ArrayList<Integer>();
@@ -209,6 +212,9 @@ public class TestPackUnpack {
 
     @Test
     public void testMap() throws Exception {
+        Map<Integer, Integer> emptyMap = new HashMap<Integer, Integer>();
+        testMap(emptyMap, Schema.parse("(map int int)"));
+
         for (int i = 0; i < 1000; i++) {
             Schema schema = Schema.parse("(map int int)");
             Map<Integer, Integer> m = new HashMap<Integer, Integer>();
