@@ -293,7 +293,7 @@ abstract class BufferedUnpackerImpl extends UnpackerImpl {
 			return false;
 		}
 		advance(1);
-		return 1;
+		return true;
 	}
 
 	final boolean unpackBoolean() throws IOException, MessageTypeException {
@@ -394,6 +394,11 @@ abstract class BufferedUnpackerImpl extends UnpackerImpl {
 		System.arraycopy(buffer, offset, bytes, 0, length);
 		advance(length);
 		return bytes;
+	}
+
+	final byte[] unpackByteArray() throws IOException, MessageTypeException {
+		int length = unpackRaw();
+		return unpackRawBody(length);
 	}
 
 	final String unpackString() throws IOException, MessageTypeException {

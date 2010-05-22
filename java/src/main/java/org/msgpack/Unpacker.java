@@ -521,11 +521,19 @@ public class Unpacker implements Iterable<Object> {
 	}
 
 	/**
-	 * Gets one raw header from the buffer.
+	 * Gets one raw body from the buffer.
 	 * This method calls {@link fill()} method if needed.
 	 */
 	public byte[] unpackRawBody(int length) throws IOException {
 		return impl.unpackRawBody(length);
+	}
+
+	/**
+	 * Gets one raw bytes from the buffer.
+	 * This method calls {@link fill()} method if needed.
+	 */
+	public byte[] unpackByteArray() throws IOException {
+		return impl.unpackByteArray();
 	}
 
 	/**
@@ -546,7 +554,7 @@ public class Unpacker implements Iterable<Object> {
 	}
 
 	final void unpack(MessageUnpackable obj) throws IOException, MessageTypeException {
-		obj.unpackMessage(this);
+		obj.messageUnpack(this);
 	}
 
 	final boolean tryUnpackNull() throws IOException {
