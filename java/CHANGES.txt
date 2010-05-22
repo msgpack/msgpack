@@ -1,0 +1,9 @@
+Release 0.3 - 2010/05/23
+  NEW FEATURES
+    Added Unbuffered API + Direct Conversion API to the Unpacker.
+
+  BUG FIXES
+    Zero-length Array and Map is deserialized as List and Map, instead of the
+    array of the Object.
+
+    fixed the bug around Packer.packByte().
