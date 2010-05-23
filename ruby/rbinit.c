@@ -20,6 +20,18 @@
 
 static VALUE mMessagePack;
 
+/**
+ * Document-module: MessagePack
+ *
+ * MessagePack is a binary-based efficient object serialization library.
+ * It enables to exchange structured objects between many languages like JSON.
+ * But unlike JSON, it is very fast and small.
+ *
+ *   require 'msgpack'
+ *   msg = [1,2,3].to_msgpack  #=> "\x93\x01\x02\x03"
+ *   MessagePack.unpack(msg)   #=> [1,2,3]
+ *
+ */
 void Init_msgpack(void)
 {
 	mMessagePack = rb_define_module("MessagePack");

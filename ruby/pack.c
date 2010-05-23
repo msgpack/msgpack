@@ -51,6 +51,16 @@ static ID s_append;
 		rb_raise(rb_eArgError, "wrong number of arguments (%d for 0)", argc); \
 	}
 
+
+/*
+ * Document-method: NilClass#to_msgpack
+ *
+ * call-seq:
+ *   nil.to_msgpack(out = '') -> String
+ *
+ * Serializes the nil into raw bytes.
+ * This calls to_msgpack reflectively for internal elements.
+ */
 static VALUE MessagePack_NilClass_to_msgpack(int argc, VALUE *argv, VALUE self)
 {
 	ARG_BUFFER(out, argc, argv);
@@ -58,6 +68,16 @@ static VALUE MessagePack_NilClass_to_msgpack(int argc, VALUE *argv, VALUE self)
 	return out;
 }
 
+
+/*
+ * Document-method: TrueClass#to_msgpack
+ *
+ * call-seq:
+ *   true.to_msgpack(out = '') -> String
+ *
+ * Serializes the true into raw bytes.
+ * This calls to_msgpack reflectively for internal elements.
+ */
 static VALUE MessagePack_TrueClass_to_msgpack(int argc, VALUE *argv, VALUE self)
 {
 	ARG_BUFFER(out, argc, argv);
@@ -65,6 +85,16 @@ static VALUE MessagePack_TrueClass_to_msgpack(int argc, VALUE *argv, VALUE self)
 	return out;
 }
 
+
+/*
+ * Document-method: FalseClass#to_msgpack
+ *
+ * call-seq:
+ *   false.to_msgpack(out = '') -> String
+ *
+ * Serializes false into raw bytes.
+ * This calls to_msgpack reflectively for internal elements.
+ */
 static VALUE MessagePack_FalseClass_to_msgpack(int argc, VALUE *argv, VALUE self)
 {
 	ARG_BUFFER(out, argc, argv);
@@ -73,6 +103,15 @@ static VALUE MessagePack_FalseClass_to_msgpack(int argc, VALUE *argv, VALUE self
 }
 
 
+/*
+ * Document-method: Fixnum#to_msgpack
+ *
+ * call-seq:
+ *   fixnum.to_msgpack(out = '') -> String
+ *
+ * Serializes the Fixnum into raw bytes.
+ * This calls to_msgpack reflectively for internal elements.
+ */
 static VALUE MessagePack_Fixnum_to_msgpack(int argc, VALUE *argv, VALUE self)
 {
 	ARG_BUFFER(out, argc, argv);
@@ -85,6 +124,15 @@ static VALUE MessagePack_Fixnum_to_msgpack(int argc, VALUE *argv, VALUE self)
 #define RBIGNUM_SIGN(b) (RBIGNUM(b)->sign)
 #endif
 
+/*
+ * Document-method: Bignum#to_msgpack
+ *
+ * call-seq:
+ *   bignum.to_msgpack(out = '') -> String
+ *
+ * Serializes the Bignum into raw bytes.
+ * This calls to_msgpack reflectively for internal elements.
+ */
 static VALUE MessagePack_Bignum_to_msgpack(int argc, VALUE *argv, VALUE self)
 {
 	ARG_BUFFER(out, argc, argv);
@@ -97,6 +145,15 @@ static VALUE MessagePack_Bignum_to_msgpack(int argc, VALUE *argv, VALUE self)
 	return out;
 }
 
+
+/*
+ * Document-method: Float#to_msgpack
+ *
+ * call-seq:
+ *   float.to_msgpack(out = '') -> String
+ *
+ * Serializes the Float into raw bytes.
+ */
 static VALUE MessagePack_Float_to_msgpack(int argc, VALUE *argv, VALUE self)
 {
 	ARG_BUFFER(out, argc, argv);
@@ -104,6 +161,15 @@ static VALUE MessagePack_Float_to_msgpack(int argc, VALUE *argv, VALUE self)
 	return out;
 }
 
+
+/*
+ * Document-method: String#to_msgpack
+ *
+ * call-seq:
+ *   string.to_msgpack(out = '') -> String
+ *
+ * Serializes the String into raw bytes.
+ */
 static VALUE MessagePack_String_to_msgpack(int argc, VALUE *argv, VALUE self)
 {
 	ARG_BUFFER(out, argc, argv);
@@ -112,6 +178,15 @@ static VALUE MessagePack_String_to_msgpack(int argc, VALUE *argv, VALUE self)
 	return out;
 }
 
+
+/*
+ * Document-method: Symbol#to_msgpack
+ *
+ * call-seq:
+ *   symbol.to_msgpack(out = '') -> String
+ *
+ * Serializes the Symbol into raw bytes.
+ */
 static VALUE MessagePack_Symbol_to_msgpack(int argc, VALUE *argv, VALUE self)
 {
 	ARG_BUFFER(out, argc, argv);
@@ -122,6 +197,16 @@ static VALUE MessagePack_Symbol_to_msgpack(int argc, VALUE *argv, VALUE self)
 	return out;
 }
 
+
+/*
+ * Document-method: Array#to_msgpack
+ *
+ * call-seq:
+ *   array.to_msgpack(out = '') -> String
+ *
+ * Serializes the Array into raw bytes.
+ * This calls to_msgpack method reflectively for internal elements.
+ */
 static VALUE MessagePack_Array_to_msgpack(int argc, VALUE *argv, VALUE self)
 {
 	ARG_BUFFER(out, argc, argv);
@@ -133,6 +218,7 @@ static VALUE MessagePack_Array_to_msgpack(int argc, VALUE *argv, VALUE self)
 	}
 	return out;
 }
+
 
 #ifndef RHASH_SIZE  // Ruby 1.8
 #define RHASH_SIZE(h) (RHASH(h)->tbl ? RHASH(h)->tbl->num_entries : 0)
@@ -146,6 +232,15 @@ static int MessagePack_Hash_to_msgpack_foreach(VALUE key, VALUE value, VALUE out
 	return ST_CONTINUE;
 }
 
+/*
+ * Document-method: Hash#to_msgpack
+ *
+ * call-seq:
+ *   hash.to_msgpack(out = '') -> String
+ *
+ * Serializes the Hash into raw bytes.
+ * This calls to_msgpack method reflectively for internal keys and values.
+ */
 static VALUE MessagePack_Hash_to_msgpack(int argc, VALUE *argv, VALUE self)
 {
 	ARG_BUFFER(out, argc, argv);
@@ -155,6 +250,17 @@ static VALUE MessagePack_Hash_to_msgpack(int argc, VALUE *argv, VALUE self)
 }
 
 
+/**
+ * Document-method: MessagePack.pack
+ *
+ * call-seq:
+ *   MessagePack.pack(object, out = '') -> String
+ *
+ * Serializes the object into raw bytes. The encoding of the string is ASCII-8BIT on Ruby 1.9.
+ * This method is same as object.to_msgpack(out = '').
+ *
+ * _out_ is an object that implements *<<* method like String or IO.
+ */
 static VALUE MessagePack_pack(int argc, VALUE* argv, VALUE self)
 {
 	VALUE out;
@@ -173,16 +279,22 @@ void Init_msgpack_pack(VALUE mMessagePack)
 {
 	s_to_msgpack = rb_intern("to_msgpack");
 	s_append = rb_intern("<<");
-	rb_define_method_id(rb_cNilClass,   s_to_msgpack, MessagePack_NilClass_to_msgpack, -1);
-	rb_define_method_id(rb_cTrueClass,  s_to_msgpack, MessagePack_TrueClass_to_msgpack, -1);
-	rb_define_method_id(rb_cFalseClass, s_to_msgpack, MessagePack_FalseClass_to_msgpack, -1);
-	rb_define_method_id(rb_cFixnum, s_to_msgpack, MessagePack_Fixnum_to_msgpack, -1);
-	rb_define_method_id(rb_cBignum, s_to_msgpack, MessagePack_Bignum_to_msgpack, -1);
-	rb_define_method_id(rb_cFloat,  s_to_msgpack, MessagePack_Float_to_msgpack, -1);
-	rb_define_method_id(rb_cString, s_to_msgpack, MessagePack_String_to_msgpack, -1);
-	rb_define_method_id(rb_cArray,  s_to_msgpack, MessagePack_Array_to_msgpack, -1);
-	rb_define_method_id(rb_cHash,   s_to_msgpack, MessagePack_Hash_to_msgpack, -1);
-	rb_define_method_id(rb_cSymbol, s_to_msgpack, MessagePack_Symbol_to_msgpack, -1);
+
+	rb_define_method(rb_cNilClass,   "to_msgpack", MessagePack_NilClass_to_msgpack, -1);
+	rb_define_method(rb_cTrueClass,  "to_msgpack", MessagePack_TrueClass_to_msgpack, -1);
+	rb_define_method(rb_cFalseClass, "to_msgpack", MessagePack_FalseClass_to_msgpack, -1);
+	rb_define_method(rb_cFixnum, "to_msgpack", MessagePack_Fixnum_to_msgpack, -1);
+	rb_define_method(rb_cBignum, "to_msgpack", MessagePack_Bignum_to_msgpack, -1);
+	rb_define_method(rb_cFloat,  "to_msgpack", MessagePack_Float_to_msgpack, -1);
+	rb_define_method(rb_cString, "to_msgpack", MessagePack_String_to_msgpack, -1);
+	rb_define_method(rb_cArray,  "to_msgpack", MessagePack_Array_to_msgpack, -1);
+	rb_define_method(rb_cHash,   "to_msgpack", MessagePack_Hash_to_msgpack, -1);
+	rb_define_method(rb_cSymbol, "to_msgpack", MessagePack_Symbol_to_msgpack, -1);
+
+	/**
+	 * MessagePack module is defined in rbinit.c file.
+	 * mMessagePack = rb_define_module("MessagePack");
+	 */
 	rb_define_module_function(mMessagePack, "pack", MessagePack_pack, -1);
 }
 
