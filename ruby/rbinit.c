@@ -27,9 +27,17 @@ static VALUE mMessagePack;
  * It enables to exchange structured objects between many languages like JSON.
  * But unlike JSON, it is very fast and small.
  *
+ * You can install MessagePack with rubygems.
+ *
+ *   gem install msgpack
+ *
+ * Simple usage is as follows.
+ *
  *   require 'msgpack'
  *   msg = [1,2,3].to_msgpack  #=> "\x93\x01\x02\x03"
  *   MessagePack.unpack(msg)   #=> [1,2,3]
+ *
+ * Use Unpacker class for streaming deserialization.
  *
  */
 void Init_msgpack(void)

@@ -59,7 +59,6 @@ static ID s_append;
  *   nil.to_msgpack(out = '') -> String
  *
  * Serializes the nil into raw bytes.
- * This calls to_msgpack reflectively for internal elements.
  */
 static VALUE MessagePack_NilClass_to_msgpack(int argc, VALUE *argv, VALUE self)
 {
@@ -76,7 +75,6 @@ static VALUE MessagePack_NilClass_to_msgpack(int argc, VALUE *argv, VALUE self)
  *   true.to_msgpack(out = '') -> String
  *
  * Serializes the true into raw bytes.
- * This calls to_msgpack reflectively for internal elements.
  */
 static VALUE MessagePack_TrueClass_to_msgpack(int argc, VALUE *argv, VALUE self)
 {
@@ -93,7 +91,6 @@ static VALUE MessagePack_TrueClass_to_msgpack(int argc, VALUE *argv, VALUE self)
  *   false.to_msgpack(out = '') -> String
  *
  * Serializes false into raw bytes.
- * This calls to_msgpack reflectively for internal elements.
  */
 static VALUE MessagePack_FalseClass_to_msgpack(int argc, VALUE *argv, VALUE self)
 {
@@ -110,7 +107,6 @@ static VALUE MessagePack_FalseClass_to_msgpack(int argc, VALUE *argv, VALUE self
  *   fixnum.to_msgpack(out = '') -> String
  *
  * Serializes the Fixnum into raw bytes.
- * This calls to_msgpack reflectively for internal elements.
  */
 static VALUE MessagePack_Fixnum_to_msgpack(int argc, VALUE *argv, VALUE self)
 {
@@ -131,7 +127,6 @@ static VALUE MessagePack_Fixnum_to_msgpack(int argc, VALUE *argv, VALUE self)
  *   bignum.to_msgpack(out = '') -> String
  *
  * Serializes the Bignum into raw bytes.
- * This calls to_msgpack reflectively for internal elements.
  */
 static VALUE MessagePack_Bignum_to_msgpack(int argc, VALUE *argv, VALUE self)
 {

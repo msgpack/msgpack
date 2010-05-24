@@ -654,7 +654,7 @@ void Init_msgpack_unpack(VALUE mMessagePack)
  * Following code uses Buffered API with an input stream:
  *
  *   # create an unpacker with input stream.
- *   pac = MessagePack::Unpacker.new(stdin)
+ *   pac = MessagePack::Unpacker.new(STDIN)
  *   
  *   # deserialize object one after another.
  *   pac.each {|obj|
@@ -663,8 +663,8 @@ void Init_msgpack_unpack(VALUE mMessagePack)
  *
  *
  * Following code doesn't use the input stream and feeds buffer
- * using *fill* method. This is useful to use special stream
- * or with event-driven I/O library.
+ * manually. This is useful to use special stream or with
+ * event-driven I/O library.
  *
  *   # create an unpacker without input stream.
  *   pac = MessagePack::Unpacker.new()
@@ -676,6 +676,7 @@ void Init_msgpack_unpack(VALUE mMessagePack)
  *   pac.each {|obj|
  *     # ...
  *   }
+ *
  *
  * You can manage the buffer manually with the combination of
  * *execute*, *finished?*, *data* and *reset* method.
