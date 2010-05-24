@@ -72,6 +72,11 @@ public:
 		return msgpack_sbuffer_release(this);
 	}
 
+	void clear()
+	{
+		msgpack_sbuffer_clear(this);
+	}
+
 private:
 	void expand_buffer(size_t len)
 	{

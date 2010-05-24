@@ -80,6 +80,9 @@ int msgpack_vrefbuffer_append_ref(msgpack_vrefbuffer* vbuf,
 
 int msgpack_vrefbuffer_migrate(msgpack_vrefbuffer* vbuf, msgpack_vrefbuffer* to);
 
+void msgpack_vrefbuffer_clear(msgpack_vrefbuffer* vref);
+
+
 int msgpack_vrefbuffer_write(void* data, const char* buf, unsigned int len)
 {
 	msgpack_vrefbuffer* vbuf = (msgpack_vrefbuffer*)data;

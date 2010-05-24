@@ -78,6 +78,11 @@ public:
 		}
 	}
 
+	void clear()
+	{
+		msgpack_vrefbuffer_clear(this);
+	}
+
 private:
 	typedef msgpack_vrefbuffer base;
 

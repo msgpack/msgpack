@@ -77,6 +77,10 @@ static inline char* msgpack_sbuffer_release(msgpack_sbuffer* sbuf)
 	return tmp;
 }
 
+static inline void msgpack_sbuffer_clear(msgpack_sbuffer* sbuf)
+{
+	sbuf->size = 0;
+}
 
 #ifdef __cplusplus
 }

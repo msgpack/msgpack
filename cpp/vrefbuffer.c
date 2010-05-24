@@ -75,6 +75,25 @@ void msgpack_vrefbuffer_destroy(msgpack_vrefbuffer* vbuf)
 	free(vbuf->array);
 }
 
+void msgpack_vrefbuffer_clear(msgpack_vrefbuffer* vbuf)
+{
+	msgpack_vrefbuffer_chunk* c = vbuf->inner_buffer.head->next;
+	msgpack_vrefbuffer_chunk* n;
+	while(c != NULL) {
+		n = c->next;
+		free(c);
+		c = n;
+	}
+
+	msgpack_vrefbuffer_inner_buffer* const ib = &vbuf->inner_buffer;
+	msgpack_vrefbuffer_chunk* chunk = ib->head;
+	chunk->next = NULL;
+	ib->free = vbuf->chunk_size;
+	ib->ptr  = ((char*)chunk) + sizeof(msgpack_vrefbuffer_chunk);
+
+	vbuf->tail = vbuf->array;
+}
+
 int msgpack_vrefbuffer_append_ref(msgpack_vrefbuffer* vbuf,
 		const char* buf, unsigned int len)
 {
