@@ -130,8 +130,6 @@ static inline int template_callback_map_item(unpack_user* u, VALUE* c, VALUE k, 
 #endif
 
 static inline int template_callback_raw(unpack_user* u, const char* b, const char* p, unsigned int l, VALUE* o)
-//{ *o = (l <= COW_MIN_SIZE) ? rb_str_new(p, l) : rb_str_substr(u->source, p - b, l); return 0; }
-//{ *o = rb_str_new(p, l); return 0; }
 {
 	if(u->source == Qnil || l <= COW_MIN_SIZE) {
 		*o = rb_str_new(p, l);
