@@ -27,6 +27,11 @@ static ID s_readpartial;
 int s_ascii_8bit;
 #endif
 
+static ID s_slice_bang;
+#ifdef RUBY_VM
+static ID s_clear;
+#endif
+
 typedef struct {
 	int finished;
 	VALUE source;
@@ -125,6 +130,7 @@ static inline int template_callback_map_item(unpack_user* u, VALUE* c, VALUE k, 
 
 static inline int template_callback_raw(unpack_user* u, const char* b, const char* p, unsigned int l, VALUE* o)
 { *o = (l <= COW_MIN_SIZE) ? rb_str_new(p, l) : rb_str_substr(u->source, p - b, l); return 0; }
+//{ *o = rb_str_new(p, l); return 0; }
 
 
 #include "msgpack/unpack_template.h"
@@ -249,6 +255,14 @@ static ID append_method_of(VALUE stream)
 	}
 }
 
+#ifndef MSGPACK_UNPACKER_BUFFER_INIT_SIZE
+#define MSGPACK_UNPACKER_BUFFER_INIT_SIZE (32*1024)
+#endif
+
+#ifndef MSGPACK_UNPACKER_BUFFER_RESERVE_SIZE
+#define MSGPACK_UNPACKER_BUFFER_RESERVE_SIZE (8*1024)
+#endif
+
 /**
  * Document-method: MessagePack::Unpacker#initialize
  *
@@ -283,9 +297,9 @@ static VALUE MessagePack_Unpacker_initialize(int argc, VALUE *argv, VALUE self)
 	template_init(mp);
 	mp->user.finished = 0;
 	mp->user.offset = 0;
-	mp->user.buffer = rb_str_new("",0);
+	mp->user.buffer = rb_str_buf_new(MSGPACK_UNPACKER_BUFFER_INIT_SIZE);
 	mp->user.stream = stream;
-	mp->user.streambuf = rb_str_new("",0);
+	mp->user.streambuf = rb_str_buf_new(MSGPACK_UNPACKER_BUFFER_RESERVE_SIZE);
 	mp->user.stream_append_method = append_method_of(stream);
 	return self;
 }
@@ -322,6 +336,63 @@ static VALUE MessagePack_Unpacker_stream_set(VALUE self, VALUE val)
 }
 
 
+#ifdef RUBY_VM
+#  ifndef STR_SHARED
+#    define STR_SHARED  FL_USER2
+#  endif
+#  ifndef STR_NOEMBED
+#    define STR_NOEMBED FL_USER1
+#  endif
+#  ifndef STR_ASSOC
+#    define STR_ASSOC   FL_USER3
+#  endif
+#  ifndef STR_NOCAPA_P
+#    define STR_NOCAPA_P(s) (FL_TEST(s,STR_NOEMBED) && FL_ANY(s,STR_SHARED|STR_ASSOC))
+#  endif
+#  define NEED_MORE_CAPA(s,size) (!STR_NOCAPA_P(s) && RSTRING(s)->as.heap.aux.capa < size)
+#else
+#  ifndef STR_NOCAPA
+#    ifndef STR_ASSOC
+#      define STR_ASSOC   FL_USER3
+#    endif
+#    ifndef ELTS_SHARED
+#      define ELTS_SHARED FL_USER2
+#    endif
+#    define STR_NOCAPA  (ELTS_SHARED|STR_ASSOC)
+#  endif
+#  define NEED_MORE_CAPA(s,size) (!FL_TEST(s,STR_NOCAPA) && RSTRING(s)->aux.capa < size)
+#endif
+
+static void try_rewind_buffer(msgpack_unpack_t* mp, size_t required)
+{
+	VALUE buffer = mp->user.buffer;
+
+	size_t need_capa = RSTRING_LEN(buffer) + required;
+
+	if(NEED_MORE_CAPA(buffer, need_capa)) {
+		/* FIXME
+#ifdef RUBY_VM
+		if(RSTRING_LEN(buffer) <= mp->user.offset) {
+			rb_funcall(buffer, s_clear, 0);
+			mp->user.offset = 0;
+			return;
+		}
+#endif
+		rb_funcall(buffer, s_slice_bang, 2, LONG2FIX(0), LONG2FIX(mp->user.offset));
+		mp->user.offset = 0;
+		*/
+		size_t not_parsed = RSTRING_LEN(buffer) - mp->user.offset;
+		size_t nsize = MSGPACK_UNPACKER_BUFFER_INIT_SIZE * 2;
+		while(nsize < not_parsed + required) {
+			nsize *= 2;
+		}
+		VALUE nbuffer = rb_str_buf_new(nsize);
+		rb_str_buf_cat(nbuffer, RSTRING_PTR(buffer)+mp->user.offset, not_parsed);
+		mp->user.buffer = nbuffer;
+		mp->user.offset = 0;
+	}
+}
+
 /**
  * Document-method: MessagePack::Unpacker#feed
  *
@@ -334,6 +405,7 @@ static VALUE MessagePack_Unpacker_feed(VALUE self, VALUE data)
 {
 	UNPACKER(self, mp);
 	StringValue(data);
+	try_rewind_buffer(mp, RSTRING_LEN(data));
 	rb_str_cat(mp->user.buffer, RSTRING_PTR(data), RSTRING_LEN(data));
 	return Qnil;
 }
@@ -363,12 +435,13 @@ static VALUE MessagePack_Unpacker_fill(VALUE self)
 	long len;
 	if(RSTRING_LEN(mp->user.buffer) == 0) {
 		rb_funcall(mp->user.stream, mp->user.stream_append_method, 2,
-				LONG2FIX(64*1024), mp->user.buffer);
+				LONG2FIX(MSGPACK_UNPACKER_BUFFER_INIT_SIZE), mp->user.buffer);
 		len = RSTRING_LEN(mp->user.buffer);
 	} else {
 		rb_funcall(mp->user.stream, mp->user.stream_append_method, 2,
-				LONG2FIX(64*1024), mp->user.streambuf);
+				LONG2FIX(MSGPACK_UNPACKER_BUFFER_RESERVE_SIZE), mp->user.streambuf);
 		len = RSTRING_LEN(mp->user.streambuf);
+		try_rewind_buffer(mp, len);
 		rb_str_cat(mp->user.buffer, RSTRING_PTR(mp->user.streambuf), RSTRING_LEN(mp->user.streambuf));
 	}
 
@@ -614,6 +687,11 @@ void Init_msgpack_unpack(VALUE mMessagePack)
 
 #ifdef HAVE_RUBY_ENCODING_H
 	s_ascii_8bit = rb_enc_find_index("ASCII-8BIT");
+#endif
+
+	s_slice_bang = rb_intern("slice!");
+#ifdef RUBY_VM
+	s_clear = rb_intern("clear");
 #endif
 
 	eUnpackError = rb_define_class_under(mMessagePack, "UnpackError", rb_eStandardError);
