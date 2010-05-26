@@ -156,15 +156,25 @@ static inline int template_callback_raw(unpack_user* u, const char* b, const cha
 		rb_raise(rb_eTypeError, "instance of String needed"); \
 	}
 
+#ifdef RUBY_VM
+#define RERAISE rb_exc_raise(rb_errinfo())
+#else
+#define RERAISE rb_exc_raise(ruby_errinfo)
+#endif
 
-static VALUE template_execute_rescue(VALUE nouse)
+
+static VALUE template_execute_rescue(VALUE data)
 {
 	rb_gc_enable();
-#ifdef RUBY_VM
-	rb_exc_raise(rb_errinfo());
-#else
-	rb_exc_raise(ruby_errinfo);
-#endif
+	VALUE* resc = (VALUE*)data;
+	rb_enc_set_index(resc[0], (int)resc[1]);
+	RERAISE;
+}
+
+static VALUE template_execute_rescue_each(VALUE nouse)
+{
+	rb_gc_enable();
+	RERAISE;
 }
 
 static VALUE template_execute_do(VALUE argv)
@@ -192,7 +202,6 @@ static int template_execute_wrap(msgpack_unpack_t* mp,
 	};
 
 #ifdef HAVE_RUBY_ENCODING_H
-	// FIXME encodingをASCII-8BITにする
 	int enc_orig = rb_enc_get_index(str);
 	rb_enc_set_index(str, s_ascii_8bit);
 #endif
@@ -202,10 +211,10 @@ static int template_execute_wrap(msgpack_unpack_t* mp,
 
 	mp->user.source = str;
 
-	int ret = (int)rb_rescue(template_execute_do, (VALUE)args,
-			template_execute_rescue, Qnil);
+	VALUE resc[2] = {str, enc_orig};
 
-	mp->user.source = Qnil;
+	int ret = (int)rb_rescue(template_execute_do, (VALUE)args,
+			template_execute_rescue, (VALUE)resc);
 
 	rb_gc_enable();
 
@@ -229,8 +238,10 @@ static int template_execute_wrap_each(msgpack_unpack_t* mp,
 	// FIXME execute実行中はmp->topが更新されないのでGC markが機能しない
 	rb_gc_disable();
 
+	mp->user.source = Qnil;
+
 	int ret = (int)rb_rescue(template_execute_do, (VALUE)args,
-			template_execute_rescue, Qnil);
+			template_execute_rescue_each, Qnil);
 
 	rb_gc_enable();
 
@@ -401,8 +412,7 @@ static void feed_buffer(msgpack_unpack_t* mp, const char* ptr, size_t len)
 	struct unpack_buffer* buffer = &mp->user.buffer;
 
 	if(buffer->size == 0) {
-		char* tmp = (char*)malloc(MSGPACK_UNPACKER_BUFFER_INIT_SIZE);
-		// FIXME check tmp == NULL
+		char* tmp = ALLOC_N(char, MSGPACK_UNPACKER_BUFFER_INIT_SIZE);
 		buffer->ptr = tmp;
 		buffer->free = MSGPACK_UNPACKER_BUFFER_INIT_SIZE;
 		buffer->size = 0;
@@ -430,8 +440,7 @@ static void feed_buffer(msgpack_unpack_t* mp, const char* ptr, size_t len)
 		while(csize < buffer->size + len) {
 			csize *= 2;
 		}
-		char* tmp = (char*)realloc(buffer->ptr, csize);
-		// FIXME check tmp == NULL
+		char* tmp = REALLOC_N(buffer->ptr, char, csize);
 		memcpy(tmp + buffer->size, ptr, len);
 		buffer->ptr = tmp;
 		buffer->free = csize - buffer->size;
@@ -446,8 +455,7 @@ static void feed_buffer(msgpack_unpack_t* mp, const char* ptr, size_t len)
 		while(csize < not_parsed + len) {
 			csize *= 2;
 		}
-		char* tmp = (char*)realloc(buffer->ptr, csize);
-		// FIXME check tmp == NULL
+		char* tmp = REALLOC_N(buffer->ptr, char, csize);
 		buffer->ptr = tmp;
 	}
 
