@@ -163,15 +163,17 @@ static inline int template_callback_raw(unpack_user* u, const char* b, const cha
 #endif
 
 
-static VALUE template_execute_rescue(VALUE data)
+#ifdef HAVE_RUBY_ENCODING_H
+static VALUE template_execute_rescue_enc(VALUE data)
 {
 	rb_gc_enable();
 	VALUE* resc = (VALUE*)data;
 	rb_enc_set_index(resc[0], (int)resc[1]);
 	RERAISE;
 }
+#endif
 
-static VALUE template_execute_rescue_each(VALUE nouse)
+static VALUE template_execute_rescue(VALUE nouse)
 {
 	rb_gc_enable();
 	RERAISE;
@@ -211,10 +213,14 @@ static int template_execute_wrap(msgpack_unpack_t* mp,
 
 	mp->user.source = str;
 
+#ifdef HAVE_RUBY_ENCODING_H
 	VALUE resc[2] = {str, enc_orig};
-
 	int ret = (int)rb_rescue(template_execute_do, (VALUE)args,
-			template_execute_rescue, (VALUE)resc);
+			template_execute_rescue_enc, (VALUE)resc);
+#else
+	int ret = (int)rb_rescue(template_execute_do, (VALUE)args,
+			template_execute_rescue, Qnil);
+#endif
 
 	rb_gc_enable();
 
@@ -241,7 +247,7 @@ static int template_execute_wrap_each(msgpack_unpack_t* mp,
 	mp->user.source = Qnil;
 
 	int ret = (int)rb_rescue(template_execute_do, (VALUE)args,
-			template_execute_rescue_each, Qnil);
+			template_execute_rescue, Qnil);
 
 	rb_gc_enable();
 
