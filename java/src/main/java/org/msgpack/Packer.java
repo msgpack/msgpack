@@ -23,6 +23,22 @@ import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Packer enables you to serialize objects into OutputStream.
+ *
+ * <pre>
+ * // create a packer with output stream
+ * Packer pk = new Packer(System.out);
+ *
+ * // store an object with pack() method.
+ * pk.pack(1);
+ *
+ * // you can store String, List, Map, byte[] and primitive types.
+ * pk.pack(new ArrayList());
+ * </pre>
+ *
+ * You can serialize objects that implements {@link MessagePackable} interface.
+ */
 public class Packer {
 	protected byte[] castBytes = new byte[9];
 	protected ByteBuffer castBuffer = ByteBuffer.wrap(castBytes);

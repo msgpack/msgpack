@@ -24,11 +24,13 @@ import java.util.Iterator;
 import java.nio.ByteBuffer;
 
 /**
- * Deserializer class that includes Buffered API, Unbuffered API,
- * Schema API and Direct Conversion API.
+ * Unpacker enables you to deserialize objects from stream.
+ *
+ * Unpacker provides Buffered API, Unbuffered API, Schema API
+ * and Direct Conversion API.
  *
  * Buffered API uses the internal buffer of the Unpacker.
- * Following code uses Buffered API with an input stream:
+ * Following code uses Buffered API with an InputStream:
  * <pre>
  * // create an unpacker with input stream
  * Unpacker pac = new Unpacker(System.in);
