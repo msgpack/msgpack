@@ -1,7 +1,7 @@
 
-AM_CPPFLAGS   = -I..
-AM_C_CPPFLAGS = -I..
-AM_LDFLAGS = ../libmsgpack.la -lgtest_main
+AM_CPPFLAGS   = -I../src
+AM_C_CPPFLAGS = -I../src
+AM_LDFLAGS = ../src/libmsgpack.la -lgtest_main
 
 check_PROGRAMS = \
 		zone \
@@ -9,7 +9,9 @@ check_PROGRAMS = \
 		streaming \
 		object \
 		convert \
-		buffer
+		buffer \
+		msgpackc_test \
+		msgpack_test
 
 TESTS = $(check_PROGRAMS)
 
@@ -25,4 +27,8 @@ convert_SOURCES = convert.cc
 
 buffer_SOURCES = buffer.cc
 buffer_LDADD = -lz
+
+msgpackc_test_SOURCES = msgpackc_test.cpp
+
+msgpack_test_SOURCES = msgpack_test.cpp
 

@@ -1,4 +1,4 @@
-AC_INIT(object.cpp)
+AC_INIT(src/object.cpp)
 AC_CONFIG_AUX_DIR(ac)
 AM_INIT_AUTOMAKE(msgpack, 0.5.0)
 AC_CONFIG_HEADER(config.h)
@@ -21,6 +21,21 @@ AC_CHECK_HEADERS(tr1/unordered_map)
 AC_CHECK_HEADERS(tr1/unordered_set)
 AC_LANG_POP([C++])
 
+
+AC_MSG_CHECKING([if debug option is enabled])
+AC_ARG_ENABLE(debug,
+	AS_HELP_STRING([--disable-debug],
+				   [disable assert macros and omit -g option.]) )
+if test "$enable_debug" != "no"; then
+	CXXFLAGS="$CXXFLAGS -g"
+	CFLAGS="$CFLAGS -g"
+else
+	CXXFLAGS="$CXXFLAGS -DNDEBUG"
+	CFLAGS="$CFLAGS -DNDEBUG"
+fi
+AC_MSG_RESULT($enable_debug)
+
+
 AC_CACHE_CHECK([for __sync_* atomic operations], msgpack_cv_atomic_ops, [
 	AC_TRY_LINK([
 		int atomic_sub(int i) { return __sync_sub_and_fetch(&i, 1); }
@@ -39,5 +54,5 @@ add CFLAGS="--march=i686" and CXXFLAGS="-march=i686" options to ./configure as f
 ])
 fi
 
-AC_OUTPUT([Makefile test/Makefile])
+AC_OUTPUT([Makefile src/Makefile test/Makefile])
 
