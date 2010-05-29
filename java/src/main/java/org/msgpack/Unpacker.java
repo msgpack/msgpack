@@ -288,6 +288,12 @@ public class Unpacker implements Iterable<Object> {
 			return;
 		}
 
+		if(impl.filled <= impl.offset) {
+			// rewind the buffer
+			impl.filled = 0;
+			impl.offset = 0;
+		}
+
 		if(impl.buffer.length - impl.filled >= require) {
 			return;
 		}
