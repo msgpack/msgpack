@@ -506,20 +506,22 @@ peekObjectRAW ptr = do
 
 peekObjectArray :: Ptr a -> IO Object
 peekObjectArray ptr = do
-  size <- (#peek msgpack_object, via.array.size) ptr
-  p    <- (#peek msgpack_object, via.array.ptr) ptr
-  objs <- mapM (\i -> peekObject $ p `plusPtr`
+  csize <- (#peek msgpack_object, via.array.size) ptr
+  let size = fromIntegral (csize :: Word32)
+  p     <- (#peek msgpack_object, via.array.ptr) ptr
+  objs  <- mapM (\i -> peekObject $ p `plusPtr`
                       ((#size msgpack_object) * i))
-          [0..size-1]
+           [0..size-1]
   return $ ObjectArray objs
 
 peekObjectMap :: Ptr a -> IO Object
 peekObjectMap ptr = do
-  size <- (#peek msgpack_object, via.map.size) ptr
-  p    <- (#peek msgpack_object, via.map.ptr) ptr
-  dat  <- mapM (\i -> peekObjectKV $ p `plusPtr`
+  csize <- (#peek msgpack_object, via.map.size) ptr
+  let size = fromIntegral (csize :: Word32)
+  p     <- (#peek msgpack_object, via.map.ptr) ptr
+  dat   <- mapM (\i -> peekObjectKV $ p `plusPtr`
                       ((#size msgpack_object_kv) * i))
-          [0..size-1]
+           [0..size-1]
   return $ ObjectMap dat
 
 peekObjectKV :: Ptr a -> IO (Object, Object)
