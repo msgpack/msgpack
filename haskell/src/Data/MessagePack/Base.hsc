@@ -560,6 +560,7 @@ unpackObject z dat =
   allocaBytes (#size msgpack_object) $ \ptr ->
   BS.useAsCStringLen dat $ \(str, len) ->
   alloca $ \poff -> do
+    poke poff 0
     ret <- msgpack_unpack str (fromIntegral len) poff z ptr
     case ret of
       (#const MSGPACK_UNPACK_SUCCESS) -> do
