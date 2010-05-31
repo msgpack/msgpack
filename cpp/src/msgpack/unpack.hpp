@@ -160,7 +160,7 @@ private:
 };
 
 
-static bool unpack(unpacked* result,
+static void unpack(unpacked* result,
 		const char* data, size_t len, size_t* offset = NULL);
 
 
@@ -312,7 +312,7 @@ inline void unpacker::remove_nonparsed_buffer()
 }
 
 
-inline bool unpack(unpacked* result,
+inline void unpack(unpacked* result,
 		const char* data, size_t len, size_t* offset)
 {
 	msgpack::object obj;
@@ -326,12 +326,12 @@ inline bool unpack(unpacked* result,
 	case UNPACK_SUCCESS:
 		result->get() = obj;
 		result->zone() = z;
-		return false;
+		return;
 
 	case UNPACK_EXTRA_BYTES:
 		result->get() = obj;
 		result->zone() = z;
-		return true;
+		return;
 
 	case UNPACK_CONTINUE:
 		throw unpack_error("insufficient bytes");
