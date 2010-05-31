@@ -6,7 +6,9 @@ AM_LDFLAGS = ../src/libmsgpack.la -lgtest_main
 check_PROGRAMS = \
 		zone \
 		pack_unpack \
+		pack_unpack_c \
 		streaming \
+		streaming_c \
 		object \
 		convert \
 		buffer \
@@ -20,7 +22,11 @@ zone_SOURCES = zone.cc
 
 pack_unpack_SOURCES = pack_unpack.cc
 
+pack_unpack_c_SOURCES = pack_unpack_c.cc
+
 streaming_SOURCES = streaming.cc
+
+streaming_c_SOURCES = streaming_c.cc
 
 object_SOURCES = object.cc
 
