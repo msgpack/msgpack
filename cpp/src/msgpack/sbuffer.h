@@ -46,6 +46,18 @@ static inline void msgpack_sbuffer_destroy(msgpack_sbuffer* sbuf)
 	free(sbuf->data);
 }
 
+static inline msgpack_sbuffer* msgpack_sbuffer_new(void)
+{
+	return (msgpack_sbuffer*)calloc(1, sizeof(msgpack_sbuffer));
+}
+
+static inline void msgpack_sbuffer_free(msgpack_sbuffer* sbuf)
+{
+	if(sbuf == NULL) { return; }
+	msgpack_sbuffer_destroy(sbuf);
+	free(sbuf);
+}
+
 static inline int msgpack_sbuffer_write(void* data, const char* buf, unsigned int len)
 {
 	msgpack_sbuffer* sbuf = (msgpack_sbuffer*)data;
