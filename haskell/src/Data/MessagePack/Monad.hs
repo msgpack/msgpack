@@ -82,7 +82,7 @@ packToString m = do
   _ <- runPackerT m pc
   liftIO $ simpleBufferData sb
 
--- | Execcute given serializer and write byte sequence to Handle.
+-- | Execute given serializer and write byte sequence to Handle.
 packToHandle :: MonadIO m => Handle -> PackerT m r -> m ()
 packToHandle h m = do
   sb <- packToString m
