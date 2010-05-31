@@ -1,7 +1,7 @@
 %%
 %% MessagePack for Erlang
 %%
-%% Copyright (C) 2009 UENISHI Kota
+%% Copyright (C) 2009-2010 UENISHI Kota
 %%
 %%    Licensed under the Apache License, Version 2.0 (the "License");
 %%    you may not use this file except in compliance with the License.
@@ -332,16 +332,15 @@ test()->
 	     [0,42,"sum", [1,2]], [1,42, nil, [3]]
 	    ],
     Passed = test_(Tests),
-    Passed = length(Tests).
-%%     Port = open_port({spawn, "./a.out"}, [stream]),
-%%     receive {Port, {data, Data}}->
-%%     io:format("~p~n", [unpack_all( list_to_binary(Data) )])
-%%     after 1024-> timeout end,
-%%     Passed2 = test_(Tests, Port),
-%%     Passed2 = length(Tests),
-%%     Port ! {self(), close},
-%%     receive {Port, closed}-> ok 
-%%     after 1024 -> timeout end.
+    Passed = length(Tests),
+    {[Tests],<<>>} = msgpack:unpack(msgpack:pack([Tests])),
+    Port = open_port({spawn, "ruby ../crosslang.rb"}, [binary]),
+    true = port_command(Port, msgpack:pack(Tests) ),
+     %Port ! {self, {command, msgpack:pack(Tests)}}, ... not owner
+    receive
+	{Port, {data, Data}}->  {Tests, <<>>}=msgpack:unpack(Data)
+    after 1024-> ?assert(false)   end,
+    port_close(Port).
 
 test_([]) -> 0;
 test_([S|Rest])->
