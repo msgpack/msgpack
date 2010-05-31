@@ -26,6 +26,12 @@ extern "C" {
 #endif
 
 
+/**
+ * @defgroup msgpack_object Dynamically typed object
+ * @ingroup msgpack
+ * @{
+ */
+
 typedef enum {
 	MSGPACK_OBJECT_NIL					= 0x00,
 	MSGPACK_OBJECT_BOOLEAN				= 0x01,
@@ -80,6 +86,8 @@ typedef struct msgpack_object_kv {
 void msgpack_object_print(FILE* out, msgpack_object o);
 
 bool msgpack_object_equal(const msgpack_object x, const msgpack_object y);
+
+/** @} */
 
 
 #ifdef __cplusplus

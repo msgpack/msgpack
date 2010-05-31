@@ -21,14 +21,16 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifndef MSGPACK_SBUFFER_INIT_SIZE
-#define MSGPACK_SBUFFER_INIT_SIZE 8192
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+
+/**
+ * @defgroup msgpack_sbuffer Simple buffer
+ * @ingroup msgpack_buffer
+ * @{
+ */
 
 typedef struct msgpack_sbuffer {
 	size_t size;
@@ -57,6 +59,10 @@ static inline void msgpack_sbuffer_free(msgpack_sbuffer* sbuf)
 	msgpack_sbuffer_destroy(sbuf);
 	free(sbuf);
 }
+
+#ifndef MSGPACK_SBUFFER_INIT_SIZE
+#define MSGPACK_SBUFFER_INIT_SIZE 8192
+#endif
 
 static inline int msgpack_sbuffer_write(void* data, const char* buf, unsigned int len)
 {
@@ -93,6 +99,9 @@ static inline void msgpack_sbuffer_clear(msgpack_sbuffer* sbuf)
 {
 	sbuf->size = 0;
 }
+
+/** @} */
+
 
 #ifdef __cplusplus
 }

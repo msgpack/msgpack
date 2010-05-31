@@ -23,18 +23,16 @@
 #include <string.h>
 #include <zlib.h>
 
-#ifndef MSGPACK_ZBUFFER_INIT_SIZE
-#define MSGPACK_ZBUFFER_INIT_SIZE 8192
-#endif
-
-#ifndef MSGPACK_ZBUFFER_RESERVE_SIZE
-#define MSGPACK_ZBUFFER_RESERVE_SIZE 512
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+
+/**
+ * @defgroup msgpack_zbuffer Compressed buffer
+ * @ingroup msgpack_buffer
+ * @{
+ */
 
 typedef struct msgpack_zbuffer {
 	z_stream stream;
@@ -42,6 +40,9 @@ typedef struct msgpack_zbuffer {
 	size_t init_size;
 } msgpack_zbuffer;
 
+#ifndef MSGPACK_ZBUFFER_INIT_SIZE
+#define MSGPACK_ZBUFFER_INIT_SIZE 8192
+#endif
 
 static inline bool msgpack_zbuffer_init(msgpack_zbuffer* zbuf,
 		int level, size_t init_size);
@@ -59,6 +60,10 @@ static inline bool msgpack_zbuffer_reset(msgpack_zbuffer* zbuf);
 static inline void msgpack_zbuffer_reset_buffer(msgpack_zbuffer* zbuf);
 static inline char* msgpack_zbuffer_release_buffer(msgpack_zbuffer* zbuf);
 
+
+#ifndef MSGPACK_ZBUFFER_RESERVE_SIZE
+#define MSGPACK_ZBUFFER_RESERVE_SIZE 512
+#endif
 
 static inline int msgpack_zbuffer_write(void* data, const char* buf, unsigned int len);
 
@@ -190,6 +195,8 @@ char* msgpack_zbuffer_release_buffer(msgpack_zbuffer* zbuf)
 	zbuf->stream.avail_out = 0;
 	return tmp;
 }
+
+/** @} */
 
 
 #ifdef __cplusplus

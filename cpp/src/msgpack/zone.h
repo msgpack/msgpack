@@ -25,6 +25,12 @@ extern "C" {
 #endif
 
 
+/**
+ * @defgroup msgpack_zone Memory zone
+ * @ingroup msgpack
+ * @{
+ */
+
 typedef struct msgpack_zone_finalizer {
 	void (*func)(void* data);
 	void* data;
@@ -71,6 +77,7 @@ bool msgpack_zone_is_empty(msgpack_zone* zone);
 
 void msgpack_zone_clear(msgpack_zone* zone);
 
+/** @} */
 
 
 #ifndef MSGPACK_ZONE_ALIGN

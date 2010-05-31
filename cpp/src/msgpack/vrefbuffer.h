@@ -30,18 +30,16 @@ struct iovec {
 };
 #endif
 
-#ifndef MSGPACK_VREFBUFFER_REF_SIZE
-#define MSGPACK_VREFBUFFER_REF_SIZE 32
-#endif
-
-#ifndef MSGPACK_VREFBUFFER_CHUNK_SIZE
-#define MSGPACK_VREFBUFFER_CHUNK_SIZE 8192
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+
+/**
+ * @defgroup msgpack_vrefbuffer Vectored Referencing buffer
+ * @ingroup msgpack_buffer
+ * @{
+ */
 
 struct msgpack_vrefbuffer_chunk;
 typedef struct msgpack_vrefbuffer_chunk msgpack_vrefbuffer_chunk;
@@ -64,6 +62,14 @@ typedef struct msgpack_vrefbuffer {
 } msgpack_vrefbuffer;
 
 
+#ifndef MSGPACK_VREFBUFFER_REF_SIZE
+#define MSGPACK_VREFBUFFER_REF_SIZE 32
+#endif
+
+#ifndef MSGPACK_VREFBUFFER_CHUNK_SIZE
+#define MSGPACK_VREFBUFFER_CHUNK_SIZE 8192
+#endif
+
 bool msgpack_vrefbuffer_init(msgpack_vrefbuffer* vbuf,
 		size_t ref_size, size_t chunk_size);
 void msgpack_vrefbuffer_destroy(msgpack_vrefbuffer* vbuf);
@@ -85,6 +91,8 @@ int msgpack_vrefbuffer_append_ref(msgpack_vrefbuffer* vbuf,
 int msgpack_vrefbuffer_migrate(msgpack_vrefbuffer* vbuf, msgpack_vrefbuffer* to);
 
 void msgpack_vrefbuffer_clear(msgpack_vrefbuffer* vref);
+
+/** @} */
 
 
 msgpack_vrefbuffer* msgpack_vrefbuffer_new(size_t ref_size, size_t chunk_size)

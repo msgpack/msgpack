@@ -6,6 +6,7 @@ preprocess() {
 		echo ""
 		echo "** preprocess failed **"
 		echo ""
+		exit 1
 	else
 		mv $1.tmp $1
 	fi
