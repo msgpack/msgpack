@@ -78,7 +78,7 @@ static void usage(const char* prog)
 		"  3. Writes the re-serialized objects into <out-file> (default: stdout)\n"
 		"\n"
 		, prog);
-	exit(0);
+	exit(1);
 }
 
 int main(int argc, char* argv[])
