@@ -1,3 +1,10 @@
+#
+# MessagePack cross-language test tool
+#
+# $ gem install msgpack
+# or
+# $ port install rb_msgpack   # MacPorts
+#
 begin
 require 'rubygems'
 rescue LoadError
