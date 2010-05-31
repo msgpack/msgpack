@@ -20,6 +20,15 @@
 
 #include "msgpack/zone.h"
 #include "msgpack/object.h"
+#include <string.h>
+
+#ifndef MSGPACK_UNPACKER_INIT_BUFFER_SIZE
+#define MSGPACK_UNPACKER_INIT_BUFFER_SIZE (64*1024)
+#endif
+
+#ifndef MSGPACK_UNPACKER_RESERVE_SIZE
+#define MSGPACK_UNPACKER_RESERVE_SIZE (32*1024)
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -37,6 +46,10 @@ typedef struct msgpack_unpacker {
 	void* ctx;
 } msgpack_unpacker;
 
+typedef struct msgpack_unpacked {
+	msgpack_zone* zone;
+	msgpack_object data;
+} msgpack_unpacked;
 
 bool msgpack_unpacker_init(msgpack_unpacker* mpac, size_t initial_buffer_size);
 void msgpack_unpacker_destroy(msgpack_unpacker* mpac);
@@ -48,6 +61,13 @@ static inline bool   msgpack_unpacker_reserve_buffer(msgpack_unpacker* mpac, siz
 static inline char*  msgpack_unpacker_buffer(msgpack_unpacker* mpac);
 static inline size_t msgpack_unpacker_buffer_capacity(const msgpack_unpacker* mpac);
 static inline void   msgpack_unpacker_buffer_consumed(msgpack_unpacker* mpac, size_t size);
+
+bool msgpack_unpacker_next(msgpack_unpacker* mpac, msgpack_unpacked* pac);
+
+static inline void msgpack_unpacked_init(msgpack_unpacked* result);
+static inline void msgpack_unpacked_destroy(msgpack_unpacked* result);
+
+static inline msgpack_zone* msgpack_unpacked_release_zone(msgpack_unpacked* result);
 
 
 int msgpack_unpacker_execute(msgpack_unpacker* mpac);
@@ -63,6 +83,9 @@ void msgpack_unpacker_reset(msgpack_unpacker* mpac);
 static inline size_t msgpack_unpacker_message_size(const msgpack_unpacker* mpac);
 
 
+bool msgpack_unpack_next(msgpack_unpacked* result,
+		const char* data, size_t len, size_t* off);
+
 
 typedef enum {
 	MSGPACK_UNPACK_SUCCESS				=  2,
@@ -73,7 +96,7 @@ typedef enum {
 
 msgpack_unpack_return
 msgpack_unpack(const char* data, size_t len, size_t* off,
-		msgpack_zone* z, msgpack_object* result);
+		msgpack_zone* result_zone, msgpack_object* result);
 
 
 static inline size_t msgpack_unpacker_parsed_size(const msgpack_unpacker* mpac);
@@ -112,6 +135,31 @@ size_t msgpack_unpacker_message_size(const msgpack_unpacker* mpac)
 size_t msgpack_unpacker_parsed_size(const msgpack_unpacker* mpac)
 {
 	return mpac->parsed;
+}
+
+
+void msgpack_unpacked_init(msgpack_unpacked* result)
+{
+	memset(result, 0, sizeof(msgpack_unpacked));
+}
+
+void msgpack_unpacked_destroy(msgpack_unpacked* result)
+{
+	if(result->zone != NULL) {
+		msgpack_zone_free(result->zone);
+		result->zone = NULL;
+		memset(&result->data, 0, sizeof(msgpack_object));
+	}
+}
+
+msgpack_zone* msgpack_unpacked_release_zone(msgpack_unpacked* result)
+{
+	if(result->zone != NULL) {
+		msgpack_zone* z = result->zone;
+		result->zone = NULL;
+		return z;
+	}
+	return NULL;
 }
 
 

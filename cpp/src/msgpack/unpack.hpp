@@ -24,8 +24,9 @@
 #include <memory>
 #include <stdexcept>
 
+// backward compatibility
 #ifndef MSGPACK_UNPACKER_DEFAULT_INITIAL_BUFFER_SIZE
-#define MSGPACK_UNPACKER_DEFAULT_INITIAL_BUFFER_SIZE (32*1024)
+#define MSGPACK_UNPACKER_DEFAULT_INITIAL_BUFFER_SIZE MSGPACK_UNPACKER_INIT_BUFFER_SIZE
 #endif
 
 namespace msgpack {
@@ -64,12 +65,12 @@ private:
 
 class unpacker : public msgpack_unpacker {
 public:
-	unpacker(size_t init_buffer_size = MSGPACK_UNPACKER_DEFAULT_INITIAL_BUFFER_SIZE);
+	unpacker(size_t init_buffer_size = MSGPACK_UNPACKER_INIT_BUFFER_SIZE);
 	~unpacker();
 
 public:
 	/*! 1. reserve buffer. at least `size' bytes of capacity will be ready */
-	void reserve_buffer(size_t size);
+	void reserve_buffer(size_t size = MSGPACK_UNPACKER_RESERVE_SIZE);
 
 	/*! 2. read data to the buffer() up to buffer_capacity() bytes */
 	char* buffer();
