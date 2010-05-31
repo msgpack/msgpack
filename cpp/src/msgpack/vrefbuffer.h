@@ -19,6 +19,7 @@
 #define MSGPACK_VREFBUFFER_H__
 
 #include "msgpack/zone.h"
+#include <stdlib.h>
 
 #ifndef _WIN32
 #include <sys/uio.h>
@@ -67,6 +68,9 @@ bool msgpack_vrefbuffer_init(msgpack_vrefbuffer* vbuf,
 		size_t ref_size, size_t chunk_size);
 void msgpack_vrefbuffer_destroy(msgpack_vrefbuffer* vbuf);
 
+static inline msgpack_vrefbuffer* msgpack_vrefbuffer_new(size_t ref_size, size_t chunk_size);
+static inline void msgpack_vrefbuffer_free(msgpack_vrefbuffer* vbuf);
+
 static inline int msgpack_vrefbuffer_write(void* data, const char* buf, unsigned int len);
 
 static inline const struct iovec* msgpack_vrefbuffer_vec(const msgpack_vrefbuffer* vref);
@@ -82,6 +86,23 @@ int msgpack_vrefbuffer_migrate(msgpack_vrefbuffer* vbuf, msgpack_vrefbuffer* to)
 
 void msgpack_vrefbuffer_clear(msgpack_vrefbuffer* vref);
 
+
+msgpack_vrefbuffer* msgpack_vrefbuffer_new(size_t ref_size, size_t chunk_size)
+{
+	msgpack_vrefbuffer* vbuf = (msgpack_vrefbuffer*)malloc(sizeof(msgpack_vrefbuffer));
+	if(!msgpack_vrefbuffer_init(vbuf, ref_size, chunk_size)) {
+		free(vbuf);
+		return NULL;
+	}
+	return vbuf;
+}
+
+void msgpack_vrefbuffer_free(msgpack_vrefbuffer* vbuf)
+{
+	if(vbuf == NULL) { return; }
+	msgpack_vrefbuffer_destroy(vbuf);
+	free(vbuf);
+}
 
 int msgpack_vrefbuffer_write(void* data, const char* buf, unsigned int len)
 {
