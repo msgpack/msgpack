@@ -18,6 +18,11 @@
 -module(msgpack).
 -author('kuenishi+msgpack@gmail.com').
 
+%% tuples, atoms are not supported.  lists, integers, double, and so on.
+%% see http://msgpack.sourceforge.jp/spec for
+%% supported formats. APIs are almost compatible
+%% for C API (http://msgpack.sourceforge.jp/c:doc)
+%% except buffering functions (both copying and zero-copying).
 -export([pack/1, unpack/1, unpack_all/1, test/0]).
 
 -include_lib("eunit/include/eunit.hrl").
@@ -27,20 +32,8 @@
 % erl> S = <some term>.
 % erl> {S, <<>>} = msgpack:unpack( msgpack:pack(S) ).
 
-%% tuples, atoms are not supported.  lists, integers, double, and so on.
-%% see http://msgpack.sourceforge.jp/spec for
-%% supported formats. APIs are almost compatible
-%% for C API (http://msgpack.sourceforge.jp/c:doc)
-%% except buffering functions (both copying and zero-copying).
--export([
-	 pack_nil/0,
-	 pack_bool/1,
-	 pack_float/1,
-	 pack_double/1,
-	 pack_raw/1,
-	 pack_array/1,
-	 pack_map/1,
-	 pack_object/1	]).
+
+-type reason() ::  enomem.
 
 % positive fixnum
 pack_uint_(N) when is_integer( N ) , N < 128 ->  
@@ -85,9 +78,9 @@ pack_bool(true)->    << 16#C3:8 >>;
 pack_bool(false)->   << 16#C2:8 >>.
 
 % float : erlang's float is always IEEE 754 64bit format.
-pack_float(F) when is_float(F)->
+%pack_float(F) when is_float(F)->
 %    << 16#CA:8, F:32/big-float-unit:1 >>.
-    pack_double(F).
+%    pack_double(F).
 % double
 pack_double(F) when is_float(F)->
     << 16#CB:8, F:64/big-float-unit:1 >>.
@@ -177,7 +170,9 @@ pack(Obj)->
 % if failed in decoding and not end, get more data 
 % and feed more Bin into this function.
 % TODO: error case for imcomplete format when short for any type formats.
--spec unpack( binary() )-> {term(), binary()}.
+-spec unpack( binary() )-> {term(), binary()} | {more, non_neg_integer()} | {error, reason()}.
+unpack(Bin) when not is_binary(Bin)->
+    {error, badard};
 unpack(Bin) when bit_size(Bin) >= 8 ->
     << Flag:8/unsigned-integer, Payload/binary >> = Bin,
     case Flag of 
@@ -310,7 +305,9 @@ unpack(Bin) when bit_size(Bin) >= 8 ->
 	_Other ->
 	    erlang:display(_Other),
 	    {error, no_code_matches}
-    end.
+    end;
+unpack(_)-> % when bit_size(Bin) < 8 ->
+    {more, 8}.
     
 unpack_all(Data)->
     case unpack(Data) of
@@ -322,23 +319,46 @@ unpack_all(Data)->
 
 -ifdef(EUNIT).
 
-test()->
-    Tests = [0, 1, 2, 123, 512, 1230, 678908, 16#FFFFFFFFFF,
-	     -1, -23, -512, -1230, -567898, -16#FFFFFFFFFF,
-	     123.123, -234.4355, 1.0e-34, 1.0e64,
-	     [23, 234, 0.23],
-	     "hogehoge", "243546rf7g68h798j",
-	     <<"hoasfdafdas][">>,
-	     [0,42,"sum", [1,2]], [1,42, nil, [3]]
-	    ],
+test_data()->
+    [0, 1, 2, 123, 512, 1230, 678908, 16#FFFFFFFFFF,
+     -1, -23, -512, -1230, -567898, -16#FFFFFFFFFF,
+     123.123, -234.4355, 1.0e-34, 1.0e64,
+     [23, 234, 0.23],
+     "hogehoge", "243546rf7g68h798j",
+     <<"hoasfdafdas][">>,
+     [0,42,"sum", [1,2]], [1,42, nil, [3]]
+    ].
+
+basic_test()->
+    Tests = test_data(),
     Passed = test_(Tests),
-    Passed = length(Tests),
+    Passed = length(Tests).
+
+port_test()->
+    Tests = test_data(),
     {[Tests],<<>>} = msgpack:unpack(msgpack:pack([Tests])),
     Port = open_port({spawn, "ruby ../crosslang.rb"}, [binary]),
     true = port_command(Port, msgpack:pack(Tests) ),
-     %Port ! {self, {command, msgpack:pack(Tests)}}, ... not owner
+    %Port ! {self, {command, msgpack:pack(Tests)}}, ... not owner
     receive
 	{Port, {data, Data}}->  {Tests, <<>>}=msgpack:unpack(Data)
+    after 1024-> ?assert(false)   end,
+    port_close(Port).
+
+unknown_test()->
+    Tests = [0, 1, 2, 123, 512, 1230, 678908,
+	     -1, -23, -512, -1230, -567898,
+%	     "hogehoge", "243546rf7g68h798j",
+	     123.123 %-234.4355, 1.0e-34, 1.0e64,
+%	     [23, 234, 0.23]
+%	     [0,42,"sum", [1,2]], [1,42, nil, [3]]
+	    ],
+    Port = open_port({spawn, "ruby testcase_generator.rb"}, [binary]),
+    %Port ! {self, {command, msgpack:pack(Tests)}}, ... not owner
+    receive
+	{Port, {data, Data}}->
+	    Tests=msgpack:unpack_all(Data)
+%	    io:format("~p~n", [Tests])
     after 1024-> ?assert(false)   end,
     port_close(Port).
 
@@ -347,6 +367,6 @@ test_([S|Rest])->
     Pack = msgpack:pack(S),
 %    io:format("testing: ~p => ~p~n", [S, Pack]),
     {S, <<>>} = msgpack:unpack( Pack ),
-    test_(Rest) + 1.
+    1+test_(Rest).
 
 -endif.
