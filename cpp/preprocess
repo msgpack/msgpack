@@ -25,4 +25,6 @@ cp -f ../msgpack/pack_define.h     src/msgpack/
 cp -f ../msgpack/pack_template.h   src/msgpack/
 cp -f ../msgpack/unpack_define.h   src/msgpack/
 cp -f ../msgpack/unpack_template.h src/msgpack/
+cp -f ../test/cases.mpac           test/
+cp -f ../test/cases_compact.mpac   test/
 

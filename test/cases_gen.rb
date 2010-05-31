@@ -63,12 +63,27 @@ EOF
 source.gsub!(/\#.+$/,'')
 bytes = source.strip.split(/\s+/).map {|x| x.to_i(16) }.pack('C*')
 
+objs = []
 compact_bytes = ""
 pac = MessagePack::Unpacker.new
 pac.feed(bytes)
 pac.each {|obj|
 	p obj
+	objs << obj
 	compact_bytes << obj.to_msgpack
+}
+
+# self check
+cpac = MessagePack::Unpacker.new
+cpac.feed(compact_bytes)
+cpac.each {|cobj|
+	obj = objs.shift
+	if obj != cobj
+		puts "** SELF CHECK FAILED **"
+		puts "expected: #{obj.inspect}"
+		puts "actual: #{cobj.inspect}"
+		exit 1
+	end
 }
 
 File.open("cases.mpac","w") {|f| f.write(bytes) }

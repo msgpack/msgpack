@@ -10,6 +10,7 @@ check_PROGRAMS = \
 		object \
 		convert \
 		buffer \
+		cases \
 		msgpackc_test \
 		msgpack_test
 
@@ -28,7 +29,11 @@ convert_SOURCES = convert.cc
 buffer_SOURCES = buffer.cc
 buffer_LDADD = -lz
 
+cases_SOURCES = cases.cc
+
 msgpackc_test_SOURCES = msgpackc_test.cpp
 
 msgpack_test_SOURCES = msgpack_test.cpp
+
+EXTRA_DIST = cases.mpac cases_compact.mpac
 
