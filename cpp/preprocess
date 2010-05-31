@@ -11,9 +11,15 @@ preprocess() {
 	fi
 }
 
-preprocess src/msgpack/type/tuple.hpp
-preprocess src/msgpack/type/define.hpp
-preprocess src/msgpack/zone.hpp
+if [ "$1" == "clean" ];then
+	rm -f src/msgpack/type/tuple.hpp
+	rm -f src/msgpack/type/define.hpp
+	rm -f src/msgpack/zone.hpp
+else
+	preprocess src/msgpack/type/tuple.hpp
+	preprocess src/msgpack/type/define.hpp
+	preprocess src/msgpack/zone.hpp
+fi
 cp -f ../msgpack/sysdep.h          src/msgpack/
 cp -f ../msgpack/pack_define.h     src/msgpack/
 cp -f ../msgpack/pack_template.h   src/msgpack/
