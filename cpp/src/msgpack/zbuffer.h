@@ -47,6 +47,9 @@ static inline bool msgpack_zbuffer_init(msgpack_zbuffer* zbuf,
 		int level, size_t init_size);
 static inline void msgpack_zbuffer_destroy(msgpack_zbuffer* zbuf);
 
+static inline msgpack_zbuffer* msgpack_zbuffer_new(int level, size_t init_size);
+static inline void msgpack_zbuffer_free(msgpack_zbuffer* zbuf);
+
 static inline char* msgpack_zbuffer_flush(msgpack_zbuffer* zbuf);
 
 static inline const char* msgpack_zbuffer_data(const msgpack_zbuffer* zbuf);
@@ -78,6 +81,23 @@ void msgpack_zbuffer_destroy(msgpack_zbuffer* zbuf)
 {
 	deflateEnd(&zbuf->stream);
 	free(zbuf->data);
+}
+
+msgpack_zbuffer* msgpack_zbuffer_new(int level, size_t init_size)
+{
+	msgpack_zbuffer* zbuf = (msgpack_zbuffer*)malloc(sizeof(msgpack_zbuffer));
+	if(!msgpack_zbuffer_init(zbuf, level, init_size)) {
+		free(zbuf);
+		return NULL;
+	}
+	return zbuf;
+}
+
+void msgpack_zbuffer_free(msgpack_zbuffer* zbuf)
+{
+	if(zbuf == NULL) { return; }
+	msgpack_zbuffer_destroy(zbuf);
+	free(zbuf);
 }
 
 bool msgpack_zbuffer_expand(msgpack_zbuffer* zbuf)
