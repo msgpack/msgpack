@@ -1,7 +1,10 @@
 #
 # MessagePack format test case
 #
-require 'rubygems' rescue nil
+begin
+require 'rubygems'
+rescue LoadError
+end
 require 'msgpack'
 require 'json'
 
