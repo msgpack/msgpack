@@ -3,6 +3,7 @@
 #
 require 'rubygems' rescue nil
 require 'msgpack'
+require 'json'
 
 source = <<EOF
 c2                          # false
@@ -65,6 +66,7 @@ bytes = source.strip.split(/\s+/).map {|x| x.to_i(16) }.pack('C*')
 
 objs = []
 compact_bytes = ""
+
 pac = MessagePack::Unpacker.new
 pac.feed(bytes)
 pac.each {|obj|
@@ -72,6 +74,8 @@ pac.each {|obj|
 	objs << obj
 	compact_bytes << obj.to_msgpack
 }
+
+json = objs.to_json
 
 # self check
 cpac = MessagePack::Unpacker.new
@@ -88,4 +92,5 @@ cpac.each {|cobj|
 
 File.open("cases.mpac","w") {|f| f.write(bytes) }
 File.open("cases_compact.mpac","w") {|f| f.write(compact_bytes) }
+File.open("cases.json","w") {|f| f.write(json) }
 
