@@ -22,16 +22,10 @@ as comparing that implementations.
     or
     $ port install msgpack  # MacPorts
     
-    $ g++ -Wall -lmsgpack crosslang.cc
+    $ g++ -Wall -lmsgpack crosslang.cc -o crosslang
 
+    $ ./crosslang
     Usage: ./crosslang [in-file] [out-file]
-    
-    This tool is for testing of MessagePack implementation.
-    This does following behavior:
-    
-      1. Reads objects serialized by MessagePack from <in-file> (default: stdin)
-      2. Re-serializes the objects using C++ implementation of MessagePack (Note that C++ implementation is considered valid)
-      3. Writes the re-serialized objects into <out-file> (default: stdout)
 
 ### Ruby version
 
@@ -41,11 +35,4 @@ as comparing that implementations.
 
     $ ruby crosslang.rb
     Usage: crosslang.rb [in-file] [out-file]
-    
-    This tool is for testing of MessagePack implementation.
-    This does following behavior:
-    
-      1. Reads objects serialized by MessagePack from <in-file> (default: stdin)
-      2. Re-serializes the objects using Ruby implementation of MessagePack (Note that Ruby implementation is considered valid)
-      3. Writes the re-serialized objects into <out-file> (default: stdout)
 
