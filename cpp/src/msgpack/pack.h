@@ -27,6 +27,19 @@ extern "C" {
 #endif
 
 
+/**
+ * @defgroup msgpack_buffer Buffers
+ * @ingroup msgpack
+ * @{
+ * @}
+ */
+
+/**
+ * @defgroup msgpack_pack Serializer
+ * @ingroup msgpack
+ * @{
+ */
+
 typedef int (*msgpack_packer_write)(void* data, const char* buf, unsigned int len);
 
 typedef struct msgpack_packer {
@@ -73,6 +86,8 @@ static int msgpack_pack_raw_body(msgpack_packer* pk, const void* b, size_t l);
 
 int msgpack_pack_object(msgpack_packer* pk, msgpack_object d);
 
+
+/** @} */
 
 
 #define msgpack_pack_inline_func(name) \

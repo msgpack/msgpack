@@ -19,6 +19,7 @@
 #define MSGPACK_VREFBUFFER_H__
 
 #include "msgpack/zone.h"
+#include <stdlib.h>
 
 #ifndef _WIN32
 #include <sys/uio.h>
@@ -29,18 +30,16 @@ struct iovec {
 };
 #endif
 
-#ifndef MSGPACK_VREFBUFFER_REF_SIZE
-#define MSGPACK_VREFBUFFER_REF_SIZE 32
-#endif
-
-#ifndef MSGPACK_VREFBUFFER_CHUNK_SIZE
-#define MSGPACK_VREFBUFFER_CHUNK_SIZE 8192
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+
+/**
+ * @defgroup msgpack_vrefbuffer Vectored Referencing buffer
+ * @ingroup msgpack_buffer
+ * @{
+ */
 
 struct msgpack_vrefbuffer_chunk;
 typedef struct msgpack_vrefbuffer_chunk msgpack_vrefbuffer_chunk;
@@ -63,9 +62,20 @@ typedef struct msgpack_vrefbuffer {
 } msgpack_vrefbuffer;
 
 
+#ifndef MSGPACK_VREFBUFFER_REF_SIZE
+#define MSGPACK_VREFBUFFER_REF_SIZE 32
+#endif
+
+#ifndef MSGPACK_VREFBUFFER_CHUNK_SIZE
+#define MSGPACK_VREFBUFFER_CHUNK_SIZE 8192
+#endif
+
 bool msgpack_vrefbuffer_init(msgpack_vrefbuffer* vbuf,
 		size_t ref_size, size_t chunk_size);
 void msgpack_vrefbuffer_destroy(msgpack_vrefbuffer* vbuf);
+
+static inline msgpack_vrefbuffer* msgpack_vrefbuffer_new(size_t ref_size, size_t chunk_size);
+static inline void msgpack_vrefbuffer_free(msgpack_vrefbuffer* vbuf);
 
 static inline int msgpack_vrefbuffer_write(void* data, const char* buf, unsigned int len);
 
@@ -82,6 +92,25 @@ int msgpack_vrefbuffer_migrate(msgpack_vrefbuffer* vbuf, msgpack_vrefbuffer* to)
 
 void msgpack_vrefbuffer_clear(msgpack_vrefbuffer* vref);
 
+/** @} */
+
+
+msgpack_vrefbuffer* msgpack_vrefbuffer_new(size_t ref_size, size_t chunk_size)
+{
+	msgpack_vrefbuffer* vbuf = (msgpack_vrefbuffer*)malloc(sizeof(msgpack_vrefbuffer));
+	if(!msgpack_vrefbuffer_init(vbuf, ref_size, chunk_size)) {
+		free(vbuf);
+		return NULL;
+	}
+	return vbuf;
+}
+
+void msgpack_vrefbuffer_free(msgpack_vrefbuffer* vbuf)
+{
+	if(vbuf == NULL) { return; }
+	msgpack_vrefbuffer_destroy(vbuf);
+	free(vbuf);
+}
 
 int msgpack_vrefbuffer_write(void* data, const char* buf, unsigned int len)
 {

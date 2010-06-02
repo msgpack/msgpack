@@ -1,5 +1,10 @@
 //
-// How to compile:
+// MessagePack cross-language test tool
+//
+// $ cd ../cpp && ./configure && make && make install
+// or
+// $ port install msgpack  # MacPorts
+//
 // $ g++ -Wall -lmsgpack crosslang.cc
 //
 #include <msgpack.hpp>

@@ -13,7 +13,9 @@ cp ../msgpack/pack_template.h   msgpack/
 cp ../msgpack/unpack_define.h   msgpack/
 cp ../msgpack/unpack_template.h msgpack/
 cp ../msgpack/sysdep.h          msgpack/
-cat msgpack_test.rb | sed "s/require ['\"]msgpack['\"]/require File.dirname(__FILE__) + '\/test_helper.rb'/" > test/msgpack_test.rb
+cp ../test/cases.mpac           test/
+cp ../test/cases_compact.mpac   test/
+cp ../test/cases.json           test/
 
 gem build msgpack.gemspec
 

@@ -23,18 +23,16 @@
 #include <string.h>
 #include <zlib.h>
 
-#ifndef MSGPACK_ZBUFFER_INIT_SIZE
-#define MSGPACK_ZBUFFER_INIT_SIZE 8192
-#endif
-
-#ifndef MSGPACK_ZBUFFER_RESERVE_SIZE
-#define MSGPACK_ZBUFFER_RESERVE_SIZE 512
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+
+/**
+ * @defgroup msgpack_zbuffer Compressed buffer
+ * @ingroup msgpack_buffer
+ * @{
+ */
 
 typedef struct msgpack_zbuffer {
 	z_stream stream;
@@ -42,10 +40,16 @@ typedef struct msgpack_zbuffer {
 	size_t init_size;
 } msgpack_zbuffer;
 
+#ifndef MSGPACK_ZBUFFER_INIT_SIZE
+#define MSGPACK_ZBUFFER_INIT_SIZE 8192
+#endif
 
 static inline bool msgpack_zbuffer_init(msgpack_zbuffer* zbuf,
 		int level, size_t init_size);
 static inline void msgpack_zbuffer_destroy(msgpack_zbuffer* zbuf);
+
+static inline msgpack_zbuffer* msgpack_zbuffer_new(int level, size_t init_size);
+static inline void msgpack_zbuffer_free(msgpack_zbuffer* zbuf);
 
 static inline char* msgpack_zbuffer_flush(msgpack_zbuffer* zbuf);
 
@@ -56,6 +60,10 @@ static inline bool msgpack_zbuffer_reset(msgpack_zbuffer* zbuf);
 static inline void msgpack_zbuffer_reset_buffer(msgpack_zbuffer* zbuf);
 static inline char* msgpack_zbuffer_release_buffer(msgpack_zbuffer* zbuf);
 
+
+#ifndef MSGPACK_ZBUFFER_RESERVE_SIZE
+#define MSGPACK_ZBUFFER_RESERVE_SIZE 512
+#endif
 
 static inline int msgpack_zbuffer_write(void* data, const char* buf, unsigned int len);
 
@@ -78,6 +86,23 @@ void msgpack_zbuffer_destroy(msgpack_zbuffer* zbuf)
 {
 	deflateEnd(&zbuf->stream);
 	free(zbuf->data);
+}
+
+msgpack_zbuffer* msgpack_zbuffer_new(int level, size_t init_size)
+{
+	msgpack_zbuffer* zbuf = (msgpack_zbuffer*)malloc(sizeof(msgpack_zbuffer));
+	if(!msgpack_zbuffer_init(zbuf, level, init_size)) {
+		free(zbuf);
+		return NULL;
+	}
+	return zbuf;
+}
+
+void msgpack_zbuffer_free(msgpack_zbuffer* zbuf)
+{
+	if(zbuf == NULL) { return; }
+	msgpack_zbuffer_destroy(zbuf);
+	free(zbuf);
 }
 
 bool msgpack_zbuffer_expand(msgpack_zbuffer* zbuf)
@@ -170,6 +195,8 @@ char* msgpack_zbuffer_release_buffer(msgpack_zbuffer* zbuf)
 	zbuf->stream.avail_out = 0;
 	return tmp;
 }
+
+/** @} */
 
 
 #ifdef __cplusplus

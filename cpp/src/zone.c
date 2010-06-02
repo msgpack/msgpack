@@ -214,6 +214,7 @@ msgpack_zone* msgpack_zone_new(size_t chunk_size)
 
 void msgpack_zone_free(msgpack_zone* zone)
 {
+	if(zone == NULL) { return; }
 	msgpack_zone_destroy(zone);
 	free(zone);
 }
