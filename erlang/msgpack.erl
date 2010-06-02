@@ -337,7 +337,7 @@ basic_test()->
 port_test()->
     Tests = test_data(),
     {[Tests],<<>>} = msgpack:unpack(msgpack:pack([Tests])),
-    Port = open_port({spawn, "ruby ../crosslang.rb"}, [binary]),
+    Port = open_port({spawn, "ruby ../test/crosslang.rb"}, [binary]),
     true = port_command(Port, msgpack:pack(Tests) ),
     %Port ! {self, {command, msgpack:pack(Tests)}}, ... not owner
     receive
