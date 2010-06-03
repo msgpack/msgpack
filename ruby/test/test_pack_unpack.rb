@@ -203,6 +203,37 @@ class MessagePackTestPackUnpack < Test::Unit::TestCase
 #		#check_map 5, (1<<32)-1  # memory error
 #	end
 
+	it "buffer" do
+		str = "a"*32*1024*4
+		raw = str.to_msgpack
+		pac = MessagePack::Unpacker.new
+
+		len = 0
+		parsed = false
+
+		n = 655
+		time = raw.size / n
+		time += 1 unless raw.size % n == 0
+		off = 0
+
+		time.times do
+			assert(!parsed)
+
+			fe = raw[off, n]
+			assert(fe.length > 0)
+			off += fe.length
+
+			pac.feed fe
+			pac.each {|obj|
+				assert(!parsed)
+				assert_equal(obj, str)
+				parsed = true
+			}
+		end
+
+		assert(parsed)
+	end
+
 	it "gc mark" do
 		obj = [{["a","b"]=>["c","d"]}, ["e","f"], "d"]
 		num = 4
