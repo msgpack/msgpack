@@ -7,6 +7,72 @@ import (
     "reflect"
 );
 
+func equal(lhs reflect.Value, rhs reflect.Value) bool {
+    {
+        _rhs, ok := rhs.(*reflect.InterfaceValue)
+        if ok { return equal(lhs, _rhs.Elem()) }
+    }
+    switch _lhs := lhs.(type) {
+    case *reflect.InterfaceValue:
+        return equal(_lhs.Elem(), rhs)
+    case *reflect.BoolValue:
+        _rhs, ok := rhs.(*reflect.BoolValue)
+        return ok && _lhs.Get() == _rhs.Get()
+    case *reflect.Uint8Value:
+        _rhs, ok := rhs.(*reflect.Uint8Value)
+        return ok && _lhs.Get() == _rhs.Get()
+    case *reflect.Uint16Value:
+        _rhs, ok := rhs.(*reflect.Uint16Value)
+        return ok && _lhs.Get() == _rhs.Get()
+    case *reflect.Uint32Value:
+        _rhs, ok := rhs.(*reflect.Uint32Value)
+        return ok && _lhs.Get() == _rhs.Get()
+    case *reflect.Uint64Value:
+        _rhs, ok := rhs.(*reflect.Uint64Value)
+        return ok && _lhs.Get() == _rhs.Get()
+    case *reflect.UintValue:
+        _rhs, ok := rhs.(*reflect.UintValue)
+        return ok && _lhs.Get() == _rhs.Get()
+    case *reflect.Int8Value:
+        _rhs, ok := rhs.(*reflect.Int8Value)
+        return ok && _lhs.Get() == _rhs.Get()
+    case *reflect.Int16Value:
+        _rhs, ok := rhs.(*reflect.Int16Value)
+        return ok && _lhs.Get() == _rhs.Get()
+    case *reflect.Int32Value:
+        _rhs, ok := rhs.(*reflect.Int32Value)
+        return ok && _lhs.Get() == _rhs.Get()
+    case *reflect.Int64Value:
+        _rhs, ok := rhs.(*reflect.Int64Value)
+        return ok && _lhs.Get() == _rhs.Get()
+    case *reflect.IntValue:
+        _rhs, ok := rhs.(*reflect.IntValue)
+        return ok && _lhs.Get() == _rhs.Get()
+    case *reflect.Float32Value:
+        _rhs, ok := rhs.(*reflect.Float32Value)
+        return ok && _lhs.Get() == _rhs.Get()
+    case *reflect.Float64Value:
+        _rhs, ok := rhs.(*reflect.Float64Value)
+        return ok && _lhs.Get() == _rhs.Get()
+    case reflect.ArrayOrSliceValue:
+        _rhs := rhs.(reflect.ArrayOrSliceValue)
+        if _lhs.Len() != _rhs.Len() { return false; }
+        for i := 0; i < _lhs.Len(); i++ {
+            if !equal(_lhs.Elem(i), _rhs.Elem(i)) { return false; }
+        }
+        return true;
+    case *reflect.MapValue:
+        _rhs := rhs.(*reflect.MapValue)
+        if _lhs.Len() != _rhs.Len() { return false; }
+        for _, k := range _lhs.Keys() {
+            lv, rv := _lhs.Elem(k), _rhs.Elem(k)
+            if lv == nil || rv == nil || !equal(lv, rv) { return false; }
+        }
+        return true;
+    }
+    return false;
+}
+
 func TestPackUint8(t *testing.T) {
     b := &bytes.Buffer{}
     for _, i := range []uint8 { 0, 1, 2, 125, 126, 127, 128, 253, 254, 255 } {
@@ -139,12 +205,19 @@ func TestPack(t *testing.T) {
     if bytes.Compare(b.Bytes(), []byte { 0xc0, 0xc2, 0xc3, 0x00, 0x01, 0x02, 0x03, 0x7f, 0xf0, 0xff, 0xd0, 0xef, 0xd1, 0x00, 0x80 }) == 0 { t.Error("wrong output") }
 }
 
-func TestUnpack(t *testing.T) {
-    b := bytes.NewBuffer([]byte { 0x00, 0x01, 0x02, 0x7d, 0x7e, 0x7f, 0xcc, 0x80, 0xcc, 0xfd, 0xcc, 0xfe, 0xcc, 0xff, 0xd2, 0x7f, 0xff, 0xff, 0xff, 0xd3, 0x7f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff })
+func TestUnpackArray(t *testing.T) {
+    b := bytes.NewBuffer([]byte { 0x90, 0x91, 0x00, 0x92, 0x00, 0x01, 0x93, 0xd1, 0x00, 0x00, 0xd2, 0x00, 0x00, 0x00, 0x01, 0xd3, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xdc, 0x00, 0x02, 0x00, 0x01, 0xdd, 0x00, 0x00, 0x00, 0x04, 0x00, 0x01, 0x02, 0x03 })
+    for _, v := range [](interface{}) { [](interface{}) {}, [](interface{}) { int8(0) }, [](interface{}) { int8(0), int8(1) }, [](interface{}) { int16(0), int32(1), int64(2) }, [](interface{}){ int8(0), int8(1) }, [](interface{}) { int8(0), int8(1), int8(2), int8(3) } } {
+        retval, _, e := Unpack(b)
+        if e != nil { t.Error("err != nil") }
+        if !equal(reflect.NewValue(retval.Interface()), reflect.NewValue(v)) { t.Errorf("%s != %s", retval.Interface(), v) }
+    }
+}
+
+func TestUnpackInt(t *testing.T) {
+    b := bytes.NewBuffer([]byte { 0xff, 0xe0, 0x00, 0x01, 0x02, 0x7d, 0x7e, 0x7f, 0xd0, 0x01, 0xd0, 0x80, 0xd0, 0xff, 0xcc, 0x80, 0xcc, 0xfd, 0xcc, 0xfe, 0xcc, 0xff, 0xd1, 0x00, 0x00, 0xd1, 0x7f, 0xff, 0xd1, 0xff, 0xff, 0xcd, 0x80, 0x00, 0xcd, 0xff, 0xff, 0xd2, 0x7f, 0xff, 0xff, 0xff, 0xce, 0x7f, 0xff, 0xff, 0xff, 0xd3, 0x7f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xcf, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff })
     for _, v := range [](interface{}) {
-        int8(0), int8(1), int8(2), int8(125), int8(126), int8(127),
-        uint8(128), uint8(253), uint8(254), uint8(255), int32(2147483647),
-        int64(9223372036854775807) } {
+        int8(-1), int8(-32), int8(0), int8(1), int8(2), int8(125), int8(126), int8(127), int8(1), int8(-128), int8(-1), uint8(128), uint8(253), uint8(254), uint8(255), int16(0), int16(32767), int16(-1), uint16(32768), uint16(65535), int32(2147483647), uint32(2147483647), int64(9223372036854775807), uint64(18446744073709551615) } {
         retval, _, e := Unpack(b)
         if e != nil { t.Error("err != nil") }
         if retval.Interface() != v { t.Errorf("%u != %u", retval.Interface(), v) }
