@@ -18,14 +18,14 @@ func readUint16(reader io.Reader) (v uint16, n int, err os.Error) {
     data := [2]byte{}
     n, e := reader.Read(data[0:])
     if e != nil { return 0, n, e }
-    return (uint16(data[0]) >> 8) | uint16(data[1]), n, nil
+    return (uint16(data[0]) << 8) | uint16(data[1]), n, nil
 }
 
 func readUint32(reader io.Reader) (v uint32, n int, err os.Error) {
     data := [4]byte{}
     n, e := reader.Read(data[0:])
     if e != nil { return 0, n, e }
-    return (uint32(data[0]) << 24) | (uint32(data[1]) << 16) | (uint32(data[2]) << 8) | uint32(data[1]), n, nil
+    return (uint32(data[0]) << 24) | (uint32(data[1]) << 16) | (uint32(data[2]) << 8) | uint32(data[3]), n, nil
 }
 
 func readUint64(reader io.Reader) (v uint64, n int, err os.Error) {
@@ -46,7 +46,7 @@ func readInt32(reader io.Reader) (v int32, n int, err os.Error) {
     data := [4]byte{}
     n, e := reader.Read(data[0:])
     if e != nil { return 0, n, e }
-    return (int32(data[0]) << 24) | (int32(data[1]) << 16) | (int32(data[2]) << 8) | int32(data[1]), n, nil
+    return (int32(data[0]) << 24) | (int32(data[1]) << 16) | (int32(data[2]) << 8) | int32(data[3]), n, nil
 }
 
 func readInt64(reader io.Reader) (v int64, n int, err os.Error) {
