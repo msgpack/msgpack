@@ -20,28 +20,13 @@ package org.msgpack;
 import java.io.Writer;
 import java.io.IOException;
 import org.msgpack.schema.SSchemaParser;
-import org.msgpack.schema.ClassGenerator;
+//import org.msgpack.schema.ClassGenerator;
 
 public abstract class Schema {
-	private String expression;
-	private String name;
+	public Schema() { }
 
-	public Schema(String name) {
-		this.expression = expression;
-		this.name = name;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public String getFullName() {
-		return name;
-	}
-
-	public String getExpression() {
-		return name;
-	}
+	public abstract String getClassName();
+	public abstract String getExpression();
 
 	public static Schema parse(String source) {
 		return SSchemaParser.parse(source);
@@ -51,83 +36,43 @@ public abstract class Schema {
 		return SSchemaParser.load(source);
 	}
 
-	public void write(Writer output) throws IOException {
-		ClassGenerator.write(this, output);
-	}
-
 	public abstract void pack(Packer pk, Object obj) throws IOException;
-
 	public abstract Object convert(Object obj) throws MessageTypeException;
-
 
 	public Object createFromNil() {
 		return null;
 	}
 
 	public Object createFromBoolean(boolean v) {
-		throw new RuntimeException("type error");
+		throw new MessageTypeException("type error");
 	}
 
 	public Object createFromByte(byte v) {
-		throw new RuntimeException("type error");
+		throw new MessageTypeException("type error");
 	}
 
 	public Object createFromShort(short v) {
-		throw new RuntimeException("type error");
+		throw new MessageTypeException("type error");
 	}
 
 	public Object createFromInt(int v) {
-		throw new RuntimeException("type error");
+		throw new MessageTypeException("type error");
 	}
 
 	public Object createFromLong(long v) {
-		throw new RuntimeException("type error");
+		throw new MessageTypeException("type error");
 	}
 
 	public Object createFromFloat(float v) {
-		throw new RuntimeException("type error");
+		throw new MessageTypeException("type error");
 	}
 
 	public Object createFromDouble(double v) {
-		throw new RuntimeException("type error");
+		throw new MessageTypeException("type error");
 	}
 
 	public Object createFromRaw(byte[] b, int offset, int length) {
-		throw new RuntimeException("type error");
+		throw new MessageTypeException("type error");
 	}
-
-	/* FIXME
-	public Object createFromBoolean(boolean v) {
-		throw MessageTypeException.schemaMismatch(this);
-	}
-
-	public Object createFromByte(byte v) {
-		throw MessageTypeException.schemaMismatch(this);
-	}
-
-	public Object createFromShort(short v) {
-		throw MessageTypeException.schemaMismatch(this);
-	}
-
-	public Object createFromInt(int v) {
-		throw MessageTypeException.schemaMismatch(this);
-	}
-
-	public Object createFromLong(long v) {
-		throw MessageTypeException.schemaMismatch(this);
-	}
-
-	public Object createFromFloat(float v) {
-		throw MessageTypeException.schemaMismatch(this);
-	}
-
-	public Object createFromDouble(double v) {
-		throw MessageTypeException.schemaMismatch(this);
-	}
-
-	public Object createFromRaw(byte[] b, int offset, int length) {
-		throw MessageTypeException.schemaMismatch(this);
-	}
-	*/
 }
 

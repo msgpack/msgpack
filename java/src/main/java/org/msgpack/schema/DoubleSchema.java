@@ -21,8 +21,11 @@ import java.io.IOException;
 import org.msgpack.*;
 
 public class DoubleSchema extends Schema {
-	public DoubleSchema() {
-		super("Double");
+	public DoubleSchema() { }
+
+	@Override
+	public String getClassName() {
+		return "Double";
 	}
 
 	@Override
@@ -32,43 +35,30 @@ public class DoubleSchema extends Schema {
 
 	@Override
 	public void pack(Packer pk, Object obj) throws IOException {
-		if(obj instanceof Number) {
-			pk.packDouble( ((Number)obj).doubleValue() );
-
+		if(obj instanceof Double) {
+			pk.packDouble((Double)obj);
+		} else if(obj instanceof Float) {
+			pk.packFloat((Float)obj);
 		} else if(obj == null) {
 			pk.packNil();
-
 		} else {
 			throw MessageTypeException.invalidConvert(obj, this);
+		}
+	}
+
+	public static final double convertDouble(Object obj) throws MessageTypeException {
+		if(obj instanceof Double) {
+			return (Double)obj;
+		} else if(obj instanceof Float) {
+			return ((Float)obj).doubleValue();
+		} else {
+			throw new MessageTypeException();
 		}
 	}
 
 	@Override
 	public Object convert(Object obj) throws MessageTypeException {
-		if(obj instanceof Double) {
-			return obj;
-
-		} else if(obj instanceof Number) {
-			return ((Number)obj).doubleValue();
-
-		} else {
-			throw MessageTypeException.invalidConvert(obj, this);
-		}
-	}
-
-	@Override
-	public Object createFromByte(byte v) {
-		return (double)v;
-	}
-
-	@Override
-	public Object createFromShort(short v) {
-		return (double)v;
-	}
-
-	@Override
-	public Object createFromInt(int v) {
-		return (double)v;
+		return convertDouble(obj);
 	}
 
 	@Override

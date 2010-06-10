@@ -21,8 +21,11 @@ import java.io.IOException;
 import org.msgpack.*;
 
 public class LongSchema extends Schema {
-	public LongSchema() {
-		super("Long");
+	public LongSchema() { }
+
+	@Override
+	public String getClassName() {
+		return "Long";
 	}
 
 	@Override
@@ -33,27 +36,25 @@ public class LongSchema extends Schema {
 	@Override
 	public void pack(Packer pk, Object obj) throws IOException {
 		if(obj instanceof Number) {
-			pk.packLong( ((Number)obj).longValue() );
-
+			long value = ((Number)obj).longValue();
+			pk.packLong(value);
 		} else if(obj == null) {
 			pk.packNil();
-
 		} else {
 			throw MessageTypeException.invalidConvert(obj, this);
 		}
 	}
 
+	public static final long convertLong(Object obj) throws MessageTypeException {
+		if(obj instanceof Number) {
+			return ((Number)obj).longValue();
+		}
+		throw new MessageTypeException();
+	}
+
 	@Override
 	public Object convert(Object obj) throws MessageTypeException {
-		if(obj instanceof Long) {
-			return obj;
-
-		} else if(obj instanceof Number) {
-			return ((Number)obj).longValue();
-
-		} else {
-			throw MessageTypeException.invalidConvert(obj, this);
-		}
+		return convertLong(obj);
 	}
 
 	@Override
@@ -73,16 +74,6 @@ public class LongSchema extends Schema {
 
 	@Override
 	public Object createFromLong(long v) {
-		return (long)v;
-	}
-
-	@Override
-	public Object createFromFloat(float v) {
-		return (long)v;
-	}
-
-	@Override
-	public Object createFromDouble(double v) {
 		return (long)v;
 	}
 }

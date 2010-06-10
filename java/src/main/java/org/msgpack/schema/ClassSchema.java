@@ -22,6 +22,7 @@ import java.util.List;
 import org.msgpack.*;
 
 public abstract class ClassSchema extends Schema implements IArraySchema {
+	protected String name;
 	protected FieldSchema[] fields;
 	protected List<String> imports;
 	protected String namespace;
@@ -30,7 +31,7 @@ public abstract class ClassSchema extends Schema implements IArraySchema {
 	public ClassSchema(
 			String name, String namespace,
 			List<String> imports, List<FieldSchema> fields) {
-		super(name);
+		this.name = name;
 		this.namespace = namespace;
 		this.imports = imports;  // FIXME clone?
 		this.fields = new FieldSchema[fields.size()];
@@ -40,6 +41,31 @@ public abstract class ClassSchema extends Schema implements IArraySchema {
 		} else {
 			this.fqdn = namespace+"."+name;
 		}
+	}
+
+	@Override
+	public String getClassName() {
+		return name;
+	}
+
+	@Override
+	public String getExpression() {
+		StringBuffer b = new StringBuffer();
+		b.append("(class ");
+		b.append(name);
+		if(namespace != null) {
+			b.append(" (package "+namespace+")");
+		}
+		for(FieldSchema f : fields) {
+			b.append(" "+f.getExpression());
+		}
+		b.append(")");
+		return b.toString();
+	}
+
+	public boolean equals(ClassSchema o) {
+		return (namespace != null ? namespace.equals(o.getNamespace()) : o.getNamespace() == null) &&
+			name.equals(o.name);
 	}
 
 	public final FieldSchema[] getFields() {
@@ -60,36 +86,6 @@ public abstract class ClassSchema extends Schema implements IArraySchema {
 
 	void setImports(List<String> imports) {
 		this.imports = imports;  // FIXME clone?
-	}
-
-	//@Override
-	//public String getFullName()
-	//{
-	//	if(namespace == null) {
-	//		return getName();
-	//	} else {
-	//		return namespace+"."+getName();
-	//	}
-	//}
-
-	@Override
-	public String getExpression() {
-		StringBuffer b = new StringBuffer();
-		b.append("(class ");
-		b.append(getName());
-		if(namespace != null) {
-			b.append(" (package "+namespace+")");
-		}
-		for(FieldSchema f : fields) {
-			b.append(" "+f.getExpression());
-		}
-		b.append(")");
-		return b.toString();
-	}
-
-	public boolean equals(SpecificClassSchema o) {
-		return (namespace != null ? namespace.equals(o.getNamespace()) : o.getNamespace() == null) &&
-			getName().equals(o.getName());
 	}
 }
 

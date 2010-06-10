@@ -23,61 +23,48 @@ import java.io.UnsupportedEncodingException;
 import org.msgpack.*;
 
 public class StringSchema extends Schema {
-	public StringSchema() {
-		super("string");
-	}
+	public StringSchema() { }
 
 	@Override
-	public String getFullName() {
+	public String getClassName() {
 		return "String";
 	}
 
 	@Override
+	public String getExpression() {
+		return "string";
+	}
+
+	@Override
 	public void pack(Packer pk, Object obj) throws IOException {
-		// FIXME instanceof GenericObject
-		if(obj instanceof String) {
+		if(obj instanceof byte[]) {
+			byte[] b = (byte[])obj;
+			pk.packRaw(b.length);
+			pk.packRawBody(b);
+		} else if(obj instanceof String) {
 			try {
-				byte[] d = ((String)obj).getBytes("UTF-8");
-				pk.packRaw(d.length);
-				pk.packRawBody(d);
+				byte[] b = ((String)obj).getBytes("UTF-8");
+				pk.packRaw(b.length);
+				pk.packRawBody(b);
 			} catch (UnsupportedEncodingException e) {
-				throw MessageTypeException.invalidConvert(obj, this);
+				throw new MessageTypeException();
 			}
-
-		} else if(obj instanceof byte[]) {
-			byte[] d = (byte[])obj;
-			pk.packRaw(d.length);
-			pk.packRawBody(d);
-
-		} else if(obj instanceof ByteBuffer) {
-			ByteBuffer d = (ByteBuffer)obj;
-			if(!d.hasArray()) {
-				throw MessageTypeException.invalidConvert(obj, this);
-			}
-			pk.packRaw(d.capacity());
-			pk.packRawBody(d.array(), d.position(), d.capacity());
-
 		} else if(obj == null) {
 			pk.packNil();
-
 		} else {
 			throw MessageTypeException.invalidConvert(obj, this);
 		}
 	}
 
-	@Override
-	public Object convert(Object obj) throws MessageTypeException {
-		// FIXME instanceof GenericObject
-		if(obj instanceof String) {
-			return obj;
-
-		} else if(obj instanceof byte[]) {
+	public static final String convertString(Object obj) throws MessageTypeException {
+		if(obj instanceof byte[]) {
 			try {
 				return new String((byte[])obj, "UTF-8");
 			} catch (UnsupportedEncodingException e) {
-				throw MessageTypeException.invalidConvert(obj, this);
+				throw new MessageTypeException();
 			}
-
+		} else if(obj instanceof String) {
+			return (String)obj;
 		} else if(obj instanceof ByteBuffer) {
 			ByteBuffer d = (ByteBuffer)obj;
 			try {
@@ -91,12 +78,16 @@ public class StringSchema extends Schema {
 					return new String(v, "UTF-8");
 				}
 			} catch (UnsupportedEncodingException e) {
-				throw MessageTypeException.invalidConvert(obj, this);
+				throw new MessageTypeException();
 			}
-
 		} else {
-			throw MessageTypeException.invalidConvert(obj, this);
+			throw new MessageTypeException();
 		}
+	}
+
+	@Override
+	public Object convert(Object obj) throws MessageTypeException {
+		return convertString(obj);
 	}
 
 	@Override

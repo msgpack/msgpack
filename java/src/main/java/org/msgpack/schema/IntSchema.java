@@ -21,8 +21,11 @@ import java.io.IOException;
 import org.msgpack.*;
 
 public class IntSchema extends Schema {
-	public IntSchema() {
-		super("Integer");
+	public IntSchema() { }
+
+	@Override
+	public String getClassName() {
+		return "Integer";
 	}
 
 	@Override
@@ -33,27 +36,38 @@ public class IntSchema extends Schema {
 	@Override
 	public void pack(Packer pk, Object obj) throws IOException {
 		if(obj instanceof Number) {
-			pk.packInt( ((Number)obj).intValue() );
-
+			int value = ((Number)obj).intValue();
+			if(value >= Short.MAX_VALUE) {
+				long lvalue = ((Number)obj).longValue();
+				if(lvalue > Integer.MAX_VALUE) {
+					throw new MessageTypeException();
+				}
+			}
+			pk.packInt(value);
 		} else if(obj == null) {
 			pk.packNil();
-
 		} else {
 			throw MessageTypeException.invalidConvert(obj, this);
 		}
 	}
 
+	public static final int convertInt(Object obj) throws MessageTypeException {
+		if(obj instanceof Number) {
+			int value = ((Number)obj).intValue();
+			if(value >= Integer.MAX_VALUE) {
+				long lvalue = ((Number)obj).longValue();
+				if(lvalue > Integer.MAX_VALUE) {
+					throw new MessageTypeException();
+				}
+			}
+			return value;
+		}
+		throw new MessageTypeException();
+	}
+
 	@Override
 	public Object convert(Object obj) throws MessageTypeException {
-		if(obj instanceof Integer) {
-			return obj;
-
-		} else if(obj instanceof Number) {
-			return ((Number)obj).intValue();
-
-		} else {
-			throw MessageTypeException.invalidConvert(obj, this);
-		}
+		return convertInt(obj);
 	}
 
 	@Override
@@ -73,16 +87,9 @@ public class IntSchema extends Schema {
 
 	@Override
 	public Object createFromLong(long v) {
-		return (int)v;
-	}
-
-	@Override
-	public Object createFromFloat(float v) {
-		return (int)v;
-	}
-
-	@Override
-	public Object createFromDouble(double v) {
+		if(v > Integer.MAX_VALUE) {
+			throw new MessageTypeException();
+		}
 		return (int)v;
 	}
 }

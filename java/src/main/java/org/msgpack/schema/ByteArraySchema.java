@@ -22,59 +22,48 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import org.msgpack.*;
 
-public class RawSchema extends Schema {
-	public RawSchema() {
-		super("raw");
-	}
+public class ByteArraySchema extends Schema {
+	public ByteArraySchema() { }
 
-	public String getFullName() {
+	@Override
+	public String getClassName() {
 		return "byte[]";
 	}
 
 	@Override
+	public String getExpression() {
+		return "raw";
+	}
+
+	@Override
 	public void pack(Packer pk, Object obj) throws IOException {
-		// FIXME instanceof GenericObject
 		if(obj instanceof byte[]) {
-			byte[] d = (byte[])obj;
-			pk.packRaw(d.length);
-			pk.packRawBody(d);
-
-		} else if(obj instanceof ByteBuffer) {
-			ByteBuffer d = (ByteBuffer)obj;
-			if(!d.hasArray()) {
-				throw MessageTypeException.invalidConvert(obj, this);
-			}
-			pk.packRaw(d.capacity());
-			pk.packRawBody(d.array(), d.position(), d.capacity());
-
+			byte[] b = (byte[])obj;
+			pk.packRaw(b.length);
+			pk.packRawBody(b);
 		} else if(obj instanceof String) {
 			try {
-				byte[] d = ((String)obj).getBytes("UTF-8");
-				pk.packRaw(d.length);
-				pk.packRawBody(d);
+				byte[] b = ((String)obj).getBytes("UTF-8");
+				pk.packRaw(b.length);
+				pk.packRawBody(b);
 			} catch (UnsupportedEncodingException e) {
-				throw MessageTypeException.invalidConvert(obj, this);
+				throw new MessageTypeException();
 			}
-
 		} else if(obj == null) {
 			pk.packNil();
-
 		} else {
 			throw MessageTypeException.invalidConvert(obj, this);
 		}
 	}
 
-	@Override
-	public Object convert(Object obj) throws MessageTypeException {
-		// FIXME instanceof GenericObject
+	public static final byte[] convertByteArray(Object obj) throws MessageTypeException {
 		if(obj instanceof byte[]) {
 			// FIXME copy?
 			//byte[] d = (byte[])obj;
 			//byte[] v = new byte[d.length];
 			//System.arraycopy(d, 0, v, 0, d.length);
 			//return v;
-			return obj;
-
+			return (byte[])obj;
 		} else if(obj instanceof ByteBuffer) {
 			ByteBuffer d = (ByteBuffer)obj;
 			byte[] v = new byte[d.capacity()];
@@ -82,17 +71,20 @@ public class RawSchema extends Schema {
 			d.get(v);
 			d.position(pos);
 			return v;
-
 		} else if(obj instanceof String) {
 			try {
 				return ((String)obj).getBytes("UTF-8");
 			} catch (UnsupportedEncodingException e) {
-				throw MessageTypeException.invalidConvert(obj, this);
+				throw new MessageTypeException();
 			}
-
 		} else {
-			throw MessageTypeException.invalidConvert(obj, this);
+			throw new MessageTypeException();
 		}
+	}
+
+	@Override
+	public Object convert(Object obj) throws MessageTypeException {
+		return convertByteArray(obj);
 	}
 
 	@Override

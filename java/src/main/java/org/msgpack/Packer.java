@@ -223,6 +223,10 @@ public class Packer {
 		return this;
 	}
 
+	public Packer packBoolean(boolean d) throws IOException {
+		return d ? packTrue() : packFalse();
+	}
+
 	public Packer packArray(int n) throws IOException {
 		if(n < 16) {
 			final int d = 0x90 | n;

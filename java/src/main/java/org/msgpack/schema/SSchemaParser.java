@@ -140,7 +140,7 @@ public class SSchemaParser {
 			if(type.equals("string")) {
 				return new StringSchema();
 			} else if(type.equals("raw")) {
-				return new RawSchema();
+				return new ByteArraySchema();
 			} else if(type.equals("byte")) {
 				return new ByteSchema();
 			} else if(type.equals("short")) {
@@ -163,11 +163,13 @@ public class SSchemaParser {
 			if(type.equals("class")) {
 				return parseClass(exp);
 			} else if(type.equals("array")) {
-				return parseArray(exp);
+				return parseList(exp);
+			} else if(type.equals("set")) {
+				return parseSet(exp);
 			} else if(type.equals("map")) {
 				return parseMap(exp);
 			} else {
-				throw new RuntimeException("class, array or map is expected but got '"+type+"': "+exp);
+				throw new RuntimeException("class, list, set or map is expected but got '"+type+"': "+exp);
 			}
 		}
 	}
@@ -209,12 +211,20 @@ public class SSchemaParser {
 		}
 	}
 
-	private ArraySchema parseArray(SExp exp) {
+	private ListSchema parseList(SExp exp) {
 		if(exp.size() != 2) {
-			throw new RuntimeException("array is (array ELEMENT_TYPE): "+exp);
+			throw new RuntimeException("list is (list ELEMENT_TYPE): "+exp);
 		}
 		Schema elementType = readType(exp.getTuple(1));
-		return new ArraySchema(elementType);
+		return new ListSchema(elementType);
+	}
+
+	private SetSchema parseSet(SExp exp) {
+		if(exp.size() != 2) {
+			throw new RuntimeException("list is (list ELEMENT_TYPE): "+exp);
+		}
+		Schema elementType = readType(exp.getTuple(1));
+		return new SetSchema(elementType);
 	}
 
 	private MapSchema parseMap(SExp exp) {

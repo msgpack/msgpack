@@ -77,8 +77,11 @@ public class ClassGenerator {
 			for(FieldSchema f : cs.getFields()) {
 				findSubclassSchema(dst, f.getSchema());
 			}
-		} else if(s instanceof ArraySchema) {
-			ArraySchema as = (ArraySchema)s;
+		} else if(s instanceof ListSchema) {
+			ListSchema as = (ListSchema)s;
+			findSubclassSchema(dst, as.getElementSchema(0));
+		} else if(s instanceof SetSchema) {
+			SetSchema as = (SetSchema)s;
 			findSubclassSchema(dst, as.getElementSchema(0));
 		} else if(s instanceof MapSchema) {
 			MapSchema as = (MapSchema)s;
@@ -105,7 +108,7 @@ public class ClassGenerator {
 
 	private void writeClass() throws IOException {
 		line();
-		line("public final class "+schema.getName()+" implements MessagePackable, MessageConvertable");
+		line("public final class "+schema.getClassName()+" implements MessagePackable, MessageConvertable");
 		line("{");
 		pushIndent();
 			writeSchema();
@@ -117,7 +120,7 @@ public class ClassGenerator {
 
 	private void writeSubclass() throws IOException {
 		line();
-		line("final class "+schema.getName()+" implements MessagePackable, MessageConvertable");
+		line("final class "+schema.getClassName()+" implements MessagePackable, MessageConvertable");
 		line("{");
 		pushIndent();
 			writeSchema();
@@ -135,7 +138,7 @@ public class ClassGenerator {
 	private void writeMemberVariables() throws IOException {
 		line();
 		for(FieldSchema f : schema.getFields()) {
-			line("public "+f.getSchema().getFullName()+" "+f.getName()+";");
+			line("public "+f.getSchema().getClassName()+" "+f.getName()+";");
 		}
 	}
 
@@ -156,7 +159,7 @@ public class ClassGenerator {
 
 	private void writeConstructors() throws IOException {
 		line();
-		line("public "+schema.getName()+"() { }");
+		line("public "+schema.getClassName()+"() { }");
 	}
 
 	private void writeAccessors() throws IOException {
@@ -195,7 +198,7 @@ public class ClassGenerator {
 			line("FieldSchema[] _fields = _SCHEMA.getFields();");
 			int i = 0;
 			for(FieldSchema f : schema.getFields()) {
-				line("if(_source.length <= "+i+") { return; } this."+f.getName()+" = ("+f.getSchema().getFullName()+")_fields["+i+"].getSchema().convert(_source["+i+"]);");
+				line("if(_source.length <= "+i+") { return; } this."+f.getName()+" = ("+f.getSchema().getClassName()+")_fields["+i+"].getSchema().convert(_source["+i+"]);");
 				++i;
 			}
 		popIndent();
@@ -205,13 +208,13 @@ public class ClassGenerator {
 	private void writeFactoryFunction() throws IOException {
 		line();
 		line("@SuppressWarnings(\"unchecked\")");
-		line("public static "+schema.getName()+" createFromMessage(Object[] _message)");
+		line("public static "+schema.getClassName()+" createFromMessage(Object[] _message)");
 		line("{");
 		pushIndent();
-			line(schema.getName()+" _self = new "+schema.getName()+"();");
+			line(schema.getClassName()+" _self = new "+schema.getClassName()+"();");
 			int i = 0;
 			for(FieldSchema f : schema.getFields()) {
-				line("if(_message.length <= "+i+") { return _self; } _self."+f.getName()+" = ("+f.getSchema().getFullName()+")_message["+i+"];");
+				line("if(_message.length <= "+i+") { return _self; } _self."+f.getName()+" = ("+f.getSchema().getClassName()+")_message["+i+"];");
 				++i;
 			}
 			line("return _self;");

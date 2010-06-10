@@ -20,27 +20,23 @@ package org.msgpack.schema;
 import java.io.IOException;
 import org.msgpack.*;
 
-public class ShortSchema extends Schema {
-	public ShortSchema() { }
+public class BooleanSchema extends Schema {
+	public BooleanSchema() { }
 
 	@Override
 	public String getClassName() {
-		return "Short";
+		return "Boolean";
 	}
 
 	@Override
 	public String getExpression() {
-		return "short";
+		return "boolean";
 	}
 
 	@Override
 	public void pack(Packer pk, Object obj) throws IOException {
-		if(obj instanceof Number) {
-			int value = ((Number)obj).intValue();
-			if(value > Short.MAX_VALUE) {
-				throw new MessageTypeException();
-			}
-			pk.packShort((short)value);
+		if(obj instanceof Boolean) {
+			pk.packBoolean((Boolean)obj);
 		} else if(obj == null) {
 			pk.packNil();
 		} else {
@@ -48,46 +44,21 @@ public class ShortSchema extends Schema {
 		}
 	}
 
-	public static final short convertShort(Object obj) throws MessageTypeException {
-		if(obj instanceof Number) {
-			int value = ((Number)obj).intValue();
-			if(value > Short.MAX_VALUE) {
-				throw new MessageTypeException();
-			}
-			return (short)value;
+	public static final boolean convertBoolean(Object obj) throws MessageTypeException {
+		if(obj instanceof Boolean) {
+			return (Boolean)obj;
 		}
 		throw new MessageTypeException();
 	}
 
 	@Override
 	public Object convert(Object obj) throws MessageTypeException {
-		return convertShort(obj);
+		return convertBoolean(obj);
 	}
 
 	@Override
-	public Object createFromByte(byte v) {
-		return (short)v;
-	}
-
-	@Override
-	public Object createFromShort(short v) {
-		return (short)v;
-	}
-
-	@Override
-	public Object createFromInt(int v) {
-		if(v > Short.MAX_VALUE) {
-			throw new MessageTypeException();
-		}
-		return (short)v;
-	}
-
-	@Override
-	public Object createFromLong(long v) {
-		if(v > Short.MAX_VALUE) {
-			throw new MessageTypeException();
-		}
-		return (short)v;
+	public Object createFromBoolean(boolean v) {
+		return v;
 	}
 }
 
