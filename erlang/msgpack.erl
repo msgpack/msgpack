@@ -18,37 +18,38 @@
 -module(msgpack).
 -author('kuenishi+msgpack@gmail.com').
 
-%% tuples, atoms are not supported.  lists, integers, double, and so on.
+%% tuples, atoms are not supported. lists, integers, double, and so on.
 %% see http://msgpack.sourceforge.jp/spec for
 %% supported formats. APIs are almost compatible
 %% for C API (http://msgpack.sourceforge.jp/c:doc)
 %% except buffering functions (both copying and zero-copying).
--export([pack/1, unpack/1, unpack_all/1, test/0]).
-
--include_lib("eunit/include/eunit.hrl").
+-export([pack/1, unpack/1, unpack_all/1]).
 
 % compile:
 % erl> c(msgpack).
 % erl> S = <some term>.
 % erl> {S, <<>>} = msgpack:unpack( msgpack:pack(S) ).
--type reason() ::  enomem.
+-type reason() ::  enomem | badarg.
+-type map() :: any(). % there's no 'dict' type...
+-type msgpack_term() :: [msgpack_term()] | integer() | float() | {dict, map()}.
 
 % ===== external APIs ===== %
+-spec pack(Term::msgpack_term()) -> binary().
 pack(O) when is_integer(O) andalso O < 0 ->
     pack_int_(O);
 pack(O) when is_integer(O) ->
     pack_uint_(O);
-pack(O) when is_float(O)->
+pack(O) when is_float(O) ->
     pack_double(O);
 pack(nil) ->
     pack_nil();
 pack(Bool) when is_atom(Bool) ->
     pack_bool(Bool);
-pack(Bin) when is_binary(Bin)->
+pack(Bin) when is_binary(Bin) ->
     pack_raw(Bin);
-pack(List)  when is_list(List)->
+pack(List)  when is_list(List) ->
     pack_array(List);
-pack({dict, Map})->
+pack({dict, Map}) ->
     pack_map({dict, Map});
 pack(_) ->
     undefined.
@@ -57,15 +58,16 @@ pack(_) ->
 % if failed in decoding and not end, get more data
 % and feed more Bin into this function.
 % TODO: error case for imcomplete format when short for any type formats.
--spec unpack( binary() )-> {term(), binary()} | {more, non_neg_integer()} | {error, reason()}.
+-spec unpack( binary() )-> {msgpack_term(), binary()} | {more, non_neg_integer()} | {error, reason()}.
 unpack(Bin) when not is_binary(Bin)->
-    {error, badard};
+    {error, badarg};
 unpack(Bin) when bit_size(Bin) >= 8 ->
     << Flag:8/unsigned-integer, Payload/binary >> = Bin,
     unpack_(Flag, Payload);
 unpack(_)-> % when bit_size(Bin) < 8 ->
     {more, 8}.
 
+-spec unpack_all( binary() ) -> [msgpack_term()].
 unpack_all(Data)->
     case unpack(Data) of
 	{ Term, Binary } when bit_size(Binary) =:= 0 ->
@@ -318,6 +320,8 @@ unpack_(Flag, Payload)->
 	    {error, no_code_matches}
     end.
 
+% ===== test codes ===== %
+-include_lib("eunit/include/eunit.hrl").
 -ifdef(EUNIT).
 
 compare_all([], [])-> ok;
