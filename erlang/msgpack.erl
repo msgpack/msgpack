@@ -31,9 +31,51 @@
 % erl> c(msgpack).
 % erl> S = <some term>.
 % erl> {S, <<>>} = msgpack:unpack( msgpack:pack(S) ).
-
-
 -type reason() ::  enomem.
+
+% ===== external APIs ===== %
+pack(O) when is_integer(O) andalso O < 0 ->
+    pack_int_(O);
+pack(O) when is_integer(O) ->
+    pack_uint_(O);
+pack(O) when is_float(O)->
+    pack_double(O);
+pack(nil) ->
+    pack_nil();
+pack(Bool) when is_atom(Bool) ->
+    pack_bool(Bool);
+pack(Bin) when is_binary(Bin)->
+    pack_raw(Bin);
+pack(List)  when is_list(List)->
+    pack_array(List);
+pack({dict, Map})->
+    pack_map({dict, Map});
+pack(_) ->
+    undefined.
+
+% unpacking.
+% if failed in decoding and not end, get more data
+% and feed more Bin into this function.
+% TODO: error case for imcomplete format when short for any type formats.
+-spec unpack( binary() )-> {term(), binary()} | {more, non_neg_integer()} | {error, reason()}.
+unpack(Bin) when not is_binary(Bin)->
+    {error, badard};
+unpack(Bin) when bit_size(Bin) >= 8 ->
+    << Flag:8/unsigned-integer, Payload/binary >> = Bin,
+    unpack_(Flag, Payload);
+unpack(_)-> % when bit_size(Bin) < 8 ->
+    {more, 8}.
+
+unpack_all(Data)->
+    case unpack(Data) of
+	{ Term, Binary } when bit_size(Binary) =:= 0 ->
+	    [Term];
+	{ Term, Binary } when is_binary(Binary) ->
+	    [Term|unpack_all(Binary)]
+    end.
+
+
+% ===== internal APIs ===== %
 
 % positive fixnum
 pack_uint_(N) when is_integer( N ) , N < 128 ->  
@@ -113,7 +155,7 @@ pack_array(L) when is_list(L)->
     end.
 pack_array_([])-> <<>>;
 pack_array_([Head|Tail])->
-    << (pack_object(Head))/binary, (pack_array_(Tail))/binary >>.
+    << (pack(Head))/binary, (pack_array_(Tail))/binary >>.
 
 unpack_array_(<<>>, 0)-> [];
 unpack_array_(Remain, 0) when is_binary(Remain)-> [Remain];
@@ -134,7 +176,7 @@ pack_map({dict,M})->
 
 pack_map_([])-> <<>>;
 pack_map_([{Key,Value}|Tail]) ->
-    << (pack_object(Key)),(pack_object(Value)),(pack_map_(Tail)) >>.
+    << (pack(Key)),(pack(Value)),(pack_map_(Tail)) >>.
 
 unpack_map_(<<>>, 0)-> [];
 unpack_map_(Bin,  0) when is_binary(Bin)-> [Bin];
@@ -143,38 +185,7 @@ unpack_map_(Bin, Len) when is_binary(Bin) and is_integer(Len) ->
     { Value, Rest2 } = unpack(Rest),
     [{Key,Value}|unpack_map_(Rest2,Len-1)].
 
-pack_object(O) when is_integer(O) andalso O < 0 ->
-    pack_int_(O);
-pack_object(O) when is_integer(O) ->
-    pack_uint_(O);
-pack_object(O) when is_float(O)->
-    pack_double(O);
-pack_object(nil) ->
-    pack_nil();
-pack_object(Bool) when is_atom(Bool) ->
-    pack_bool(Bool);
-pack_object(Bin) when is_binary(Bin)->
-    pack_raw(Bin);
-pack_object(List)  when is_list(List)->
-    pack_array(List);
-pack_object({dict, Map})->
-    pack_map({dict, Map});
-pack_object(_) ->
-    undefined.
-
-pack(Obj)->
-    pack_object(Obj).
-
-
-% unpacking.
-% if failed in decoding and not end, get more data 
-% and feed more Bin into this function.
-% TODO: error case for imcomplete format when short for any type formats.
--spec unpack( binary() )-> {term(), binary()} | {more, non_neg_integer()} | {error, reason()}.
-unpack(Bin) when not is_binary(Bin)->
-    {error, badard};
-unpack(Bin) when bit_size(Bin) >= 8 ->
-    << Flag:8/unsigned-integer, Payload/binary >> = Bin,
+unpack_(Flag, Payload)->
     case Flag of 
 	16#C0 ->
 	    {nil, Payload};
@@ -305,19 +316,16 @@ unpack(Bin) when bit_size(Bin) >= 8 ->
 	_Other ->
 	    erlang:display(_Other),
 	    {error, no_code_matches}
-    end;
-unpack(_)-> % when bit_size(Bin) < 8 ->
-    {more, 8}.
-    
-unpack_all(Data)->
-    case unpack(Data) of
-	{ Term, Binary } when bit_size(Binary) =:= 0 -> 
-	    [Term];
-	{ Term, Binary } when is_binary(Binary) ->
-	    [Term|unpack_all(Binary)]
     end.
 
 -ifdef(EUNIT).
+
+compare_all([], [])-> ok;
+compare_all([], R)-> {toomuchrhs, R};
+compare_all(L, [])-> {toomuchlhs, L};
+compare_all([LH|LTL], [RH|RTL]) ->
+    LH=RH,
+    compare_all(LTL, RTL).
 
 test_data()->
     [0, 1, 2, 123, 512, 1230, 678908, 16#FFFFFFFFFF,
@@ -339,7 +347,6 @@ port_test()->
     {[Tests],<<>>} = msgpack:unpack(msgpack:pack([Tests])),
     Port = open_port({spawn, "ruby ../test/crosslang.rb"}, [binary]),
     true = port_command(Port, msgpack:pack(Tests) ),
-    %Port ! {self, {command, msgpack:pack(Tests)}}, ... not owner
     receive
 	{Port, {data, Data}}->  {Tests, <<>>}=msgpack:unpack(Data)
     after 1024-> ?assert(false)   end,
@@ -348,24 +355,23 @@ port_test()->
 unknown_test()->
     Tests = [0, 1, 2, 123, 512, 1230, 678908,
 	     -1, -23, -512, -1230, -567898,
-%	     "hogehoge", "243546rf7g68h798j",
-	     123.123 %-234.4355, 1.0e-34, 1.0e64,
-%	     [23, 234, 0.23]
-%	     [0,42,"sum", [1,2]], [1,42, nil, [3]]
+	     <<"hogehoge">>, <<"243546rf7g68h798j">>,
+%	     123.123,  %FIXME
+%            -234.4355, 1.0e-34, 1.0e64, % FIXME
+	     [23, 234, 0.23],
+	     [0,42,<<"sum">>, [1,2]], [1,42, nil, [3]],
+	     42
 	    ],
     Port = open_port({spawn, "ruby testcase_generator.rb"}, [binary]),
-    %Port ! {self, {command, msgpack:pack(Tests)}}, ... not owner
     receive
 	{Port, {data, Data}}->
-	    Tests=msgpack:unpack_all(Data)
-%	    io:format("~p~n", [Tests])
+	    compare_all(Tests, msgpack:unpack_all(Data))
     after 1024-> ?assert(false)   end,
     port_close(Port).
 
 test_([]) -> 0;
 test_([S|Rest])->
     Pack = msgpack:pack(S),
-%    io:format("testing: ~p => ~p~n", [S, Pack]),
     {S, <<>>} = msgpack:unpack( Pack ),
     1+test_(Rest).
 
