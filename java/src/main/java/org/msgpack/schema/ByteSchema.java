@@ -21,8 +21,11 @@ import java.io.IOException;
 import org.msgpack.*;
 
 public class ByteSchema extends Schema {
-	public ByteSchema() {
-		super("Byte");
+	public ByteSchema() { }
+
+	@Override
+	public String getClassName() {
+		return "Byte";
 	}
 
 	@Override
@@ -33,27 +36,32 @@ public class ByteSchema extends Schema {
 	@Override
 	public void pack(Packer pk, Object obj) throws IOException {
 		if(obj instanceof Number) {
-			pk.packByte( ((Number)obj).byteValue() );
-
+			short value = ((Number)obj).shortValue();
+			if(value > Byte.MAX_VALUE) {
+				throw new MessageTypeException();
+			}
+			pk.packByte((byte)value);
 		} else if(obj == null) {
 			pk.packNil();
-
 		} else {
 			throw MessageTypeException.invalidConvert(obj, this);
 		}
 	}
 
+	public static final byte convertByte(Object obj) throws MessageTypeException {
+		if(obj instanceof Number) {
+			short value = ((Number)obj).shortValue();
+			if(value > Byte.MAX_VALUE) {
+				throw new MessageTypeException();
+			}
+			return (byte)value;
+		}
+		throw new MessageTypeException();
+	}
+
 	@Override
 	public Object convert(Object obj) throws MessageTypeException {
-		if(obj instanceof Byte) {
-			return obj;
-
-		} else if(obj instanceof Number) {
-			return ((Number)obj).byteValue();
-
-		} else {
-			throw MessageTypeException.invalidConvert(obj, this);
-		}
+		return convertByte(obj);
 	}
 
 	@Override
@@ -63,26 +71,25 @@ public class ByteSchema extends Schema {
 
 	@Override
 	public Object createFromShort(short v) {
+		if(v > Byte.MAX_VALUE) {
+			throw new MessageTypeException();
+		}
 		return (byte)v;
 	}
 
 	@Override
 	public Object createFromInt(int v) {
+		if(v > Byte.MAX_VALUE) {
+			throw new MessageTypeException();
+		}
 		return (byte)v;
 	}
 
 	@Override
 	public Object createFromLong(long v) {
-		return (byte)v;
-	}
-
-	@Override
-	public Object createFromFloat(float v) {
-		return (byte)v;
-	}
-
-	@Override
-	public Object createFromDouble(double v) {
+		if(v > Byte.MAX_VALUE) {
+			throw new MessageTypeException();
+		}
 		return (byte)v;
 	}
 }

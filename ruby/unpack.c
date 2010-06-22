@@ -386,90 +386,70 @@ static VALUE MessagePack_Unpacker_stream_set(VALUE self, VALUE val)
 }
 
 
-#ifdef RUBY_VM
-#  ifndef STR_SHARED
-#    define STR_SHARED  FL_USER2
-#  endif
-#  ifndef STR_NOEMBED
-#    define STR_NOEMBED FL_USER1
-#  endif
-#  ifndef STR_ASSOC
-#    define STR_ASSOC   FL_USER3
-#  endif
-#  ifndef STR_NOCAPA_P
-#    define STR_NOCAPA_P(s) (FL_TEST(s,STR_NOEMBED) && FL_ANY(s,STR_SHARED|STR_ASSOC))
-#  endif
-#  define NEED_MORE_CAPA(s,size) (!STR_NOCAPA_P(s) && RSTRING(s)->as.heap.aux.capa < size)
-#else
-#  ifndef STR_NOCAPA
-#    ifndef STR_ASSOC
-#      define STR_ASSOC   FL_USER3
-#    endif
-#    ifndef ELTS_SHARED
-#      define ELTS_SHARED FL_USER2
-#    endif
-#    define STR_NOCAPA  (ELTS_SHARED|STR_ASSOC)
-#  endif
-#  define NEED_MORE_CAPA(s,size) (!FL_TEST(s,STR_NOCAPA) && RSTRING(s)->aux.capa < size)
-#endif
-
-static void feed_buffer(msgpack_unpack_t* mp, const char* ptr, size_t len)
+static void reserve_buffer(msgpack_unpack_t* mp, size_t require)
 {
 	struct unpack_buffer* buffer = &mp->user.buffer;
 
 	if(buffer->size == 0) {
-		char* tmp = ALLOC_N(char, MSGPACK_UNPACKER_BUFFER_INIT_SIZE);
+		size_t nsize = MSGPACK_UNPACKER_BUFFER_INIT_SIZE;
+		while(nsize < require) {
+			nsize *= 2;
+		}
+		char* tmp = ALLOC_N(char, nsize);
 		buffer->ptr = tmp;
-		buffer->free = MSGPACK_UNPACKER_BUFFER_INIT_SIZE;
+		buffer->free = nsize;
 		buffer->size = 0;
+		return;
+	}
 
-	} else if(buffer->size <= mp->user.offset) {
+	if(buffer->size <= mp->user.offset) {
 		/* clear buffer and rewind offset */
 		buffer->free += buffer->size;
 		buffer->size = 0;
 		mp->user.offset = 0;
 	}
 
-	if(len <= buffer->free) {
-		/* enough free space: just copy */
-		memcpy(buffer->ptr+buffer->size, ptr, len);
-		buffer->size += len;
-		buffer->free -= len;
+	if(require <= buffer->free) {
+		/* enough free space */
 		return;
 	}
 
-	size_t csize = buffer->size + buffer->free;
+	size_t nsize = (buffer->size + buffer->free) * 2;
 
 	if(mp->user.offset <= buffer->size / 2) {
-		/* parsed less than half: realloc and copy */
-		csize *= 2;
-		while(csize < buffer->size + len) {
-			csize *= 2;
+		/* parsed less than half: realloc only */
+		while(nsize < buffer->size + require) {
+			nsize *= 2;
 		}
-		char* tmp = REALLOC_N(buffer->ptr, char, csize);
-		memcpy(tmp + buffer->size, ptr, len);
+		char* tmp = REALLOC_N(buffer->ptr, char, nsize);
+		buffer->free = nsize - buffer->size;
 		buffer->ptr = tmp;
-		buffer->free = csize - buffer->size;
-		return;
-	}
 
-	size_t not_parsed = buffer->size - mp->user.offset;
-
-	if(csize < not_parsed + len) {
-		/* more buffer size */
-		csize *= 2;
-		while(csize < not_parsed + len) {
-			csize *= 2;
+	} else {
+		/* parsed more than half: realloc and move */
+		size_t not_parsed = buffer->size - mp->user.offset;
+		while(nsize < not_parsed + require) {
+			nsize *= 2;
 		}
-		char* tmp = REALLOC_N(buffer->ptr, char, csize);
+		char* tmp = REALLOC_N(buffer->ptr, char, nsize);
+		memcpy(tmp, tmp + mp->user.offset, not_parsed);
+		buffer->free = nsize - buffer->size;
+		buffer->size = not_parsed;
 		buffer->ptr = tmp;
+		mp->user.offset = 0;
 	}
+}
 
-	memcpy(buffer->ptr+not_parsed, ptr, not_parsed);
-	buffer->size = not_parsed;
-	buffer->free = csize - buffer->size;
-	buffer->ptr = buffer->ptr;
-	mp->user.offset = 0;
+static inline void feed_buffer(msgpack_unpack_t* mp, const char* ptr, size_t len)
+{
+	struct unpack_buffer* buffer = &mp->user.buffer;
+
+	if(buffer->free < len) {
+		reserve_buffer(mp, len);
+	}
+	memcpy(buffer->ptr + buffer->size, ptr, len);
+	buffer->size += len;
+	buffer->free -= len;
 }
 
 /**

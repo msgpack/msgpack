@@ -22,11 +22,13 @@ import java.util.List;
 import java.util.HashMap;
 import java.io.IOException;
 import org.msgpack.*;
-//import org.msgpack.generic.*;
 
 public class GenericSchema extends Schema implements IArraySchema, IMapSchema {
-	public GenericSchema() {
-		super("Object");
+	public GenericSchema() { }
+
+	@Override
+	public String getClassName() {
+		return "Object";
 	}
 
 	@Override
@@ -123,70 +125,5 @@ public class GenericSchema extends Schema implements IArraySchema, IMapSchema {
 		}
 		return m;
 	}
-
-	/*
-   @Override
-	public Object createFromNil() {
-		return null;
-	}
-
-	@Override
-	public Object createFromBoolean(boolean v) {
-		return new GenericBoolean(v);
-	}
-
-	@Override
-	public Object createFromFromByte(byte v) {
-		return new GenericByte(v);
-	}
-
-	@Override
-	public Object createFromShort(short v) {
-		return new GenericShort(v);
-	}
-
-	@Override
-	public Object createFromInt(int v) {
-		return new GenericInt(v);
-	}
-
-	@Override
-	public Object createFromLong(long v) {
-		return new GenericLong(v);
-	}
-
-	@Override
-	public Object createFromFloat(float v) {
-		return new GenericFloat(v);
-	}
-
-	@Override
-	public Object createFromDouble(double v) {
-		return new GenericDouble(v);
-	}
-
-	@Override
-	public Object createFromRaw(byte[] b, int offset, int length) {
-		return new GenericRaw(b, offset, length);
-	}
-
-	@Override
-	public Object createFromArray(Object[] obj) {
-		// FIXME GenericArray
-		return Arrays.asList(obj);
-	}
-
-	@Override
-	public Object createFromMap(Object[] obj) {
-		GenericMap m = new GenericMap(obj.length / 2);
-		int i = 0;
-		while(i < obj.length) {
-			Object k = obj[i++];
-			Object v = obj[i++];
-			m.put(k, v);
-		}
-		return m;
-	}
-	*/
 }
 

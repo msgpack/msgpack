@@ -22,37 +22,32 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.RandomAccess;
 import java.io.IOException;
 import org.msgpack.*;
 
-public class ArraySchema extends Schema implements IArraySchema {
+public class SetSchema extends Schema implements IArraySchema {
 	private Schema elementSchema;
 
-	public ArraySchema(Schema elementSchema)
-	{
-		super("array");
+	public SetSchema(Schema elementSchema) {
 		this.elementSchema = elementSchema;
 	}
 
 	@Override
-	public String getFullName()
-	{
-		return "List<"+elementSchema.getFullName()+">";
+	public String getClassName() {
+		return "Set<"+elementSchema.getClassName()+">";
 	}
 
 	@Override
-	public String getExpression()
-	{
-		return "(array "+elementSchema.getExpression()+")";
+	public String getExpression() {
+		return "(set "+elementSchema.getExpression()+")";
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
-	public void pack(Packer pk, Object obj) throws IOException
-	{
+	public void pack(Packer pk, Object obj) throws IOException {
 		if(obj instanceof List) {
-			ArrayList<Object> d = (ArrayList<Object>)obj;
+			List<Object> d = (List<Object>)obj;
 			pk.packArray(d.size());
 			if(obj instanceof RandomAccess) {
 				for(int i=0; i < d.size(); ++i) {
@@ -63,63 +58,58 @@ public class ArraySchema extends Schema implements IArraySchema {
 					elementSchema.pack(pk, e);
 				}
 			}
-
 		} else if(obj instanceof Set) {
 			Set<Object> d = (Set<Object>)obj;
 			pk.packArray(d.size());
 			for(Object e : d) {
 				elementSchema.pack(pk, e);
 			}
-
 		} else if(obj == null) {
 			pk.packNil();
-
 		} else {
 			throw MessageTypeException.invalidConvert(obj, this);
 		}
 	}
 
-	@Override
 	@SuppressWarnings("unchecked")
-	public Object convert(Object obj) throws MessageTypeException
-	{
-		if(obj instanceof List) {
-			List d = (List)obj;
-			ArrayList ar = new ArrayList(d.size());
-			if(obj instanceof RandomAccess) {
-				for(int i=0; i < d.size(); ++i) {
-					ar.add( elementSchema.convert(d.get(i)) );
-				}
-			} else {
-				for(Object e : d) {
-					ar.add( elementSchema.convert(e) );
-				}
-			}
-			return ar;
-
-		} else if(obj instanceof Collection) {
-			Collection d = (Collection)obj;
-			ArrayList ar = new ArrayList(d.size());
-			for(Object e : (Collection)obj) {
-				ar.add( elementSchema.convert(e) );
-			}
-			return ar;
-
-		} else {
-			throw MessageTypeException.invalidConvert(obj, this);
+	public static final <T> Set<T> convertSet(Object obj,
+			Schema elementSchema, Set<T> dest) throws MessageTypeException {
+		if(!(obj instanceof List)) {
+			throw new MessageTypeException();
 		}
+		List<Object> d = (List<Object>)obj;
+		if(dest == null) {
+			dest = new HashSet<T>(d.size());
+		}
+		if(obj instanceof RandomAccess) {
+			for(int i=0; i < d.size(); ++i) {
+				dest.add( (T)elementSchema.convert(d.get(i)) );
+			}
+		} else {
+			for(Object e : d) {
+				dest.add( (T)elementSchema.convert(e) );
+			}
+		}
+		return dest;
 	}
 
 	@Override
-	public Schema getElementSchema(int index)
-	{
+	public Object convert(Object obj) throws MessageTypeException {
+		return convertSet(obj, elementSchema, null);
+	}
+
+	@Override
+	public Schema getElementSchema(int index) {
 		return elementSchema;
 	}
 
 	@Override
-	public Object createFromArray(Object[] obj)
-	{
-		return Arrays.asList(obj);
+	public Object createFromArray(Object[] obj) {
+		Set m = new HashSet(obj.length);
+		for(int i=0; i < obj.length; i++) {
+			m.add(obj[i]);
+		}
+		return m;
 	}
 }
 

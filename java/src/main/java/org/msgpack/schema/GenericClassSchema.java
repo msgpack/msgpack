@@ -41,10 +41,8 @@ public class GenericClassSchema extends ClassSchema {
 				FieldSchema f = fields[i];
 				f.getSchema().pack(pk, d.get(f.getName()));
 			}
-
 		} else if(obj == null) {
 			pk.packNil();
-
 		} else {
 			throw MessageTypeException.invalidConvert(obj, this);
 		}
@@ -55,7 +53,6 @@ public class GenericClassSchema extends ClassSchema {
 		if(obj instanceof Collection) {
 			// FIXME optimize
 			return createFromArray( ((Collection)obj).toArray() );
-
 		} else if(obj instanceof Map) {
 			HashMap<String,Object> m = new HashMap<String,Object>(fields.length);
 			Map d = (Map)obj;
@@ -65,7 +62,6 @@ public class GenericClassSchema extends ClassSchema {
 				m.put(fieldName, f.getSchema().convert(d.get(fieldName)));
 			}
 			return m;
-
 		} else {
 			throw MessageTypeException.invalidConvert(obj, this);
 		}

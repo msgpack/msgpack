@@ -21,8 +21,11 @@ import java.io.IOException;
 import org.msgpack.*;
 
 public class FloatSchema extends Schema {
-	public FloatSchema() {
-		super("Float");
+	public FloatSchema() { }
+
+	@Override
+	public String getClassName() {
+		return "Float";
 	}
 
 	@Override
@@ -32,43 +35,30 @@ public class FloatSchema extends Schema {
 
 	@Override
 	public void pack(Packer pk, Object obj) throws IOException {
-		if(obj instanceof Number) {
-			pk.packFloat( ((Number)obj).floatValue() );
-
+		if(obj instanceof Double) {
+			pk.packDouble((Double)obj);
+		} else if(obj instanceof Float) {
+			pk.packFloat((Float)obj);
 		} else if(obj == null) {
 			pk.packNil();
-
 		} else {
 			throw MessageTypeException.invalidConvert(obj, this);
+		}
+	}
+
+	public static final float convertFloat(Object obj) throws MessageTypeException {
+		if(obj instanceof Double) {
+			return ((Double)obj).floatValue();
+		} else if(obj instanceof Float) {
+			return (Float)obj;
+		} else {
+			throw new MessageTypeException();
 		}
 	}
 
 	@Override
 	public Object convert(Object obj) throws MessageTypeException {
-		if(obj instanceof Float) {
-			return obj;
-
-		} else if(obj instanceof Number) {
-			return ((Number)obj).floatValue();
-
-		} else {
-			throw MessageTypeException.invalidConvert(obj, this);
-		}
-	}
-
-	@Override
-	public Object createFromByte(byte v) {
-		return (float)v;
-	}
-
-	@Override
-	public Object createFromShort(short v) {
-		return (float)v;
-	}
-
-	@Override
-	public Object createFromInt(int v) {
-		return (float)v;
+		return convertFloat(obj);
 	}
 
 	@Override

@@ -27,14 +27,13 @@ public class MapSchema extends Schema implements IMapSchema {
 	private Schema valueSchema;
 
 	public MapSchema(Schema keySchema, Schema valueSchema) {
-		super("map");
 		this.keySchema = keySchema;
 		this.valueSchema = valueSchema;
 	}
 
 	@Override
-	public String getFullName() {
-		return "HashList<"+keySchema.getFullName()+", "+valueSchema.getFullName()+">";
+	public String getClassName() {
+		return "Map<"+keySchema.getClassName()+", "+valueSchema.getClassName()+">";
 	}
 
 	@Override
@@ -52,29 +51,33 @@ public class MapSchema extends Schema implements IMapSchema {
 				keySchema.pack(pk, e.getKey());
 				valueSchema.pack(pk, e.getValue());
 			}
-
 		} else if(obj == null) {
 			pk.packNil();
-
 		} else {
 			throw MessageTypeException.invalidConvert(obj, this);
 		}
 	}
 
-	@Override
 	@SuppressWarnings("unchecked")
-	public Object convert(Object obj) throws MessageTypeException {
-		if(obj instanceof Map) {
-			Map<Object,Object> d = (Map<Object,Object>)obj;
-			Map<Object,Object> m = new HashMap<Object,Object>();
-			for(Map.Entry<Object,Object> e : d.entrySet()) {
-				m.put(keySchema.convert(e.getKey()), valueSchema.convert(e.getValue()));
-			}
-			return m;
-
-		} else {
-			throw MessageTypeException.invalidConvert(obj, this);
+	public static final <K,V> Map<K,V> convertMap(Object obj,
+			Schema keySchema, Schema valueSchema, Map<K,V> dest) throws MessageTypeException {
+		if(!(obj instanceof Map)) {
+			throw new MessageTypeException();
 		}
+		Map<Object,Object> d = (Map<Object,Object>)obj;
+		if(dest == null) {
+			dest = new HashMap<K,V>(d.size());
+		}
+		for(Map.Entry<Object,Object> e : d.entrySet()) {
+			dest.put((K)keySchema.convert(e.getKey()),
+					(V)valueSchema.convert(e.getValue()));
+		}
+		return (Map<K,V>)d;
+	}
+
+	@Override
+	public Object convert(Object obj) throws MessageTypeException {
+		return convertMap(obj, keySchema, valueSchema, null);
 	}
 
 	@Override
@@ -90,14 +93,14 @@ public class MapSchema extends Schema implements IMapSchema {
 	@Override
 	@SuppressWarnings("unchecked")
 	public Object createFromMap(Object[] obj) {
-		HashMap m = new HashMap(obj.length / 2);
+		HashMap dest = new HashMap(obj.length / 2);
 		int i = 0;
 		while(i < obj.length) {
 			Object k = obj[i++];
 			Object v = obj[i++];
-			m.put(k, v);
+			dest.put(k, v);
 		}
-		return m;
+		return dest;
 	}
 }
 
