@@ -167,7 +167,8 @@ unpack_array_(Bin, RestLen, RetList) when is_binary(Bin)->
 	{Term, Rest}->
 	    unpack_array_(Rest, RestLen-1, [Term|RetList])
     end.
-    
+
+% FIXME: write test for pack_map/1
 pack_map({dict,M})->
     MaxLen = 16#10000, %65536
     case dict:size(M) of
@@ -183,17 +184,18 @@ pack_map_([])-> <<>>;
 pack_map_([{Key,Value}|Tail]) ->
     << (pack(Key)),(pack(Value)),(pack_map_(Tail)) >>.
 
+% FIXME: write test for unpack_map/1
 -spec unpack_map_(binary(), non_neg_integer(), [{term(), msgpack_term()}])->
     {more, non_neg_integer()} | { any(), binary()}.
-unpack_map_(Bin,  0,  TmpMap) when is_binary(Bin) -> { dict:from_list(TmpMap), Bin};
-unpack_map_(Bin, Len, TmpMap) when is_binary(Bin) and is_integer(Len) ->
+unpack_map_(Bin,  0,  Dict) when is_binary(Bin) -> { {dict, Dict}, Bin};
+unpack_map_(Bin, Len, Dict) when is_binary(Bin) and is_integer(Len) ->
     case unpack(Bin) of
 	{ more, MoreLen } -> { more, MoreLen+Len-1 };
 	{ Key, Rest } ->
 	    case unpack(Rest) of
 		{more, MoreLen} -> { more, MoreLen+Len-1 };
 		{ Value, Rest2 }->
-		    unpack_map_(Rest2,Len-1,[{Key,Value}|TmpMap])
+		    unpack_map_(Rest2,Len-1,dict:append(Key,Value,Dict))
 	    end
     end.
 
@@ -298,13 +300,13 @@ unpack_(Flag, Payload)->
 
 	16#DE when PayloadLen >= 2 -> % map 16
 	    << Len:16/big-unsigned-integer-unit:1, Rest/binary >> = Payload,
-	    unpack_map_(Rest, Len, []);
+	    unpack_map_(Rest, Len, dict:new());
 	16#DE ->
 	    {more, 2-PayloadLen};
 
 	16#DF when PayloadLen >= 4 -> % map 32
 	    << Len:32/big-unsigned-integer-unit:1, Rest/binary >> = Payload,
-	    unpack_map_(Rest, Len, []);
+	    unpack_map_(Rest, Len, dict:new());
 
 	% positive fixnum
 	Code when Code >= 2#00000000, Code < 2#10000000->
@@ -328,7 +330,7 @@ unpack_(Flag, Payload)->
 	Code when Code >= 2#10000000 , Code < 2#10010000 ->
 %        1000XXXX for FixMap
 	    Len = Code rem 2#10000000,
-	    unpack_map_(Payload, Len, []);
+	    unpack_map_(Payload, Len, dict:new());
 
 	_Other ->
 %	    erlang:display(_Other),
@@ -373,7 +375,7 @@ port_test()->
 
 test_p(Len,Term,OrigBin,Len) ->
     {Term, <<>>}=msgpack:unpack(OrigBin);
-test_p(I,_,OrigBin,Len) ->
+test_p(I,_,OrigBin,Len) when I < Len->
     <<Bin:I/binary, _/binary>> = OrigBin,
     {more, N}=msgpack:unpack(Bin),
     ?assert(0 < N),
