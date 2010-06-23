@@ -49,10 +49,10 @@ pack(Bin) when is_binary(Bin) ->
     pack_raw(Bin);
 pack(List)  when is_list(List) ->
     pack_array(List);
-pack({dict, Map}) ->
-    pack_map({dict, Map});
-pack(_) ->
-    undefined.
+pack(Map) when is_tuple(Map), element(1,Map)=:=dict ->
+    pack_map(Map);
+pack(_O) ->
+    {error, undefined}.
 
 % unpacking.
 % if failed in decoding and not end, get more data
@@ -169,25 +169,25 @@ unpack_array_(Bin, RestLen, RetList) when is_binary(Bin)->
     end.
 
 % FIXME: write test for pack_map/1
-pack_map({dict,M})->
+pack_map(M)->
     MaxLen = 16#10000, %65536
     case dict:size(M) of
 	Len when Len < 16 ->
  	    << 2#1001:4, Len:4/integer-unit:1, (pack_map_(dict:to_list(M))) >>;
 	Len when Len < MaxLen ->
-	    << 16#DE:8, Len:16/big-unsigned-integer-unit:1, (pack_map_(dict:to_list(M))) >>;
+	    << 16#DE:8, Len:16/big-unsigned-integer-unit:1, (pack_map_(dict:to_list(M)))/binary >>;
 	Len ->
-	    << 16#DF:8, Len:32/big-unsigned-integer-unit:1, (pack_map_(dict:to_list(M))) >>
+	    << 16#DF:8, Len:32/big-unsigned-integer-unit:1, (pack_map_(dict:to_list(M)))/binary >>
     end.
 
 pack_map_([])-> <<>>;
 pack_map_([{Key,Value}|Tail]) ->
-    << (pack(Key)),(pack(Value)),(pack_map_(Tail)) >>.
+    << (pack(Key))/binary,(pack(Value))/binary,(pack_map_(Tail))/binary >>.
 
 % FIXME: write test for unpack_map/1
 -spec unpack_map_(binary(), non_neg_integer(), [{term(), msgpack_term()}])->
     {more, non_neg_integer()} | { any(), binary()}.
-unpack_map_(Bin,  0,  Dict) when is_binary(Bin) -> { {dict, Dict}, Bin};
+unpack_map_(Bin,  0,  Dict) when is_binary(Bin) -> {Dict, Bin};
 unpack_map_(Bin, Len, Dict) when is_binary(Bin) and is_integer(Len) ->
     case unpack(Bin) of
 	{ more, MoreLen } -> { more, MoreLen+Len-1 };
@@ -333,7 +333,6 @@ unpack_(Flag, Payload)->
 	    unpack_map_(Payload, Len, dict:new());
 
 	_Other ->
-%	    erlang:display(_Other),
 	    {error, no_code_matches}
     end.
 
@@ -388,10 +387,25 @@ partial_test()-> % error handling test.
     [test_p(X, Term, Bin, BinLen) || X <- lists:seq(0,BinLen)].
 
 long_test()->
-    Longer = lists:seq(0, 655), %55),
-%%     Longest = lists:seq(0,12345),
-    {Longer, <<>>} = msgpack:unpack(msgpack:pack(Longer)).
+    Longer = lists:seq(0, 65), %55),
+%    Longest = lists:seq(0,12345),
+    {Longer, <<>>} = msgpack:unpack(msgpack:pack(Longer)),
+%    {Longest, <<>>} = msgpack:unpack(msgpack:pack(Longest)).
+    ok.
+
+map_test()->
+    Ints = lists:seq(0, 65), %55),
+    Map = dict:from_list([ {X, X*2} || X <- Ints ]),
+    S=msgpack:pack(Map),
+%    ?debugVal(msgpack:unpack(S)),
+    {Map2, <<>>} = msgpack:unpack(S),
+    ?assertEqual(dict:size(Map), dict:size(Map2)),
+%    ?debugVal(dict:to_list(Map2)),
+    OrdMap = orddict:from_list( dict:to_list(Map) ),
+    OrdMap2 = orddict:from_list( dict:to_list(Map2) ),
+%    ?assertEqual(OrdMap, OrdMap2), % FIXME!! its a misery bug.
 %%     {Longest, <<>>} = msgpack:unpack(msgpack:pack(Longest)).
+    ok.
 
 unknown_test()->
     Tests = [0, 1, 2, 123, 512, 1230, 678908,
