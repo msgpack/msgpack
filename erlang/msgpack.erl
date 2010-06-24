@@ -195,7 +195,7 @@ unpack_map_(Bin, Len, Dict) when is_binary(Bin) and is_integer(Len) ->
 	    case unpack(Rest) of
 		{more, MoreLen} -> { more, MoreLen+Len-1 };
 		{ Value, Rest2 }->
-		    unpack_map_(Rest2,Len-1,dict:append(Key,Value,Dict))
+		    unpack_map_(Rest2,Len-1,dict:store(Key,Value,Dict))
 	    end
     end.
 
@@ -352,7 +352,7 @@ test_data()->
      -1, -23, -512, -1230, -567898, -16#FFFFFFFFFF,
      123.123, -234.4355, 1.0e-34, 1.0e64,
      [23, 234, 0.23],
-     "hogehoge", "243546rf7g68h798j",
+     <<"hogehoge">>, <<"243546rf7g68h798j", 0, 23, 255>>,
      <<"hoasfdafdas][">>,
      [0,42,"sum", [1,2]], [1,42, nil, [3]]
     ].
@@ -387,34 +387,31 @@ partial_test()-> % error handling test.
     [test_p(X, Term, Bin, BinLen) || X <- lists:seq(0,BinLen)].
 
 long_test()->
-    Longer = lists:seq(0, 65), %55),
+    Longer = lists:seq(0, 655),
 %    Longest = lists:seq(0,12345),
     {Longer, <<>>} = msgpack:unpack(msgpack:pack(Longer)),
 %    {Longest, <<>>} = msgpack:unpack(msgpack:pack(Longest)).
     ok.
 
 map_test()->
-    Ints = lists:seq(0, 65), %55),
+    Ints = lists:seq(0, 65),
     Map = dict:from_list([ {X, X*2} || X <- Ints ]),
-    S=msgpack:pack(Map),
-%    ?debugVal(msgpack:unpack(S)),
-    {Map2, <<>>} = msgpack:unpack(S),
+    {Map2, <<>>} = msgpack:unpack(msgpack:pack(Map)),
     ?assertEqual(dict:size(Map), dict:size(Map2)),
-%    ?debugVal(dict:to_list(Map2)),
     OrdMap = orddict:from_list( dict:to_list(Map) ),
     OrdMap2 = orddict:from_list( dict:to_list(Map2) ),
-%    ?assertEqual(OrdMap, OrdMap2), % FIXME!! its a misery bug.
-%%     {Longest, <<>>} = msgpack:unpack(msgpack:pack(Longest)).
+    ?assertEqual(OrdMap, OrdMap2),
     ok.
 
 unknown_test()->
     Tests = [0, 1, 2, 123, 512, 1230, 678908,
 	     -1, -23, -512, -1230, -567898,
 	     <<"hogehoge">>, <<"243546rf7g68h798j">>,
-%	     123.123,  %FIXME
-%            -234.4355, 1.0e-34, 1.0e64, % FIXME
+	     123.123,
+	     -234.4355, 1.0e-34, 1.0e64,
 	     [23, 234, 0.23],
 	     [0,42,<<"sum">>, [1,2]], [1,42, nil, [3]],
+	     dict:from_list([{1,2},{<<"hoge">>,nil}]),
 	     42
 	    ],
     Port = open_port({spawn, "ruby testcase_generator.rb"}, [binary]),
@@ -428,7 +425,6 @@ test_([]) -> 0;
 test_([S|Rest])->
     Pack = msgpack:pack(S),
     {S, <<>>} = msgpack:unpack( Pack ),
-%    ?debugVal( hoge ),
     1+test_(Rest).
 
 other_test()->
