@@ -116,8 +116,7 @@ pack_int_( N ) when is_integer( N )->
     << 16#D3:8, N:64/big-signed-integer-unit:1 >>.
 
 % nil
-pack_nil()->
-    << 16#C0:8 >>.
+pack_nil()->    << 16#C0:8 >>.
 % pack_true / pack_false
 pack_bool(true)->    << 16#C3:8 >>;
 pack_bool(false)->   << 16#C2:8 >>.
@@ -132,11 +131,10 @@ pack_double(F) when is_float(F)->
 
 % raw bytes
 pack_raw(Bin) when is_binary(Bin)->
-    MaxLen = 16#10000, % 65536
     case byte_size(Bin) of
 	Len when Len < 6->
 	    << 2#101:3, Len:5, Bin/binary >>;
-	Len when Len < MaxLen ->
+	Len when Len < 16#10000 -> % 65536
 	    << 16#DA:8, Len:16/big-unsigned-integer-unit:1, Bin/binary >>;
 	Len ->
 	    << 16#DB:8, Len:32/big-unsigned-integer-unit:1, Bin/binary >>
@@ -144,11 +142,10 @@ pack_raw(Bin) when is_binary(Bin)->
 
 % list / tuple
 pack_array(L) when is_list(L)->
-    MaxLen = 16#10000, %65536
     case length(L) of
  	Len when Len < 16 ->
  	    << 2#1001:4, Len:4/integer-unit:1, (pack_array_(L))/binary >>;
-	Len when Len < MaxLen ->
+	Len when Len < 16#10000 -> % 65536
 	    << 16#DC:8, Len:16/big-unsigned-integer-unit:1,(pack_array_(L))/binary >>;
 	Len ->
 	    << 16#DD:8, Len:32/big-unsigned-integer-unit:1,(pack_array_(L))/binary >>
@@ -164,17 +161,15 @@ unpack_array_(<<>>, RestLen, _RetList) when RestLen > 0 ->  {more, RestLen};
 unpack_array_(Bin, RestLen, RetList) when is_binary(Bin)->
     case unpack(Bin) of
 	{more, Len} -> {more, Len+RestLen-1};
-	{Term, Rest}->
-	    unpack_array_(Rest, RestLen-1, [Term|RetList])
+	{Term, Rest}-> unpack_array_(Rest, RestLen-1, [Term|RetList])
     end.
 
 % FIXME: write test for pack_map/1
 pack_map(M)->
-    MaxLen = 16#10000, %65536
     case dict:size(M) of
 	Len when Len < 16 ->
  	    << 2#1001:4, Len:4/integer-unit:1, (pack_map_(dict:to_list(M))) >>;
-	Len when Len < MaxLen ->
+	Len when Len < 16#10000 -> % 65536
 	    << 16#DE:8, Len:16/big-unsigned-integer-unit:1, (pack_map_(dict:to_list(M)))/binary >>;
 	Len ->
 	    << 16#DF:8, Len:32/big-unsigned-integer-unit:1, (pack_map_(dict:to_list(M)))/binary >>
@@ -348,13 +343,15 @@ compare_all([LH|LTL], [RH|RTL]) ->
     compare_all(LTL, RTL).
 
 test_data()->
-    [0, 1, 2, 123, 512, 1230, 678908, 16#FFFFFFFFFF,
+    [true, false, nil, 
+     0, 1, 2, 123, 512, 1230, 678908, 16#FFFFFFFFFF,
      -1, -23, -512, -1230, -567898, -16#FFFFFFFFFF,
      123.123, -234.4355, 1.0e-34, 1.0e64,
      [23, 234, 0.23],
      <<"hogehoge">>, <<"243546rf7g68h798j", 0, 23, 255>>,
      <<"hoasfdafdas][">>,
-     [0,42,"sum", [1,2]], [1,42, nil, [3]]
+     [0,42, <<"sum">>, [1,2]], [1,42, nil, [3]],
+     42
     ].
 
 basic_test()->
@@ -395,7 +392,7 @@ long_test()->
 
 map_test()->
     Ints = lists:seq(0, 65),
-    Map = dict:from_list([ {X, X*2} || X <- Ints ]),
+    Map = dict:from_list([ {X, X*2} || X <- Ints ] ++ [{<<"hage">>, 324}, {43542, [nil, true, false]}]),
     {Map2, <<>>} = msgpack:unpack(msgpack:pack(Map)),
     ?assertEqual(dict:size(Map), dict:size(Map2)),
     OrdMap = orddict:from_list( dict:to_list(Map) ),
