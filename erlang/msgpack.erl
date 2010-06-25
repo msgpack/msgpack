@@ -86,15 +86,12 @@ pack_uint_(N) when is_integer( N ) , N < 128 ->
 % uint 8
 pack_uint_( N ) when is_integer( N ) andalso N < 256 ->
     << 16#CC:8, N:8 >>;
-
 % uint 16
 pack_uint_( N ) when is_integer( N ) andalso N < 65536 ->
     << 16#CD:8, N:16/big-unsigned-integer-unit:1 >>;
-
 % uint 32
 pack_uint_( N ) when is_integer( N ) andalso N < 16#FFFFFFFF->
     << 16#CE:8, N:32/big-unsigned-integer-unit:1 >>;
-
 % uint 64
 pack_uint_( N ) when is_integer( N )->
     << 16#CF:8, N:64/big-unsigned-integer-unit:1 >>.
@@ -103,13 +100,13 @@ pack_uint_( N ) when is_integer( N )->
 pack_int_( N ) when is_integer( N ) , N >= -32->
     << 2#111:3, N:5 >>;
 % int 8
-pack_int_( N ) when is_integer( N ) , N >= -256 ->
-    << 16#D0:8, N:8 >>;
+pack_int_( N ) when is_integer( N ) , N > -128 ->
+    << 16#D0:8, N:8/big-signed-integer-unit:1 >>;
 % int 16
-pack_int_( N ) when is_integer( N ), N >= -65536 ->
+pack_int_( N ) when is_integer( N ), N > -32768 ->
     << 16#D1:8, N:16/big-signed-integer-unit:1 >>;
 % int 32
-pack_int_( N ) when is_integer( N ), N >= -16#FFFFFFFF ->
+pack_int_( N ) when is_integer( N ), N > -16#FFFFFFFF ->
     << 16#D2:8, N:32/big-signed-integer-unit:1 >>;
 % int 64
 pack_int_( N ) when is_integer( N )->
@@ -351,6 +348,7 @@ test_data()->
      <<"hogehoge">>, <<"243546rf7g68h798j", 0, 23, 255>>,
      <<"hoasfdafdas][">>,
      [0,42, <<"sum">>, [1,2]], [1,42, nil, [3]],
+     -234, -40000, -16#10000000, -16#100000000,
      42
     ].
 
@@ -409,6 +407,7 @@ unknown_test()->
 	     [23, 234, 0.23],
 	     [0,42,<<"sum">>, [1,2]], [1,42, nil, [3]],
 	     dict:from_list([{1,2},{<<"hoge">>,nil}]),
+	     -234, -50000,
 	     42
 	    ],
     Port = open_port({spawn, "ruby testcase_generator.rb"}, [binary]),
@@ -419,9 +418,10 @@ unknown_test()->
     port_close(Port).
 
 test_([]) -> 0;
-test_([S|Rest])->
-    Pack = msgpack:pack(S),
-    {S, <<>>} = msgpack:unpack( Pack ),
+test_([Before|Rest])->
+    Pack = msgpack:pack(Before),
+    {After, <<>>} = msgpack:unpack( Pack ),
+    ?assertEqual(Before, After),
     1+test_(Rest).
 
 other_test()->
