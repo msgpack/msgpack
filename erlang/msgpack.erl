@@ -168,7 +168,7 @@ unpack_array_(Bin, RestLen, RetList) when is_binary(Bin)->
 pack_map(M)->
     case dict:size(M) of
 	Len when Len < 16 ->
- 	    << 2#1001:4, Len:4/integer-unit:1, (pack_map_(dict:to_list(M))) >>;
+ 	    << 2#1000:4, Len:4/integer-unit:1, (pack_map_(dict:to_list(M)))/binary >>;
 	Len when Len < 16#10000 -> % 65536
 	    << 16#DE:8, Len:16/big-unsigned-integer-unit:1, (pack_map_(dict:to_list(M)))/binary >>;
 	Len ->
