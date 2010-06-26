@@ -452,6 +452,13 @@ func PackFloatArray(writer io.Writer, value []float) (n int, err os.Error) {
 }
 
 func PackArray(writer io.Writer, value reflect.ArrayOrSliceValue) (n int, err os.Error) {
+    {
+        elemType, ok := value.Type().(reflect.ArrayOrSliceType).Elem().(*reflect.UintType)
+        if ok && elemType.Kind() == reflect.Uint8 {
+            return PackBytes(writer, value.Interface().([]byte))
+        }
+    }
+
     l := value.Len()
     if l < 16 {
         n, err := writer.Write([]byte { 0x90 | byte(l) })
