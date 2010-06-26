@@ -197,6 +197,20 @@ func Unpack(reader io.Reader) (v reflect.Value, n int, err os.Error) {
             retval, n, e = unpackArray(reader, uint(nelemstoread))
             nbytesread += n
             if e != nil { return nil, nbytesread, e }
+        case 0xde:
+            nelemstoread, n, e := readUint16(reader)
+            nbytesread += n
+            if e != nil { return nil, nbytesread, e }
+            retval, n, e = unpackMap(reader, uint(nelemstoread))
+            nbytesread += n
+            if e != nil { return nil, nbytesread, e }
+        case 0xdf:
+            nelemstoread, n, e := readUint32(reader)
+            nbytesread += n
+            if e != nil { return nil, nbytesread, e }
+            retval, n, e = unpackMap(reader, uint(nelemstoread))
+            nbytesread += n
+            if e != nil { return nil, nbytesread, e }
         }
     }
     return retval, nbytesread, nil
