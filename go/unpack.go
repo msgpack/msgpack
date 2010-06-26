@@ -4,6 +4,7 @@ import (
     "io"
     "os"
     "unsafe"
+    "strconv"
     "reflect"
 )
 
@@ -264,6 +265,8 @@ func unpack(reader io.Reader, reflected bool) (v reflect.Value, n int, err os.Er
             }
             nbytesread += n
             if e != nil { return nil, nbytesread, e }
+        default:
+            panic("unsupported code: " + strconv.Itoa(int(c)))
         }
     }
     return retval, nbytesread, nil
