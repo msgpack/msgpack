@@ -18,41 +18,14 @@ func equal(lhs reflect.Value, rhs reflect.Value) bool {
     case *reflect.BoolValue:
         _rhs, ok := rhs.(*reflect.BoolValue)
         return ok && _lhs.Get() == _rhs.Get()
-    case *reflect.Uint8Value:
-        _rhs, ok := rhs.(*reflect.Uint8Value)
-        return ok && _lhs.Get() == _rhs.Get()
-    case *reflect.Uint16Value:
-        _rhs, ok := rhs.(*reflect.Uint16Value)
-        return ok && _lhs.Get() == _rhs.Get()
-    case *reflect.Uint32Value:
-        _rhs, ok := rhs.(*reflect.Uint32Value)
-        return ok && _lhs.Get() == _rhs.Get()
-    case *reflect.Uint64Value:
-        _rhs, ok := rhs.(*reflect.Uint64Value)
-        return ok && _lhs.Get() == _rhs.Get()
     case *reflect.UintValue:
         _rhs, ok := rhs.(*reflect.UintValue)
-        return ok && _lhs.Get() == _rhs.Get()
-    case *reflect.Int8Value:
-        _rhs, ok := rhs.(*reflect.Int8Value)
-        return ok && _lhs.Get() == _rhs.Get()
-    case *reflect.Int16Value:
-        _rhs, ok := rhs.(*reflect.Int16Value)
-        return ok && _lhs.Get() == _rhs.Get()
-    case *reflect.Int32Value:
-        _rhs, ok := rhs.(*reflect.Int32Value)
-        return ok && _lhs.Get() == _rhs.Get()
-    case *reflect.Int64Value:
-        _rhs, ok := rhs.(*reflect.Int64Value)
         return ok && _lhs.Get() == _rhs.Get()
     case *reflect.IntValue:
         _rhs, ok := rhs.(*reflect.IntValue)
         return ok && _lhs.Get() == _rhs.Get()
-    case *reflect.Float32Value:
-        _rhs, ok := rhs.(*reflect.Float32Value)
-        return ok && _lhs.Get() == _rhs.Get()
-    case *reflect.Float64Value:
-        _rhs, ok := rhs.(*reflect.Float64Value)
+    case *reflect.FloatValue:
+        _rhs, ok := rhs.(*reflect.FloatValue)
         return ok && _lhs.Get() == _rhs.Get()
     case reflect.ArrayOrSliceValue:
         _rhs := rhs.(reflect.ArrayOrSliceValue)
