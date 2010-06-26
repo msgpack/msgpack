@@ -69,6 +69,19 @@ func unpackArray(reader io.Reader, nelems uint) (v reflect.Value, n int, err os.
     return reflect.NewValue(retval), nbytesread, nil
 }
 
+func unpackArrayReflected(reader io.Reader, nelems uint) (v reflect.Value, n int, err os.Error) {
+    retval := make([]reflect.Value, nelems)
+    nbytesread := 0
+    var i uint
+    for i = 0; i < nelems; i++ {
+        v, n, e := UnpackReflected(reader)
+        nbytesread += n
+        if e != nil { return nil, nbytesread, e }
+        retval[i] = v
+    }
+    return reflect.NewValue(retval), nbytesread, nil
+}
+
 func unpackMap(reader io.Reader, nelems uint) (v reflect.Value, n int, err os.Error) {
     retval := make(map [interface{}] interface{})
     nbytesread := 0
@@ -85,7 +98,23 @@ func unpackMap(reader io.Reader, nelems uint) (v reflect.Value, n int, err os.Er
     return reflect.NewValue(retval), nbytesread, nil
 }
 
-func Unpack(reader io.Reader) (v reflect.Value, n int, err os.Error) {
+func unpackMapReflected(reader io.Reader, nelems uint) (v reflect.Value, n int, err os.Error) {
+    retval := make(map [reflect.Value] reflect.Value)
+    nbytesread := 0
+    var i uint
+    for i = 0; i < nelems; i++ {
+        k, n, e := UnpackReflected(reader)
+        nbytesread += n
+        if e != nil { return nil, nbytesread, e }
+        v, n, e := UnpackReflected(reader)
+        nbytesread += n
+        if e != nil { return nil, nbytesread, e }
+        retval[k] = v
+    }
+    return reflect.NewValue(retval), nbytesread, nil
+}
+
+func unpack(reader io.Reader, reflected bool) (v reflect.Value, n int, err os.Error) {
     var retval reflect.Value
     var nbytesread int = 0
 
@@ -95,12 +124,20 @@ func Unpack(reader io.Reader) (v reflect.Value, n int, err os.Error) {
     if c < 0x80 || c >= 0xe0 {
         retval = reflect.NewValue(int8(c))
     } else if c >= 0x80 && c <= 0x8f {
-        retval, n, e = unpackMap(reader, uint(c & 0xf))
+        if reflected {
+            retval, n, e = unpackMapReflected(reader, uint(c & 0xf))
+        } else {
+            retval, n, e = unpackMap(reader, uint(c & 0xf))
+        }
         nbytesread += n
         if e != nil { return nil, nbytesread, e }
         nbytesread += n
     } else if c >= 0x90 && c <= 0x9f {
-        retval, n, e = unpackArray(reader, uint(c & 0xf))
+        if reflected {
+            retval, n, e = unpackArrayReflected(reader, uint(c & 0xf))
+        } else {
+            retval, n, e = unpackArray(reader, uint(c & 0xf))
+        }
         nbytesread += n
         if e != nil { return nil, nbytesread, e }
         nbytesread += n
@@ -187,31 +224,58 @@ func Unpack(reader io.Reader) (v reflect.Value, n int, err os.Error) {
             nelemstoread, n, e := readUint16(reader)
             nbytesread += n
             if e != nil { return nil, nbytesread, e }
-            retval, n, e = unpackArray(reader, uint(nelemstoread))
+            if reflected {
+                retval, n, e = unpackArrayReflected(reader, uint(nelemstoread))
+            } else {
+                retval, n, e = unpackArray(reader, uint(nelemstoread))
+            }
             nbytesread += n
             if e != nil { return nil, nbytesread, e }
         case 0xdd:
             nelemstoread, n, e := readUint32(reader)
             nbytesread += n
             if e != nil { return nil, nbytesread, e }
-            retval, n, e = unpackArray(reader, uint(nelemstoread))
+            if reflected {
+                retval, n, e = unpackArrayReflected(reader, uint(nelemstoread))
+            } else {
+                retval, n, e = unpackArray(reader, uint(nelemstoread))
+            }
             nbytesread += n
             if e != nil { return nil, nbytesread, e }
         case 0xde:
             nelemstoread, n, e := readUint16(reader)
             nbytesread += n
             if e != nil { return nil, nbytesread, e }
-            retval, n, e = unpackMap(reader, uint(nelemstoread))
+            if reflected {
+                retval, n, e = unpackMapReflected(reader, uint(nelemstoread))
+            } else {
+                retval, n, e = unpackMap(reader, uint(nelemstoread))
+            }
             nbytesread += n
             if e != nil { return nil, nbytesread, e }
         case 0xdf:
             nelemstoread, n, e := readUint32(reader)
             nbytesread += n
             if e != nil { return nil, nbytesread, e }
-            retval, n, e = unpackMap(reader, uint(nelemstoread))
+            if reflected {
+                retval, n, e = unpackMapReflected(reader, uint(nelemstoread))
+            } else {
+                retval, n, e = unpackMap(reader, uint(nelemstoread))
+            }
             nbytesread += n
             if e != nil { return nil, nbytesread, e }
         }
     }
     return retval, nbytesread, nil
 }
+
+func Unpack(reader io.Reader) (v reflect.Value, n int, err os.Error) {
+    return unpack(reader, false)
+}
+
+func UnpackReflected(reader io.Reader) (v reflect.Value, n int, err os.Error) {
+    return unpack(reader, true)
+}
+
+
+
