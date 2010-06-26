@@ -521,7 +521,7 @@ func PackMap(writer io.Writer, value *reflect.MapValue) (n int, err os.Error) {
 }
 
 func PackValue(writer io.Writer, value reflect.Value) (n int, err os.Error) {
-    if value.Type() == nil { return PackNil(writer) }
+    if value == nil || value.Type() == nil { return PackNil(writer) }
     switch _value := value.(type) {
     case *reflect.BoolValue: return PackBool(writer, _value.Get())
     case *reflect.UintValue: return PackUint64(writer, _value.Get())
@@ -530,6 +530,12 @@ func PackValue(writer io.Writer, value reflect.Value) (n int, err os.Error) {
     case *reflect.ArrayValue: return PackArray(writer, _value)
     case *reflect.SliceValue: return PackArray(writer, _value)
     case *reflect.MapValue: return PackMap(writer, _value)
+    case *reflect.InterfaceValue:
+        __value := reflect.NewValue(_value.Interface())
+        _, ok := __value.(*reflect.InterfaceValue)
+        if !ok {
+            return PackValue(writer, __value)
+        }
     }
     panic("unsupported type: " + value.Type().String())
 }
