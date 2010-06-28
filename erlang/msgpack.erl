@@ -30,8 +30,7 @@
 % erl> S = <some term>.
 % erl> {S, <<>>} = msgpack:unpack( msgpack:pack(S) ).
 -type reason() ::  enomem | badarg | no_code_matches.
--type map() :: any(). % there's no 'dict' type...
--type msgpack_term() :: [msgpack_term()] | integer() | float() | {dict, map()}.
+-type msgpack_term() :: [msgpack_term()] | {[{msgpack_term(),msgpack_term()}]} | integer() | float().
 
 % ===== external APIs ===== %
 -spec pack(Term::msgpack_term()) -> binary().
@@ -49,8 +48,10 @@ pack(Bin) when is_binary(Bin) ->
     pack_raw(Bin);
 pack(List)  when is_list(List) ->
     pack_array(List);
-pack(Map) when is_tuple(Map), element(1,Map)=:=dict ->
+pack({Map}) when is_list(Map) ->
     pack_map(Map);
+pack(Map) when is_tuple(Map), element(1,Map)=:=dict ->
+    pack_map(dict:from_list(Map));
 pack(_O) ->
     {error, undefined}.
 
@@ -166,13 +167,13 @@ unpack_array_(Bin, RestLen, RetList) when is_binary(Bin)->
 
 % FIXME: write test for pack_map/1
 pack_map(M)->
-    case dict:size(M) of
+    case length(M) of
 	Len when Len < 16 ->
- 	    << 2#1000:4, Len:4/integer-unit:1, (pack_map_(dict:to_list(M)))/binary >>;
+ 	    << 2#1000:4, Len:4/integer-unit:1, (pack_map_(M))/binary >>;
 	Len when Len < 16#10000 -> % 65536
-	    << 16#DE:8, Len:16/big-unsigned-integer-unit:1, (pack_map_(dict:to_list(M)))/binary >>;
+	    << 16#DE:8, Len:16/big-unsigned-integer-unit:1, (pack_map_(M))/binary >>;
 	Len ->
-	    << 16#DF:8, Len:32/big-unsigned-integer-unit:1, (pack_map_(dict:to_list(M)))/binary >>
+	    << 16#DF:8, Len:32/big-unsigned-integer-unit:1, (pack_map_(M))/binary >>
     end.
 
 pack_map_([])-> <<>>;
@@ -182,15 +183,15 @@ pack_map_([{Key,Value}|Tail]) ->
 % FIXME: write test for unpack_map/1
 -spec unpack_map_(binary(), non_neg_integer(), [{term(), msgpack_term()}])->
     {more, non_neg_integer()} | { any(), binary()}.
-unpack_map_(Bin,  0,  Dict) when is_binary(Bin) -> {Dict, Bin};
-unpack_map_(Bin, Len, Dict) when is_binary(Bin) and is_integer(Len) ->
+unpack_map_(Bin,  0,  Acc) when is_binary(Bin) -> {{lists:reverse(Acc)}, Bin};
+unpack_map_(Bin, Len, Acc) when is_binary(Bin) and is_integer(Len) ->
     case unpack(Bin) of
 	{ more, MoreLen } -> { more, MoreLen+Len-1 };
 	{ Key, Rest } ->
 	    case unpack(Rest) of
 		{more, MoreLen} -> { more, MoreLen+Len-1 };
-		{ Value, Rest2 }->
-		    unpack_map_(Rest2,Len-1,dict:store(Key,Value,Dict))
+		{ Value, Rest2 } ->
+		    unpack_map_(Rest2,Len-1,[{Key,Value}|Acc])
 	    end
     end.
 
@@ -295,13 +296,13 @@ unpack_(Flag, Payload)->
 
 	16#DE when PayloadLen >= 2 -> % map 16
 	    << Len:16/big-unsigned-integer-unit:1, Rest/binary >> = Payload,
-	    unpack_map_(Rest, Len, dict:new());
+	    unpack_map_(Rest, Len, []);
 	16#DE ->
 	    {more, 2-PayloadLen};
 
 	16#DF when PayloadLen >= 4 -> % map 32
 	    << Len:32/big-unsigned-integer-unit:1, Rest/binary >> = Payload,
-	    unpack_map_(Rest, Len, dict:new());
+	    unpack_map_(Rest, Len, []);
 
 	% positive fixnum
 	Code when Code >= 2#00000000, Code < 2#10000000->
@@ -325,7 +326,7 @@ unpack_(Flag, Payload)->
 	Code when Code >= 2#10000000 , Code < 2#10010000 ->
 %        1000XXXX for FixMap
 	    Len = Code rem 2#10000000,
-	    unpack_map_(Payload, Len, dict:new());
+	    unpack_map_(Payload, Len, []);
 
 	_Other ->
 	    {error, no_code_matches}
@@ -392,12 +393,9 @@ long_test()->
 
 map_test()->
     Ints = lists:seq(0, 65),
-    Map = dict:from_list([ {X, X*2} || X <- Ints ] ++ [{<<"hage">>, 324}, {43542, [nil, true, false]}]),
+    Map = {[ {X, X*2} || X <- Ints ] ++ [{<<"hage">>, 324}, {43542, [nil, true, false]}]},
     {Map2, <<>>} = msgpack:unpack(msgpack:pack(Map)),
-    ?assertEqual(dict:size(Map), dict:size(Map2)),
-    OrdMap = orddict:from_list( dict:to_list(Map) ),
-    OrdMap2 = orddict:from_list( dict:to_list(Map2) ),
-    ?assertEqual(OrdMap, OrdMap2),
+    ?assertEqual(Map, Map2),
     ok.
 
 unknown_test()->
