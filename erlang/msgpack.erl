@@ -24,6 +24,7 @@
 %% for C API (http://msgpack.sourceforge.jp/c:doc)
 %% except buffering functions (both copying and zero-copying).
 -export([pack/1, unpack/1, unpack_all/1]).
+-export([pack_map/1])
 
 % compile:
 % erl> c(msgpack).
@@ -51,7 +52,7 @@ pack(List)  when is_list(List) ->
 pack({Map}) when is_list(Map) ->
     pack_map(Map);
 pack(Map) when is_tuple(Map), element(1,Map)=:=dict ->
-    pack_map(dict:from_list(Map));
+    pack_map(dict:to_list(Map));
 pack(_O) ->
     {error, undefined}.
 
@@ -78,6 +79,15 @@ unpack_all(Data)->
 	    [Term|unpack_all(Binary)]
     end.
 
+pack_map(M)->
+    case length(M) of
+	Len when Len < 16 ->
+	    << 2#1000:4, Len:4/integer-unit:1, (pack_map_(M, <<>>))/binary >>;
+	Len when Len < 16#10000 -> % 65536
+	    << 16#DE:8, Len:16/big-unsigned-integer-unit:1, (pack_map_(M, <<>>))/binary >>;
+	Len ->
+	    << 16#DF:8, Len:32/big-unsigned-integer-unit:1, (pack_map_(M, <<>>))/binary >>
+    end.
 
 % ===== internal APIs ===== %
 
@@ -160,17 +170,6 @@ unpack_array_(Bin, RestLen, RetList) when is_binary(Bin)->
     case unpack(Bin) of
 	{more, Len} -> {more, Len+RestLen-1};
 	{Term, Rest}-> unpack_array_(Rest, RestLen-1, [Term|RetList])
-    end.
-
-% FIXME: write test for pack_map/1
-pack_map(M)->
-    case length(M) of
-	Len when Len < 16 ->
- 	    << 2#1000:4, Len:4/integer-unit:1, (pack_map_(M, <<>>))/binary >>;
-	Len when Len < 16#10000 -> % 65536
-	    << 16#DE:8, Len:16/big-unsigned-integer-unit:1, (pack_map_(M, <<>>))/binary >>;
-	Len ->
-	    << 16#DF:8, Len:32/big-unsigned-integer-unit:1, (pack_map_(M, <<>>))/binary >>
     end.
 
 pack_map_([], Acc) -> Acc;
@@ -404,7 +403,7 @@ unknown_test()->
 	     -234.4355, 1.0e-34, 1.0e64,
 	     [23, 234, 0.23],
 	     [0,42,<<"sum">>, [1,2]], [1,42, nil, [3]],
-	     dict:from_list([{1,2},{<<"hoge">>,nil}]),
+	     {[{1,2},{<<"hoge">>,nil}]},
 	     -234, -50000,
 	     42
 	    ],
