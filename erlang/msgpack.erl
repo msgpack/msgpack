@@ -59,7 +59,7 @@ pack(_O) ->
 % if failed in decoding and not end, get more data
 % and feed more Bin into this function.
 % TODO: error case for imcomplete format when short for any type formats.
--spec unpack( binary() )-> 
+-spec unpack( binary() )->
     {msgpack_term(), binary()} | {more, non_neg_integer()} | {error, reason()}.
 unpack(Bin) when not is_binary(Bin)->
     {error, badarg};
@@ -82,7 +82,7 @@ unpack_all(Data)->
 % ===== internal APIs ===== %
 
 % positive fixnum
-pack_uint_(N) when is_integer( N ) , N < 128 ->  
+pack_uint_(N) when is_integer( N ) , N < 128 ->
     << 2#0:1, N:7 >>;
 % uint 8
 pack_uint_( N ) when is_integer( N ) andalso N < 256 ->
@@ -145,15 +145,15 @@ pack_raw(Bin) when is_binary(Bin)->
 pack_array(L) when is_list(L)->
     case length(L) of
  	Len when Len < 16 ->
- 	    << 2#1001:4, Len:4/integer-unit:1, (pack_array_(L))/binary >>;
+ 	    << 2#1001:4, Len:4/integer-unit:1, (pack_array_(L, <<>>))/binary >>;
 	Len when Len < 16#10000 -> % 65536
-	    << 16#DC:8, Len:16/big-unsigned-integer-unit:1,(pack_array_(L))/binary >>;
+	    << 16#DC:8, Len:16/big-unsigned-integer-unit:1,(pack_array_(L, <<>>))/binary >>;
 	Len ->
-	    << 16#DD:8, Len:32/big-unsigned-integer-unit:1,(pack_array_(L))/binary >>
+	    << 16#DD:8, Len:32/big-unsigned-integer-unit:1,(pack_array_(L, <<>>))/binary >>
     end.
-pack_array_([])-> <<>>;
-pack_array_([Head|Tail])->
-    << (pack(Head))/binary, (pack_array_(Tail))/binary >>.
+pack_array_([], Acc) -> Acc;
+pack_array_([Head|Tail], Acc) ->
+    pack_array_(Tail, <<Acc/binary,  (pack(Head))/binary>>).
 
 % FIXME! this should be tail-recursive and without lists:reverse/1
 unpack_array_(<<>>, 0, RetList)   -> {lists:reverse(RetList), <<>>};
@@ -169,16 +169,16 @@ unpack_array_(Bin, RestLen, RetList) when is_binary(Bin)->
 pack_map(M)->
     case length(M) of
 	Len when Len < 16 ->
- 	    << 2#1000:4, Len:4/integer-unit:1, (pack_map_(M))/binary >>;
+ 	    << 2#1000:4, Len:4/integer-unit:1, (pack_map_(M, <<>>))/binary >>;
 	Len when Len < 16#10000 -> % 65536
-	    << 16#DE:8, Len:16/big-unsigned-integer-unit:1, (pack_map_(M))/binary >>;
+	    << 16#DE:8, Len:16/big-unsigned-integer-unit:1, (pack_map_(M, <<>>))/binary >>;
 	Len ->
-	    << 16#DF:8, Len:32/big-unsigned-integer-unit:1, (pack_map_(M))/binary >>
+	    << 16#DF:8, Len:32/big-unsigned-integer-unit:1, (pack_map_(M, <<>>))/binary >>
     end.
 
-pack_map_([])-> <<>>;
-pack_map_([{Key,Value}|Tail]) ->
-    << (pack(Key))/binary,(pack(Value))/binary,(pack_map_(Tail))/binary >>.
+pack_map_([], Acc) -> Acc;
+pack_map_([{Key,Value}|Tail], Acc) ->
+    pack_map_(Tail, << Acc/binary, (pack(Key))/binary, (pack(Value))/binary>>).
 
 % FIXME: write test for unpack_map/1
 -spec unpack_map_(binary(), non_neg_integer(), [{term(), msgpack_term()}])->
@@ -200,7 +200,7 @@ unpack_map_(Bin, Len, Acc) when is_binary(Bin) and is_integer(Len) ->
     {more, pos_integer()} | {msgpack_term(), binary()} | {error, reason()}.
 unpack_(Flag, Payload)->
     PayloadLen = byte_size(Payload),
-    case Flag of 
+    case Flag of
 	16#C0 ->
 	    {nil, Payload};
 	16#C2 ->
@@ -313,7 +313,7 @@ unpack_(Flag, Payload)->
 	    {(Code - 16#100), Payload};
 
 	Code when Code >= 2#10100000 , Code < 2#11000000 ->
-%	 101XXXXX for FixRaw 
+%	 101XXXXX for FixRaw
 	    Len = Code rem 2#10100000,
 	    << Return:Len/binary, Remain/binary >> = Payload,
 	    {Return, Remain};
@@ -344,7 +344,7 @@ compare_all([LH|LTL], [RH|RTL]) ->
     compare_all(LTL, RTL).
 
 test_data()->
-    [true, false, nil, 
+    [true, false, nil,
      0, 1, 2, 123, 512, 1230, 678908, 16#FFFFFFFFFF,
      -1, -23, -512, -1230, -567898, -16#FFFFFFFFFF,
      123.123, -234.4355, 1.0e-34, 1.0e64,
