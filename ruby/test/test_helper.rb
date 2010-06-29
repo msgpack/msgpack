@@ -5,4 +5,4 @@ rescue LoadError
 require File.dirname(__FILE__) + '/../lib/msgpack'
 end
 
-GC.stress = true
+#GC.stress = true
