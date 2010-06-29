@@ -638,7 +638,7 @@ static VALUE MessagePack_Unpacker_execute_impl(VALUE self, VALUE data,
  * Document-method: MessagePack::Unpacker#execute_limit
  *
  * call-seq:
- *   unpacker.unpack_limit(data, offset, limit) -> next offset
+ *   unpacker.execute_limit(data, offset, limit) -> next offset
  *
  * Deserializes one object over the specified buffer from _offset_ bytes upto _limit_ bytes.
  *
@@ -660,7 +660,7 @@ static VALUE MessagePack_Unpacker_execute_limit(VALUE self, VALUE data,
  * Document-method: MessagePack::Unpacker#execute
  *
  * call-seq:
- *   unpacker.unpack(data, offset) -> next offset
+ *   unpacker.execute(data, offset) -> next offset
  *
  * Deserializes one object over the specified buffer from _offset_ bytes.
  *

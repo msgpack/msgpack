@@ -19,6 +19,8 @@ cp ../test/cases.json           test/
 
 gem build msgpack.gemspec
 
+rdoc rbinit.c pack.c unpack.c
+
 if [ $? -eq 0 ]; then
 	rm -rf ext msgpack test/msgpack_test.rb
 fi
