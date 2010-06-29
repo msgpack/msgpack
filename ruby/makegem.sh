@@ -8,6 +8,7 @@ cp pack.h       ext/
 cp rbinit.c     ext/
 cp unpack.c     ext/
 cp unpack.h     ext/
+cp version.rb   ext/
 cp ../msgpack/pack_define.h     msgpack/
 cp ../msgpack/pack_template.h   msgpack/
 cp ../msgpack/unpack_define.h   msgpack/

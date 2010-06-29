@@ -1,0 +1,6 @@
+
+2010-06-29 version 0.4.3:
+
+  * Adds MessagePack::VERSION constant
+  * Fixes SEGV problem caused by GC bug at MessagePack_Unpacker_mark
+
