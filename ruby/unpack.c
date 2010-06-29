@@ -287,6 +287,7 @@ static void MessagePack_Unpacker_mark(msgpack_unpack_t *mp)
 	unsigned int i;
 	rb_gc_mark(mp->user.stream);
 	rb_gc_mark(mp->user.streambuf);
+	rb_gc_mark_maybe(template_data(mp));
 	for(i=0; i < mp->top; ++i) {
 		rb_gc_mark(mp->stack[i].obj);
 		rb_gc_mark_maybe(mp->stack[i].map_key);
@@ -297,6 +298,17 @@ static VALUE MessagePack_Unpacker_alloc(VALUE klass)
 {
 	VALUE obj;
 	msgpack_unpack_t* mp = ALLOC_N(msgpack_unpack_t, 1);
+
+	// rb_gc_mark (not _maybe) is used for following member objects.
+	mp->user.stream = Qnil;
+	mp->user.streambuf = Qnil;
+
+	mp->user.finished = 0;
+	mp->user.offset = 0;
+	mp->user.buffer.size = 0;
+	mp->user.buffer.free = 0;
+	mp->user.buffer.ptr = NULL;
+
 	obj = Data_Wrap_Struct(klass, MessagePack_Unpacker_mark,
 			MessagePack_Unpacker_free, mp);
 	return obj;
@@ -343,14 +355,10 @@ static VALUE MessagePack_Unpacker_initialize(int argc, VALUE *argv, VALUE self)
 
 	UNPACKER(self, mp);
 	template_init(mp);
-	mp->user.finished = 0;
-	mp->user.offset = 0;
-	mp->user.buffer.size = 0;
-	mp->user.buffer.free = 0;
-	mp->user.buffer.ptr = NULL;
 	mp->user.stream = stream;
 	mp->user.streambuf = rb_str_buf_new(MSGPACK_UNPACKER_BUFFER_RESERVE_SIZE);
 	mp->user.stream_append_method = append_method_of(stream);
+
 	return self;
 }
 
