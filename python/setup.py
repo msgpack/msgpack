@@ -14,7 +14,7 @@ except ImportError:
     from distutils.command.build_ext import build_ext
     have_cython = False
 
-version = '0.1.3'
+version = '0.1.4'
 
 # take care of extension modules.
 if have_cython:
