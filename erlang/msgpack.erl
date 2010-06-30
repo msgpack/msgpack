@@ -31,20 +31,24 @@
 % erl> S = <some term>.
 % erl> {S, <<>>} = msgpack:unpack( msgpack:pack(S) ).
 -type reason() ::  enomem | badarg | no_code_matches.
--type msgpack_term() :: [msgpack_term()] | {[{msgpack_term(),msgpack_term()}]} | integer() | float().
+-type msgpack_term() :: [msgpack_term()]
+		      | {[{msgpack_term(),msgpack_term()}]}
+		      | integer() | float() | binary().
 
 % ===== external APIs ===== %
 -spec pack(Term::msgpack_term()) -> binary().
-pack(O) when is_integer(O) andalso O < 0 ->
-    pack_int_(O);
-pack(O) when is_integer(O) ->
-    pack_uint_(O);
-pack(O) when is_float(O) ->
-    pack_double(O);
+pack(I) when is_integer(I) andalso I < 0 ->
+    pack_int_(I);
+pack(I) when is_integer(I) ->
+    pack_uint_(I);
+pack(F) when is_float(F) ->
+    pack_double(F);
 pack(nil) ->
-    pack_nil();
-pack(Bool) when is_atom(Bool) ->
-    pack_bool(Bool);
+    << 16#C0:8 >>;
+pack(true) ->
+    << 16#C3:8 >>;
+pack(false) ->
+    << 16#C2:8 >>;
 pack(Bin) when is_binary(Bin) ->
     pack_raw(Bin);
 pack(List)  when is_list(List) ->
@@ -53,7 +57,7 @@ pack({Map}) when is_list(Map) ->
     pack_map(Map);
 pack(Map) when is_tuple(Map), element(1,Map)=:=dict ->
     pack_map(dict:to_list(Map));
-pack(_O) ->
+pack(_Other) ->
     {error, undefined}.
 
 % unpacking.
@@ -92,53 +96,47 @@ pack_map(M)->
 % ===== internal APIs ===== %
 
 % positive fixnum
-pack_uint_(N) when is_integer( N ) , N < 128 ->
+pack_uint_(N) when N < 128 ->
     << 2#0:1, N:7 >>;
 % uint 8
-pack_uint_( N ) when is_integer( N ) andalso N < 256 ->
+pack_uint_(N) when N < 256 ->
     << 16#CC:8, N:8 >>;
 % uint 16
-pack_uint_( N ) when is_integer( N ) andalso N < 65536 ->
+pack_uint_(N) when N < 65536 ->
     << 16#CD:8, N:16/big-unsigned-integer-unit:1 >>;
 % uint 32
-pack_uint_( N ) when is_integer( N ) andalso N < 16#FFFFFFFF->
+pack_uint_(N) when N < 16#FFFFFFFF->
     << 16#CE:8, N:32/big-unsigned-integer-unit:1 >>;
 % uint 64
-pack_uint_( N ) when is_integer( N )->
+pack_uint_(N) ->
     << 16#CF:8, N:64/big-unsigned-integer-unit:1 >>.
 
 % negative fixnum
-pack_int_( N ) when is_integer( N ) , N >= -32->
+pack_int_(N) when is_integer(N) , N >= -32->
     << 2#111:3, N:5 >>;
 % int 8
-pack_int_( N ) when is_integer( N ) , N > -128 ->
+pack_int_(N) when N > -128 ->
     << 16#D0:8, N:8/big-signed-integer-unit:1 >>;
 % int 16
-pack_int_( N ) when is_integer( N ), N > -32768 ->
+pack_int_(N) when N > -32768 ->
     << 16#D1:8, N:16/big-signed-integer-unit:1 >>;
 % int 32
-pack_int_( N ) when is_integer( N ), N > -16#FFFFFFFF ->
+pack_int_(N) when N > -16#FFFFFFFF ->
     << 16#D2:8, N:32/big-signed-integer-unit:1 >>;
 % int 64
-pack_int_( N ) when is_integer( N )->
+pack_int_(N) ->
     << 16#D3:8, N:64/big-signed-integer-unit:1 >>.
-
-% nil
-pack_nil()->    << 16#C0:8 >>.
-% pack_true / pack_false
-pack_bool(true)->    << 16#C3:8 >>;
-pack_bool(false)->   << 16#C2:8 >>.
 
 % float : erlang's float is always IEEE 754 64bit format.
 %pack_float(F) when is_float(F)->
 %    << 16#CA:8, F:32/big-float-unit:1 >>.
 %    pack_double(F).
 % double
-pack_double(F) when is_float(F)->
+pack_double(F) ->
     << 16#CB:8, F:64/big-float-unit:1 >>.
 
 % raw bytes
-pack_raw(Bin) when is_binary(Bin)->
+pack_raw(Bin) ->
     case byte_size(Bin) of
 	Len when Len < 6->
 	    << 2#101:3, Len:5, Bin/binary >>;
@@ -149,7 +147,7 @@ pack_raw(Bin) when is_binary(Bin)->
     end.
 
 % list / tuple
-pack_array(L) when is_list(L)->
+pack_array(L) ->
     case length(L) of
  	Len when Len < 16 ->
  	    << 2#1001:4, Len:4/integer-unit:1, (pack_array_(L, <<>>))/binary >>;
@@ -165,10 +163,10 @@ pack_array_([Head|Tail], Acc) ->
 % FIXME! this should be tail-recursive and without lists:reverse/1
 unpack_array_(<<>>, 0, RetList)   -> {lists:reverse(RetList), <<>>};
 unpack_array_(Remain, 0, RetList) when is_binary(Remain)-> {lists:reverse(RetList), Remain};
-unpack_array_(<<>>, RestLen, _RetList) when RestLen > 0 ->  {more, RestLen};
+unpack_array_(<<>>, RestLen, _RetList) when RestLen > 0 ->  {more, undefined};
 unpack_array_(Bin, RestLen, RetList) when is_binary(Bin)->
     case unpack(Bin) of
-	{more, Len} -> {more, Len+RestLen-1};
+	{more, Len} -> {more, undefined};
 	{Term, Rest}-> unpack_array_(Rest, RestLen-1, [Term|RetList])
     end.
 
@@ -179,8 +177,8 @@ pack_map_([{Key,Value}|Tail], Acc) ->
 % FIXME: write test for unpack_map/1
 -spec unpack_map_(binary(), non_neg_integer(), [{term(), msgpack_term()}])->
     {more, non_neg_integer()} | { any(), binary()}.
-unpack_map_(Bin,  0,  Acc) when is_binary(Bin) -> {{lists:reverse(Acc)}, Bin};
-unpack_map_(Bin, Len, Acc) when is_binary(Bin) and is_integer(Len) ->
+unpack_map_(Bin,  0,  Acc) -> {{lists:reverse(Acc)}, Bin};
+unpack_map_(Bin, Len, Acc) ->
     case unpack(Bin) of
 	{ more, MoreLen } -> { more, MoreLen+Len-1 };
 	{ Key, Rest } ->
@@ -371,9 +369,12 @@ test_p(Len,Term,OrigBin,Len) ->
     {Term, <<>>}=msgpack:unpack(OrigBin);
 test_p(I,_,OrigBin,Len) when I < Len->
     <<Bin:I/binary, _/binary>> = OrigBin,
-    {more, N}=msgpack:unpack(Bin),
-    ?assert(0 < N),
-    ?assert(N < Len).
+    case msgpack:unpack(Bin) of
+	{more, N} when not is_integer(N) ->
+	    ?assertEqual(undefined, N);
+	{more, N} ->
+	    ?assert( N < Len )
+    end.
 
 partial_test()-> % error handling test.
     Term = lists:seq(0, 45),
