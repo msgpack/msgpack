@@ -162,7 +162,7 @@ pack_array_([], Acc) -> Acc;
 pack_array_([Head|Tail], Acc) ->
     pack_array_(Tail, <<Acc/binary,  (pack(Head))/binary>>).
 
-% FIXME! this should be tail-recursive and without lists:reverse/1
+% FIXME! this should be without lists:reverse/1
 unpack_array_(<<>>, 0, RetList)   -> {lists:reverse(RetList), <<>>};
 unpack_array_(Remain, 0, RetList) when is_binary(Remain)-> {lists:reverse(RetList), Remain};
 unpack_array_(<<>>, RestLen, _RetList) when RestLen > 0 ->  {more, undefined};
@@ -176,7 +176,7 @@ pack_map_([], Acc) -> Acc;
 pack_map_([{Key,Value}|Tail], Acc) ->
     pack_map_(Tail, << Acc/binary, (pack(Key))/binary, (pack(Value))/binary>>).
 
-% FIXME: write test for unpack_map/1
+% FIXME! this should be without lists:reverse/1
 -spec unpack_map_(binary(), non_neg_integer(), [{term(), msgpack_term()}])->
     {more, non_neg_integer()} | { any(), binary()}.
 unpack_map_(Bin,  0,  Acc) -> {{lists:reverse(Acc)}, Bin};
