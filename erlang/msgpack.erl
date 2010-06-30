@@ -200,34 +200,34 @@ unpack_(Binary)->
 	<<16#C2, Rest/binary>> -> {false, Rest};
 	<<16#C3, Rest/binary>> -> {true, Rest};
 % Floats
-	<<16#CA, Val:32/float-unit:1, Rest/binary>> ->   {Val, Rest};
-	<<16#CB, Val:64/float-unit:1, Rest/binary>> ->   {Val, Rest};
+	<<16#CA, V:32/float-unit:1, Rest/binary>> ->   {V, Rest};
+	<<16#CB, V:64/float-unit:1, Rest/binary>> ->   {V, Rest};
 % Unsigned integers
-	<<16#CC, Val:8/unsigned-integer, Rest/binary>> ->             {Val, Rest};
-	<<16#CD, Val:16/big-unsigned-integer-unit:1, Rest/binary>> -> {Val, Rest};
-	<<16#CE, Val:32/big-unsigned-integer-unit:1, Rest/binary>> -> {Val, Rest};
-	<<16#CF, Val:64/big-unsigned-integer-unit:1, Rest/binary>> -> {Val, Rest};
+	<<16#CC, V:8/unsigned-integer, Rest/binary>> ->             {V, Rest};
+	<<16#CD, V:16/big-unsigned-integer-unit:1, Rest/binary>> -> {V, Rest};
+	<<16#CE, V:32/big-unsigned-integer-unit:1, Rest/binary>> -> {V, Rest};
+	<<16#CF, V:64/big-unsigned-integer-unit:1, Rest/binary>> -> {V, Rest};
 % Signed integers
-	<<16#D0, Val:8/signed-integer, Rest/binary>> ->             {Val, Rest};
-	<<16#D1, Val:16/big-signed-integer-unit:1, Rest/binary>> -> {Val, Rest};
-	<<16#D2, Val:32/big-signed-integer-unit:1, Rest/binary>> -> {Val, Rest};
-	<<16#D3, Val:64/big-signed-integer-unit:1, Rest/binary>> -> {Val, Rest};
+	<<16#D0, V:8/signed-integer, Rest/binary>> ->             {V, Rest};
+	<<16#D1, V:16/big-signed-integer-unit:1, Rest/binary>> -> {V, Rest};
+	<<16#D2, V:32/big-signed-integer-unit:1, Rest/binary>> -> {V, Rest};
+	<<16#D3, V:64/big-signed-integer-unit:1, Rest/binary>> -> {V, Rest};
 % Raw bytes
-	<<16#DA, Len:16/unsigned-integer-unit:1, Val:Len/binary, Rest/binary>> -> {Val, Rest};
-	<<16#DB, Len:32/unsigned-integer-unit:1, Val:Len/binary, Rest/binary>> -> {Val, Rest};
+	<<16#DA, L:16/unsigned-integer-unit:1, V:L/binary, Rest/binary>> -> {V, Rest};
+	<<16#DB, L:32/unsigned-integer-unit:1, V:L/binary, Rest/binary>> -> {V, Rest};
 % Arrays
-	<<16#DC, Len:16/big-unsigned-integer-unit:1, Rest/binary>> -> unpack_array_(Rest, Len, []);
-	<<16#DD, Len:32/big-unsigned-integer-unit:1, Rest/binary>> -> unpack_array_(Rest, Len, []);
+	<<16#DC, L:16/big-unsigned-integer-unit:1, Rest/binary>> -> unpack_array_(Rest, L, []);
+	<<16#DD, L:32/big-unsigned-integer-unit:1, Rest/binary>> -> unpack_array_(Rest, L, []);
 % Maps
-	<<16#DE, Len:16/big-unsigned-integer-unit:1, Rest/binary>> -> unpack_map_(Rest, Len, []);
-	<<16#DF, Len:32/big-unsigned-integer-unit:1, Rest/binary>> -> unpack_map_(Rest, Len, []);
+	<<16#DE, L:16/big-unsigned-integer-unit:1, Rest/binary>> -> unpack_map_(Rest, L, []);
+	<<16#DF, L:32/big-unsigned-integer-unit:1, Rest/binary>> -> unpack_map_(Rest, L, []);
 
 % Tag-encoded lengths (kept last, for speed)
-	<<0:1, Val:7, Rest/binary>> ->                      {Val, Rest};                  % positive int
-	<<2#111:3, Val:5, Rest/binary>> ->                  {Val - 2#100000, Rest};       % negative int
-	<<2#101:3, Len:5, Val:Len/binary, Rest/binary>> ->  {Val, Rest};                  % raw bytes
-	<<2#1001:4, Len:4, Rest/binary>> ->                 unpack_array_(Rest, Len, []); % array
-	<<2#1000:4, Len:4, Rest/binary>> ->                 unpack_map_(Rest, Len, []);   % map
+	<<0:1, V:7, Rest/binary>> ->                 {V, Rest};                  % positive int
+	<<2#111:3, V:5, Rest/binary>> ->             {V - 2#100000, Rest};       % negative int
+	<<2#101:3, L:5, V:L/binary, Rest/binary>> -> {V, Rest};                  % raw bytes
+	<<2#1001:4, L:4, Rest/binary>> ->            unpack_array_(Rest, L, []); % array
+	<<2#1000:4, L:4, Rest/binary>> ->            unpack_map_(Rest, L, []);   % map
 	
 % Incomplete / invalid data
 	<<16#CA, Rest/binary>> -> {more, 4-byte_size(Rest)};
@@ -246,7 +246,7 @@ unpack_(Binary)->
 	<<16#DD, Rest/binary>> -> {more, 4-byte_size(Rest)};
 	<<16#DE, Rest/binary>> -> {more, 2-byte_size(Rest)};
 	<<16#DF, Rest/binary>> -> {more, 4-byte_size(Rest)};
-	<<2#101:3, Len:5, Rest/binary>> ->  {more, Len-byte_size(Rest)};
+	<<2#101:3, L:5, Rest/binary>> ->  {more, L-byte_size(Rest)};
 
 	<<>> ->                  {more, 1};
 	<<2#101:3, _/binary>> -> {more, undefined};
