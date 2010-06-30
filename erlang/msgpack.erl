@@ -166,7 +166,7 @@ unpack_array_(Remain, 0, RetList) when is_binary(Remain)-> {lists:reverse(RetLis
 unpack_array_(<<>>, RestLen, _RetList) when RestLen > 0 ->  {more, undefined};
 unpack_array_(Bin, RestLen, RetList) when is_binary(Bin)->
     case unpack(Bin) of
-	{more, Len} -> {more, undefined};
+	{more, _} -> {more, undefined};
 	{Term, Rest}-> unpack_array_(Rest, RestLen-1, [Term|RetList])
     end.
 
@@ -180,11 +180,11 @@ pack_map_([{Key,Value}|Tail], Acc) ->
 unpack_map_(Bin,  0,  Acc) -> {{lists:reverse(Acc)}, Bin};
 unpack_map_(Bin, Len, Acc) ->
     case unpack(Bin) of
-	{ more, MoreLen } -> { more, MoreLen+Len-1 };
-	{ Key, Rest } ->
+	{more, _} -> {more, undefined};
+	{Key, Rest} ->
 	    case unpack(Rest) of
-		{more, MoreLen} -> { more, MoreLen+Len-1 };
-		{ Value, Rest2 } ->
+		{more, _} -> {more, undefined};
+		{Value, Rest2} ->
 		    unpack_map_(Rest2,Len-1,[{Key,Value}|Acc])
 	    end
     end.
