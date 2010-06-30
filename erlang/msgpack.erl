@@ -64,8 +64,9 @@ pack(_Other) ->
 % if failed in decoding and not end, get more data
 % and feed more Bin into this function.
 % TODO: error case for imcomplete format when short for any type formats.
--spec unpack( binary() )->
-    {msgpack_term(), binary()} | {more, non_neg_integer()} | {error, reason()}.
+-spec unpack( Bin::binary() )-> {msgpack_term(), binary()} |
+				{more, non_neg_integer()} | {more, undefined} |
+				{error, reason()}.
 unpack(Bin) when not is_binary(Bin)->
     {error, badarg};
 unpack(Bin) when bit_size(Bin) >= 8 ->
