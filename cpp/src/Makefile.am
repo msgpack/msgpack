@@ -38,6 +38,7 @@ nobase_include_HEADERS = \
 		msgpack/sysdep.h \
 		msgpack.h \
 		msgpack/sbuffer.h \
+		msgpack/version.h \
 		msgpack/vrefbuffer.h \
 		msgpack/zbuffer.h \
 		msgpack/pack.h \
@@ -49,7 +50,6 @@ if ENABLE_CXX
 nobase_include_HEADERS += \
 		msgpack.hpp \
 		msgpack/sbuffer.hpp \
-		msgpack/version.h \
 		msgpack/vrefbuffer.hpp \
 		msgpack/zbuffer.hpp \
 		msgpack/pack.hpp \
