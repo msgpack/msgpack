@@ -6,8 +6,12 @@ libmsgpack_la_SOURCES = \
 		objectc.c \
 		version.c \
 		vrefbuffer.c \
-		zone.c \
+		zone.c
+
+if ENABLE_CXX
+libmsgpack_la_SOURCES += \
 		object.cpp
+endif
 
 # -version-info CURRENT:REVISION:AGE
 libmsgpack_la_LDFLAGS = -version-info 3:0:0
@@ -39,7 +43,10 @@ nobase_include_HEADERS = \
 		msgpack/pack.h \
 		msgpack/unpack.h \
 		msgpack/object.h \
-		msgpack/zone.h \
+		msgpack/zone.h
+
+if ENABLE_CXX
+nobase_include_HEADERS += \
 		msgpack.hpp \
 		msgpack/sbuffer.hpp \
 		msgpack/version.h \
@@ -66,6 +73,7 @@ nobase_include_HEADERS = \
 		msgpack/type/define.hpp \
 		msgpack/type/tr1/unordered_map.hpp \
 		msgpack/type/tr1/unordered_set.hpp
+endif
 
 EXTRA_DIST = \
 		msgpack/version.h.in \
@@ -79,8 +87,6 @@ msgpack/version.h: msgpack/version.h.in Makefile.in
 		-e s/VERSION_MAJOR_UNDEFINED/$(VERSION_MAJOR)/ \
 		-e s/VERSION_MINOR_UNDEFINED/$(VERSION_MINOR)/ \
 		$< > $@
-
-#version.c: msgpack/version.h
 
 
 doxygen_c:
