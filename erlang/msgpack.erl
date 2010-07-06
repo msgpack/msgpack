@@ -31,20 +31,24 @@
 % erl> S = <some term>.
 % erl> {S, <<>>} = msgpack:unpack( msgpack:pack(S) ).
 -type reason() ::  enomem | badarg | no_code_matches.
--type msgpack_term() :: [msgpack_term()] | {[{msgpack_term(),msgpack_term()}]} | integer() | float().
+-type msgpack_term() :: [msgpack_term()]
+		      | {[{msgpack_term(),msgpack_term()}]}
+		      | integer() | float() | binary().
 
 % ===== external APIs ===== %
 -spec pack(Term::msgpack_term()) -> binary().
-pack(O) when is_integer(O) andalso O < 0 ->
-    pack_int_(O);
-pack(O) when is_integer(O) ->
-    pack_uint_(O);
-pack(O) when is_float(O) ->
-    pack_double(O);
+pack(I) when is_integer(I) andalso I < 0 ->
+    pack_int_(I);
+pack(I) when is_integer(I) ->
+    pack_uint_(I);
+pack(F) when is_float(F) ->
+    pack_double(F);
 pack(nil) ->
-    pack_nil();
-pack(Bool) when is_atom(Bool) ->
-    pack_bool(Bool);
+    << 16#C0:8 >>;
+pack(true) ->
+    << 16#C3:8 >>;
+pack(false) ->
+    << 16#C2:8 >>;
 pack(Bin) when is_binary(Bin) ->
     pack_raw(Bin);
 pack(List)  when is_list(List) ->
@@ -53,22 +57,24 @@ pack({Map}) when is_list(Map) ->
     pack_map(Map);
 pack(Map) when is_tuple(Map), element(1,Map)=:=dict ->
     pack_map(dict:to_list(Map));
-pack(_O) ->
+pack(_Other) ->
     {error, undefined}.
 
 % unpacking.
 % if failed in decoding and not end, get more data
 % and feed more Bin into this function.
 % TODO: error case for imcomplete format when short for any type formats.
--spec unpack( binary() )->
-    {msgpack_term(), binary()} | {more, non_neg_integer()} | {error, reason()}.
+-spec unpack( Bin::binary() )-> {msgpack_term(), binary()} |
+				{more, non_neg_integer()} | {more, undefined} |
+				{error, reason()}.
 unpack(Bin) when not is_binary(Bin)->
     {error, badarg};
 unpack(Bin) when bit_size(Bin) >= 8 ->
-    << Flag:8/unsigned-integer, Payload/binary >> = Bin,
-    unpack_(Flag, Payload);
-unpack(<<>>)-> % when bit_size(Bin) < 8 ->
-    {more, 1}.
+    unpack_(Bin);
+unpack(<<>>)->
+    {more, 1};
+unpack(_) ->
+    {more, undefined}.
 
 -spec unpack_all( binary() ) -> [msgpack_term()].
 unpack_all(Data)->
@@ -79,6 +85,7 @@ unpack_all(Data)->
 	    [Term|unpack_all(Binary)]
     end.
 
+-spec pack_map(M::[{msgpack_term(),msgpack_term()}])-> binary().
 pack_map(M)->
     case length(M) of
 	Len when Len < 16 ->
@@ -92,53 +99,47 @@ pack_map(M)->
 % ===== internal APIs ===== %
 
 % positive fixnum
-pack_uint_(N) when is_integer( N ) , N < 128 ->
+pack_uint_(N) when N < 128 ->
     << 2#0:1, N:7 >>;
 % uint 8
-pack_uint_( N ) when is_integer( N ) andalso N < 256 ->
+pack_uint_(N) when N < 256 ->
     << 16#CC:8, N:8 >>;
 % uint 16
-pack_uint_( N ) when is_integer( N ) andalso N < 65536 ->
+pack_uint_(N) when N < 65536 ->
     << 16#CD:8, N:16/big-unsigned-integer-unit:1 >>;
 % uint 32
-pack_uint_( N ) when is_integer( N ) andalso N < 16#FFFFFFFF->
+pack_uint_(N) when N < 16#FFFFFFFF->
     << 16#CE:8, N:32/big-unsigned-integer-unit:1 >>;
 % uint 64
-pack_uint_( N ) when is_integer( N )->
+pack_uint_(N) ->
     << 16#CF:8, N:64/big-unsigned-integer-unit:1 >>.
 
 % negative fixnum
-pack_int_( N ) when is_integer( N ) , N >= -32->
+pack_int_(N) when is_integer(N) , N >= -32->
     << 2#111:3, N:5 >>;
 % int 8
-pack_int_( N ) when is_integer( N ) , N > -128 ->
+pack_int_(N) when N > -128 ->
     << 16#D0:8, N:8/big-signed-integer-unit:1 >>;
 % int 16
-pack_int_( N ) when is_integer( N ), N > -32768 ->
+pack_int_(N) when N > -32768 ->
     << 16#D1:8, N:16/big-signed-integer-unit:1 >>;
 % int 32
-pack_int_( N ) when is_integer( N ), N > -16#FFFFFFFF ->
+pack_int_(N) when N > -16#FFFFFFFF ->
     << 16#D2:8, N:32/big-signed-integer-unit:1 >>;
 % int 64
-pack_int_( N ) when is_integer( N )->
+pack_int_(N) ->
     << 16#D3:8, N:64/big-signed-integer-unit:1 >>.
-
-% nil
-pack_nil()->    << 16#C0:8 >>.
-% pack_true / pack_false
-pack_bool(true)->    << 16#C3:8 >>;
-pack_bool(false)->   << 16#C2:8 >>.
 
 % float : erlang's float is always IEEE 754 64bit format.
 %pack_float(F) when is_float(F)->
 %    << 16#CA:8, F:32/big-float-unit:1 >>.
 %    pack_double(F).
 % double
-pack_double(F) when is_float(F)->
+pack_double(F) ->
     << 16#CB:8, F:64/big-float-unit:1 >>.
 
 % raw bytes
-pack_raw(Bin) when is_binary(Bin)->
+pack_raw(Bin) ->
     case byte_size(Bin) of
 	Len when Len < 6->
 	    << 2#101:3, Len:5, Bin/binary >>;
@@ -149,7 +150,7 @@ pack_raw(Bin) when is_binary(Bin)->
     end.
 
 % list / tuple
-pack_array(L) when is_list(L)->
+pack_array(L) ->
     case length(L) of
  	Len when Len < 16 ->
  	    << 2#1001:4, Len:4/integer-unit:1, (pack_array_(L, <<>>))/binary >>;
@@ -162,13 +163,13 @@ pack_array_([], Acc) -> Acc;
 pack_array_([Head|Tail], Acc) ->
     pack_array_(Tail, <<Acc/binary,  (pack(Head))/binary>>).
 
-% FIXME! this should be tail-recursive and without lists:reverse/1
+% FIXME! this should be without lists:reverse/1
 unpack_array_(<<>>, 0, RetList)   -> {lists:reverse(RetList), <<>>};
 unpack_array_(Remain, 0, RetList) when is_binary(Remain)-> {lists:reverse(RetList), Remain};
-unpack_array_(<<>>, RestLen, _RetList) when RestLen > 0 ->  {more, RestLen};
+unpack_array_(<<>>, RestLen, _RetList) when RestLen > 0 ->  {more, undefined};
 unpack_array_(Bin, RestLen, RetList) when is_binary(Bin)->
     case unpack(Bin) of
-	{more, Len} -> {more, Len+RestLen-1};
+	{more, _} -> {more, undefined};
 	{Term, Rest}-> unpack_array_(Rest, RestLen-1, [Term|RetList])
     end.
 
@@ -176,157 +177,88 @@ pack_map_([], Acc) -> Acc;
 pack_map_([{Key,Value}|Tail], Acc) ->
     pack_map_(Tail, << Acc/binary, (pack(Key))/binary, (pack(Value))/binary>>).
 
-% FIXME: write test for unpack_map/1
+% FIXME! this should be without lists:reverse/1
 -spec unpack_map_(binary(), non_neg_integer(), [{term(), msgpack_term()}])->
     {more, non_neg_integer()} | { any(), binary()}.
-unpack_map_(Bin,  0,  Acc) when is_binary(Bin) -> {{lists:reverse(Acc)}, Bin};
-unpack_map_(Bin, Len, Acc) when is_binary(Bin) and is_integer(Len) ->
+unpack_map_(Bin,  0,  Acc) -> {{lists:reverse(Acc)}, Bin};
+unpack_map_(Bin, Len, Acc) ->
     case unpack(Bin) of
-	{ more, MoreLen } -> { more, MoreLen+Len-1 };
-	{ Key, Rest } ->
+	{more, _} -> {more, undefined};
+	{Key, Rest} ->
 	    case unpack(Rest) of
-		{more, MoreLen} -> { more, MoreLen+Len-1 };
-		{ Value, Rest2 } ->
+		{more, _} -> {more, undefined};
+		{Value, Rest2} ->
 		    unpack_map_(Rest2,Len-1,[{Key,Value}|Acc])
 	    end
     end.
 
-% {more, <remaining byte size>
--spec unpack_(Flag::integer(), Payload::binary())->
-    {more, pos_integer()} | {msgpack_term(), binary()} | {error, reason()}.
-unpack_(Flag, Payload)->
-    PayloadLen = byte_size(Payload),
-    case Flag of
-	16#C0 ->
-	    {nil, Payload};
-	16#C2 ->
-	    {false, Payload};
-	16#C3 ->
-	    {true, Payload};
+-spec unpack_(Payload::binary()) -> 
+		     {more, pos_integer()} | {msgpack_term(), binary()} | {error, reason()}.
+unpack_(Binary)->
+    case Binary of
+% ATOMS
+	<<16#C0, Rest/binary>> -> {nil, Rest};
+	<<16#C2, Rest/binary>> -> {false, Rest};
+	<<16#C3, Rest/binary>> -> {true, Rest};
+% Floats
+	<<16#CA, V:32/float-unit:1, Rest/binary>> ->   {V, Rest};
+	<<16#CB, V:64/float-unit:1, Rest/binary>> ->   {V, Rest};
+% Unsigned integers
+	<<16#CC, V:8/unsigned-integer, Rest/binary>> ->             {V, Rest};
+	<<16#CD, V:16/big-unsigned-integer-unit:1, Rest/binary>> -> {V, Rest};
+	<<16#CE, V:32/big-unsigned-integer-unit:1, Rest/binary>> -> {V, Rest};
+	<<16#CF, V:64/big-unsigned-integer-unit:1, Rest/binary>> -> {V, Rest};
+% Signed integers
+	<<16#D0, V:8/signed-integer, Rest/binary>> ->             {V, Rest};
+	<<16#D1, V:16/big-signed-integer-unit:1, Rest/binary>> -> {V, Rest};
+	<<16#D2, V:32/big-signed-integer-unit:1, Rest/binary>> -> {V, Rest};
+	<<16#D3, V:64/big-signed-integer-unit:1, Rest/binary>> -> {V, Rest};
+% Raw bytes
+	<<16#DA, L:16/unsigned-integer-unit:1, V:L/binary, Rest/binary>> -> {V, Rest};
+	<<16#DB, L:32/unsigned-integer-unit:1, V:L/binary, Rest/binary>> -> {V, Rest};
+% Arrays
+	<<16#DC, L:16/big-unsigned-integer-unit:1, Rest/binary>> -> unpack_array_(Rest, L, []);
+	<<16#DD, L:32/big-unsigned-integer-unit:1, Rest/binary>> -> unpack_array_(Rest, L, []);
+% Maps
+	<<16#DE, L:16/big-unsigned-integer-unit:1, Rest/binary>> -> unpack_map_(Rest, L, []);
+	<<16#DF, L:32/big-unsigned-integer-unit:1, Rest/binary>> -> unpack_map_(Rest, L, []);
 
-	16#CA when PayloadLen >= 4 -> % 32bit float
-	    << Return:32/float-unit:1, Rest/binary >> = Payload,
-	    {Return, Rest};
-	16#CA ->
-	    {more, 4-PayloadLen}; % at least more
+% Tag-encoded lengths (kept last, for speed)
+	<<0:1, V:7, Rest/binary>> ->                 {V, Rest};                  % positive int
+	<<2#111:3, V:5, Rest/binary>> ->             {V - 2#100000, Rest};       % negative int
+	<<2#101:3, L:5, V:L/binary, Rest/binary>> -> {V, Rest};                  % raw bytes
+	<<2#1001:4, L:4, Rest/binary>> ->            unpack_array_(Rest, L, []); % array
+	<<2#1000:4, L:4, Rest/binary>> ->            unpack_map_(Rest, L, []);   % map
+	
+% Incomplete / invalid data
+	<<16#CA, Rest/binary>> -> {more, 4-byte_size(Rest)};
+	<<16#CB, Rest/binary>> -> {more, 8-byte_size(Rest)};
+	<<16#CC>> ->              {more, 1};
+	<<16#CD, Rest/binary>> -> {more, 2-byte_size(Rest)};
+	<<16#CE, Rest/binary>> -> {more, 4-byte_size(Rest)};
+	<<16#CF, Rest/binary>> -> {more, 8-byte_size(Rest)};
+	<<16#D0>> ->              {more, 1};
+	<<16#D1, Rest/binary>> -> {more, 2-byte_size(Rest)};
+	<<16#D2, Rest/binary>> -> {more, 4-byte_size(Rest)};
+	<<16#D3, Rest/binary>> -> {more, 8-byte_size(Rest)};
+	<<16#DA, Rest/binary>> -> {more, 16-byte_size(Rest)};
+	<<16#DB, Rest/binary>> -> {more, 32-byte_size(Rest)};
+	<<16#DC, Rest/binary>> -> {more, 2-byte_size(Rest)};
+	<<16#DD, Rest/binary>> -> {more, 4-byte_size(Rest)};
+	<<16#DE, Rest/binary>> -> {more, 2-byte_size(Rest)};
+	<<16#DF, Rest/binary>> -> {more, 4-byte_size(Rest)};
+	<<2#101:3, L:5, Rest/binary>> ->  {more, L-byte_size(Rest)};
 
-	16#CB when PayloadLen >= 8 -> % 64bit float
-	    << Return:64/float-unit:1, Rest/binary >> = Payload,
-	    {Return, Rest};
-	16#CB ->
-	    {more, 8-PayloadLen};
-
-	16#CC when PayloadLen >= 1 -> % uint 8
-	    << Int:8/unsigned-integer, Rest/binary >> = Payload,
-	    {Int, Rest};
-	16#CC ->
-	    {more, 1};
-
-	16#CD when PayloadLen >= 2 -> % uint 16
-	    << Int:16/big-unsigned-integer-unit:1, Rest/binary >> = Payload,
-	    {Int, Rest};
-	16#CD ->
-	    {more, 2-PayloadLen};
-
-	16#CE when PayloadLen >= 4 ->
-	    << Int:32/big-unsigned-integer-unit:1, Rest/binary >> = Payload,
-	    {Int, Rest};
-	16#CE ->
-	    {more, 4-PayloadLen}; % at least more
-
-	16#CF when PayloadLen >= 8 ->
-	    << Int:64/big-unsigned-integer-unit:1, Rest/binary >> = Payload,
-	    {Int, Rest};
-	16#CF ->
-	    {more, 8-PayloadLen};
-
-	16#D0 when PayloadLen >= 1 -> % int 8
-	    << Int:8/big-signed-integer-unit:1, Rest/binary >> = Payload,
-	    {Int, Rest};
-	16#D0 ->
-	    {more, 1};
-
-	16#D1 when PayloadLen >= 2 -> % int 16
-	    << Int:16/big-signed-integer-unit:1, Rest/binary >> = Payload,
-	    {Int, Rest};
-	16#D1 ->
-	    {more, 2-PayloadLen};
-
-	16#D2 when PayloadLen >= 4 -> % int 32
-	    << Int:32/big-signed-integer-unit:1, Rest/binary >> = Payload,
-	    {Int, Rest};
-	16#D2 ->
-	    {more, 4-PayloadLen};
-
-	16#D3 when PayloadLen >= 8 -> % int 64
-	    << Int:64/big-signed-integer-unit:1, Rest/binary >> = Payload,
-	    {Int, Rest};
-	16#D3 ->
-	    {more, 8-PayloadLen};
-
-	16#DA when PayloadLen >= 2 -> % raw 16
-	    << Len:16/unsigned-integer-unit:1, Rest/binary >> = Payload,
-	    << Return:Len/binary, Remain/binary >> = Rest,
-	    {Return, Remain};
-	16#DA ->
-	    {more, 16-PayloadLen};
-
-	16#DB when PayloadLen >= 4 -> % raw 32
-	    << Len:32/big-unsigned-integer-unit:1, Rest/binary >> = Payload,
-	    << Return:Len/binary, Remain/binary >> = Rest,
-	    {Return, Remain};
-	16#DB ->
-	    {more, 4-PayloadLen};
-
-	16#DC when PayloadLen >= 2 -> % array 16
-	    << Len:16/big-unsigned-integer-unit:1, Rest/binary >> = Payload,
-	    unpack_array_(Rest, Len, []);
-	16#DC ->
-	    {more, 2-PayloadLen};
-
-	16#DD when PayloadLen >= 4 -> % array 32
-	    << Len:32/big-unsigned-integer-unit:1, Rest/binary >> = Payload,
-	    unpack_array_(Rest, Len, []);
-	16#DD ->
-	    {more, 4-PayloadLen};
-
-	16#DE when PayloadLen >= 2 -> % map 16
-	    << Len:16/big-unsigned-integer-unit:1, Rest/binary >> = Payload,
-	    unpack_map_(Rest, Len, []);
-	16#DE ->
-	    {more, 2-PayloadLen};
-
-	16#DF when PayloadLen >= 4 -> % map 32
-	    << Len:32/big-unsigned-integer-unit:1, Rest/binary >> = Payload,
-	    unpack_map_(Rest, Len, []);
-
-	% positive fixnum
-	Code when Code >= 2#00000000, Code < 2#10000000->
-	    {Code, Payload};
-
-	% negative fixnum
-	Code when Code >= 2#11100000 ->
-	    {(Code - 16#100), Payload};
-
-	Code when Code >= 2#10100000 , Code < 2#11000000 ->
-%	 101XXXXX for FixRaw
-	    Len = Code rem 2#10100000,
-	    << Return:Len/binary, Remain/binary >> = Payload,
-	    {Return, Remain};
-
-	Code when Code >= 2#10010000 , Code < 2#10100000 ->
-%        1001XXXX for FixArray
-	    Len = Code rem 2#10010000,
-	    unpack_array_(Payload, Len, []);
-
-	Code when Code >= 2#10000000 , Code < 2#10010000 ->
-%        1000XXXX for FixMap
-	    Len = Code rem 2#10000000,
-	    unpack_map_(Payload, Len, []);
-
-	_Other ->
-	    {error, no_code_matches}
+	<<>> ->                  {more, 1};
+	<<2#101:3, _/binary>> -> {more, undefined};
+	<<F:8, Rest/binary>> when F==16#C1;
+				  F==16#C7; F==16#C8; F==16#C9; F==16#D5;
+				  F==16#D6; F==16#D7; F==16#D8; F==16#D9->
+	    {error, {badarg, <<F, Rest/binary>>}};
+	Other ->
+	    {error, {badarg, Other}}
     end.
+
 
 % ===== test codes ===== %
 -include_lib("eunit/include/eunit.hrl").
@@ -371,9 +303,12 @@ test_p(Len,Term,OrigBin,Len) ->
     {Term, <<>>}=msgpack:unpack(OrigBin);
 test_p(I,_,OrigBin,Len) when I < Len->
     <<Bin:I/binary, _/binary>> = OrigBin,
-    {more, N}=msgpack:unpack(Bin),
-    ?assert(0 < N),
-    ?assert(N < Len).
+    case msgpack:unpack(Bin) of
+	{more, N} when not is_integer(N) ->
+	    ?assertEqual(undefined, N);
+	{more, N} ->
+	    ?assert( N < Len )
+    end.
 
 partial_test()-> % error handling test.
     Term = lists:seq(0, 45),
