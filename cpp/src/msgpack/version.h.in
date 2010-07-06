@@ -27,9 +27,9 @@ const char* msgpack_version(void);
 int msgpack_version_major(void);
 int msgpack_version_minor(void);
 
-#define MSGPACK_VERSION "VERSION_UNDEFINED"
-#define MSGPACK_VERSION_MAJOR VERSION_MAJOR_UNDEFINED
-#define MSGPACK_VERSION_MINOR VERSION_MINOR_UNDEFINED
+#define MSGPACK_VERSION "@VERSION@"
+#define MSGPACK_VERSION_MAJOR @VERSION_MAJOR@
+#define MSGPACK_VERSION_MINOR @VERSION_MINOR@
 
 
 #ifdef __cplusplus

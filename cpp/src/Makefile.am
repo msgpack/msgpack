@@ -82,15 +82,6 @@ EXTRA_DIST = \
 		msgpack/type/tuple.hpp.erb
 
 
-msgpack/version.h: msgpack/version.h.in Makefile.in
-	sed -e s/VERSION_UNDEFINED/$(VERSION)/ \
-		-e s/VERSION_MAJOR_UNDEFINED/$(VERSION_MAJOR)/ \
-		-e s/VERSION_MINOR_UNDEFINED/$(VERSION_MINOR)/ \
-		$< > $@
-
-version.c: msgpack/version.h
-
-
 doxygen_c:
 	cat ../Doxyfile > Doxyfile_c
 	echo "FILE_PATTERNS      = *.h" >> Doxyfile_c

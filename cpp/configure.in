@@ -68,5 +68,8 @@ AC_SUBST(VERSION_MAJOR, $major)
 AC_SUBST(VERSION_MINOR, $minor)
 
 
-AC_OUTPUT([Makefile src/Makefile test/Makefile])
+AC_OUTPUT([Makefile
+		   src/Makefile
+		   src/msgpack/version.h
+		   test/Makefile])
 
