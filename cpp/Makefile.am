@@ -12,7 +12,6 @@ EXTRA_DIST = \
 		$(DOC_FILES)
 
 doxygen:
-	./preprocess
 	./preprocess clean
 	cd src && $(MAKE) doxygen
 	./preprocess

@@ -4,6 +4,7 @@ lib_LTLIBRARIES = libmsgpack.la
 libmsgpack_la_SOURCES = \
 		unpack.c \
 		objectc.c \
+		version.c \
 		vrefbuffer.c \
 		zone.c \
 		object.cpp
@@ -18,14 +19,11 @@ lib_LTLIBRARIES += libmsgpackc.la
 libmsgpackc_la_SOURCES = \
 		unpack.c \
 		objectc.c \
+		version.c \
 		vrefbuffer.c \
 		zone.c
 
 libmsgpackc_la_LDFLAGS = -version-info 2:0:0
-
-# work around for duplicated file name
-kumo_manager_CFLAGS = $(AM_CFLAGS)
-kumo_manager_CXXFLAGS = $(AM_CXXFLAGS)
 
 
 nobase_include_HEADERS = \
@@ -44,6 +42,7 @@ nobase_include_HEADERS = \
 		msgpack/zone.h \
 		msgpack.hpp \
 		msgpack/sbuffer.hpp \
+		msgpack/version.h \
 		msgpack/vrefbuffer.hpp \
 		msgpack/zbuffer.hpp \
 		msgpack/pack.hpp \
@@ -69,9 +68,17 @@ nobase_include_HEADERS = \
 		msgpack/type/tr1/unordered_set.hpp
 
 EXTRA_DIST = \
+		msgpack/version.h.in \
 		msgpack/zone.hpp.erb \
 		msgpack/type/define.hpp.erb \
 		msgpack/type/tuple.hpp.erb
+
+
+msgpack/version.h: msgpack/version.h.in Makefile.in
+	sed -e s/VERSION_UNDEFINED/$(VERSION)/ \
+		-e s/VERSION_MAJOR_UNDEFINED/$(VERSION_MAJOR)/ \
+		-e s/VERSION_MINOR_UNDEFINED/$(VERSION_MINOR)/ \
+		$< > $@
 
 
 doxygen_c:

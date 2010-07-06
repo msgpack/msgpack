@@ -1,5 +1,5 @@
 /*
- * MessagePack for C
+ * MessagePack for C version information
  *
  * Copyright (C) 2008-2009 FURUHASHI Sadayuki
  *
@@ -15,16 +15,26 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-/**
- * @defgroup msgpack MessagePack C
- * @{
- * @}
- */
-#include "msgpack/object.h"
-#include "msgpack/zone.h"
-#include "msgpack/pack.h"
-#include "msgpack/unpack.h"
-#include "msgpack/sbuffer.h"
-#include "msgpack/vrefbuffer.h"
-#include "msgpack/version.h"
+#ifndef MSGPACK_VERSION_H__
+#define MSGPACK_VERSION_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
+const char* msgpack_version(void);
+int msgpack_version_major(void);
+int msgpack_version_minor(void);
+
+#define MSGPACK_VERSION "VERSION_UNDEFINED"
+#define MSGPACK_VERSION_MAJOR VERSION_MAJOR_UNDEFINED
+#define MSGPACK_VERSION_MINOR VERSION_MINOR_UNDEFINED
+
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* msgpack/version.h */
 
