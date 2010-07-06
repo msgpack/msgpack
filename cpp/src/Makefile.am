@@ -88,6 +88,8 @@ msgpack/version.h: msgpack/version.h.in Makefile.in
 		-e s/VERSION_MINOR_UNDEFINED/$(VERSION_MINOR)/ \
 		$< > $@
 
+version.c: msgpack/version.h
+
 
 doxygen_c:
 	cat ../Doxyfile > Doxyfile_c
