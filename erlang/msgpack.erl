@@ -362,6 +362,7 @@ other_test()->
 benchmark_test()->
     Data=[test_data() || _ <- lists:seq(0, 10000)],
     S=?debugTime("  serialize", msgpack:pack(Data)),
-    {Data,<<>>}=?debugTime("deserialize", msgpack:unpack(S)).
+    {Data,<<>>}=?debugTime("deserialize", msgpack:unpack(S)),
+    ?debugFmt("for ~p KB test data.", [byte_size(S) div 1024]).
 
 -endif.
