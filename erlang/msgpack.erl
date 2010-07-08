@@ -142,7 +142,7 @@ pack_int_(N) ->
     << 16#D3:8, N:64/big-signed-integer-unit:1 >>.
 
 % float : erlang's float is always IEEE 754 64bit format.
-%pack_float(F) when is_float(F)->
+% pack_float(F) when is_float(F)->
 %    << 16#CA:8, F:32/big-float-unit:1 >>.
 %    pack_double(F).
 % double
@@ -198,10 +198,7 @@ unpack_map_(Bin, Len, Acc) ->
 
 % unpack then all
 -spec unpack_(Bin::binary()) -> {msgpack_term(), binary()} | {error, reason()} | no_return().
-unpack_(Bin) when not is_binary(Bin)->
-    throw(badarg);
-unpack_(<<>>)->
-    throw(short);
+unpack_(Bin) when not is_binary(Bin)->    throw(badarg);
 unpack_(Bin) when bit_size(Bin) >= 8 ->
     case Bin of
 % ATOMS
@@ -239,43 +236,31 @@ unpack_(Bin) when bit_size(Bin) >= 8 ->
 	<<2#1000:4, L:4, Rest/binary>> ->            unpack_map_(Rest, L, []);   % map
 	
 % Incomplete / invalid data
-%	<<_:16/integer, _/binary>>
-	_ -> throw(short)
-%% 	<<16#CA, _/binary>> -> {more, 4-byte_size(Rest)};
-%% 	<<16#CB, Rest/binary>> -> {more, 8-byte_size(Rest)};
-%% 	<<16#CC>> ->              {more, 1};
-%% 	<<16#CD, Rest/binary>> -> {more, 2-byte_size(Rest)};
-%% 	<<16#CE, Rest/binary>> -> {more, 4-byte_size(Rest)};
-%% 	<<16#CF, Rest/binary>> -> {more, 8-byte_size(Rest)};
-%% 	<<16#D0>> ->              {more, 1};
-%% 	<<16#D1, Rest/binary>> -> {more, 2-byte_size(Rest)};
-%% 	<<16#D2, Rest/binary>> -> {more, 4-byte_size(Rest)};
-%% 	<<16#D3, Rest/binary>> -> {more, 8-byte_size(Rest)};
-%% 	<<16#DA, Rest/binary>> -> {more, 16-byte_size(Rest)};
-%% 	<<16#DB, Rest/binary>> -> {more, 32-byte_size(Rest)};
-%% 	<<16#DC, Rest/binary>> -> {more, 2-byte_size(Rest)};
-%% 	<<16#DD, Rest/binary>> -> {more, 4-byte_size(Rest)};
-%% 	<<16#DE, Rest/binary>> -> {more, 2-byte_size(Rest)};
-%% 	<<16#DF, Rest/binary>> -> {more, 4-byte_size(Rest)};
-%% 	<<2#101:3, L:5, Rest/binary>> ->  throw(short); % {more, L-byte_size(Rest)};
-
-%% 	<<>> ->   throw(short); %               {more, 1};
-%% 	<<2#101:3, _/binary>> -> {more, undefined};
-%% 	<<F:8, Rest/binary>> when F==16#C1;
-%% 				  F==16#C7; F==16#C8; F==16#C9; F==16#D5;
-%% 				  F==16#D6; F==16#D7; F==16#D8; F==16#D9->
-%% 	    throw({badarg, <<F, Rest/binary>>});
-%	Other ->
-%	    throw({unknown, Other})
-    end.
+	<<F:16, _/binary>> when F==16#CA; F==16#CB; F==16#CC;
+				F==16#CD; F==16#CE; F==16#CF;
+				F==16#D0; F==16#D1; F==16#D2;
+				F==16#D3; F==16#DA; F==16#DB;
+				F==16#DC; F==16#DD; F==16#DE;
+				F==16#DF ->
+	    throw(short);
+	<<F:16, _/binary>> when F==16#C1;
+				F==16#C7; F==16#C8; F==16#C9;
+				F==16#D5; F==16#D6; F==16#D7;
+				F==16#D8; F==16#D9 ->
+	    throw(badarg);
+	_ ->
+	    throw(short) % or unknown/badarg?
+    end;
+unpack_(<<>>)->                    throw(short);
+unpack_(<<2#101:3, _/binary>>) ->  throw(short).
 
 % ===== test codes ===== %
 -include_lib("eunit/include/eunit.hrl").
 -ifdef(EUNIT).
 
 compare_all([], [])-> ok;
-compare_all([], R)-> {toomuchrhs, R};
-compare_all(L, [])-> {toomuchlhs, L};
+compare_all([],  R)-> {toomuchrhs, R};
+compare_all(L,  [])-> {toomuchlhs, L};
 compare_all([LH|LTL], [RH|RTL]) ->
     ?assertEqual(LH, RH),
     compare_all(LTL, RTL).
@@ -305,9 +290,9 @@ basic_test()->
     Passed = length(Tests).
 
 port_test()->
+    Port = open_port({spawn, "ruby ../test/crosslang.rb"}, [binary]),
     Tests = test_data(),
     {[Tests],<<>>} = msgpack:unpack(msgpack:pack([Tests])),
-    Port = open_port({spawn, "ruby ../test/crosslang.rb"}, [binary]),
     true = port_command(Port, msgpack:pack(Tests) ),
     receive
 	{Port, {data, Data}}->  {Tests, <<>>}=msgpack:unpack(Data)
@@ -328,10 +313,7 @@ partial_test()-> % error handling test.
 
 long_test()->
     Longer = lists:seq(0, 655),
-%    Longest = lists:seq(0,12345),
-    {Longer, <<>>} = msgpack:unpack(msgpack:pack(Longer)),
-%    {Longest, <<>>} = msgpack:unpack(msgpack:pack(Longest)).
-    ok.
+    {Longer, <<>>} = msgpack:unpack(msgpack:pack(Longer)).
 
 map_test()->
     Ints = lists:seq(0, 65),
@@ -341,6 +323,7 @@ map_test()->
     ok.
 
 unknown_test()->
+    Port = open_port({spawn, "ruby testcase_generator.rb"}, [binary]),
     Tests = [0, 1, 2, 123, 512, 1230, 678908,
 	     -1, -23, -512, -1230, -567898,
 	     <<"hogehoge">>, <<"243546rf7g68h798j">>,
@@ -348,16 +331,13 @@ unknown_test()->
 	     -234.4355, 1.0e-34, 1.0e64,
 	     [23, 234, 0.23],
 	     [0,42,<<"sum">>, [1,2]], [1,42, nil, [3]],
-	     {[{1,2},{<<"hoge">>,nil}]},
+	     {[{1,2},{<<"hoge">>,nil}]}, % map
 	     -234, -50000,
 	     42
 	    ],
-    Port = open_port({spawn, "ruby testcase_generator.rb"}, [binary]),
-    timer:sleep(1),
     receive
-	{Port, {data, Data}}->
-	    compare_all(Tests, msgpack:unpack_all(Data))
-    after 1024-> ?assert(false)   end,
+	{Port, {data, Data}}-> compare_all(Tests, msgpack:unpack_all(Data))
+    after 1024-> ?assert(false)  end,
     port_close(Port).
 
 other_test()->
