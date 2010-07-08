@@ -359,4 +359,9 @@ test_([Before|Rest])->
 other_test()->
     {more,1}=msgpack:unpack(<<>>).
 
+benchmark_test()->
+    Data=[test_data() || _ <- lists:seq(0, 10000)],
+    S=?debugTime("  serialize", msgpack:pack(Data)),
+    {Data,<<>>}=?debugTime("deserialize", msgpack:unpack(S)).
+
 -endif.
