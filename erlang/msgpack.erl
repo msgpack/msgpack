@@ -19,9 +19,8 @@
 -author('kuenishi+msgpack@gmail.com').
 
 %% tuples, atoms are not supported. lists, integers, double, and so on.
-%% see http://msgpack.sourceforge.jp/spec for
-%% supported formats. APIs are almost compatible
-%% for C API (http://msgpack.sourceforge.jp/c:doc)
+%% see http://msgpack.sourceforge.jp/spec for supported formats.
+%% APIs are almost compatible with C API (http://msgpack.sourceforge.jp/c:doc)
 %% except buffering functions (both copying and zero-copying).
 -export([pack/1, unpack/1, unpack_all/1]).
 -export([pack_map/1]).
@@ -30,51 +29,38 @@
 % erl> c(msgpack).
 % erl> S = <some term>.
 % erl> {S, <<>>} = msgpack:unpack( msgpack:pack(S) ).
--type reason() ::  enomem | badarg | no_code_matches.
+-type reason() ::  enomem | badarg | no_code_matches | undefined.
 -type msgpack_term() :: [msgpack_term()]
 		      | {[{msgpack_term(),msgpack_term()}]}
 		      | integer() | float() | binary().
 
 % ===== external APIs ===== %
--spec pack(Term::msgpack_term()) -> binary().
-pack(I) when is_integer(I) andalso I < 0 ->
-    pack_int_(I);
-pack(I) when is_integer(I) ->
-    pack_uint_(I);
-pack(F) when is_float(F) ->
-    pack_double(F);
-pack(nil) ->
-    << 16#C0:8 >>;
-pack(true) ->
-    << 16#C3:8 >>;
-pack(false) ->
-    << 16#C2:8 >>;
-pack(Bin) when is_binary(Bin) ->
-    pack_raw(Bin);
-pack(List)  when is_list(List) ->
-    pack_array(List);
-pack({Map}) when is_list(Map) ->
-    pack_map(Map);
-pack(Map) when is_tuple(Map), element(1,Map)=:=dict ->
-    pack_map(dict:to_list(Map));
-pack(_Other) ->
-    {error, undefined}.
+-spec pack(Term::msgpack_term()) -> binary() | {error, reason()}.
+pack(Term)->
+    try
+	pack_(Term)
+    catch
+	error:Error when is_tuple(Error), element(1, Error) =:= error ->
+	    Error;
+	throw:Exception ->
+	    erlang:display(Exception),
+	    {error, Exception}
+    end.
 
 % unpacking.
 % if failed in decoding and not end, get more data
 % and feed more Bin into this function.
 % TODO: error case for imcomplete format when short for any type formats.
--spec unpack( Bin::binary() )-> {msgpack_term(), binary()} |
-				{more, non_neg_integer()} | {more, undefined} |
-				{error, reason()}.
-unpack(Bin) when not is_binary(Bin)->
-    {error, badarg};
-unpack(Bin) when bit_size(Bin) >= 8 ->
-    unpack_(Bin);
-unpack(<<>>)->
-    {more, 1};
-unpack(_) ->
-    {more, undefined}.
+-spec unpack( Bin::binary() )-> {msgpack_term(), binary()} | {error, reason()}.
+unpack(Bin)->
+    try
+	unpack_(Bin)
+    catch
+	error:Error when is_tuple(Error), element(1, Error) =:= error ->
+	    Error;
+	throw:Exception ->
+	    {error, Exception}
+    end.
 
 -spec unpack_all( binary() ) -> [msgpack_term()].
 unpack_all(Data)->
@@ -85,7 +71,7 @@ unpack_all(Data)->
 	    [Term|unpack_all(Binary)]
     end.
 
--spec pack_map(M::[{msgpack_term(),msgpack_term()}])-> binary().
+-spec pack_map(M::[{msgpack_term(),msgpack_term()}])-> binary() | {error, badarg}.
 pack_map(M)->
     case length(M) of
 	Len when Len < 16 ->
@@ -97,6 +83,31 @@ pack_map(M)->
     end.
 
 % ===== internal APIs ===== %
+
+% pack them all
+-spec pack_(msgpack_term()) -> binary() | no_return().
+pack_(I) when is_integer(I) andalso I < 0 ->
+    pack_int_(I);
+pack_(I) when is_integer(I) ->
+    pack_uint_(I);
+pack_(F) when is_float(F) ->
+    pack_double(F);
+pack_(nil) ->
+    << 16#C0:8 >>;
+pack_(true) ->
+    << 16#C3:8 >>;
+pack_(false) ->
+    << 16#C2:8 >>;
+pack_(Bin) when is_binary(Bin) ->
+    pack_raw(Bin);
+pack_(List)  when is_list(List) ->
+    pack_array(List);
+pack_({Map}) when is_list(Map) ->
+    pack_map(Map);
+pack_(Map) when is_tuple(Map), element(1,Map)=:=dict ->
+    pack_map(dict:to_list(Map));
+pack_(_Other) ->
+    throw({error, undefined}).
 
 % positive fixnum
 pack_uint_(N) when N < 128 ->
@@ -149,7 +160,7 @@ pack_raw(Bin) ->
 	    << 16#DB:8, Len:32/big-unsigned-integer-unit:1, Bin/binary >>
     end.
 
-% list / tuple
+% list
 pack_array(L) ->
     case length(L) of
  	Len when Len < 16 ->
@@ -159,43 +170,40 @@ pack_array(L) ->
 	Len ->
 	    << 16#DD:8, Len:32/big-unsigned-integer-unit:1,(pack_array_(L, <<>>))/binary >>
     end.
+
 pack_array_([], Acc) -> Acc;
 pack_array_([Head|Tail], Acc) ->
-    pack_array_(Tail, <<Acc/binary,  (pack(Head))/binary>>).
+    pack_array_(Tail, <<Acc/binary,  (pack_(Head))/binary>>).
 
-% FIXME! this should be without lists:reverse/1
-unpack_array_(<<>>, 0, RetList)   -> {lists:reverse(RetList), <<>>};
-unpack_array_(Remain, 0, RetList) when is_binary(Remain)-> {lists:reverse(RetList), Remain};
-unpack_array_(<<>>, RestLen, _RetList) when RestLen > 0 ->  {more, undefined};
-unpack_array_(Bin, RestLen, RetList) when is_binary(Bin)->
-    case unpack(Bin) of
-	{more, _} -> {more, undefined};
-	{Term, Rest}-> unpack_array_(Rest, RestLen-1, [Term|RetList])
-    end.
+% Users SHOULD NOT send too long list: this uses lists:reverse/1
+unpack_array_(Remain, 0,    Acc) when is_binary(Remain)-> {lists:reverse(Acc), Remain};
+unpack_array_(<<>>, RestLen,  _) when RestLen > 0 -> throw(short);
+unpack_array_(Bin, RestLen, Acc) when is_binary(Bin)->
+    {Term, Rest}=unpack_(Bin),
+    unpack_array_(Rest, RestLen-1, [Term|Acc]).
 
 pack_map_([], Acc) -> Acc;
 pack_map_([{Key,Value}|Tail], Acc) ->
-    pack_map_(Tail, << Acc/binary, (pack(Key))/binary, (pack(Value))/binary>>).
+    pack_map_(Tail, << Acc/binary, (pack_(Key))/binary, (pack_(Value))/binary>>).
 
-% FIXME! this should be without lists:reverse/1
--spec unpack_map_(binary(), non_neg_integer(), [{term(), msgpack_term()}])->
-    {more, non_neg_integer()} | { any(), binary()}.
+% Users SHOULD NOT send too long list: this uses lists:reverse/1
+-spec unpack_map_(binary(), non_neg_integer(), [{msgpack_term(), msgpack_term()}])->
+			 {[{msgpack_term(), msgpack_term()}], binary()} | no_return().
 unpack_map_(Bin,  0,  Acc) -> {{lists:reverse(Acc)}, Bin};
+unpack_map_(<<>>, _,  _ )  -> throw(short);
 unpack_map_(Bin, Len, Acc) ->
-    case unpack(Bin) of
-	{more, _} -> {more, undefined};
-	{Key, Rest} ->
-	    case unpack(Rest) of
-		{more, _} -> {more, undefined};
-		{Value, Rest2} ->
-		    unpack_map_(Rest2,Len-1,[{Key,Value}|Acc])
-	    end
-    end.
+    {Key, Rest} = unpack_(Bin),
+    {Value, Rest2} = unpack_(Rest),
+    unpack_map_(Rest2,Len-1,[{Key,Value}|Acc]).
 
--spec unpack_(Payload::binary()) -> 
-		     {more, pos_integer()} | {msgpack_term(), binary()} | {error, reason()}.
-unpack_(Binary)->
-    case Binary of
+% unpack then all
+-spec unpack_(Bin::binary()) -> {msgpack_term(), binary()} | {error, reason()} | no_return().
+unpack_(Bin) when not is_binary(Bin)->
+    throw(badarg);
+unpack_(<<>>)->
+    throw(short);
+unpack_(Bin) when bit_size(Bin) >= 8 ->
+    case Bin of
 % ATOMS
 	<<16#C0, Rest/binary>> -> {nil, Rest};
 	<<16#C2, Rest/binary>> -> {false, Rest};
@@ -231,34 +239,35 @@ unpack_(Binary)->
 	<<2#1000:4, L:4, Rest/binary>> ->            unpack_map_(Rest, L, []);   % map
 	
 % Incomplete / invalid data
-	<<16#CA, Rest/binary>> -> {more, 4-byte_size(Rest)};
-	<<16#CB, Rest/binary>> -> {more, 8-byte_size(Rest)};
-	<<16#CC>> ->              {more, 1};
-	<<16#CD, Rest/binary>> -> {more, 2-byte_size(Rest)};
-	<<16#CE, Rest/binary>> -> {more, 4-byte_size(Rest)};
-	<<16#CF, Rest/binary>> -> {more, 8-byte_size(Rest)};
-	<<16#D0>> ->              {more, 1};
-	<<16#D1, Rest/binary>> -> {more, 2-byte_size(Rest)};
-	<<16#D2, Rest/binary>> -> {more, 4-byte_size(Rest)};
-	<<16#D3, Rest/binary>> -> {more, 8-byte_size(Rest)};
-	<<16#DA, Rest/binary>> -> {more, 16-byte_size(Rest)};
-	<<16#DB, Rest/binary>> -> {more, 32-byte_size(Rest)};
-	<<16#DC, Rest/binary>> -> {more, 2-byte_size(Rest)};
-	<<16#DD, Rest/binary>> -> {more, 4-byte_size(Rest)};
-	<<16#DE, Rest/binary>> -> {more, 2-byte_size(Rest)};
-	<<16#DF, Rest/binary>> -> {more, 4-byte_size(Rest)};
-	<<2#101:3, L:5, Rest/binary>> ->  {more, L-byte_size(Rest)};
+%	<<_:16/integer, _/binary>>
+	_ -> throw(short)
+%% 	<<16#CA, _/binary>> -> {more, 4-byte_size(Rest)};
+%% 	<<16#CB, Rest/binary>> -> {more, 8-byte_size(Rest)};
+%% 	<<16#CC>> ->              {more, 1};
+%% 	<<16#CD, Rest/binary>> -> {more, 2-byte_size(Rest)};
+%% 	<<16#CE, Rest/binary>> -> {more, 4-byte_size(Rest)};
+%% 	<<16#CF, Rest/binary>> -> {more, 8-byte_size(Rest)};
+%% 	<<16#D0>> ->              {more, 1};
+%% 	<<16#D1, Rest/binary>> -> {more, 2-byte_size(Rest)};
+%% 	<<16#D2, Rest/binary>> -> {more, 4-byte_size(Rest)};
+%% 	<<16#D3, Rest/binary>> -> {more, 8-byte_size(Rest)};
+%% 	<<16#DA, Rest/binary>> -> {more, 16-byte_size(Rest)};
+%% 	<<16#DB, Rest/binary>> -> {more, 32-byte_size(Rest)};
+%% 	<<16#DC, Rest/binary>> -> {more, 2-byte_size(Rest)};
+%% 	<<16#DD, Rest/binary>> -> {more, 4-byte_size(Rest)};
+%% 	<<16#DE, Rest/binary>> -> {more, 2-byte_size(Rest)};
+%% 	<<16#DF, Rest/binary>> -> {more, 4-byte_size(Rest)};
+%% 	<<2#101:3, L:5, Rest/binary>> ->  throw(short); % {more, L-byte_size(Rest)};
 
-	<<>> ->                  {more, 1};
-	<<2#101:3, _/binary>> -> {more, undefined};
-	<<F:8, Rest/binary>> when F==16#C1;
-				  F==16#C7; F==16#C8; F==16#C9; F==16#D5;
-				  F==16#D6; F==16#D7; F==16#D8; F==16#D9->
-	    {error, {badarg, <<F, Rest/binary>>}};
-	Other ->
-	    {error, {badarg, Other}}
+%% 	<<>> ->   throw(short); %               {more, 1};
+%% 	<<2#101:3, _/binary>> -> {more, undefined};
+%% 	<<F:8, Rest/binary>> when F==16#C1;
+%% 				  F==16#C7; F==16#C8; F==16#C9; F==16#D5;
+%% 				  F==16#D6; F==16#D7; F==16#D8; F==16#D9->
+%% 	    throw({badarg, <<F, Rest/binary>>});
+%	Other ->
+%	    throw({unknown, Other})
     end.
-
 
 % ===== test codes ===== %
 -include_lib("eunit/include/eunit.hrl").
@@ -268,8 +277,14 @@ compare_all([], [])-> ok;
 compare_all([], R)-> {toomuchrhs, R};
 compare_all(L, [])-> {toomuchlhs, L};
 compare_all([LH|LTL], [RH|RTL]) ->
-    LH=RH,
+    ?assertEqual(LH, RH),
     compare_all(LTL, RTL).
+
+test_([]) -> 0;
+test_([Term|Rest])->
+    Pack = msgpack:pack(Term),
+    ?assertEqual({Term, <<>>}, msgpack:unpack( Pack )),
+    1+test_(Rest).
 
 test_data()->
     [true, false, nil,
@@ -303,12 +318,7 @@ test_p(Len,Term,OrigBin,Len) ->
     {Term, <<>>}=msgpack:unpack(OrigBin);
 test_p(I,_,OrigBin,Len) when I < Len->
     <<Bin:I/binary, _/binary>> = OrigBin,
-    case msgpack:unpack(Bin) of
-	{more, N} when not is_integer(N) ->
-	    ?assertEqual(undefined, N);
-	{more, N} ->
-	    ?assert( N < Len )
-    end.
+    ?assertEqual({error,short}, msgpack:unpack(Bin)).
 
 partial_test()-> % error handling test.
     Term = lists:seq(0, 45),
@@ -343,21 +353,15 @@ unknown_test()->
 	     42
 	    ],
     Port = open_port({spawn, "ruby testcase_generator.rb"}, [binary]),
+    timer:sleep(1),
     receive
 	{Port, {data, Data}}->
 	    compare_all(Tests, msgpack:unpack_all(Data))
     after 1024-> ?assert(false)   end,
     port_close(Port).
 
-test_([]) -> 0;
-test_([Before|Rest])->
-    Pack = msgpack:pack(Before),
-    {After, <<>>} = msgpack:unpack( Pack ),
-    ?assertEqual(Before, After),
-    1+test_(Rest).
-
 other_test()->
-    {more,1}=msgpack:unpack(<<>>).
+    ?assertEqual({error,short},msgpack:unpack(<<>>)).
 
 benchmark_test()->
     Data=[test_data() || _ <- lists:seq(0, 10000)],
