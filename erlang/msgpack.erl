@@ -261,6 +261,15 @@ compare_all([LH|LTL], [RH|RTL]) ->
     ?assertEqual(LH, RH),
     compare_all(LTL, RTL).
 
+port_receive(Port) ->
+    port_receive(Port, <<>>).
+port_receive(Port, Acc) ->
+    receive
+        {Port, {data, Data}} -> port_receive(Port, <<Acc/binary, Data/binary>>);
+        {Port, eof} -> Acc
+    after 1000 -> Acc
+    end.
+
 test_([]) -> 0;
 test_([Term|Rest])->
     Pack = msgpack:pack(Term),
@@ -286,13 +295,12 @@ basic_test()->
     Passed = length(Tests).
 
 port_test()->
-    Port = open_port({spawn, "ruby ../test/crosslang.rb"}, [binary]),
     Tests = test_data(),
-    {[Tests],<<>>} = msgpack:unpack(msgpack:pack([Tests])),
-    true = port_command(Port, msgpack:pack(Tests) ),
-    receive
-	{Port, {data, Data}}->  {Tests, <<>>}=msgpack:unpack(Data)
-    after 1024-> ?assert(false)   end,
+    ?assertEqual({[Tests],<<>>}, msgpack:unpack(msgpack:pack([Tests]))),
+
+    Port = open_port({spawn, "ruby ../test/crosslang.rb"}, [binary, eof]),
+    true = port_command(Port, msgpack:pack(Tests)),
+    ?assertEqual({Tests, <<>>}, msgpack:unpack(port_receive(Port))),
     port_close(Port).
 
 test_p(Len,Term,OrigBin,Len) ->
@@ -319,7 +327,7 @@ map_test()->
     ok.
 
 unknown_test()->
-    Port = open_port({spawn, "ruby testcase_generator.rb"}, [binary]),
+    Port = open_port({spawn, "ruby testcase_generator.rb"}, [binary, eof]),
     Tests = [0, 1, 2, 123, 512, 1230, 678908,
 	     -1, -23, -512, -1230, -567898,
 	     <<"hogehoge">>, <<"243546rf7g68h798j">>,
@@ -331,9 +339,7 @@ unknown_test()->
 	     -234, -50000,
 	     42
 	    ],
-    receive
-	{Port, {data, Data}}-> compare_all(Tests, msgpack:unpack_all(Data))
-    after 1024-> ?assert(false)  end,
+    ?assertEqual(ok, compare_all(Tests, msgpack:unpack_all(port_receive(Port)))),
     port_close(Port).
 
 other_test()->
