@@ -282,10 +282,11 @@ basic_test()->
 port_test()->
     Port = open_port({spawn, "ruby ../test/crosslang.rb"}, [binary]),
     Tests = test_data(),
-    {[Tests],<<>>} = msgpack:unpack(msgpack:pack([Tests])),
-    true = port_command(Port, msgpack:pack(Tests) ),
+    S=msgpack:pack([Tests]),
+    true = port_command(Port, S),
+    {[Tests],<<>>} = msgpack:unpack(S),
     receive
-	{Port, {data, Data}}->  {Tests, <<>>}=msgpack:unpack(Data)
+	{Port, {data, Data}}->  {[Tests], <<>>}=msgpack:unpack(Data)
     after 1024-> ?assert(false)   end,
     port_close(Port).
 
