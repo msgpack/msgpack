@@ -52,7 +52,9 @@ pack(Term)->
 % and feed more Bin into this function.
 % TODO: error case for imcomplete format when short for any type formats.
 -spec unpack( Bin::binary() )-> {msgpack_term(), binary()} | {error, reason()}.
-unpack(Bin)->
+unpack(Bin) when not is_binary(Bin) ->
+    {error, badarg};
+unpack(Bin) ->
     try
 	unpack_(Bin)
     catch
@@ -126,7 +128,7 @@ pack_uint_(N) ->
     << 16#CF:8, N:64/big-unsigned-integer-unit:1 >>.
 
 % negative fixnum
-pack_int_(N) when is_integer(N) , N >= -32->
+pack_int_(N) when N >= -32->
     << 2#111:3, N:5 >>;
 % int 8
 pack_int_(N) when N > -128 ->
@@ -176,9 +178,9 @@ pack_array_([Head|Tail], Acc) ->
     pack_array_(Tail, <<Acc/binary,  (pack_(Head))/binary>>).
 
 % Users SHOULD NOT send too long list: this uses lists:reverse/1
-unpack_array_(Remain, 0,    Acc) when is_binary(Remain)-> {lists:reverse(Acc), Remain};
-unpack_array_(<<>>, RestLen,  _) when RestLen > 0 -> throw(short);
-unpack_array_(Bin, RestLen, Acc) when is_binary(Bin)->
+unpack_array_(Remain, 0,    Acc) -> {lists:reverse(Acc), Remain};
+unpack_array_(<<>>, RestLen,  _) -> throw(short);
+unpack_array_(Bin, RestLen, Acc) ->
     {Term, Rest}=unpack_(Bin),
     unpack_array_(Rest, RestLen-1, [Term|Acc]).
 
@@ -198,8 +200,7 @@ unpack_map_(Bin, Len, Acc) ->
 
 % unpack then all
 -spec unpack_(Bin::binary()) -> {msgpack_term(), binary()} | {error, reason()} | no_return().
-unpack_(Bin) when not is_binary(Bin)->    throw(badarg);
-unpack_(Bin) when bit_size(Bin) >= 8 ->
+unpack_(Bin) ->
     case Bin of
 % ATOMS
 	<<16#C0, Rest/binary>> -> {nil, Rest};
@@ -234,7 +235,7 @@ unpack_(Bin) when bit_size(Bin) >= 8 ->
 	<<2#101:3, L:5, V:L/binary, Rest/binary>> -> {V, Rest};                  % raw bytes
 	<<2#1001:4, L:4, Rest/binary>> ->            unpack_array_(Rest, L, []); % array
 	<<2#1000:4, L:4, Rest/binary>> ->            unpack_map_(Rest, L, []);   % map
-	
+
 % Incomplete / invalid data
 	<<F:16, _/binary>> when F==16#CA; F==16#CB; F==16#CC;
 				F==16#CD; F==16#CE; F==16#CF;
