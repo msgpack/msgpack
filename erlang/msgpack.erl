@@ -236,24 +236,15 @@ unpack_(Bin) ->
 	<<2#1001:4, L:4, Rest/binary>> ->            unpack_array_(Rest, L, []); % array
 	<<2#1000:4, L:4, Rest/binary>> ->            unpack_map_(Rest, L, []);   % map
 
-% Incomplete / invalid data
-	<<F:16, _/binary>> when F==16#CA; F==16#CB; F==16#CC;
-				F==16#CD; F==16#CE; F==16#CF;
-				F==16#D0; F==16#D1; F==16#D2;
-				F==16#D3; F==16#DA; F==16#DB;
-				F==16#DC; F==16#DD; F==16#DE;
-				F==16#DF ->
-	    throw(short);
-	<<F:16, _/binary>> when F==16#C1;
-				F==16#C7; F==16#C8; F==16#C9;
-				F==16#D5; F==16#D6; F==16#D7;
-				F==16#D8; F==16#D9 ->
+% Invalid data
+	<<F, _/binary>> when F==16#C1;
+	                     F==16#C4; F==16#C5; F==16#C6; F==16#C7; F==16#C8; F==16#C9;
+	                     F==16#D4; F==16#D5; F==16#D6; F==16#D7; F==16#D8; F==16#D9 ->
 	    throw(badarg);
+% Incomplete data (we've covered every complete/invalid case; anything left is incomplete)
 	_ ->
-	    throw(short) % or unknown/badarg?
-    end;
-unpack_(<<>>)->                    throw(short);
-unpack_(<<2#101:3, _/binary>>) ->  throw(short).
+	    throw(short)
+    end.
 
 % ===== test codes ===== %
 -include_lib("eunit/include/eunit.hrl").
