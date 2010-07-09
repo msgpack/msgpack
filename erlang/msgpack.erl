@@ -39,8 +39,6 @@ pack(Term)->
     try
 	pack_(Term)
     catch
-	error:Error when is_tuple(Error), element(1, Error) =:= error ->
-	    Error;
 	throw:Exception ->
 	    {error, Exception}
     end.
@@ -54,8 +52,6 @@ unpack(Bin) when is_binary(Bin) ->
     try
 	unpack_(Bin)
     catch
-	error:Error when is_tuple(Error), element(1, Error) =:= error ->
-	    Error;
 	throw:Exception ->
 	    {error, Exception}
     end;
