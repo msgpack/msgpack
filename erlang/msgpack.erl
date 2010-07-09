@@ -178,11 +178,10 @@ pack_array_([Head|Tail], Acc) ->
     pack_array_(Tail, <<Acc/binary,  (pack_(Head))/binary>>).
 
 % Users SHOULD NOT send too long list: this uses lists:reverse/1
-unpack_array_(Remain, 0,    Acc) -> {lists:reverse(Acc), Remain};
-unpack_array_(<<>>, RestLen,  _) -> throw(short);
-unpack_array_(Bin, RestLen, Acc) ->
-    {Term, Rest}=unpack_(Bin),
-    unpack_array_(Rest, RestLen-1, [Term|Acc]).
+unpack_array_(Bin, 0,   Acc) -> {lists:reverse(Acc), Bin};
+unpack_array_(Bin, Len, Acc) ->
+    {Term, Rest} = unpack_(Bin),
+    unpack_array_(Rest, Len-1, [Term|Acc]).
 
 pack_map_([], Acc) -> Acc;
 pack_map_([{Key,Value}|Tail], Acc) ->
@@ -191,14 +190,13 @@ pack_map_([{Key,Value}|Tail], Acc) ->
 % Users SHOULD NOT send too long list: this uses lists:reverse/1
 -spec unpack_map_(binary(), non_neg_integer(), [{msgpack_term(), msgpack_term()}])->
 			 {[{msgpack_term(), msgpack_term()}], binary()} | no_return().
-unpack_map_(Bin,  0,  Acc) -> {{lists:reverse(Acc)}, Bin};
-unpack_map_(<<>>, _,  _ )  -> throw(short);
+unpack_map_(Bin, 0,   Acc) -> {{lists:reverse(Acc)}, Bin};
 unpack_map_(Bin, Len, Acc) ->
     {Key, Rest} = unpack_(Bin),
     {Value, Rest2} = unpack_(Rest),
-    unpack_map_(Rest2,Len-1,[{Key,Value}|Acc]).
+    unpack_map_(Rest2, Len-1, [{Key,Value}|Acc]).
 
-% unpack then all
+% unpack them all
 -spec unpack_(Bin::binary()) -> {msgpack_term(), binary()} | {error, reason()} | no_return().
 unpack_(Bin) ->
     case Bin of
