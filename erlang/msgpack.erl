@@ -29,7 +29,7 @@
 % erl> c(msgpack).
 % erl> S = <some term>.
 % erl> {S, <<>>} = msgpack:unpack( msgpack:pack(S) ).
--type reason() ::  enomem | badarg | no_code_matches | undefined.
+-type reason() ::  badarg | short.
 -type msgpack_term() :: [msgpack_term()]
 		      | {[{msgpack_term(),msgpack_term()}]}
 		      | integer() | float() | binary().
@@ -73,7 +73,7 @@ unpack_all(Data)->
 	    [Term|unpack_all(Binary)]
     end.
 
--spec pack_map(M::[{msgpack_term(),msgpack_term()}])-> binary() | {error, badarg}.
+-spec pack_map(M::[{msgpack_term(),msgpack_term()}]) -> binary() | no_return().
 pack_map(M)->
     case length(M) of
 	Len when Len < 16 ->
@@ -109,8 +109,9 @@ pack_({Map}) when is_list(Map) ->
 pack_(Map) when is_tuple(Map), element(1,Map)=:=dict ->
     pack_map(dict:to_list(Map));
 pack_(_Other) ->
-    throw({error, undefined}).
+    throw({error, badarg}).
 
+-spec pack_uint_(non_neg_integer()) -> binary().
 % positive fixnum
 pack_uint_(N) when N < 128 ->
     << 2#0:1, N:7 >>;
@@ -127,6 +128,7 @@ pack_uint_(N) when N < 16#FFFFFFFF->
 pack_uint_(N) ->
     << 16#CF:8, N:64/big-unsigned-integer-unit:1 >>.
 
+-spec pack_int_(integer()) -> binary().
 % negative fixnum
 pack_int_(N) when N >= -32->
     << 2#111:3, N:5 >>;
@@ -143,6 +145,7 @@ pack_int_(N) when N > -16#FFFFFFFF ->
 pack_int_(N) ->
     << 16#D3:8, N:64/big-signed-integer-unit:1 >>.
 
+-spec pack_double(float()) -> binary().
 % float : erlang's float is always IEEE 754 64bit format.
 % pack_float(F) when is_float(F)->
 %    << 16#CA:8, F:32/big-float-unit:1 >>.
@@ -151,6 +154,7 @@ pack_int_(N) ->
 pack_double(F) ->
     << 16#CB:8, F:64/big-float-unit:1 >>.
 
+-spec pack_raw(binary()) -> binary().
 % raw bytes
 pack_raw(Bin) ->
     case byte_size(Bin) of
@@ -162,6 +166,7 @@ pack_raw(Bin) ->
 	    << 16#DB:8, Len:32/big-unsigned-integer-unit:1, Bin/binary >>
     end.
 
+-spec pack_array([msgpack_term()]) -> binary() | no_return().
 % list
 pack_array(L) ->
     case length(L) of
@@ -178,6 +183,7 @@ pack_array_([Head|Tail], Acc) ->
     pack_array_(Tail, <<Acc/binary,  (pack_(Head))/binary>>).
 
 % Users SHOULD NOT send too long list: this uses lists:reverse/1
+-spec unpack_array_(binary(), non_neg_integer(), [msgpack_term()]) -> {[msgpack_term()], binary()} | no_return().
 unpack_array_(Bin, 0,   Acc) -> {lists:reverse(Acc), Bin};
 unpack_array_(Bin, Len, Acc) ->
     {Term, Rest} = unpack_(Bin),
@@ -188,8 +194,8 @@ pack_map_([{Key,Value}|Tail], Acc) ->
     pack_map_(Tail, << Acc/binary, (pack_(Key))/binary, (pack_(Value))/binary>>).
 
 % Users SHOULD NOT send too long list: this uses lists:reverse/1
--spec unpack_map_(binary(), non_neg_integer(), [{msgpack_term(), msgpack_term()}])->
-			 {[{msgpack_term(), msgpack_term()}], binary()} | no_return().
+-spec unpack_map_(binary(), non_neg_integer(), [{msgpack_term(), msgpack_term()}]) ->
+			 {{[{msgpack_term(), msgpack_term()}]}, binary()} | no_return().
 unpack_map_(Bin, 0,   Acc) -> {{lists:reverse(Acc)}, Bin};
 unpack_map_(Bin, Len, Acc) ->
     {Key, Rest} = unpack_(Bin),
@@ -197,7 +203,7 @@ unpack_map_(Bin, Len, Acc) ->
     unpack_map_(Rest2, Len-1, [{Key,Value}|Acc]).
 
 % unpack them all
--spec unpack_(Bin::binary()) -> {msgpack_term(), binary()} | {error, reason()} | no_return().
+-spec unpack_(Bin::binary()) -> {msgpack_term(), binary()} | no_return().
 unpack_(Bin) ->
     case Bin of
 % ATOMS
