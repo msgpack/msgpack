@@ -29,7 +29,7 @@
 % erl> c(msgpack).
 % erl> S = <some term>.
 % erl> {S, <<>>} = msgpack:unpack( msgpack:pack(S) ).
--type reason() ::  badarg | short.
+-type reason() :: {badarg,term()} | incomplete.
 -type msgpack_term() :: [msgpack_term()]
 		      | {[{msgpack_term(),msgpack_term()}]}
 		      | integer() | float() | binary().
@@ -43,7 +43,6 @@ pack(Term)->
 	error:Error when is_tuple(Error), element(1, Error) =:= error ->
 	    Error;
 	throw:Exception ->
-	    erlang:display(Exception),
 	    {error, Exception}
     end.
 
@@ -52,9 +51,7 @@ pack(Term)->
 % and feed more Bin into this function.
 % TODO: error case for imcomplete format when short for any type formats.
 -spec unpack( Bin::binary() )-> {msgpack_term(), binary()} | {error, reason()}.
-unpack(Bin) when not is_binary(Bin) ->
-    {error, badarg};
-unpack(Bin) ->
+unpack(Bin) when is_binary(Bin) ->
     try
 	unpack_(Bin)
     catch
@@ -62,7 +59,9 @@ unpack(Bin) ->
 	    Error;
 	throw:Exception ->
 	    {error, Exception}
-    end.
+    end;
+unpack(Other) ->
+    {error, {badarg, Other}}.
 
 -spec unpack_all( binary() ) -> [msgpack_term()].
 unpack_all(Data)->
@@ -108,8 +107,8 @@ pack_({Map}) when is_list(Map) ->
     pack_map(Map);
 pack_(Map) when is_tuple(Map), element(1,Map)=:=dict ->
     pack_map(dict:to_list(Map));
-pack_(_Other) ->
-    throw({error, badarg}).
+pack_(Other) ->
+    throw({error, {badarg, Other}}).
 
 -spec pack_uint_(non_neg_integer()) -> binary().
 % positive fixnum
@@ -241,13 +240,13 @@ unpack_(Bin) ->
 	<<2#1000:4, L:4, Rest/binary>> ->            unpack_map_(Rest, L, []);   % map
 
 % Invalid data
-	<<F, _/binary>> when F==16#C1;
+	<<F, R/binary>> when F==16#C1;
 	                     F==16#C4; F==16#C5; F==16#C6; F==16#C7; F==16#C8; F==16#C9;
 	                     F==16#D4; F==16#D5; F==16#D6; F==16#D7; F==16#D8; F==16#D9 ->
-	    throw(badarg);
+	    throw({badarg, <<F, R/binary>>});
 % Incomplete data (we've covered every complete/invalid case; anything left is incomplete)
 	_ ->
-	    throw(short)
+	    throw(incomplete)
     end.
 
 % ===== test codes ===== %
@@ -307,7 +306,7 @@ test_p(Len,Term,OrigBin,Len) ->
     {Term, <<>>}=msgpack:unpack(OrigBin);
 test_p(I,_,OrigBin,Len) when I < Len->
     <<Bin:I/binary, _/binary>> = OrigBin,
-    ?assertEqual({error,short}, msgpack:unpack(Bin)).
+    ?assertEqual({error,incomplete}, msgpack:unpack(Bin)).
 
 partial_test()-> % error handling test.
     Term = lists:seq(0, 45),
@@ -343,7 +342,7 @@ unknown_test()->
     port_close(Port).
 
 other_test()->
-    ?assertEqual({error,short},msgpack:unpack(<<>>)).
+    ?assertEqual({error,incomplete},msgpack:unpack(<<>>)).
 
 benchmark_test()->
     Data=[test_data() || _ <- lists:seq(0, 10000)],
