@@ -23,7 +23,6 @@
 %% APIs are almost compatible with C API (http://msgpack.sourceforge.jp/c:doc)
 %% except buffering functions (both copying and zero-copying).
 -export([pack/1, unpack/1, unpack_all/1]).
--export([pack_map/1]).
 
 % compile:
 % erl> c(msgpack).
@@ -72,16 +71,6 @@ unpack_all(Data)->
 	    [Term|unpack_all(Binary)]
     end.
 
--spec pack_map(M::[{msgpack_term(),msgpack_term()}]) -> binary() | no_return().
-pack_map(M)->
-    case length(M) of
-	Len when Len < 16 ->
-	    << 2#1000:4, Len:4/integer-unit:1, (pack_map_(M, <<>>))/binary >>;
-	Len when Len < 16#10000 -> % 65536
-	    << 16#DE:8, Len:16/big-unsigned-integer-unit:1, (pack_map_(M, <<>>))/binary >>;
-	Len ->
-	    << 16#DF:8, Len:32/big-unsigned-integer-unit:1, (pack_map_(M, <<>>))/binary >>
-    end.
 
 % ===== internal APIs ===== %
 
@@ -187,6 +176,17 @@ unpack_array_(Bin, 0,   Acc) -> {lists:reverse(Acc), Bin};
 unpack_array_(Bin, Len, Acc) ->
     {Term, Rest} = unpack_(Bin),
     unpack_array_(Rest, Len-1, [Term|Acc]).
+
+-spec pack_map(M::[{msgpack_term(),msgpack_term()}]) -> binary() | no_return().
+pack_map(M)->
+    case length(M) of
+	Len when Len < 16 ->
+	    << 2#1000:4, Len:4/integer-unit:1, (pack_map_(M, <<>>))/binary >>;
+	Len when Len < 16#10000 -> % 65536
+	    << 16#DE:8, Len:16/big-unsigned-integer-unit:1, (pack_map_(M, <<>>))/binary >>;
+	Len ->
+	    << 16#DF:8, Len:32/big-unsigned-integer-unit:1, (pack_map_(M, <<>>))/binary >>
+    end.
 
 pack_map_([], Acc) -> Acc;
 pack_map_([{Key,Value}|Tail], Acc) ->
