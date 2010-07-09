@@ -187,5 +187,20 @@ inline void operator<< (
 
 }  // namespace msgpack
 
+
+//inline std::ostream& operator<< (std::ostream& o, const msgpack::type::tuple<>& v) {
+//  return o << "[]";
+//}
+//<%0.upto(GENERATION_LIMIT) {|i|%>
+//template <typename A0<%1.upto(i) {|j|%>, typename A<%=j%><%}%>>
+//inline std::ostream& operator<< (std::ostream& o,
+//		const msgpack::type::tuple<A0<%1.upto(i) {|j|%>, A<%=j%><%}%>>& v) {
+//	return o << "["
+//	<%0.upto(i) {|j|%>
+//	<<<%if j != 0 then%> ", " <<<%end%> v.template get<<%=j%>>()<%}%>
+//	<< "]";
+//}
+//<%}%>
+
 #endif /* msgpack/type/tuple.hpp */
 

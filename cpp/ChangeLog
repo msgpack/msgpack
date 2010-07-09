@@ -1,4 +1,14 @@
 
+2010-07-06 version 0.5.1:
+
+  * Add msgpack_vrefbuffer_new and msgpack_vrefbuffer_free
+  * Add msgpack_sbuffer_new and msgpack_sbuffer_free
+  * Add msgpack_unpacker_next and msgpack_unpack_next
+  * msgpack::unpack returns void
+  * Add MSGPACK_VERSION{,_MAJOR,_MINOR} macros to check header version
+  * Add msgpack_version{,_major,_minor} functions to check library version
+  * ./configure supports --disable-cxx option not to build C++ API
+
 2010-04-29 version 0.5.0:
 
   * msgpack_object_type is changed. MSGPACK_OBJECT_NIL is now 0x00.

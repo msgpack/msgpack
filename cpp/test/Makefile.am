@@ -13,6 +13,7 @@ check_PROGRAMS = \
 		convert \
 		buffer \
 		cases \
+		version \
 		msgpackc_test \
 		msgpack_test
 
@@ -36,6 +37,8 @@ buffer_SOURCES = buffer.cc
 buffer_LDADD = -lz
 
 cases_SOURCES = cases.cc
+
+version_SOURCES = version.cc
 
 msgpackc_test_SOURCES = msgpackc_test.cpp
 

@@ -43,7 +43,9 @@ static VALUE mMessagePack;
 void Init_msgpack(void)
 {
 	mMessagePack = rb_define_module("MessagePack");
+
+	rb_define_const(mMessagePack, "VERSION", rb_str_new2(MESSAGEPACK_VERSION));
+
 	Init_msgpack_unpack(mMessagePack);
 	Init_msgpack_pack(mMessagePack);
 }
-

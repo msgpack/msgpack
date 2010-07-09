@@ -276,6 +276,10 @@ class MessagePackTestPackUnpack < Test::Unit::TestCase
 		assert_equal(parsed, num)
 	end
 
+	it "MessagePack::VERSION constant" do
+		p MessagePack::VERSION
+	end
+
 	private
 	def check(len, obj)
 		v = obj.to_msgpack

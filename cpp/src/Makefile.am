@@ -4,9 +4,14 @@ lib_LTLIBRARIES = libmsgpack.la
 libmsgpack_la_SOURCES = \
 		unpack.c \
 		objectc.c \
+		version.c \
 		vrefbuffer.c \
-		zone.c \
+		zone.c
+
+if ENABLE_CXX
+libmsgpack_la_SOURCES += \
 		object.cpp
+endif
 
 # -version-info CURRENT:REVISION:AGE
 libmsgpack_la_LDFLAGS = -version-info 3:0:0
@@ -18,14 +23,11 @@ lib_LTLIBRARIES += libmsgpackc.la
 libmsgpackc_la_SOURCES = \
 		unpack.c \
 		objectc.c \
+		version.c \
 		vrefbuffer.c \
 		zone.c
 
 libmsgpackc_la_LDFLAGS = -version-info 2:0:0
-
-# work around for duplicated file name
-kumo_manager_CFLAGS = $(AM_CFLAGS)
-kumo_manager_CXXFLAGS = $(AM_CXXFLAGS)
 
 
 nobase_include_HEADERS = \
@@ -36,12 +38,16 @@ nobase_include_HEADERS = \
 		msgpack/sysdep.h \
 		msgpack.h \
 		msgpack/sbuffer.h \
+		msgpack/version.h \
 		msgpack/vrefbuffer.h \
 		msgpack/zbuffer.h \
 		msgpack/pack.h \
 		msgpack/unpack.h \
 		msgpack/object.h \
-		msgpack/zone.h \
+		msgpack/zone.h
+
+if ENABLE_CXX
+nobase_include_HEADERS += \
 		msgpack.hpp \
 		msgpack/sbuffer.hpp \
 		msgpack/vrefbuffer.hpp \
@@ -67,8 +73,10 @@ nobase_include_HEADERS = \
 		msgpack/type/define.hpp \
 		msgpack/type/tr1/unordered_map.hpp \
 		msgpack/type/tr1/unordered_set.hpp
+endif
 
 EXTRA_DIST = \
+		msgpack/version.h.in \
 		msgpack/zone.hpp.erb \
 		msgpack/type/define.hpp.erb \
 		msgpack/type/tuple.hpp.erb

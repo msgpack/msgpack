@@ -8,6 +8,7 @@ cp pack.h       ext/
 cp rbinit.c     ext/
 cp unpack.c     ext/
 cp unpack.h     ext/
+cp version.rb   ext/
 cp ../msgpack/pack_define.h     msgpack/
 cp ../msgpack/pack_template.h   msgpack/
 cp ../msgpack/unpack_define.h   msgpack/
@@ -18,6 +19,8 @@ cp ../test/cases_compact.mpac   test/
 cp ../test/cases.json           test/
 
 gem build msgpack.gemspec
+
+rdoc rbinit.c pack.c unpack.c
 
 if [ $? -eq 0 ]; then
 	rm -rf ext msgpack test/msgpack_test.rb

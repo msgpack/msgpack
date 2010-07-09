@@ -1,7 +1,8 @@
+require './version.rb'
 Gem::Specification.new do |s|
   s.platform = Gem::Platform::RUBY
   s.name = "msgpack"
-  s.version = "0.4.2"
+  s.version = MessagePack::VERSION
   s.summary = "MessagePack, a binary-based efficient data interchange format."
   s.author = "FURUHASHI Sadayuki"
   s.email = "frsyuki@users.sourceforge.jp"
