@@ -15,26 +15,47 @@
 %%    See the License for the specific language governing permissions and
 %%    limitations under the License.
 
+
+%% @doc <a href="http://msgpack.org/">MessagePack</a> codec for Erlang.
+%%
+%%      APIs are almost compatible with <a href="http://msgpack.sourceforge.jp/c:doc">C API</a>
+%%      except for buffering functions (both copying and zero-copying), which are unavailable.
+%%
+%%   <table border="1">
+%%     <caption>Equivalence between Erlang and <a href="http://msgpack.sourceforge.jp/spec">Msgpack type</a> :</caption>
+%%     <tr><th>    erlang    </th><th>                            msgpack                                      </th></tr>
+%%     <tr><td> integer()    </td><td> pos_fixnum/neg_fixnum/uint8/uint16/uint32/uint64/int8/int16/int32/int64 </td></tr>
+%%     <tr><td> float()      </td><td> float/double                                                            </td></tr>
+%%     <tr><td> nil          </td><td> nil                                                                     </td></tr>
+%%     <tr><td> boolean()    </td><td> boolean                                                                 </td></tr>
+%%     <tr><td> binary()     </td><td> fix_raw/raw16/raw32                                                     </td></tr>
+%%     <tr><td> list()       </td><td> fix_array/array16/array32                                               </td></tr>
+%%     <tr><td> {proplist()} </td><td> fix_map/map16/map32                                                     </td></tr>
+%%   </table>
+%% @end
+
 -module(msgpack).
 -author('kuenishi+msgpack@gmail.com').
 
-%% tuples, atoms are not supported. lists, integers, double, and so on.
-%% see http://msgpack.sourceforge.jp/spec for supported formats.
-%% APIs are almost compatible with C API (http://msgpack.sourceforge.jp/c:doc)
-%% except buffering functions (both copying and zero-copying).
 -export([pack/1, unpack/1, unpack_all/1]).
 
-% compile:
-% erl> c(msgpack).
-% erl> S = <some term>.
-% erl> {S, <<>>} = msgpack:unpack( msgpack:pack(S) ).
--type reason() :: {badarg,term()} | incomplete.
+% @type msgpack_term() = [msgpack_term()]
+%                      | {[{msgpack_term(),msgpack_term()}]}
+%                      | integer() | float() | binary().
+% Erlang representation of msgpack data.
 -type msgpack_term() :: [msgpack_term()]
 		      | {[{msgpack_term(),msgpack_term()}]}
 		      | integer() | float() | binary().
 
-% ===== external APIs ===== %
--spec pack(Term::msgpack_term()) -> binary() | {error, reason()}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% external APIs
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% @doc Encode an erlang term into an msgpack binary.
+%      Returns {error, {badarg, term()}} if the input is illegal.
+% @spec pack(Term::msgpack_term()) -> binary() | {error, {badarg, term()}}
+-spec pack(Term::msgpack_term()) -> binary() | {error, {badarg, term()}}.
 pack(Term)->
     try
 	pack_(Term)
@@ -43,11 +64,12 @@ pack(Term)->
 	    {error, Exception}
     end.
 
-% unpacking.
-% if failed in decoding and not end, get more data
-% and feed more Bin into this function.
-% TODO: error case for imcomplete format when short for any type formats.
--spec unpack( Bin::binary() )-> {msgpack_term(), binary()} | {error, reason()}.
+% @doc Decode an msgpack binary into an erlang term.
+%      It only decodes the first msgpack packet contained in the binary; the rest is returned as is.
+%      Returns {error, {badarg, term()}} if the input is corrupted.
+%      Returns {error, incomplete} if the input is not a full msgpack packet (caller should gather more data and try again).
+% @spec unpack(Bin::binary()) -> {msgpack_term(), binary()} | {error, incomplete} | {error, {badarg, term()}}
+-spec unpack(Bin::binary()) -> {msgpack_term(), binary()} | {error, incomplete} | {error, {badarg, term()}}.
 unpack(Bin) when is_binary(Bin) ->
     try
 	unpack_(Bin)
@@ -58,7 +80,7 @@ unpack(Bin) when is_binary(Bin) ->
 unpack(Other) ->
     {error, {badarg, Other}}.
 
--spec unpack_all( binary() ) -> [msgpack_term()].
+-spec unpack_all(binary()) -> [msgpack_term()].
 unpack_all(Data)->
     case unpack(Data) of
 	{ Term, Binary } when bit_size(Binary) =:= 0 ->
@@ -68,7 +90,9 @@ unpack_all(Data)->
     end.
 
 
-% ===== internal APIs ===== %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% internal APIs
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % pack them all
 -spec pack_(msgpack_term()) -> binary() | no_return().
@@ -94,6 +118,7 @@ pack_(Map) when is_tuple(Map), element(1,Map)=:=dict ->
     pack_map(dict:to_list(Map));
 pack_(Other) ->
     throw({error, {badarg, Other}}).
+
 
 -spec pack_uint_(non_neg_integer()) -> binary().
 % positive fixnum
@@ -129,6 +154,7 @@ pack_int_(N) when N > -16#FFFFFFFF ->
 pack_int_(N) ->
     << 16#D3:8, N:64/big-signed-integer-unit:1 >>.
 
+
 -spec pack_double(float()) -> binary().
 % float : erlang's float is always IEEE 754 64bit format.
 % pack_float(F) when is_float(F)->
@@ -137,6 +163,7 @@ pack_int_(N) ->
 % double
 pack_double(F) ->
     << 16#CB:8, F:64/big-float-unit:1 >>.
+
 
 -spec pack_raw(binary()) -> binary().
 % raw bytes
@@ -149,6 +176,7 @@ pack_raw(Bin) ->
 	Len ->
 	    << 16#DB:8, Len:32/big-unsigned-integer-unit:1, Bin/binary >>
     end.
+
 
 -spec pack_array([msgpack_term()]) -> binary() | no_return().
 % list
@@ -172,6 +200,7 @@ unpack_array_(Bin, 0,   Acc) -> {lists:reverse(Acc), Bin};
 unpack_array_(Bin, Len, Acc) ->
     {Term, Rest} = unpack_(Bin),
     unpack_array_(Rest, Len-1, [Term|Acc]).
+
 
 -spec pack_map(M::[{msgpack_term(),msgpack_term()}]) -> binary() | no_return().
 pack_map(M)->
@@ -245,7 +274,10 @@ unpack_(Bin) ->
 	    throw(incomplete)
     end.
 
-% ===== test codes ===== %
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% unit tests
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 -include_lib("eunit/include/eunit.hrl").
 -ifdef(EUNIT).
 
