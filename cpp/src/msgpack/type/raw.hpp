@@ -33,25 +33,25 @@ struct raw_ref {
 	uint32_t size;
 	const char* ptr;
 
-	std::string str() { return std::string(ptr, size); }
+	std::string str() const { return std::string(ptr, size); }
 
-	bool operator== (const raw_ref& x)
+	bool operator== (const raw_ref& x) const
 	{
 		return size == x.size && memcmp(ptr, x.ptr, size) == 0;
 	}
 
-	bool operator!= (const raw_ref& x)
+	bool operator!= (const raw_ref& x) const
 	{
 		return !(*this != x);
 	}
 
-	bool operator< (const raw_ref& x)
+	bool operator< (const raw_ref& x) const
 	{
 		if(size == x.size) { return memcmp(ptr, x.ptr, size) < 0; }
 		else { return size < x.size; }
 	}
 
-	bool operator> (const raw_ref& x)
+	bool operator> (const raw_ref& x) const
 	{
 		if(size == x.size) { return memcmp(ptr, x.ptr, size) > 0; }
 		else { return size > x.size; }
