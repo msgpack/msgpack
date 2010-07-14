@@ -1,3 +1,7 @@
+0.13
+
+    - clearly specify requires_c99(), because msgpack C header requires C99.
+
 0.12
 
     - PERL_NO_GET_CONTEXT makes horrible dTHXs. remove it.
