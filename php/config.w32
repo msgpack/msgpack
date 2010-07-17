@@ -8,6 +8,5 @@
 // ARG_ENABLE("msgpack", "enable msgpack support", "no");
 
 if (PHP_MSGPACK != "no") {
-	EXTENSION("msgpack", "msgpack.c");
+   EXTENSION("msgpack", "msgpack.c msgpack_pack.c msgpack_unpack.c msgpack_class.c");
 }
-
