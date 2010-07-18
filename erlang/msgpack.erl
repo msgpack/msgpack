@@ -15,56 +15,72 @@
 %%    See the License for the specific language governing permissions and
 %%    limitations under the License.
 
+
+%% @doc <a href="http://msgpack.org/">MessagePack</a> codec for Erlang.
+%%
+%%      APIs are almost compatible with <a href="http://msgpack.sourceforge.jp/c:doc">C API</a>
+%%      except for buffering functions (both copying and zero-copying), which are unavailable.
+%%
+%%   <table border="1">
+%%     <caption>Equivalence between Erlang and <a href="http://msgpack.sourceforge.jp/spec">Msgpack type</a> :</caption>
+%%     <tr><th>    erlang    </th><th>                            msgpack                                      </th></tr>
+%%     <tr><td> integer()    </td><td> pos_fixnum/neg_fixnum/uint8/uint16/uint32/uint64/int8/int16/int32/int64 </td></tr>
+%%     <tr><td> float()      </td><td> float/double                                                            </td></tr>
+%%     <tr><td> nil          </td><td> nil                                                                     </td></tr>
+%%     <tr><td> boolean()    </td><td> boolean                                                                 </td></tr>
+%%     <tr><td> binary()     </td><td> fix_raw/raw16/raw32                                                     </td></tr>
+%%     <tr><td> list()       </td><td> fix_array/array16/array32                                               </td></tr>
+%%     <tr><td> {proplist()} </td><td> fix_map/map16/map32                                                     </td></tr>
+%%   </table>
+%% @end
+
 -module(msgpack).
 -author('kuenishi+msgpack@gmail.com').
 
-%% tuples, atoms are not supported. lists, integers, double, and so on.
-%% see http://msgpack.sourceforge.jp/spec for supported formats.
-%% APIs are almost compatible with C API (http://msgpack.sourceforge.jp/c:doc)
-%% except buffering functions (both copying and zero-copying).
 -export([pack/1, unpack/1, unpack_all/1]).
--export([pack_map/1]).
 
-% compile:
-% erl> c(msgpack).
-% erl> S = <some term>.
-% erl> {S, <<>>} = msgpack:unpack( msgpack:pack(S) ).
--type reason() ::  enomem | badarg | no_code_matches | undefined.
+% @type msgpack_term() = [msgpack_term()]
+%                      | {[{msgpack_term(),msgpack_term()}]}
+%                      | integer() | float() | binary().
+% Erlang representation of msgpack data.
 -type msgpack_term() :: [msgpack_term()]
 		      | {[{msgpack_term(),msgpack_term()}]}
 		      | integer() | float() | binary().
 
-% ===== external APIs ===== %
--spec pack(Term::msgpack_term()) -> binary() | {error, reason()}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% external APIs
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% @doc Encode an erlang term into an msgpack binary.
+%      Returns {error, {badarg, term()}} if the input is illegal.
+% @spec pack(Term::msgpack_term()) -> binary() | {error, {badarg, term()}}
+-spec pack(Term::msgpack_term()) -> binary() | {error, {badarg, term()}}.
 pack(Term)->
     try
 	pack_(Term)
     catch
-	error:Error when is_tuple(Error), element(1, Error) =:= error ->
-	    Error;
 	throw:Exception ->
-	    erlang:display(Exception),
 	    {error, Exception}
     end.
 
-% unpacking.
-% if failed in decoding and not end, get more data
-% and feed more Bin into this function.
-% TODO: error case for imcomplete format when short for any type formats.
--spec unpack( Bin::binary() )-> {msgpack_term(), binary()} | {error, reason()}.
-unpack(Bin) when not is_binary(Bin) ->
-    {error, badarg};
-unpack(Bin) ->
+% @doc Decode an msgpack binary into an erlang term.
+%      It only decodes the first msgpack packet contained in the binary; the rest is returned as is.
+%      Returns {error, {badarg, term()}} if the input is corrupted.
+%      Returns {error, incomplete} if the input is not a full msgpack packet (caller should gather more data and try again).
+% @spec unpack(Bin::binary()) -> {msgpack_term(), binary()} | {error, incomplete} | {error, {badarg, term()}}
+-spec unpack(Bin::binary()) -> {msgpack_term(), binary()} | {error, incomplete} | {error, {badarg, term()}}.
+unpack(Bin) when is_binary(Bin) ->
     try
 	unpack_(Bin)
     catch
-	error:Error when is_tuple(Error), element(1, Error) =:= error ->
-	    Error;
 	throw:Exception ->
 	    {error, Exception}
-    end.
+    end;
+unpack(Other) ->
+    {error, {badarg, Other}}.
 
--spec unpack_all( binary() ) -> [msgpack_term()].
+-spec unpack_all(binary()) -> [msgpack_term()].
 unpack_all(Data)->
     case unpack(Data) of
 	{ Term, Binary } when bit_size(Binary) =:= 0 ->
@@ -73,18 +89,10 @@ unpack_all(Data)->
 	    [Term|unpack_all(Binary)]
     end.
 
--spec pack_map(M::[{msgpack_term(),msgpack_term()}])-> binary() | {error, badarg}.
-pack_map(M)->
-    case length(M) of
-	Len when Len < 16 ->
-	    << 2#1000:4, Len:4/integer-unit:1, (pack_map_(M, <<>>))/binary >>;
-	Len when Len < 16#10000 -> % 65536
-	    << 16#DE:8, Len:16/big-unsigned-integer-unit:1, (pack_map_(M, <<>>))/binary >>;
-	Len ->
-	    << 16#DF:8, Len:32/big-unsigned-integer-unit:1, (pack_map_(M, <<>>))/binary >>
-    end.
 
-% ===== internal APIs ===== %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% internal APIs
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % pack them all
 -spec pack_(msgpack_term()) -> binary() | no_return().
@@ -108,9 +116,11 @@ pack_({Map}) when is_list(Map) ->
     pack_map(Map);
 pack_(Map) when is_tuple(Map), element(1,Map)=:=dict ->
     pack_map(dict:to_list(Map));
-pack_(_Other) ->
-    throw({error, undefined}).
+pack_(Other) ->
+    throw({error, {badarg, Other}}).
 
+
+-spec pack_uint_(non_neg_integer()) -> binary().
 % positive fixnum
 pack_uint_(N) when N < 128 ->
     << 2#0:1, N:7 >>;
@@ -127,6 +137,7 @@ pack_uint_(N) when N < 16#FFFFFFFF->
 pack_uint_(N) ->
     << 16#CF:8, N:64/big-unsigned-integer-unit:1 >>.
 
+-spec pack_int_(integer()) -> binary().
 % negative fixnum
 pack_int_(N) when N >= -32->
     << 2#111:3, N:5 >>;
@@ -143,6 +154,8 @@ pack_int_(N) when N > -16#FFFFFFFF ->
 pack_int_(N) ->
     << 16#D3:8, N:64/big-signed-integer-unit:1 >>.
 
+
+-spec pack_double(float()) -> binary().
 % float : erlang's float is always IEEE 754 64bit format.
 % pack_float(F) when is_float(F)->
 %    << 16#CA:8, F:32/big-float-unit:1 >>.
@@ -151,6 +164,8 @@ pack_int_(N) ->
 pack_double(F) ->
     << 16#CB:8, F:64/big-float-unit:1 >>.
 
+
+-spec pack_raw(binary()) -> binary().
 % raw bytes
 pack_raw(Bin) ->
     case byte_size(Bin) of
@@ -162,6 +177,8 @@ pack_raw(Bin) ->
 	    << 16#DB:8, Len:32/big-unsigned-integer-unit:1, Bin/binary >>
     end.
 
+
+-spec pack_array([msgpack_term()]) -> binary() | no_return().
 % list
 pack_array(L) ->
     case length(L) of
@@ -178,18 +195,31 @@ pack_array_([Head|Tail], Acc) ->
     pack_array_(Tail, <<Acc/binary,  (pack_(Head))/binary>>).
 
 % Users SHOULD NOT send too long list: this uses lists:reverse/1
+-spec unpack_array_(binary(), non_neg_integer(), [msgpack_term()]) -> {[msgpack_term()], binary()} | no_return().
 unpack_array_(Bin, 0,   Acc) -> {lists:reverse(Acc), Bin};
 unpack_array_(Bin, Len, Acc) ->
     {Term, Rest} = unpack_(Bin),
     unpack_array_(Rest, Len-1, [Term|Acc]).
+
+
+-spec pack_map(M::[{msgpack_term(),msgpack_term()}]) -> binary() | no_return().
+pack_map(M)->
+    case length(M) of
+	Len when Len < 16 ->
+	    << 2#1000:4, Len:4/integer-unit:1, (pack_map_(M, <<>>))/binary >>;
+	Len when Len < 16#10000 -> % 65536
+	    << 16#DE:8, Len:16/big-unsigned-integer-unit:1, (pack_map_(M, <<>>))/binary >>;
+	Len ->
+	    << 16#DF:8, Len:32/big-unsigned-integer-unit:1, (pack_map_(M, <<>>))/binary >>
+    end.
 
 pack_map_([], Acc) -> Acc;
 pack_map_([{Key,Value}|Tail], Acc) ->
     pack_map_(Tail, << Acc/binary, (pack_(Key))/binary, (pack_(Value))/binary>>).
 
 % Users SHOULD NOT send too long list: this uses lists:reverse/1
--spec unpack_map_(binary(), non_neg_integer(), [{msgpack_term(), msgpack_term()}])->
-			 {[{msgpack_term(), msgpack_term()}], binary()} | no_return().
+-spec unpack_map_(binary(), non_neg_integer(), [{msgpack_term(), msgpack_term()}]) ->
+			 {{[{msgpack_term(), msgpack_term()}]}, binary()} | no_return().
 unpack_map_(Bin, 0,   Acc) -> {{lists:reverse(Acc)}, Bin};
 unpack_map_(Bin, Len, Acc) ->
     {Key, Rest} = unpack_(Bin),
@@ -197,7 +227,7 @@ unpack_map_(Bin, Len, Acc) ->
     unpack_map_(Rest2, Len-1, [{Key,Value}|Acc]).
 
 % unpack them all
--spec unpack_(Bin::binary()) -> {msgpack_term(), binary()} | {error, reason()} | no_return().
+-spec unpack_(Bin::binary()) -> {msgpack_term(), binary()} | no_return().
 unpack_(Bin) ->
     case Bin of
 % ATOMS
@@ -235,16 +265,19 @@ unpack_(Bin) ->
 	<<2#1000:4, L:4, Rest/binary>> ->            unpack_map_(Rest, L, []);   % map
 
 % Invalid data
-	<<F, _/binary>> when F==16#C1;
+	<<F, R/binary>> when F==16#C1;
 	                     F==16#C4; F==16#C5; F==16#C6; F==16#C7; F==16#C8; F==16#C9;
 	                     F==16#D4; F==16#D5; F==16#D6; F==16#D7; F==16#D8; F==16#D9 ->
-	    throw(badarg);
+	    throw({badarg, <<F, R/binary>>});
 % Incomplete data (we've covered every complete/invalid case; anything left is incomplete)
 	_ ->
-	    throw(short)
+	    throw(incomplete)
     end.
 
-% ===== test codes ===== %
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% unit tests
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 -include_lib("eunit/include/eunit.hrl").
 -ifdef(EUNIT).
 
@@ -254,6 +287,15 @@ compare_all(L,  [])-> {toomuchlhs, L};
 compare_all([LH|LTL], [RH|RTL]) ->
     ?assertEqual(LH, RH),
     compare_all(LTL, RTL).
+
+port_receive(Port) ->
+    port_receive(Port, <<>>).
+port_receive(Port, Acc) ->
+    receive
+        {Port, {data, Data}} -> port_receive(Port, <<Acc/binary, Data/binary>>);
+        {Port, eof} -> Acc
+    after 1000 -> Acc
+    end.
 
 test_([]) -> 0;
 test_([Term|Rest])->
@@ -280,21 +322,19 @@ basic_test()->
     Passed = length(Tests).
 
 port_test()->
-    Port = open_port({spawn, "ruby ../test/crosslang.rb"}, [binary]),
     Tests = test_data(),
-    S=msgpack:pack([Tests]),
-    true = port_command(Port, S),
-    {[Tests],<<>>} = msgpack:unpack(S),
-    receive
-	{Port, {data, Data}}->  {[Tests], <<>>}=msgpack:unpack(Data)
-    after 1024-> ?assert(false)   end,
+    ?assertEqual({[Tests],<<>>}, msgpack:unpack(msgpack:pack([Tests]))),
+
+    Port = open_port({spawn, "ruby ../test/crosslang.rb"}, [binary, eof]),
+    true = port_command(Port, msgpack:pack(Tests)),
+    ?assertEqual({Tests, <<>>}, msgpack:unpack(port_receive(Port))),
     port_close(Port).
 
 test_p(Len,Term,OrigBin,Len) ->
     {Term, <<>>}=msgpack:unpack(OrigBin);
 test_p(I,_,OrigBin,Len) when I < Len->
     <<Bin:I/binary, _/binary>> = OrigBin,
-    ?assertEqual({error,short}, msgpack:unpack(Bin)).
+    ?assertEqual({error,incomplete}, msgpack:unpack(Bin)).
 
 partial_test()-> % error handling test.
     Term = lists:seq(0, 45),
@@ -314,7 +354,7 @@ map_test()->
     ok.
 
 unknown_test()->
-    Port = open_port({spawn, "ruby testcase_generator.rb"}, [binary]),
+    Port = open_port({spawn, "ruby testcase_generator.rb"}, [binary, eof]),
     Tests = [0, 1, 2, 123, 512, 1230, 678908,
 	     -1, -23, -512, -1230, -567898,
 	     <<"hogehoge">>, <<"243546rf7g68h798j">>,
@@ -326,13 +366,11 @@ unknown_test()->
 	     -234, -50000,
 	     42
 	    ],
-    receive
-	{Port, {data, Data}}-> compare_all(Tests, msgpack:unpack_all(Data))
-    after 1024-> ?assert(false)  end,
+    ?assertEqual(ok, compare_all(Tests, msgpack:unpack_all(port_receive(Port)))),
     port_close(Port).
 
 other_test()->
-    ?assertEqual({error,short},msgpack:unpack(<<>>)).
+    ?assertEqual({error,incomplete},msgpack:unpack(<<>>)).
 
 benchmark_test()->
     Data=[test_data() || _ <- lists:seq(0, 10000)],

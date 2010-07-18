@@ -30,13 +30,16 @@
 # If so, define the subdirectory targets and uncomment this section.
 #
 
-.DEFAULT: msgpack.beam
+.DEFAULT: msgpack.beam msgpack.html
 
 msgpack.beam: msgpack.erl
 	erlc $<
+
+msgpack.html: msgpack.erl
+	erl -noshell -run edoc_run file $<
 
 test: msgpack.beam
 	erl -noshell -s msgpack test -s init stop
 
 clean:
-	-rm *.beam
+	-rm -f *.beam *.html
