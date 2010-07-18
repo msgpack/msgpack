@@ -30,16 +30,19 @@
 # If so, define the subdirectory targets and uncomment this section.
 #
 
-.DEFAULT: msgpack.beam msgpack.html
+.DEFAULT: msgpack.beam
 
 msgpack.beam: msgpack.erl
-	erlc $<
+	erlc -Wall +debug_info $<
 
 msgpack.html: msgpack.erl
 	erl -noshell -run edoc_run file $<
 
 test: msgpack.beam
 	erl -noshell -s msgpack test -s init stop
+
+edoc: msgpack.erl
+	erl -noshell -eval 'ok=edoc:files(["msgpack.erl"], [{dir, "edoc"}]).' -s init stop
 
 clean:
 	-rm -f *.beam *.html

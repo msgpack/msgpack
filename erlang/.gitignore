@@ -2,3 +2,4 @@ MANIFEST
 *.beam
 .omakedb*
 *.omc
+*~

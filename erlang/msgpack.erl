@@ -18,7 +18,7 @@
 
 %% @doc <a href="http://msgpack.org/">MessagePack</a> codec for Erlang.
 %%
-%%      APIs are almost compatible with <a href="http://msgpack.sourceforge.jp/c:doc">C API</a>
+%%      APIs are almost compatible with <a href="http://redmine.msgpack.org/projects/msgpack/wiki/QuickStartC">C API</a>
 %%      except for buffering functions (both copying and zero-copying), which are unavailable.
 %%
 %%   <table border="1">
