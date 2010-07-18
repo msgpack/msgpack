@@ -80,6 +80,11 @@ unpack(Bin) when is_binary(Bin) ->
 unpack(Other) ->
     {error, {badarg, Other}}.
 
+% @doc Decode an msgpack binary into an erlang terms.
+%      It only decodes ALL msgpack packets contained in the binary. No packets should not remain.
+%      Returns {error, {badarg, term()}} if the input is corrupted.
+%      Returns {error, incomplete} if the input is not a full msgpack packet (caller should gather more data and try again).
+% @spec unpack_all(binary()) -> [msgpack_term()] | {error, incomplete} | {error, {badarg, term()}}
 -spec unpack_all(binary()) -> [msgpack_term()] | {error, incomplete} | {error, {badarg, term()}}.
 unpack_all(Data)->
     try
