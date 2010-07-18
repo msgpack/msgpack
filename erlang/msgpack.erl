@@ -114,8 +114,6 @@ pack_(List)  when is_list(List) ->
     pack_array(List);
 pack_({Map}) when is_list(Map) ->
     pack_map(Map);
-pack_(Map) when is_tuple(Map), element(1,Map)=:=dict ->
-    pack_map(dict:to_list(Map));
 pack_(Other) ->
     throw({error, {badarg, Other}}).
 
