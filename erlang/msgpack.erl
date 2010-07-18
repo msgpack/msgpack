@@ -80,15 +80,21 @@ unpack(Bin) when is_binary(Bin) ->
 unpack(Other) ->
     {error, {badarg, Other}}.
 
--spec unpack_all(binary()) -> [msgpack_term()].
+-spec unpack_all(binary()) -> [msgpack_term()] | {error, incomplete} | {error, {badarg, term()}}.
 unpack_all(Data)->
-    case unpack(Data) of
-	{ Term, Binary } when bit_size(Binary) =:= 0 ->
+    try
+	unpack_all_(Data)
+    catch
+	throw:Exception ->
+	    {error, Exception}
+    end.
+unpack_all_(Data)->
+    case unpack_(Data) of
+	{ Term, <<>> } ->
 	    [Term];
 	{ Term, Binary } when is_binary(Binary) ->
-	    [Term|unpack_all(Binary)]
+	    [Term|unpack_all_(Binary)]
     end.
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % internal APIs
