@@ -28,7 +28,7 @@ public class BooleanType extends MessagePackObject {
 
 	@Override
 	public boolean isBooleanType() {
-		return false;
+		return true;
 	}
 
 	@Override

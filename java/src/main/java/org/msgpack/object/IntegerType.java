@@ -21,6 +21,11 @@ import java.math.BigInteger;
 import org.msgpack.*;
 
 public abstract class IntegerType extends MessagePackObject {
+	@Override
+	public boolean isIntegerType() {
+		return true;
+	}
+
 	public static IntegerType create(byte value) {
 		return new ShortIntegerTypeIMPL((int)value);
 	}
@@ -39,11 +44,6 @@ public abstract class IntegerType extends MessagePackObject {
 
 	public static IntegerType create(BigInteger value) {
 		return new BigIntegerTypeIMPL(value);
-	}
-
-	@Override
-	public boolean isIntegerType() {
-		return true;
 	}
 }
 

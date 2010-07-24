@@ -24,5 +24,13 @@ public abstract class FloatType extends MessagePackObject {
 	public boolean isFloatType() {
 		return true;
 	}
+
+	public static FloatType create(float value) {
+		return new FloatTypeIMPL(value);
+	}
+
+	public static FloatType create(double value) {
+		return new DoubleTypeIMPL(value);
+	}
 }
 

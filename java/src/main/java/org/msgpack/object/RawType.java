@@ -17,32 +17,32 @@
 //
 package org.msgpack.object;
 
-import java.util.HashMap;
-import java.util.Map;
 import org.msgpack.*;
 
-public class MapType extends MessagePackObject {
-	private MessagePackObject[] map;
+class RawType extends MessagePackObject {
+	private byte[] bytes;
 
-	public MapType(MessagePackObject[] map) {
-		this.map = map;
+	public RawType(byte[] bytes) {
+		this.bytes = bytes;
 	}
 
 	@Override
-	public boolean isMapType() {
+	public boolean isRawType() {
 		return true;
 	}
 
 	@Override
-	public Map<MessagePackObject, MessagePackObject> asMap() {
-		HashMap<MessagePackObject, MessagePackObject> m = new HashMap(map.length / 2);
-		int i = 0;
-		while(i < map.length) {
-			MessagePackObject k = map[i++];
-			MessagePackObject v = map[i++];
-			m.put(k, v);
+	public byte[] asByteArray() {
+		return bytes;
+	}
+
+	@Override
+	public String asString() {
+		try {
+			return new String(bytes, "UTF-8");
+		} catch (Exception e) {
+			throw new MessageTypeException("type error");
 		}
-		return m;
 	}
 }
 

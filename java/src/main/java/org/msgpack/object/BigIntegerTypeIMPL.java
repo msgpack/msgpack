@@ -23,7 +23,7 @@ import org.msgpack.*;
 class BigIntegerTypeIMPL extends IntegerType {
 	private BigInteger value;
 
-	BigIntegerTypeIMPL(BigInteger vlaue) {
+	BigIntegerTypeIMPL(BigInteger value) {
 		this.value = value;
 	}
 

@@ -23,7 +23,7 @@ import org.msgpack.*;
 class DoubleTypeIMPL extends FloatType {
 	private double value;
 
-	public DoubleTypeIMPL(double vlaue) {
+	public DoubleTypeIMPL(double value) {
 		this.value = value;
 	}
 
