@@ -103,7 +103,7 @@ abstract class BufferedUnpackerImpl extends UnpackerImpl {
 		case 0xcc:  // unsigned int  8
 			more(2);
 			advance(2);
-			return (int)((short)buffer[offset+1] & 0xff);
+			return (int)((short)(buffer[offset-1]) & 0xff);
 		case 0xcd:  // unsigned int 16
 			more(3);
 			castBuffer.rewind();
@@ -137,7 +137,7 @@ abstract class BufferedUnpackerImpl extends UnpackerImpl {
 		case 0xd0:  // signed int  8
 			more(2);
 			advance(2);
-			return (int)buffer[offset+1];
+			return (int)buffer[offset-1];
 		case 0xd1:  // signed int 16
 			more(3);
 			castBuffer.rewind();
@@ -178,7 +178,7 @@ abstract class BufferedUnpackerImpl extends UnpackerImpl {
 		case 0xcc:  // unsigned int  8
 			more(2);
 			advance(2);
-			return (long)((short)buffer[offset+1] & 0xff);
+			return (long)((short)(buffer[offset-1]) & 0xff);
 		case 0xcd:  // unsigned int 16
 			more(3);
 			castBuffer.rewind();
@@ -207,7 +207,7 @@ abstract class BufferedUnpackerImpl extends UnpackerImpl {
 		case 0xd0:  // signed int  8
 			more(2);
 			advance(2);
-			return (long)buffer[offset+1];
+			return (long)buffer[offset-1];
 		case 0xd1:  // signed int 16
 			more(3);
 			castBuffer.rewind();
