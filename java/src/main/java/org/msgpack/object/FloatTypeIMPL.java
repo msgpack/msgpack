@@ -18,6 +18,7 @@
 package org.msgpack.object;
 
 import java.math.BigInteger;
+import java.io.IOException;
 import org.msgpack.*;
 
 class FloatTypeIMPL extends FloatType {
@@ -65,6 +66,24 @@ class FloatTypeIMPL extends FloatType {
 	@Override
 	public double doubleValue() {
 		return (double)value;
+	}
+
+	@Override
+	public void messagePack(Packer pk) throws IOException {
+		pk.packFloat(value);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if(obj.getClass() != getClass()) {
+			return false;
+		}
+		return ((FloatTypeIMPL)obj).value == value;
+	}
+
+	@Override
+	public Object clone() {
+		return new FloatTypeIMPL(value);
 	}
 }
 

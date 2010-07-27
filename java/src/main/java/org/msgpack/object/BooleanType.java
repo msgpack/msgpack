@@ -17,6 +17,7 @@
 //
 package org.msgpack.object;
 
+import java.io.IOException;
 import org.msgpack.*;
 
 public class BooleanType extends MessagePackObject {
@@ -34,6 +35,24 @@ public class BooleanType extends MessagePackObject {
 	@Override
 	public boolean asBoolean() {
 		return value;
+	}
+
+	@Override
+	public void messagePack(Packer pk) throws IOException {
+		pk.packBoolean(value);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if(obj.getClass() != getClass()) {
+			return false;
+		}
+		return ((BooleanType)obj).value == value;
+	}
+
+	@Override
+	public Object clone() {
+		return new BooleanType(value);
 	}
 }
 

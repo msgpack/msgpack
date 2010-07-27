@@ -18,6 +18,7 @@
 package org.msgpack.object;
 
 import java.math.BigInteger;
+import java.io.IOException;
 import org.msgpack.*;
 
 class ShortIntegerTypeIMPL extends IntegerType {
@@ -86,6 +87,24 @@ class ShortIntegerTypeIMPL extends IntegerType {
 	@Override
 	public double doubleValue() {
 		return (double)value;
+	}
+
+	@Override
+	public void messagePack(Packer pk) throws IOException {
+		pk.packInt(value);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if(obj.getClass() != getClass()) {
+			return false;
+		}
+		return ((ShortIntegerTypeIMPL)obj).value == value;
+	}
+
+	@Override
+	public Object clone() {
+		return new ShortIntegerTypeIMPL(value);
 	}
 }
 

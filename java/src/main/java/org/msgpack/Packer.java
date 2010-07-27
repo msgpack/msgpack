@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
+import java.math.BigInteger;
 
 /**
  * Packer enables you to serialize objects into OutputStream.
@@ -192,6 +193,27 @@ public class Packer {
 			}
 		}
 		return this;
+	}
+
+	public Packer packBigInteger(BigInteger d) throws IOException {
+		if(d.compareTo(BigInteger.valueOf(Long.MAX_VALUE)) <= 0) {
+			return packLong(d.longValue());
+		} else if(d.bitLength() <= 64) {
+			castBytes[0] = (byte)0xcf;
+			byte[] barray = d.toByteArray();
+			castBytes[1] = barray[0];
+			castBytes[2] = barray[1];
+			castBytes[3] = barray[2];
+			castBytes[4] = barray[3];
+			castBytes[5] = barray[4];
+			castBytes[6] = barray[5];
+			castBytes[7] = barray[6];
+			castBytes[8] = barray[7];
+			out.write(castBytes);
+			return this;
+		} else {
+			throw new MessageTypeException("can't BigInteger larger than 0xffffffffffffffff");
+		}
 	}
 
 	public Packer packFloat(float d) throws IOException {

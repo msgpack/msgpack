@@ -18,9 +18,8 @@
 package org.msgpack.object;
 
 import java.util.List;
-import java.util.Set;
-import java.util.Map;
 import java.util.Arrays;
+import java.io.IOException;
 import org.msgpack.*;
 
 public class ArrayType extends MessagePackObject {
@@ -43,6 +42,31 @@ public class ArrayType extends MessagePackObject {
 	@Override
 	public List<MessagePackObject> asList() {
 		return Arrays.asList(array);
+	}
+
+	@Override
+	public void messagePack(Packer pk) throws IOException {
+		pk.packArray(array.length);
+		for(int i=0; i < array.length; i++) {
+			array[i].messagePack(pk);
+		}
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if(obj.getClass() != getClass()) {
+			return false;
+		}
+		return Arrays.equals(((ArrayType)obj).array, array);
+	}
+
+	@Override
+	public Object clone() {
+		MessagePackObject[] copy = new MessagePackObject[array.length];
+		for(int i=0; i < array.length; i++) {
+			copy[i] = (MessagePackObject)array[i].clone();
+		}
+		return copy;
 	}
 }
 

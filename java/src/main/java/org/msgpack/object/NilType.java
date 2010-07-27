@@ -17,12 +17,31 @@
 //
 package org.msgpack.object;
 
+import java.io.IOException;
 import org.msgpack.*;
 
 public class NilType extends MessagePackObject {
 	@Override
 	public boolean isNull() {
 		return true;
+	}
+
+	@Override
+	public void messagePack(Packer pk) throws IOException {
+		pk.packNil();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if(obj.getClass() != getClass()) {
+			return false;
+		}
+		return true;
+	}
+
+	@Override
+	public Object clone() {
+		return new NilType();
 	}
 }
 

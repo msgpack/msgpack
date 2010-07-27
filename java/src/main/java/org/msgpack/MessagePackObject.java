@@ -22,7 +22,7 @@ import java.util.Set;
 import java.util.Map;
 import java.math.BigInteger;
 
-public abstract class MessagePackObject {
+public abstract class MessagePackObject implements Cloneable, MessagePackable {
 	public boolean isNull() {
 		return false;
 	}
@@ -126,5 +126,7 @@ public abstract class MessagePackObject {
 	public double doubleValue() {
 		throw new MessageTypeException("type error");
 	}
+
+	abstract public Object clone();
 }
 

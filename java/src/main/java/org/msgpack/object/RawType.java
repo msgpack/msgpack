@@ -17,9 +17,11 @@
 //
 package org.msgpack.object;
 
+import java.util.Arrays;
+import java.io.IOException;
 import org.msgpack.*;
 
-class RawType extends MessagePackObject {
+public class RawType extends MessagePackObject {
 	private byte[] bytes;
 
 	public RawType(byte[] bytes) {
@@ -43,6 +45,25 @@ class RawType extends MessagePackObject {
 		} catch (Exception e) {
 			throw new MessageTypeException("type error");
 		}
+	}
+
+	@Override
+	public void messagePack(Packer pk) throws IOException {
+		pk.packRaw(bytes.length);
+		pk.packRawBody(bytes);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if(obj.getClass() != getClass()) {
+			return false;
+		}
+		return ((RawType)obj).bytes.equals(bytes);
+	}
+
+	@Override
+	public Object clone() {
+		return new RawType((byte[])bytes.clone());
 	}
 }
 

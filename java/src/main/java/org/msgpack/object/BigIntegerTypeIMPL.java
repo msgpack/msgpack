@@ -18,6 +18,7 @@
 package org.msgpack.object;
 
 import java.math.BigInteger;
+import java.io.IOException;
 import org.msgpack.*;
 
 class BigIntegerTypeIMPL extends IntegerType {
@@ -87,6 +88,24 @@ class BigIntegerTypeIMPL extends IntegerType {
 	@Override
 	public double doubleValue() {
 		return value.doubleValue();
+	}
+
+	@Override
+	public void messagePack(Packer pk) throws IOException {
+		pk.packBigInteger(value);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if(obj.getClass() != getClass()) {
+			return false;
+		}
+		return ((BigIntegerTypeIMPL)obj).value.equals(value);
+	}
+
+	@Override
+	public Object clone() {
+		return new BigIntegerTypeIMPL(value);
 	}
 }
 

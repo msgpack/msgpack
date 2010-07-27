@@ -19,6 +19,8 @@ package org.msgpack.object;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Arrays;
+import java.io.IOException;
 import org.msgpack.*;
 
 public class MapType extends MessagePackObject {
@@ -43,6 +45,31 @@ public class MapType extends MessagePackObject {
 			m.put(k, v);
 		}
 		return m;
+	}
+
+	@Override
+	public void messagePack(Packer pk) throws IOException {
+		pk.packMap(map.length / 2);
+		for(int i=0; i < map.length; i++) {
+			map[i].messagePack(pk);
+		}
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if(obj.getClass() != getClass()) {
+			return false;
+		}
+		return Arrays.equals(((MapType)obj).map, map);
+	}
+
+	@Override
+	public Object clone() {
+		MessagePackObject[] copy = new MessagePackObject[map.length];
+		for(int i=0; i < map.length; i++) {
+			copy[i] = (MessagePackObject)map[i].clone();
+		}
+		return copy;
 	}
 }
 
