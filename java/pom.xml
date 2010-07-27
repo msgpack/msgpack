@@ -108,15 +108,13 @@
       <uniqueVersion>false</uniqueVersion>
       <id>msgpack.org</id>
       <name>Repository at msgpack.org</name>
-       <!-- Please Change Here for "mvn deploy", because cannot specify relative path -->
-      <url>file:///Users/otakazuki/soft/website/maven2/</url>
+	  <url>file://${project.build.directory}/website/maven2/</url>
     </repository>
     <snapshotRepository>
        <uniqueVersion>true</uniqueVersion>
        <id>msgpack.org</id>
        <name>Repository at msgpack.org</name>
-       <!-- Please Change Here for "mvn deploy", because cannot specify relative path -->
-       <url>file:///Users/otakazuki/soft/website/maven2/</url>
+	   <url>file://${project.build.directory}/website/maven2/</url>
     </snapshotRepository>
   </distributionManagement>
 
