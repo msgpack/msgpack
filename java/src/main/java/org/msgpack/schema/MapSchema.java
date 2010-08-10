@@ -72,7 +72,7 @@ public class MapSchema extends Schema implements IMapSchema {
 			dest.put((K)keySchema.convert(e.getKey()),
 					(V)valueSchema.convert(e.getValue()));
 		}
-		return (Map<K,V>)d;
+		return dest;
 	}
 
 	@Override
