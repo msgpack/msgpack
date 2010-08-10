@@ -40,6 +40,11 @@ public class NilType extends MessagePackObject {
 	}
 
 	@Override
+	public int hashCode() {
+		return 0;
+	}
+
+	@Override
 	public Object clone() {
 		return new NilType();
 	}

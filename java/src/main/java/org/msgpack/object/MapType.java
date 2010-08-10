@@ -64,6 +64,11 @@ public class MapType extends MessagePackObject {
 	}
 
 	@Override
+	public int hashCode() {
+		return map.hashCode();
+	}
+
+	@Override
 	public Object clone() {
 		MessagePackObject[] copy = new MessagePackObject[map.length];
 		for(int i=0; i < map.length; i++) {

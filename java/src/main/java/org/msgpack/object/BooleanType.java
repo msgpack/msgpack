@@ -51,6 +51,15 @@ public class BooleanType extends MessagePackObject {
 	}
 
 	@Override
+	public int hashCode() {
+		if(value) {
+			return 1231;
+		} else {
+			return 1237;
+		}
+	}
+
+	@Override
 	public Object clone() {
 		return new BooleanType(value);
 	}

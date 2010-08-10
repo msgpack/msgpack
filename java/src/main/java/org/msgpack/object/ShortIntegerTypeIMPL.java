@@ -103,6 +103,11 @@ class ShortIntegerTypeIMPL extends IntegerType {
 	}
 
 	@Override
+	public int hashCode() {
+		return value;
+	}
+
+	@Override
 	public Object clone() {
 		return new ShortIntegerTypeIMPL(value);
 	}

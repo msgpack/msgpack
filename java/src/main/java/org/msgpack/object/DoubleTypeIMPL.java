@@ -83,6 +83,12 @@ class DoubleTypeIMPL extends FloatType {
 	}
 
 	@Override
+	public int hashCode() {
+		long v = Double.doubleToLongBits(value);
+		return (int)(v^(v>>>32));
+	}
+
+	@Override
 	public Object clone() {
 		return new DoubleTypeIMPL(value);
 	}

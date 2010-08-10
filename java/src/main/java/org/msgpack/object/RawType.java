@@ -62,6 +62,11 @@ public class RawType extends MessagePackObject {
 	}
 
 	@Override
+	public int hashCode() {
+		return bytes.hashCode();
+	}
+
+	@Override
 	public Object clone() {
 		return new RawType((byte[])bytes.clone());
 	}

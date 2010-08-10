@@ -101,6 +101,11 @@ class LongIntegerTypeIMPL extends IntegerType {
 	}
 
 	@Override
+	public int hashCode() {
+		return (int)(value^(value>>>32));
+	}
+
+	@Override
 	public Object clone() {
 		return new LongIntegerTypeIMPL(value);
 	}

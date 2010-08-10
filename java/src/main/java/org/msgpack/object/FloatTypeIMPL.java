@@ -82,6 +82,11 @@ class FloatTypeIMPL extends FloatType {
 	}
 
 	@Override
+	public int hashCode() {
+		return Float.floatToIntBits(value);
+	}
+
+	@Override
 	public Object clone() {
 		return new FloatTypeIMPL(value);
 	}

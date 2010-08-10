@@ -61,6 +61,11 @@ public class ArrayType extends MessagePackObject {
 	}
 
 	@Override
+	public int hashCode() {
+		return array.hashCode();
+	}
+
+	@Override
 	public Object clone() {
 		MessagePackObject[] copy = new MessagePackObject[array.length];
 		for(int i=0; i < array.length; i++) {

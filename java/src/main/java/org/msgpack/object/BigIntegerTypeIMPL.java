@@ -104,6 +104,11 @@ class BigIntegerTypeIMPL extends IntegerType {
 	}
 
 	@Override
+	public int hashCode() {
+		return value.hashCode();
+	}
+
+	@Override
 	public Object clone() {
 		return new BigIntegerTypeIMPL(value);
 	}
