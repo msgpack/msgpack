@@ -60,6 +60,11 @@ class DoubleTypeIMPL extends FloatType {
 	}
 
 	@Override
+	public BigInteger bigIntegerValue() {
+		return BigInteger.valueOf((long)value);
+	}
+
+	@Override
 	public float floatValue() {
 		return (float)value;
 	}

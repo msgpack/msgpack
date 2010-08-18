@@ -80,6 +80,11 @@ class ShortIntegerTypeIMPL extends IntegerType {
 	}
 
 	@Override
+	public BigInteger bigIntegerValue() {
+		return BigInteger.valueOf((long)value);
+	}
+
+	@Override
 	public float floatValue() {
 		return (float)value;
 	}
@@ -97,6 +102,11 @@ class ShortIntegerTypeIMPL extends IntegerType {
 	@Override
 	public boolean equals(Object obj) {
 		if(obj.getClass() != getClass()) {
+			if(obj.getClass() == LongIntegerTypeIMPL.class) {
+				return (long)value == ((LongIntegerTypeIMPL)obj).longValue();
+			} else if(obj.getClass() == BigIntegerTypeIMPL.class) {
+				return ((BigIntegerTypeIMPL)obj).bigIntegerValue().equals(BigInteger.valueOf((long)value));
+			}
 			return false;
 		}
 		return ((ShortIntegerTypeIMPL)obj).value == value;

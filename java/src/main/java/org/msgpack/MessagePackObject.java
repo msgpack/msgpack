@@ -119,6 +119,10 @@ public abstract class MessagePackObject implements Cloneable, MessagePackable {
 		throw new MessageTypeException("type error");
 	}
 
+	public BigInteger bigIntegerValue() {
+		throw new MessageTypeException("type error");
+	}
+
 	public float floatValue() {
 		throw new MessageTypeException("type error");
 	}
