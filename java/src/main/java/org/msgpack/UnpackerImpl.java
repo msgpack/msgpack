@@ -308,6 +308,7 @@ public class UnpackerImpl {
 							break _push;
 						}
 						cs = ACS_RAW_VALUE;
+						break _fixed_trail_again;
 					case ACS_RAW_VALUE: {
 							byte[] raw = new byte[trail];
 							System.arraycopy(src, n, raw, 0, trail);
