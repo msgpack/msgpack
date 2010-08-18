@@ -21,9 +21,6 @@ public class TestCases {
 
 	@Test
 	public void testCases() throws Exception {
-		System.out.println( new File(".").getAbsoluteFile().getParent() );
-
-
 		Unpacker pac = new Unpacker();
 		Unpacker pac_compact = new Unpacker();
 
@@ -34,13 +31,10 @@ public class TestCases {
 		while(pac.next(result)) {
 			UnpackResult result_compact = new UnpackResult();
 			assertTrue( pac_compact.next(result_compact) );
-			System.out.println("obj: "+result_compact.getData());
-			if(!result.getData().equals(result_compact.getData())) {
-				System.out.println("compact: "+result_compact.getData().asString());
-				System.out.println("data   : "+result.getData().asString());
-			}
 			assertTrue( result.getData().equals(result_compact.getData()) );
 		}
+
+		assertFalse( pac_compact.next(result) );
 	}
 };
 
