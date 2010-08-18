@@ -37,14 +37,30 @@ public class TestPackUnpack {
 			testInt(rand.nextInt());
 	}
 
+	public void testLong(long val) throws Exception {
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		new Packer(out).pack(val);
+		MessagePackObject obj = unpackOne(out);
+		assertEquals(val, obj.asLong());
+	}
+	@Test
+	public void testLong() throws Exception {
+		testLong(0);
+		testLong(-1);
+		testLong(1);
+		testLong(Integer.MIN_VALUE);
+		testLong(Integer.MAX_VALUE);
+		testLong(Long.MIN_VALUE);
+		testLong(Long.MAX_VALUE);
+		Random rand = new Random();
+		for (int i = 0; i < 1000; i++)
+			testLong(rand.nextLong());
+	}
+
 	public void testBigInteger(BigInteger val) throws Exception {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		new Packer(out).pack(val);
 		MessagePackObject obj = unpackOne(out);
-		if(!val.equals(obj.asBigInteger())) {
-			System.out.println("expect: "+val);
-			System.out.println("but   : "+obj.asBigInteger());
-		}
 		assertEquals(val, obj.asBigInteger());
 	}
 	@Test
