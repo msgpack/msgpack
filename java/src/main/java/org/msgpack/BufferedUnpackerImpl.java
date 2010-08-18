@@ -19,7 +19,7 @@ package org.msgpack;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-//import java.math.BigInteger;
+import java.math.BigInteger;
 
 abstract class BufferedUnpackerImpl extends UnpackerImpl {
 	int offset = 0;
@@ -198,8 +198,7 @@ abstract class BufferedUnpackerImpl extends UnpackerImpl {
 			{
 				long o = castBuffer.getLong(0);
 				if(o < 0) {
-					// FIXME unpackBigInteger
-					throw new MessageTypeException("uint 64 bigger than 0x7fffffff is not supported");
+					throw new MessageTypeException();
 				}
 				advance(9);
 				return o;
@@ -231,7 +230,25 @@ abstract class BufferedUnpackerImpl extends UnpackerImpl {
 		}
 	}
 
-	// FIXME unpackBigInteger
+	final BigInteger unpackBigInteger() throws IOException, MessageTypeException {
+		more(1);
+		int b = buffer[offset];
+		if((b & 0xff) != 0xcf) {
+			return BigInteger.valueOf(unpackLong());
+		}
+
+		// unsigned int 64
+		more(9);
+		castBuffer.rewind();
+		castBuffer.put(buffer, offset+1, 8);
+		advance(9);
+		long o = castBuffer.getLong(0);
+		if(o < 0) {
+			return new BigInteger(1, castBuffer.array());
+		} else {
+			return BigInteger.valueOf(o);
+		}
+	}
 
 	final float unpackFloat() throws IOException, MessageTypeException {
 		more(1);

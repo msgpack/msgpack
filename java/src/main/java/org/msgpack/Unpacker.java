@@ -22,6 +22,7 @@ import java.io.InputStream;
 import java.io.IOException;
 import java.util.Iterator;
 import java.nio.ByteBuffer;
+import java.math.BigInteger;
 
 /**
  * Unpacker enables you to deserialize objects from stream.
@@ -450,6 +451,15 @@ public class Unpacker implements Iterable<MessagePackObject> {
 	 */
 	public long unpackLong() throws IOException, MessageTypeException {
 		return impl.unpackLong();
+	}
+
+	/**
+	 * Gets one {@code BigInteger} value from the buffer.
+	 * This method calls {@link fill()} method if needed.
+	 * @throws MessageTypeException the first value of the buffer is not a {@code BigInteger}.
+	 */
+	public BigInteger unpackBigInteger() throws IOException, MessageTypeException {
+		return impl.unpackBigInteger();
 	}
 
 	/**
