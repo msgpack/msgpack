@@ -9,6 +9,17 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 public class TestObjectEquals {
+	@Test
+	public void testInt() throws Exception {
+		testInt(0);
+		testInt(-1);
+		testInt(1);
+		testInt(Integer.MIN_VALUE);
+		testInt(Integer.MAX_VALUE);
+		Random rand = new Random();
+		for (int i = 0; i < 1000; i++)
+			testInt(rand.nextInt());
+	}
 	public void testInt(int val) throws Exception {
 		MessagePackObject objInt = IntegerType.create(val);
 		MessagePackObject objLong = IntegerType.create((long)val);
@@ -23,18 +34,20 @@ public class TestObjectEquals {
 		assertTrue(objBigInt.equals(objLong));
 		assertTrue(objBigInt.equals(objBigInt));
 	}
+
 	@Test
-	public void testInt() throws Exception {
-		testInt(0);
-		testInt(-1);
-		testInt(1);
-		testInt(Integer.MIN_VALUE);
-		testInt(Integer.MAX_VALUE);
+	public void testLong() throws Exception {
+		testLong(0);
+		testLong(-1);
+		testLong(1);
+		testLong(Integer.MIN_VALUE);
+		testLong(Integer.MAX_VALUE);
+		testLong(Long.MIN_VALUE);
+		testLong(Long.MAX_VALUE);
 		Random rand = new Random();
 		for (int i = 0; i < 1000; i++)
-			testInt(rand.nextInt());
+			testLong(rand.nextLong());
 	}
-
 	public void testLong(long val) throws Exception {
 		MessagePackObject objInt = IntegerType.create((int)val);
 		MessagePackObject objLong = IntegerType.create(val);
@@ -61,19 +74,6 @@ public class TestObjectEquals {
 			assertTrue(objBigInt.equals(objBigInt));
 		}
 	}
-	@Test
-	public void testLong() throws Exception {
-		testLong(0);
-		testLong(-1);
-		testLong(1);
-		testLong(Integer.MIN_VALUE);
-		testLong(Integer.MAX_VALUE);
-		testLong(Long.MIN_VALUE);
-		testLong(Long.MAX_VALUE);
-		Random rand = new Random();
-		for (int i = 0; i < 1000; i++)
-			testLong(rand.nextLong());
-	}
 
 	@Test
 	public void testNil() throws Exception {
@@ -82,15 +82,15 @@ public class TestObjectEquals {
 		assertFalse(NilType.create().equals(BooleanType.create(false)));
 	}
 
-	public void testString(String str) throws Exception {
-		assertTrue(RawType.create(str).equals(RawType.create(str)));
-	}
 	@Test
 	public void testString() throws Exception {
 		testString("");
 		testString("a");
 		testString("ab");
 		testString("abc");
+	}
+	public void testString(String str) throws Exception {
+		assertTrue(RawType.create(str).equals(RawType.create(str)));
 	}
 }
 

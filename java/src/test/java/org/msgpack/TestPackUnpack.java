@@ -11,20 +11,14 @@ import static org.junit.Assert.*;
 public class TestPackUnpack {
 	public MessagePackObject unpackOne(ByteArrayOutputStream out) {
 		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Unpacker upk = new Unpacker(in);
-		Iterator<MessagePackObject> it = upk.iterator();
+		Unpacker pac = new Unpacker(in);
+		Iterator<MessagePackObject> it = pac.iterator();
 		assertEquals(true, it.hasNext());
 		MessagePackObject obj = it.next();
 		assertEquals(false, it.hasNext());
 		return obj;
 	}
 
-	public void testInt(int val) throws Exception {
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		new Packer(out).pack(val);
-		MessagePackObject obj = unpackOne(out);
-		assertEquals(val, obj.asInt());
-	}
 	@Test
 	public void testInt() throws Exception {
 		testInt(0);
@@ -36,13 +30,13 @@ public class TestPackUnpack {
 		for (int i = 0; i < 1000; i++)
 			testInt(rand.nextInt());
 	}
-
-	public void testLong(long val) throws Exception {
+	public void testInt(int val) throws Exception {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		new Packer(out).pack(val);
 		MessagePackObject obj = unpackOne(out);
-		assertEquals(val, obj.asLong());
+		assertEquals(val, obj.asInt());
 	}
+
 	@Test
 	public void testLong() throws Exception {
 		testLong(0);
@@ -56,13 +50,13 @@ public class TestPackUnpack {
 		for (int i = 0; i < 1000; i++)
 			testLong(rand.nextLong());
 	}
-
-	public void testBigInteger(BigInteger val) throws Exception {
+	public void testLong(long val) throws Exception {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		new Packer(out).pack(val);
 		MessagePackObject obj = unpackOne(out);
-		assertEquals(val, obj.asBigInteger());
+		assertEquals(val, obj.asLong());
 	}
+
 	@Test
 	public void testBigInteger() throws Exception {
 		testBigInteger(BigInteger.valueOf(0));
@@ -78,13 +72,13 @@ public class TestPackUnpack {
 		for (int i = 0; i < 1000; i++)
 			testBigInteger( max.subtract(BigInteger.valueOf( Math.abs(rand.nextLong()) )) );
 	}
-
-	public void testFloat(float val) throws Exception {
+	public void testBigInteger(BigInteger val) throws Exception {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		new Packer(out).pack(val);
 		MessagePackObject obj = unpackOne(out);
-		assertEquals(val, obj.asFloat(), 10e-10);
+		assertEquals(val, obj.asBigInteger());
 	}
+
 	@Test
 	public void testFloat() throws Exception {
 		testFloat((float)0.0);
@@ -100,13 +94,14 @@ public class TestPackUnpack {
 		for (int i = 0; i < 1000; i++)
 			testFloat(rand.nextFloat());
 	}
-
-	public void testDouble(double val) throws Exception {
+	public void testFloat(float val) throws Exception {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		new Packer(out).pack(val);
 		MessagePackObject obj = unpackOne(out);
-		assertEquals(val, obj.asDouble(), 10e-10);
+		float f = obj.asFloat();
+		assertEquals(val, f, 10e-10);
 	}
+
 	@Test
 	public void testDouble() throws Exception {
 		testDouble((double)0.0);
@@ -121,6 +116,13 @@ public class TestPackUnpack {
 		Random rand = new Random();
 		for (int i = 0; i < 1000; i++)
 			testDouble(rand.nextDouble());
+	}
+	public void testDouble(double val) throws Exception {
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		new Packer(out).pack(val);
+		MessagePackObject obj = unpackOne(out);
+		double f = obj.asDouble();
+		assertEquals(val, f, 10e-10);
 	}
 
 	@Test
@@ -143,12 +145,6 @@ public class TestPackUnpack {
 		assertEquals(val, obj.asBoolean());
 	}
 
-	public void testString(String val) throws Exception {
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		new Packer(out).pack(val);
-		MessagePackObject obj = unpackOne(out);
-		assertEquals(val, obj.asString());
-	}
 	@Test
 	public void testString() throws Exception {
 		testString("");
@@ -182,6 +178,12 @@ public class TestPackUnpack {
 				sb.append('a' + ((int)Math.random()) & 26);
 			testString(sb.toString());
 		}
+	}
+	public void testString(String val) throws Exception {
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		new Packer(out).pack(val);
+		MessagePackObject obj = unpackOne(out);
+		assertEquals(val, obj.asString());
 	}
 
 	@Test
