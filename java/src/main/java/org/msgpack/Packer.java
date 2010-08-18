@@ -196,19 +196,19 @@ public class Packer {
 	}
 
 	public Packer packBigInteger(BigInteger d) throws IOException {
-		if(d.compareTo(BigInteger.valueOf(Long.MAX_VALUE)) <= 0) {
+		if(d.bitLength() <= 63) {
 			return packLong(d.longValue());
-		} else if(d.bitLength() <= 64) {
+		} else if(d.bitLength() <= 64 && d.signum() >= 0) {
 			castBytes[0] = (byte)0xcf;
 			byte[] barray = d.toByteArray();
-			castBytes[1] = barray[0];
-			castBytes[2] = barray[1];
-			castBytes[3] = barray[2];
-			castBytes[4] = barray[3];
-			castBytes[5] = barray[4];
-			castBytes[6] = barray[5];
-			castBytes[7] = barray[6];
-			castBytes[8] = barray[7];
+			castBytes[1] = barray[barray.length-8];
+			castBytes[2] = barray[barray.length-7];
+			castBytes[3] = barray[barray.length-6];
+			castBytes[4] = barray[barray.length-5];
+			castBytes[5] = barray[barray.length-4];
+			castBytes[6] = barray[barray.length-3];
+			castBytes[7] = barray[barray.length-2];
+			castBytes[8] = barray[barray.length-1];
 			out.write(castBytes);
 			return this;
 		} else {
@@ -436,6 +436,8 @@ public class Packer {
 			return packFloat((Float)o);
 		} else if(o instanceof Double) {
 			return packDouble((Double)o);
+		} else if(o instanceof BigInteger) {
+			return packBigInteger((BigInteger)o);
 		} else {
 			throw new MessageTypeException("unknown object "+o+" ("+o.getClass()+")");
 		}

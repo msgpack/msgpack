@@ -3,6 +3,7 @@ package org.msgpack;
 import org.msgpack.*;
 import java.io.*;
 import java.util.*;
+import java.math.BigInteger;
 
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -34,6 +35,32 @@ public class TestPackUnpack {
 		Random rand = new Random();
 		for (int i = 0; i < 1000; i++)
 			testInt(rand.nextInt());
+	}
+
+	public void testBigInteger(BigInteger val) throws Exception {
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		new Packer(out).pack(val);
+		MessagePackObject obj = unpackOne(out);
+		if(!val.equals(obj.asBigInteger())) {
+			System.out.println("expect: "+val);
+			System.out.println("but   : "+obj.asBigInteger());
+		}
+		assertEquals(val, obj.asBigInteger());
+	}
+	@Test
+	public void testBigInteger() throws Exception {
+		testBigInteger(BigInteger.valueOf(0));
+		testBigInteger(BigInteger.valueOf(-1));
+		testBigInteger(BigInteger.valueOf(1));
+		testBigInteger(BigInteger.valueOf(Integer.MIN_VALUE));
+		testBigInteger(BigInteger.valueOf(Integer.MAX_VALUE));
+		testBigInteger(BigInteger.valueOf(Long.MIN_VALUE));
+		testBigInteger(BigInteger.valueOf(Long.MAX_VALUE));
+		BigInteger max = BigInteger.valueOf(Long.MAX_VALUE).setBit(63);
+		testBigInteger(max);
+		Random rand = new Random();
+		for (int i = 0; i < 1000; i++)
+			testBigInteger( max.subtract(BigInteger.valueOf( Math.abs(rand.nextLong()) )) );
 	}
 
 	public void testFloat(float val) throws Exception {

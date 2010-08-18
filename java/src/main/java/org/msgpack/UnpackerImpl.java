@@ -18,6 +18,7 @@
 package org.msgpack;
 
 import java.nio.ByteBuffer;
+import java.math.BigInteger;
 import org.msgpack.object.*;
 
 public class UnpackerImpl {
@@ -262,9 +263,7 @@ public class UnpackerImpl {
 						{
 							long o = castBuffer.getLong(0);
 							if(o < 0) {
-								// FIXME
-								//obj = GenericBigInteger.valueOf(o & 0x7fffffffL).setBit(31);
-								throw new UnpackException("uint 64 bigger than 0x7fffffff is not supported");
+								obj = IntegerType.create(new BigInteger(1, castBuffer.array()));
 							} else {
 								obj = IntegerType.create(o);
 							}
