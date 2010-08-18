@@ -25,8 +25,12 @@ import org.msgpack.*;
 public class ArrayType extends MessagePackObject {
 	private MessagePackObject[] array;
 
-	public ArrayType(MessagePackObject[] array) {
+	ArrayType(MessagePackObject[] array) {
 		this.array = array;
+	}
+
+	public static ArrayType create(MessagePackObject[] array) {
+		return new ArrayType(array);
 	}
 
 	@Override

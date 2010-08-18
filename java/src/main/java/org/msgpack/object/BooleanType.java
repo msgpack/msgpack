@@ -23,8 +23,12 @@ import org.msgpack.*;
 public class BooleanType extends MessagePackObject {
 	private boolean value;
 
-	public BooleanType(boolean value) {
+	BooleanType(boolean value) {
 		this.value = value;
+	}
+
+	public static BooleanType create(boolean value) {
+		return new BooleanType(value);
 	}
 
 	@Override

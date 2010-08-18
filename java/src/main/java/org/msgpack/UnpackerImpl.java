@@ -124,7 +124,7 @@ public class UnpackerImpl {
 					if((b & 0xe0) == 0xa0) {  // FixRaw
 						trail = b & 0x1f;
 						if(trail == 0) {
-							obj = new RawType(new byte[0]);
+							obj = RawType.create(new byte[0]);
 							break _push;
 						}
 						cs = ACS_RAW_VALUE;
@@ -139,7 +139,7 @@ public class UnpackerImpl {
 						//System.out.println("fixarray count:"+count);
 						obj = new MessagePackObject[count];
 						if(count == 0) {
-							obj = new ArrayType((MessagePackObject[])obj);
+							obj = ArrayType.create((MessagePackObject[])obj);
 							break _push;
 						}
 						++top;
@@ -159,7 +159,7 @@ public class UnpackerImpl {
 						count = b & 0x0f;
 						obj = new MessagePackObject[count*2];
 						if(count == 0) {
-							obj = new MapType((MessagePackObject[])obj);
+							obj = MapType.create((MessagePackObject[])obj);
 							break _push;
 						}
 						//System.out.println("fixmap count:"+count);
@@ -175,13 +175,13 @@ public class UnpackerImpl {
 	
 					switch(b & 0xff) {    // FIXME
 					case 0xc0:  // nil
-						obj = new NilType();
+						obj = NilType.create();
 						break _push;
 					case 0xc2:  // false
-						obj = new BooleanType(false);
+						obj = BooleanType.create(false);
 						break _push;
 					case 0xc3:  // true
-						obj = new BooleanType(true);
+						obj = BooleanType.create(true);
 						break _push;
 					case 0xca:  // float
 					case 0xcb:  // double
@@ -293,7 +293,7 @@ public class UnpackerImpl {
 						castBuffer.put(src, n, 2);
 						trail = ((int)castBuffer.getShort(0)) & 0xffff;
 						if(trail == 0) {
-							obj = new RawType(new byte[0]);
+							obj = RawType.create(new byte[0]);
 							break _push;
 						}
 						cs = ACS_RAW_VALUE;
@@ -304,14 +304,14 @@ public class UnpackerImpl {
 						// FIXME overflow check
 						trail = castBuffer.getInt(0) & 0x7fffffff;
 						if(trail == 0) {
-							obj = new RawType(new byte[0]);
+							obj = RawType.create(new byte[0]);
 							break _push;
 						}
 						cs = ACS_RAW_VALUE;
 					case ACS_RAW_VALUE: {
 							byte[] raw = new byte[trail];
 							System.arraycopy(src, n, raw, 0, trail);
-							obj = new RawType(raw);
+							obj = RawType.create(raw);
 						}
 						break _push;
 					case CS_ARRAY_16:
@@ -323,7 +323,7 @@ public class UnpackerImpl {
 						count = ((int)castBuffer.getShort(0)) & 0xffff;
 						obj = new MessagePackObject[count];
 						if(count == 0) {
-							obj = new ArrayType((MessagePackObject[])obj);
+							obj = ArrayType.create((MessagePackObject[])obj);
 							break _push;
 						}
 						++top;
@@ -344,7 +344,7 @@ public class UnpackerImpl {
 						count = castBuffer.getInt(0) & 0x7fffffff;
 						obj = new MessagePackObject[count];
 						if(count == 0) {
-							obj = new ArrayType((MessagePackObject[])obj);
+							obj = ArrayType.create((MessagePackObject[])obj);
 							break _push;
 						}
 						++top;
@@ -364,7 +364,7 @@ public class UnpackerImpl {
 						count = ((int)castBuffer.getShort(0)) & 0xffff;
 						obj = new MessagePackObject[count*2];
 						if(count == 0) {
-							obj = new MapType((MessagePackObject[])obj);
+							obj = MapType.create((MessagePackObject[])obj);
 							break _push;
 						}
 						//System.out.println("fixmap count:"+count);
@@ -386,7 +386,7 @@ public class UnpackerImpl {
 						count = castBuffer.getInt(0) & 0x7fffffff;
 						obj = new MessagePackObject[count*2];
 						if(count == 0) {
-							obj = new MapType((MessagePackObject[])obj);
+							obj = MapType.create((MessagePackObject[])obj);
 							break _push;
 						}
 						//System.out.println("fixmap count:"+count);
@@ -425,7 +425,7 @@ public class UnpackerImpl {
 							top_obj    = stack_obj[top];
 							top_ct     = stack_ct[top];
 							top_count  = stack_count[top];
-							obj = new ArrayType((MessagePackObject[])ar);
+							obj = ArrayType.create((MessagePackObject[])ar);
 							stack_obj[top] = null;
 							--top;
 							break _push;
@@ -447,7 +447,7 @@ public class UnpackerImpl {
 							top_obj    = stack_obj[top];
 							top_ct     = stack_ct[top];
 							top_count  = stack_count[top];
-							obj = new MapType((MessagePackObject[])mp);
+							obj = MapType.create((MessagePackObject[])mp);
 							stack_obj[top] = null;
 							--top;
 							break _push;

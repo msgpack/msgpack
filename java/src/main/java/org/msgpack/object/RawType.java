@@ -24,8 +24,24 @@ import org.msgpack.*;
 public class RawType extends MessagePackObject {
 	private byte[] bytes;
 
-	public RawType(byte[] bytes) {
+	RawType(byte[] bytes) {
 		this.bytes = bytes;
+	}
+
+	RawType(String str) {
+		try {
+			this.bytes = str.getBytes("UTF-8");
+		} catch (Exception e) {
+			throw new MessageTypeException("type error");
+		}
+	}
+
+	public static RawType create(byte[] bytes) {
+		return new RawType(bytes);
+	}
+
+	public static RawType create(String str) {
+		return new RawType(str);
 	}
 
 	@Override
@@ -58,7 +74,7 @@ public class RawType extends MessagePackObject {
 		if(obj.getClass() != getClass()) {
 			return false;
 		}
-		return ((RawType)obj).bytes.equals(bytes);
+		return Arrays.equals(((RawType)obj).bytes, bytes);
 	}
 
 	@Override

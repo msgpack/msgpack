@@ -26,8 +26,12 @@ import org.msgpack.*;
 public class MapType extends MessagePackObject {
 	private MessagePackObject[] map;
 
-	public MapType(MessagePackObject[] map) {
+	MapType(MessagePackObject[] map) {
 		this.map = map;
+	}
+
+	public static MapType create(MessagePackObject[] map) {
+		return new MapType(map);
 	}
 
 	@Override

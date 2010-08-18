@@ -108,7 +108,7 @@ class LongIntegerTypeIMPL extends IntegerType {
 			if(obj.getClass() == ShortIntegerTypeIMPL.class) {
 				return value == ((ShortIntegerTypeIMPL)obj).longValue();
 			} else if(obj.getClass() == BigIntegerTypeIMPL.class) {
-				return (long)value == ((BigIntegerTypeIMPL)obj).longValue();
+				return BigInteger.valueOf(value).equals(((BigIntegerTypeIMPL)obj).bigIntegerValue());
 			}
 			return false;
 		}

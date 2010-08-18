@@ -21,6 +21,12 @@ import java.io.IOException;
 import org.msgpack.*;
 
 public class NilType extends MessagePackObject {
+	private static NilType instance = new NilType();
+
+	public static NilType create() {
+		return instance;
+	}
+
 	@Override
 	public boolean isNull() {
 		return true;
