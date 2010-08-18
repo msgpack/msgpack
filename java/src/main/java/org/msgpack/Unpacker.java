@@ -26,8 +26,8 @@ import java.nio.ByteBuffer;
 /**
  * Unpacker enables you to deserialize objects from stream.
  *
- * Unpacker provides Buffered API, Unbuffered API, Schema API
- * and Direct Conversion API.
+ * Unpacker provides Buffered API, Unbuffered API and
+ * Direct Conversion API.
  *
  * Buffered API uses the internal buffer of the Unpacker.
  * Following code uses Buffered API with an InputStream:
@@ -39,7 +39,7 @@ import java.nio.ByteBuffer;
  * UnpackResult result = pac.next();
  *
  * // use an iterator.
- * for(Object obj : pac) {
+ * for(MessagePackObject obj : pac) {
  *   // use MessageConvertable interface to convert the
  *   // the generic object to the specific type.
  * }
@@ -56,7 +56,7 @@ import java.nio.ByteBuffer;
  * pac.feed(input_bytes);
  *
  * // use next() method or iterators.
- * for(Object obj : pac) {
+ * for(MessagePackObject obj : pac) {
  *   // ...
  * }
  * </pre>
@@ -75,7 +75,7 @@ import java.nio.ByteBuffer;
  * System.in.read(pac.getBuffer(), pac.getBufferOffset(), pac.getBufferCapacity());
  *
  * // use next() method or iterators.
- * for(Object obj : pac) {
+ * for(MessagePackObject obj : pac) {
  *     // ...
  * }
  * </pre>
@@ -96,12 +96,12 @@ import java.nio.ByteBuffer;
  *
  * // take out object if deserialized object is ready.
  * if(pac.isFinished()) {
- *     Object obj = pac.getData();
+ *     MessagePackObject obj = pac.getData();
  *     // ...
  * }
  * </pre>
  */
-public class Unpacker implements Iterable<Object> {
+public class Unpacker implements Iterable<MessagePackObject> {
 
 	// buffer:
 	// +---------------------------------------------+
@@ -168,16 +168,6 @@ public class Unpacker implements Iterable<Object> {
 		this.parsed = 0;
 		this.bufferReserveSize = bufferReserveSize/2;
 		this.stream = stream;
-	}
-
-	/**
-	 * Sets schema to convert deserialized object into specific type.
-	 * Default schema is {@link GenericSchema} that leaves objects for generic type. Use {@link MessageConvertable#messageConvert(Object)} method to convert the generic object.
-	 * @param s schem to use
-	 */
-	public Unpacker useSchema(Schema s) {
-		impl.setSchema(s);
-		return this;
 	}
 
 
@@ -255,7 +245,7 @@ public class Unpacker implements Iterable<Object> {
 	/**
 	 * Returns the iterator that calls {@link next()} method repeatedly.
 	 */
-	public Iterator<Object> iterator() {
+	public Iterator<MessagePackObject> iterator() {
 		return new UnpackIterator(this);
 	}
 
@@ -387,7 +377,7 @@ public class Unpacker implements Iterable<Object> {
 	/**
 	 * Gets the object deserialized by {@link execute(byte[])} method.
 	 */
-	public Object getData() {
+	public MessagePackObject getData() {
 		return impl.getData();
 	}
 
@@ -557,7 +547,7 @@ public class Unpacker implements Iterable<Object> {
 	 * Gets one {@code Object} value from the buffer.
 	 * This method calls {@link fill()} method if needed.
 	 */
-	final public Object unpackObject() throws IOException {
+	final public MessagePackObject unpackObject() throws IOException {
 		return impl.unpackObject();
 	}
 

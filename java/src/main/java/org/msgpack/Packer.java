@@ -308,12 +308,6 @@ public class Packer {
 	}
 
 
-	public Packer packWithSchema(Object o, Schema s) throws IOException {
-		s.pack(this, o);
-		return this;
-	}
-
-
 	public Packer packString(String s) throws IOException {
 		byte[] b = ((String)s).getBytes("UTF-8");
 		packRaw(b.length);

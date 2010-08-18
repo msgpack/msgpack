@@ -47,7 +47,7 @@ abstract class BufferedUnpackerImpl extends UnpackerImpl {
 			offset = noffset;
 		} while(!super.isFinished());
 
-		Object obj = super.getData();
+		MessagePackObject obj = super.getData();
 		super.reset();
 		result.done(obj);
 
@@ -198,7 +198,7 @@ abstract class BufferedUnpackerImpl extends UnpackerImpl {
 			{
 				long o = castBuffer.getLong(0);
 				if(o < 0) {
-					// FIXME
+					// FIXME unpackBigInteger
 					throw new MessageTypeException("uint 64 bigger than 0x7fffffff is not supported");
 				}
 				advance(9);
@@ -230,6 +230,8 @@ abstract class BufferedUnpackerImpl extends UnpackerImpl {
 			throw new MessageTypeException();
 		}
 	}
+
+	// FIXME unpackBigInteger
 
 	final float unpackFloat() throws IOException, MessageTypeException {
 		more(1);
@@ -414,7 +416,7 @@ abstract class BufferedUnpackerImpl extends UnpackerImpl {
 		return s;
 	}
 
-	final Object unpackObject() throws IOException {
+	final MessagePackObject unpackObject() throws IOException {
 		UnpackResult result = new UnpackResult();
 		if(!next(result)) {
 			super.reset();

@@ -19,13 +19,13 @@ package org.msgpack;
 
 public class UnpackResult {
 	protected boolean finished = false;
-	protected Object data = null;
+	protected MessagePackObject data = null;
 
 	public boolean isFinished() {
 		return finished;
 	}
 
-	public Object getData() {
+	public MessagePackObject getData() {
 		return data;
 	}
 
@@ -34,7 +34,7 @@ public class UnpackResult {
 		data = null;
 	}
 
-	void done(Object obj) {
+	void done(MessagePackObject obj) {
 		finished = true;
 		data = obj;
 	}
