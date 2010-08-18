@@ -21,14 +21,16 @@ import java.io.IOException;
 import org.msgpack.*;
 
 public class NilType extends MessagePackObject {
-	private static NilType instance = new NilType();
+	private final static NilType INSTANCE = new NilType();
 
 	public static NilType create() {
-		return instance;
+		return INSTANCE;
 	}
 
+	private NilType() { }
+
 	@Override
-	public boolean isNull() {
+	public boolean isNil() {
 		return true;
 	}
 
@@ -52,7 +54,7 @@ public class NilType extends MessagePackObject {
 
 	@Override
 	public Object clone() {
-		return new NilType();
+		return INSTANCE;
 	}
 }
 

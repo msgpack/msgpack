@@ -130,7 +130,7 @@ public class TestPackUnpack {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		new Packer(out).packNil();
 		MessagePackObject obj = unpackOne(out);
-		assertTrue(obj.isNull());
+		assertTrue(obj.isNil());
 	}
 
 	@Test

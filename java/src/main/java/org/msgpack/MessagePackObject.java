@@ -23,7 +23,7 @@ import java.util.Map;
 import java.math.BigInteger;
 
 public abstract class MessagePackObject implements Cloneable, MessagePackable {
-	public boolean isNull() {
+	public boolean isNil() {
 		return false;
 	}
 
