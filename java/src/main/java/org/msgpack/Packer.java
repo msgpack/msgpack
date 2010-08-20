@@ -212,7 +212,7 @@ public class Packer {
 			out.write(castBytes);
 			return this;
 		} else {
-			throw new MessageTypeException("can't BigInteger larger than 0xffffffffffffffff");
+			throw new MessageTypeException("can't pack BigInteger larger than 0xffffffffffffffff");
 		}
 	}
 
