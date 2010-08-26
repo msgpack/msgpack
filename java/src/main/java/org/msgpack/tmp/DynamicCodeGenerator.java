@@ -29,6 +29,8 @@ public class DynamicCodeGenerator {
 
 	private static final String PACKER_CLASS_TYPE_NAME = Packer.class.getName();
 
+	private static final String VOID_TYPE_NAME = "void";
+
 	private static final String PACKER_OBJECT_NAME = "pk";
 
 	private static final String UNPACKER_CLASS_TYPE_NAME = Unpacker.class
@@ -37,7 +39,7 @@ public class DynamicCodeGenerator {
 	private static final String UNPACKER_OBJECT_NAME = "pk";
 
 	private HashMap<String, Class<?>> classMap;
-	
+
 	private HashMap<String, Object> objectCacheMap;
 
 	private ClassPool pool;
@@ -50,23 +52,23 @@ public class DynamicCodeGenerator {
 
 	public Object newEnhancedInstance(Class<?> targetClass) throws Exception {
 		String targetClassName = targetClass.getName();
-		//Class<?> enhancedClass = classMap.get(targetClassName);
+		// Class<?> enhancedClass = classMap.get(targetClassName);
 		Object enhancedObject = objectCacheMap.get(targetClassName);
-		//if (enhancedClass == null) {
+		// if (enhancedClass == null) {
 		if (enhancedObject == null) {
 			CtClass enhancedCtClass = createEnhancedCtClass(targetClassName);
-//			System.out.println("enhanced class name: "
-//					+ enhancedCtClass.getName());
+			// System.out.println("enhanced class name: "
+			// + enhancedCtClass.getName());
 			addSuperclass(enhancedCtClass, targetClassName);
 			addConstructor(enhancedCtClass);
 			createMessagePackMethod(enhancedCtClass, targetClass);
 			createMessageUnpackMethod(enhancedCtClass, targetClass);
 			Class enhancedClass = loadEnhancedClass(enhancedCtClass);
-			//classMap.put(targetClassName, enhancedClass);
+			// classMap.put(targetClassName, enhancedClass);
 			enhancedObject = enhancedClass.newInstance();
 			objectCacheMap.put(targetClassName, enhancedObject);
 		}
-		//return newEnhancedInstance0(enhancedClass);
+		// return newEnhancedInstance0(enhancedClass);
 		return enhancedObject;
 	}
 
@@ -82,24 +84,18 @@ public class DynamicCodeGenerator {
 	}
 
 	private void addConstructor(CtClass enhancedCtClass) throws Exception {
-		StringBuilder sb = new StringBuilder();
-		sb.append(MODIFIER_PUBLIC).append(SPACE).append(
-		// enhancedCtClass.getName()).append("(").append(")")
-				"Image3_$$_Enhanced").append("(").append(")").append(SPACE)
-				.append("{ super(); }"); // TODO
-//		System.out.println("cons: " + sb.toString());
-		CtConstructor newCtConstructor = CtNewConstructor.make(sb.toString(),
-				enhancedCtClass);
+		CtConstructor newCtConstructor = CtNewConstructor
+				.defaultConstructor(enhancedCtClass);
 		enhancedCtClass.addConstructor(newCtConstructor);
 	}
 
 	private void createMessagePackMethod(CtClass enhancedCtClass,
 			Class<?> targetClass) throws Exception {
 		StringBuilder sb = new StringBuilder();
-		sb.append(MODIFIER_PUBLIC).append(SPACE).append("void").append(SPACE)
-				.append(METHOD_NAME_MESSAGEPACK).append("(").append(
-						PACKER_CLASS_TYPE_NAME).append(SPACE).append(
-						PACKER_OBJECT_NAME).append(")").append(SPACE).append(
+		sb.append(MODIFIER_PUBLIC).append(SPACE).append(VOID_TYPE_NAME).append(
+				SPACE).append(METHOD_NAME_MESSAGEPACK).append("(").append(
+				PACKER_CLASS_TYPE_NAME).append(SPACE)
+				.append(PACKER_OBJECT_NAME).append(")").append(SPACE).append(
 						"throws").append(SPACE).append("java.io.IOException")
 				.append(SPACE).append("{");
 		Field[] fields = targetClass.getFields();
@@ -109,7 +105,7 @@ public class DynamicCodeGenerator {
 			insertCodeOfMessagePack(field, sb);
 		}
 		sb.append("}");
-//		System.out.println("messagePack method: " + sb.toString());
+		// System.out.println("messagePack method: " + sb.toString());
 		CtMethod newCtMethod = CtNewMethod.make(sb.toString(), enhancedCtClass);
 		enhancedCtClass.addMethod(newCtMethod);
 	}
@@ -135,7 +131,7 @@ public class DynamicCodeGenerator {
 		sb
 				.append(MODIFIER_PUBLIC)
 				.append(SPACE)
-				.append("void")
+				.append(VOID_TYPE_NAME)
 				.append(SPACE)
 				.append(METHOD_NAME_MESSAGEUNPACK)
 				.append("(")
@@ -149,13 +145,14 @@ public class DynamicCodeGenerator {
 				.append("org.msgpack.MessageTypeException, java.io.IOException")
 				.append(SPACE).append("{");
 		Field[] fields = targetClass.getFields();
-		sb.append(UNPACKER_OBJECT_NAME).append(".").append("unpackArray()").append(";");
+		sb.append(UNPACKER_OBJECT_NAME).append(".").append("unpackArray()")
+				.append(";");
 		// TODO
 		for (Field field : fields) {
 			insertCodeOfMessageUnpack(field, sb);
 		}
 		sb.append("}");
-//		System.out.println("messageUnpack method: " + sb.toString());
+		// System.out.println("messageUnpack method: " + sb.toString());
 		CtMethod newCtMethod = CtNewMethod.make(sb.toString(), enhancedCtClass);
 		enhancedCtClass.addMethod(newCtMethod);
 	}
