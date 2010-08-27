@@ -45,6 +45,15 @@ public:
 	packer<Stream>& pack_int32(int32_t d);
 	packer<Stream>& pack_int64(int64_t d);
 
+	packer<Stream>& pack_fix_uint8(uint8_t d);
+	packer<Stream>& pack_fix_uint16(uint16_t d);
+	packer<Stream>& pack_fix_uint32(uint32_t d);
+	packer<Stream>& pack_fix_uint64(uint64_t d);
+	packer<Stream>& pack_fix_int8(int8_t d);
+	packer<Stream>& pack_fix_int16(int16_t d);
+	packer<Stream>& pack_fix_int32(int32_t d);
+	packer<Stream>& pack_fix_int64(int64_t d);
+
 	packer<Stream>& pack_short(short d);
 	packer<Stream>& pack_int(int d);
 	packer<Stream>& pack_long(long d);
@@ -77,6 +86,15 @@ private:
 	static void _pack_int16(Stream& x, int16_t d);
 	static void _pack_int32(Stream& x, int32_t d);
 	static void _pack_int64(Stream& x, int64_t d);
+
+	static void _pack_fix_uint8(Stream& x, uint8_t d);
+	static void _pack_fix_uint16(Stream& x, uint16_t d);
+	static void _pack_fix_uint32(Stream& x, uint32_t d);
+	static void _pack_fix_uint64(Stream& x, uint64_t d);
+	static void _pack_fix_int8(Stream& x, int8_t d);
+	static void _pack_fix_int16(Stream& x, int16_t d);
+	static void _pack_fix_int32(Stream& x, int32_t d);
+	static void _pack_fix_int64(Stream& x, int64_t d);
 
 	static void _pack_short(Stream& x, short d);
 	static void _pack_int(Stream& x, int d);
@@ -133,6 +151,10 @@ inline void pack(Stream& s, const T& v)
 	template <typename Stream> \
 	inline void packer<Stream>::_pack ## name
 
+#define msgpack_pack_inline_func_fixint(name) \
+	template <typename Stream> \
+	inline void packer<Stream>::_pack_fix ## name
+
 #define msgpack_pack_user Stream&
 
 #define msgpack_pack_append_buffer append_buffer
@@ -148,6 +170,7 @@ packer<Stream>::packer(Stream& s) : m_stream(s) { }
 
 template <typename Stream>
 packer<Stream>::~packer() { }
+
 
 template <typename Stream>
 inline packer<Stream>& packer<Stream>::pack_uint8(uint8_t d)
@@ -180,6 +203,39 @@ inline packer<Stream>& packer<Stream>::pack_int32(int32_t d)
 template <typename Stream>
 inline packer<Stream>& packer<Stream>::pack_int64(int64_t d)
 { _pack_int64(m_stream, d); return *this;}
+
+
+template <typename Stream>
+inline packer<Stream>& packer<Stream>::pack_fix_uint8(uint8_t d)
+{ _pack_fix_uint8(m_stream, d); return *this; }
+
+template <typename Stream>
+inline packer<Stream>& packer<Stream>::pack_fix_uint16(uint16_t d)
+{ _pack_fix_uint16(m_stream, d); return *this; }
+
+template <typename Stream>
+inline packer<Stream>& packer<Stream>::pack_fix_uint32(uint32_t d)
+{ _pack_fix_uint32(m_stream, d); return *this; }
+
+template <typename Stream>
+inline packer<Stream>& packer<Stream>::pack_fix_uint64(uint64_t d)
+{ _pack_fix_uint64(m_stream, d); return *this; }
+
+template <typename Stream>
+inline packer<Stream>& packer<Stream>::pack_fix_int8(int8_t d)
+{ _pack_fix_int8(m_stream, d); return *this; }
+
+template <typename Stream>
+inline packer<Stream>& packer<Stream>::pack_fix_int16(int16_t d)
+{ _pack_fix_int16(m_stream, d); return *this; }
+
+template <typename Stream>
+inline packer<Stream>& packer<Stream>::pack_fix_int32(int32_t d)
+{ _pack_fix_int32(m_stream, d); return *this; }
+
+template <typename Stream>
+inline packer<Stream>& packer<Stream>::pack_fix_int64(int64_t d)
+{ _pack_fix_int64(m_stream, d); return *this;}
 
 
 template <typename Stream>
