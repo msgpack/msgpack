@@ -15,29 +15,35 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 //
-package org.msgpack.schema;
+package org.msgpack.object;
 
-import org.msgpack.Schema;
+import java.math.BigInteger;
+import org.msgpack.*;
 
-public class FieldSchema {
-	private String name;
-	private Schema schema;
-
-	public FieldSchema(String name, Schema schema) {
-		this.name = name;
-		this.schema = schema;
+public abstract class IntegerType extends MessagePackObject {
+	@Override
+	public boolean isIntegerType() {
+		return true;
 	}
 
-	public final String getName() {
-		return name;
+	public static IntegerType create(byte value) {
+		return new ShortIntegerTypeIMPL((int)value);
 	}
 
-	public final Schema getSchema() {
-		return schema;
+	public static IntegerType create(short value) {
+		return new ShortIntegerTypeIMPL((int)value);
 	}
 
-	public String getExpression() {
-		return "(field "+name+" "+schema.getExpression()+")";
+	public static IntegerType create(int value) {
+		return new ShortIntegerTypeIMPL(value);
+	}
+
+	public static IntegerType create(long value) {
+		return new LongIntegerTypeIMPL(value);
+	}
+
+	public static IntegerType create(BigInteger value) {
+		return new BigIntegerTypeIMPL(value);
 	}
 }
 

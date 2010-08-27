@@ -15,13 +15,22 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 //
-package org.msgpack.schema;
+package org.msgpack.object;
 
-import org.msgpack.Schema;
+import org.msgpack.*;
 
-public interface IMapSchema {
-	public Schema getKeySchema();
-	public Schema getValueSchema();
-	public Object createFromMap(Object[] obj);
+public abstract class FloatType extends MessagePackObject {
+	@Override
+	public boolean isFloatType() {
+		return true;
+	}
+
+	public static FloatType create(float value) {
+		return new FloatTypeIMPL(value);
+	}
+
+	public static FloatType create(double value) {
+		return new DoubleTypeIMPL(value);
+	}
 }
 

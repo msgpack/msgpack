@@ -21,7 +21,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-public class UnpackIterator extends UnpackResult implements Iterator<Object> {
+public class UnpackIterator extends UnpackResult implements Iterator<MessagePackObject> {
 	private Unpacker pac;
 
 	UnpackIterator(Unpacker pac) {
@@ -38,7 +38,7 @@ public class UnpackIterator extends UnpackResult implements Iterator<Object> {
 		}
 	}
 
-	public Object next() {
+	public MessagePackObject next() {
 		if(!finished && !hasNext()) {
 			throw new NoSuchElementException();
 		}

@@ -1,3 +1,8 @@
+0.14
+
+    - fixed segv on serializing cyclic reference
+      (Dan Kogai)
+
 0.13
 
     - clearly specify requires_c99(), because msgpack C header requires C99.

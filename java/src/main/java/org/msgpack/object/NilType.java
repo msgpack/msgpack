@@ -15,12 +15,46 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 //
-package org.msgpack.schema;
+package org.msgpack.object;
 
-import org.msgpack.Schema;
+import java.io.IOException;
+import org.msgpack.*;
 
-public interface IArraySchema {
-	public Schema getElementSchema(int index);
-	public Object createFromArray(Object[] obj);
+public class NilType extends MessagePackObject {
+	private final static NilType INSTANCE = new NilType();
+
+	public static NilType create() {
+		return INSTANCE;
+	}
+
+	private NilType() { }
+
+	@Override
+	public boolean isNil() {
+		return true;
+	}
+
+	@Override
+	public void messagePack(Packer pk) throws IOException {
+		pk.packNil();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if(obj.getClass() != getClass()) {
+			return false;
+		}
+		return true;
+	}
+
+	@Override
+	public int hashCode() {
+		return 0;
+	}
+
+	@Override
+	public Object clone() {
+		return INSTANCE;
+	}
 }
 

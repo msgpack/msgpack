@@ -18,6 +18,6 @@
 package org.msgpack;
 
 public interface MessageConvertable {
-	public void messageConvert(Object obj) throws MessageTypeException;
+	public void messageConvert(MessagePackObject obj) throws MessageTypeException;
 }
 

@@ -15,50 +15,57 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 //
-package org.msgpack.schema;
+package org.msgpack.object;
 
 import java.io.IOException;
 import org.msgpack.*;
 
-public class BooleanSchema extends Schema {
-	public BooleanSchema() { }
+public class BooleanType extends MessagePackObject {
+	private boolean value;
 
-	@Override
-	public String getClassName() {
-		return "Boolean";
+	BooleanType(boolean value) {
+		this.value = value;
+	}
+
+	public static BooleanType create(boolean value) {
+		return new BooleanType(value);
 	}
 
 	@Override
-	public String getExpression() {
-		return "boolean";
+	public boolean isBooleanType() {
+		return true;
 	}
 
 	@Override
-	public void pack(Packer pk, Object obj) throws IOException {
-		if(obj instanceof Boolean) {
-			pk.packBoolean((Boolean)obj);
-		} else if(obj == null) {
-			pk.packNil();
+	public boolean asBoolean() {
+		return value;
+	}
+
+	@Override
+	public void messagePack(Packer pk) throws IOException {
+		pk.packBoolean(value);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if(obj.getClass() != getClass()) {
+			return false;
+		}
+		return ((BooleanType)obj).value == value;
+	}
+
+	@Override
+	public int hashCode() {
+		if(value) {
+			return 1231;
 		} else {
-			throw MessageTypeException.invalidConvert(obj, this);
+			return 1237;
 		}
 	}
 
-	public static final boolean convertBoolean(Object obj) throws MessageTypeException {
-		if(obj instanceof Boolean) {
-			return (Boolean)obj;
-		}
-		throw new MessageTypeException();
-	}
-
 	@Override
-	public Object convert(Object obj) throws MessageTypeException {
-		return convertBoolean(obj);
-	}
-
-	@Override
-	public Object createFromBoolean(boolean v) {
-		return v;
+	public Object clone() {
+		return new BooleanType(value);
 	}
 }
 
