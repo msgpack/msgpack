@@ -18,7 +18,7 @@
 #ifndef MSGPACK_VREFBUFFER_H__
 #define MSGPACK_VREFBUFFER_H__
 
-#include "msgpack/zone.h"
+#include "zone.h"
 #include <stdlib.h>
 
 #ifndef _WIN32

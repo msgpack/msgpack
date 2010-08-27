@@ -18,7 +18,7 @@
 #ifndef MSGPACK_SBUFFER_HPP__
 #define MSGPACK_SBUFFER_HPP__
 
-#include "msgpack/sbuffer.h"
+#include "sbuffer.h"
 #include <stdexcept>
 
 namespace msgpack {

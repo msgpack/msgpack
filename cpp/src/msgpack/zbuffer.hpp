@@ -18,7 +18,7 @@
 #ifndef MSGPACK_ZBUFFER_HPP__
 #define MSGPACK_ZBUFFER_HPP__
 
-#include "msgpack/zbuffer.h"
+#include "zbuffer.h"
 #include <stdexcept>
 
 namespace msgpack {

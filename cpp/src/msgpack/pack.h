@@ -18,8 +18,8 @@
 #ifndef MSGPACK_PACK_H__
 #define MSGPACK_PACK_H__
 
-#include "msgpack/pack_define.h"
-#include "msgpack/object.h"
+#include "pack_define.h"
+#include "object.h"
 #include <stdlib.h>
 
 #ifdef __cplusplus
@@ -96,12 +96,15 @@ int msgpack_pack_object(msgpack_packer* pk, msgpack_object d);
 #define msgpack_pack_inline_func_cint(name) \
 	inline int msgpack_pack ## name
 
+#define msgpack_pack_inline_func_cint(name) \
+	inline int msgpack_pack ## name
+
 #define msgpack_pack_user msgpack_packer*
 
 #define msgpack_pack_append_buffer(user, buf, len) \
 	return (*(user)->callback)((user)->data, (const char*)buf, len)
 
-#include "msgpack/pack_template.h"
+#include "pack_template.h"
 
 inline void msgpack_packer_init(msgpack_packer* pk, void* data, msgpack_packer_write callback)
 {

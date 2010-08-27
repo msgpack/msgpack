@@ -18,9 +18,9 @@
 #ifndef MSGPACK_OBJECT_HPP__
 #define MSGPACK_OBJECT_HPP__
 
-#include "msgpack/object.h"
-#include "msgpack/pack.hpp"
-#include "msgpack/zone.hpp"
+#include "object.h"
+#include "pack.hpp"
+#include "zone.hpp"
 #include <string.h>
 #include <stdexcept>
 #include <typeinfo>

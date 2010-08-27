@@ -18,7 +18,7 @@
 #ifndef MSGPACK_PACK_HPP__
 #define MSGPACK_PACK_HPP__
 
-#include "msgpack/pack_define.h"
+#include "pack_define.h"
 #include <stdexcept>
 #include <limits.h>
 
@@ -137,7 +137,7 @@ inline void pack(Stream& s, const T& v)
 
 #define msgpack_pack_append_buffer append_buffer
 
-#include "msgpack/pack_template.h"
+#include "pack_template.h"
 
 
 template <typename Stream>
