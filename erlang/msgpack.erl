@@ -126,7 +126,7 @@ pack_(List)  when is_list(List) ->
 pack_({Map}) when is_list(Map) ->
     pack_map(Map);
 pack_(Other) ->
-    throw({error, {badarg, Other}}).
+    throw({badarg, Other}).
 
 
 -spec pack_uint_(non_neg_integer()) -> binary().
@@ -386,5 +386,10 @@ benchmark_test()->
     S=?debugTime("  serialize", msgpack:pack(Data)),
     {Data,<<>>}=?debugTime("deserialize", msgpack:unpack(S)),
     ?debugFmt("for ~p KB test data.", [byte_size(S) div 1024]).
+
+error_test()->
+    ?assertEqual({error,{badarg, atom}}, msgpack:pack(atom)),
+    Term = {"hoge", "hage", atom},
+    ?assertEqual({error,{badarg, Term}}, msgpack:pack(Term)).
 
 -endif.
