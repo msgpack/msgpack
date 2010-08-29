@@ -1,5 +1,10 @@
 
-2010-07-27 version 0.5.3:
+2010-08-29 version 0.5.4:
+
+  * includes msgpack_vc2008.vcproj file in source package
+  * fixes type::fix_int types
+
+2010-08-27 version 0.5.3:
 
   * adds type::fix_{u,}int{8,16,32,64} types
   * adds msgpack_pack_fix_{u,}int{8,16,32,64} functions
