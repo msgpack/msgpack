@@ -28,7 +28,7 @@
 			<Tool
 				Name="VCCustomBuildTool"
 				Description="Gathering header files"
-				CommandLine="msgpack_vc8.postbuild.bat"
+				CommandLine="msgpack_vc.postbuild.bat"
 				Outputs="include"
 			/>
 			<Tool
@@ -96,7 +96,7 @@
 			<Tool
 				Name="VCCustomBuildTool"
 				Description="Gathering header files"
-				CommandLine="msgpack_vc8.postbuild.bat"
+				CommandLine="msgpack_vc.postbuild.bat"
 				Outputs="include"
 			/>
 			<Tool
