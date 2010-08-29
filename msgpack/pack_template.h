@@ -272,63 +272,63 @@ do { \
 } while(0)
 
 
-#ifdef msgpack_pack_inline_func_fastint
+#ifdef msgpack_pack_inline_func_fixint
 
-msgpack_pack_inline_func_fastint(_uint8)(msgpack_pack_user x, uint8_t d)
+msgpack_pack_inline_func_fixint(_uint8)(msgpack_pack_user x, uint8_t d)
 {
 	unsigned char buf[2] = {0xcc, TAKE8_8(d)};
 	msgpack_pack_append_buffer(x, buf, 2);
 }
 
-msgpack_pack_inline_func_fastint(_uint16)(msgpack_pack_user x, uint16_t d)
+msgpack_pack_inline_func_fixint(_uint16)(msgpack_pack_user x, uint16_t d)
 {
 	unsigned char buf[3];
 	buf[0] = 0xcd; _msgpack_store16(&buf[1], d);
 	msgpack_pack_append_buffer(x, buf, 3);
 }
 
-msgpack_pack_inline_func_fastint(_uint32)(msgpack_pack_user x, uint32_t d)
+msgpack_pack_inline_func_fixint(_uint32)(msgpack_pack_user x, uint32_t d)
 {
 	unsigned char buf[5];
 	buf[0] = 0xce; _msgpack_store32(&buf[1], d);
 	msgpack_pack_append_buffer(x, buf, 5);
 }
 
-msgpack_pack_inline_func_fastint(_uint64)(msgpack_pack_user x, uint64_t d)
+msgpack_pack_inline_func_fixint(_uint64)(msgpack_pack_user x, uint64_t d)
 {
 	unsigned char buf[9];
 	buf[0] = 0xcf; _msgpack_store64(&buf[1], d);
 	msgpack_pack_append_buffer(x, buf, 9);
 }
 
-msgpack_pack_inline_func_fastint(_int8)(msgpack_pack_user x, int8_t d)
+msgpack_pack_inline_func_fixint(_int8)(msgpack_pack_user x, int8_t d)
 {
 	unsigned char buf[2] = {0xd0, TAKE8_8(d)};
 	msgpack_pack_append_buffer(x, buf, 2);
 }
 
-msgpack_pack_inline_func_fastint(_int16)(msgpack_pack_user x, int16_t d)
+msgpack_pack_inline_func_fixint(_int16)(msgpack_pack_user x, int16_t d)
 {
 	unsigned char buf[3];
 	buf[0] = 0xd1; _msgpack_store16(&buf[1], d);
 	msgpack_pack_append_buffer(x, buf, 3);
 }
 
-msgpack_pack_inline_func_fastint(_int32)(msgpack_pack_user x, int32_t d)
+msgpack_pack_inline_func_fixint(_int32)(msgpack_pack_user x, int32_t d)
 {
 	unsigned char buf[5];
 	buf[0] = 0xd2; _msgpack_store32(&buf[1], d);
 	msgpack_pack_append_buffer(x, buf, 5);
 }
 
-msgpack_pack_inline_func_fastint(_int64)(msgpack_pack_user x, int64_t d)
+msgpack_pack_inline_func_fixint(_int64)(msgpack_pack_user x, int64_t d)
 {
 	unsigned char buf[9];
 	buf[0] = 0xd3; _msgpack_store64(&buf[1], d);
 	msgpack_pack_append_buffer(x, buf, 9);
 }
 
-#undef msgpack_pack_inline_func_fastint
+#undef msgpack_pack_inline_func_fixint
 #endif
 
 

@@ -24,9 +24,7 @@ public class TestMessageUnpackable {
 		Image dst = new Image();
 
 		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Unpacker pac = new Unpacker(in);
-
-		dst.messageUnpack(pac);
+		dst.messageUnpack(new Unpacker(in));
 
 		assertEquals(src, dst);
 	}
