@@ -16,6 +16,8 @@
  *    limitations under the License.
  */
 #include "ruby.h"
+#include "encoding.h"
+
 #include "msgpack/pack_define.h"
 
 static ID s_to_msgpack;
@@ -131,7 +133,6 @@ static VALUE MessagePack_Fixnum_to_msgpack(int argc, VALUE *argv, VALUE self)
 static VALUE MessagePack_Bignum_to_msgpack(int argc, VALUE *argv, VALUE self)
 {
 	ARG_BUFFER(out, argc, argv);
-	// FIXME bignum
 	if(RBIGNUM_SIGN(self)) {  // positive
 		msgpack_pack_uint64(out, rb_big2ull(self));
 	} else {  // negative
@@ -168,6 +169,14 @@ static VALUE MessagePack_Float_to_msgpack(int argc, VALUE *argv, VALUE self)
 static VALUE MessagePack_String_to_msgpack(int argc, VALUE *argv, VALUE self)
 {
 	ARG_BUFFER(out, argc, argv);
+#ifdef MSGPACK_RUBY_ENCODING
+	int enc = ENCODING_GET(self);
+	if(enc != s_enc_utf8 && enc != s_enc_ascii8bit && enc != s_enc_usascii) {
+		if(!ENC_CODERANGE_ASCIIONLY(self)) {
+			self = rb_str_encode(self, s_enc_utf8_value, 0, Qnil);
+		}
+	}
+#endif
 	msgpack_pack_raw(out, RSTRING_LEN(self));
 	msgpack_pack_raw_body(out, RSTRING_PTR(self), RSTRING_LEN(self));
 	return out;
@@ -184,12 +193,16 @@ static VALUE MessagePack_String_to_msgpack(int argc, VALUE *argv, VALUE self)
  */
 static VALUE MessagePack_Symbol_to_msgpack(int argc, VALUE *argv, VALUE self)
 {
+#ifdef MSGPACK_RUBY_ENCODING
+	return MessagePack_String_to_msgpack(argc, argv, rb_id2str(SYM2ID(self)));
+#else
 	ARG_BUFFER(out, argc, argv);
 	const char* name = rb_id2name(SYM2ID(self));
 	size_t len = strlen(name);
 	msgpack_pack_raw(out, len);
 	msgpack_pack_raw_body(out, name, len);
 	return out;
+#endif
 }
 
 
@@ -205,7 +218,8 @@ static VALUE MessagePack_Symbol_to_msgpack(int argc, VALUE *argv, VALUE self)
 static VALUE MessagePack_Array_to_msgpack(int argc, VALUE *argv, VALUE self)
 {
 	ARG_BUFFER(out, argc, argv);
-	msgpack_pack_array(out, RARRAY_LEN(self));
+	// FIXME check sizeof(long) > sizeof(unsigned int) && RARRAY_LEN(self) > UINT_MAX
+	msgpack_pack_array(out, (unsigned int)RARRAY_LEN(self));
 	VALUE* p = RARRAY_PTR(self);
 	VALUE* const pend = p + RARRAY_LEN(self);
 	for(;p != pend; ++p) {
@@ -239,7 +253,8 @@ static int MessagePack_Hash_to_msgpack_foreach(VALUE key, VALUE value, VALUE out
 static VALUE MessagePack_Hash_to_msgpack(int argc, VALUE *argv, VALUE self)
 {
 	ARG_BUFFER(out, argc, argv);
-	msgpack_pack_map(out, RHASH_SIZE(self));
+	// FIXME check sizeof(st_index_t) > sizeof(unsigned int) && RARRAY_LEN(self) > UINT_MAX
+	msgpack_pack_map(out, (unsigned int)RHASH_SIZE(self));
 	rb_hash_foreach(self, MessagePack_Hash_to_msgpack_foreach, out);
 	return out;
 }
