@@ -17,11 +17,11 @@
  */
 #include "pack.h"
 #include "unpack.h"
-#include "encoding.h"
+#include "compat.h"
 
 static VALUE mMessagePack;
 
-#ifdef MSGPACK_RUBY_ENCODING
+#ifdef COMPAT_HAVE_ENCODING
 int s_enc_utf8;
 int s_enc_ascii8bit;
 int s_enc_usascii;
@@ -54,7 +54,7 @@ void Init_msgpack(void)
 
 	rb_define_const(mMessagePack, "VERSION", rb_str_new2(MESSAGEPACK_VERSION));
 
-#ifdef MSGPACK_RUBY_ENCODING
+#ifdef COMPAT_HAVE_ENCODING
 	s_enc_ascii8bit = rb_ascii8bit_encindex();
 	s_enc_utf8 = rb_utf8_encindex();
 	s_enc_usascii = rb_usascii_encindex();

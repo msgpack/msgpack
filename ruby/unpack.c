@@ -16,7 +16,7 @@
  *    limitations under the License.
  */
 #include "ruby.h"
-#include "encoding.h"
+#include "compat.h"
 
 #include "msgpack/unpack_define.h"
 
@@ -132,7 +132,7 @@ static inline int template_callback_raw(unpack_user* u, const char* b, const cha
 	} else {
 		*o = rb_str_substr(u->source, p - b, l);
 	}
-#ifdef MSGPACK_RUBY_ENCODING
+#ifdef COMPAT_HAVE_ENCODING
 	ENCODING_SET(*o, s_enc_utf8);
 #endif
 	return 0;
@@ -155,17 +155,11 @@ static inline int template_callback_raw(unpack_user* u, const char* b, const cha
 		rb_raise(rb_eTypeError, "instance of String needed"); \
 	}
 
-#ifdef RUBY_VM
-#define RERAISE rb_exc_raise(rb_errinfo())
-#else
-#define RERAISE rb_exc_raise(ruby_errinfo)
-#endif
-
 
 static VALUE template_execute_rescue(VALUE nouse)
 {
 	rb_gc_enable();
-	RERAISE;
+	COMPAT_RERAISE;
 }
 
 static VALUE template_execute_do(VALUE argv)
