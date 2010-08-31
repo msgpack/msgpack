@@ -118,10 +118,6 @@ static VALUE MessagePack_Fixnum_to_msgpack(int argc, VALUE *argv, VALUE self)
 }
 
 
-#ifndef RBIGNUM_SIGN  // Ruby 1.8
-#define RBIGNUM_SIGN(b) (RBIGNUM(b)->sign)
-#endif
-
 /*
  * Document-method: Bignum#to_msgpack
  *
@@ -133,9 +129,9 @@ static VALUE MessagePack_Fixnum_to_msgpack(int argc, VALUE *argv, VALUE self)
 static VALUE MessagePack_Bignum_to_msgpack(int argc, VALUE *argv, VALUE self)
 {
 	ARG_BUFFER(out, argc, argv);
-	if(RBIGNUM_SIGN(self)) {  // positive
+	if(RBIGNUM_POSITIVE_P(self)) {
 		msgpack_pack_uint64(out, rb_big2ull(self));
-	} else {  // negative
+	} else {
 		msgpack_pack_int64(out, rb_big2ll(self));
 	}
 	return out;

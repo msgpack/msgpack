@@ -35,6 +35,23 @@ extern VALUE s_enc_utf8_value;
 #endif
 
 
+/* ruby 1.8 and Rubinius */
+#ifndef RBIGNUM_POSITIVE_P
+# ifdef RUBINIUS
+#  define RBIGNUM_POSITIVE_P(b) (rb_funcall(b, rb_intern(">="), 1, INT2FIX(0)) == Qtrue)
+# else
+#  define RBIGNUM_POSITIVE_P(b) (RBIGNUM(b)->sign)
+# endif
+#endif
+
+
+/* Rubinius */
+#ifdef RUBINIUS
+static inline void rb_gc_enable() { return; }
+static inline void rb_gc_disable() { return; }
+#endif
+
+
 /* ruby 1.8.5 */
 #ifndef RSTRING_PTR
 #define RSTRING_PTR(s) (RSTRING(s)->ptr)
