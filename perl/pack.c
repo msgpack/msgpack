@@ -151,7 +151,7 @@ static int try_int(enc_t* enc, const char *p, size_t len) {
 static void _msgpack_pack_rv(enc_t *enc, SV* sv, int depth);
 
 static void _msgpack_pack_sv(enc_t *enc, SV* sv, int depth) {
-    if (!depth) Perl_croak(aTHX_ ERR_NESTING_EXCEEDED);
+    if (depth <= 0) Perl_croak(aTHX_ ERR_NESTING_EXCEEDED);
     SvGETMAGIC(sv);
 
     if (sv==NULL) {
@@ -187,7 +187,7 @@ static void _msgpack_pack_sv(enc_t *enc, SV* sv, int depth) {
 
 static void _msgpack_pack_rv(enc_t *enc, SV* sv, int depth) {
     svtype svt;
-    if (!depth) Perl_croak(aTHX_ ERR_NESTING_EXCEEDED);
+    if (depth <= 0) Perl_croak(aTHX_ ERR_NESTING_EXCEEDED);
     SvGETMAGIC(sv);
     svt = SvTYPE(sv);
 

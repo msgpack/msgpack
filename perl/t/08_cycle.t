@@ -2,7 +2,7 @@ use t::Util;
 use Test::More;
 use Data::MessagePack;
 
-plan tests => 5;
+plan tests => 6;
 
 my $aref = [0];
 $aref->[1] = $aref;
@@ -22,4 +22,7 @@ eval { Data::MessagePack->pack($aref, 3) };
 ok !$@;
 
 eval { Data::MessagePack->pack($aref, 2) };
+ok $@, $@;
+
+eval { Data::MessagePack->pack($aref, -1) };
 ok $@, $@;
