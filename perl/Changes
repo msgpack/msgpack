@@ -1,3 +1,8 @@
+0.15
+
+    - better argument validation.
+      (Dan Kogai)
+
 0.14
 
     - fixed segv on serializing cyclic reference
