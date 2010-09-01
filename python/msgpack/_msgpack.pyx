@@ -253,9 +253,7 @@ cdef class Unpacker(object):
         template_init(&self.ctx)
         self.ctx.user.use_list = use_list
 
-    def feed(self, next_bytes):
-        if not isinstance(next_bytes, str):
-           raise ValueError, "Argument must be bytes object"
+    def feed(self, bytes next_bytes):
         self.waiting_bytes.append(next_bytes)
 
     cdef append_buffer(self):
