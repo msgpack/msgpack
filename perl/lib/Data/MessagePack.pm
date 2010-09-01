@@ -12,12 +12,13 @@ sub true  () { $true  }
 sub false () { $false }
 
 if ( !__PACKAGE__->can('pack') ) { # this idea comes from Text::Xslate
-    if ( $ENV{ PERL_DATA_MESSAGEPACK } !~ /\b pp \b/xms ) {
+    my $backend = $ENV{ PERL_DATA_MESSAGEPACK } || '';
+    if ( $backend !~ /\b pp \b/xms ) {
         eval {
             require XSLoader;
             XSLoader::load(__PACKAGE__, $VERSION);
         };
-        die $@ if $@ && $ENV{ PERL_DATA_MESSAGEPACK } =~ /\b xs \b/xms; # force XS
+        die $@ if $@ && $backend =~ /\b xs \b/xms; # force XS
     }
     if ( !__PACKAGE__->can('pack') ) {
         print "PP\n";

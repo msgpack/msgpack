@@ -84,6 +84,8 @@ BEGIN {
 #
 
 {
+    no warnings 'recursion';
+
     my $max_depth;
 
 sub pack {
@@ -96,16 +98,16 @@ sub pack {
 sub _pack {
     my ( $value ) = @_;
 
-    return pack( 'C', 0xc0 ) if ( not defined $value );
+    return CORE::pack( 'C', 0xc0 ) if ( not defined $value );
 
     my $b_obj = B::svref_2object( ref $value ? $value : \$value );
 
     if ( $b_obj->isa('B::AV') ) {
         my $num = @$value;
         my $header = 
-              $num < 16          ? pack( 'C',  0x90 + $num )
-            : $num < 2 ** 16 - 1 ? pack( 'Cn', 0xdc,  $num )
-            : $num < 2 ** 32 - 1 ? pack( 'CN', 0xdd,  $num )
+              $num < 16          ? CORE::pack( 'C',  0x90 + $num )
+            : $num < 2 ** 16 - 1 ? CORE::pack( 'Cn', 0xdc,  $num )
+            : $num < 2 ** 32 - 1 ? CORE::pack( 'CN', 0xdd,  $num )
             : die "" # don't arrivie here
         ;
         if ( --$max_depth <= 0 ) {
@@ -117,9 +119,9 @@ sub _pack {
     elsif ( $b_obj->isa('B::HV') ) {
         my $num = keys %$value;
         my $header = 
-              $num < 16          ? pack( 'C',  0x80 + $num )
-            : $num < 2 ** 16 - 1 ? pack( 'Cn', 0xde,  $num )
-            : $num < 2 ** 32 - 1 ? pack( 'CN', 0xdf,  $num )
+              $num < 16          ? CORE::pack( 'C',  0x80 + $num )
+            : $num < 2 ** 16 - 1 ? CORE::pack( 'Cn', 0xde,  $num )
+            : $num < 2 ** 32 - 1 ? CORE::pack( 'CN', 0xdf,  $num )
             : die "" # don't arrivie here
         ;
         if ( --$max_depth <= 0 ) {
@@ -128,8 +130,8 @@ sub _pack {
         return join( '', $header, map { _pack( $_ ) } %$value );
     }
 
-    elsif ( blessed( $value ) eq 'Data::MessagePack::Boolean' ) {
-        return  pack( 'C', $$value ? 0xc3 : 0xc2 );
+    elsif ( blessed( $value ) and blessed( $value ) eq 'Data::MessagePack::Boolean' ) {
+        return  CORE::pack( 'C', $$value ? 0xc3 : 0xc2 );
     }
 
     my $flags = $b_obj->FLAGS;
@@ -137,18 +139,18 @@ sub _pack {
     if ( $flags & ( B::SVf_IOK | B::SVp_IOK ) ) {
 
         if ($value >= 0) {
-            return    $value <= 127 ?    pack 'C',        $value
-                    : $value < 2 ** 8 ?  pack 'CC', 0xcc, $value
-                    : $value < 2 ** 16 ? pack 'Cn', 0xcd, $value
-                    : $value < 2 ** 32 ? pack 'CN', 0xce, $value
-                    : pack 'CQ>', 0xcf, $value;
+            return    $value <= 127 ?    CORE::pack 'C',        $value
+                    : $value < 2 ** 8 ?  CORE::pack 'CC', 0xcc, $value
+                    : $value < 2 ** 16 ? CORE::pack 'Cn', 0xcd, $value
+                    : $value < 2 ** 32 ? CORE::pack 'CN', 0xce, $value
+                    : CORE::pack 'CQ>', 0xcf, $value;
         }
         else {
-            return    -$value <= 32 ?      pack 'C',        $value
-                    : -$value <= 2 **  7 ? pack 'Cc', 0xd0, $value
-                    : -$value <= 2 ** 15 ? pack 'Cn', 0xd1, $value
-                    : -$value <= 2 ** 31 ? pack 'CN', 0xd2, $value
-                    : pack 'Cq>', 0xd3, $value;
+            return    -$value <= 32 ?      CORE::pack 'C', ($value & 255)
+                    : -$value <= 2 **  7 ? CORE::pack 'Cc', 0xd0, $value
+                    : -$value <= 2 ** 15 ? CORE::pack 'Cn', 0xd1, $value
+                    : -$value <= 2 ** 31 ? CORE::pack 'CN', 0xd2, $value
+                    : CORE::pack 'Cq>', 0xd3, $value;
         }
 
     }
@@ -170,9 +172,9 @@ sub _pack {
 
         my $num = length $value;
         my $header = 
-              $num < 32          ? pack( 'C',  0xa0 + $num )
-            : $num < 2 ** 16 - 1 ? pack( 'Cn', 0xda, $num )
-            : $num < 2 ** 32 - 1 ? pack( 'CN', 0xdb, $num )
+              $num < 32          ? CORE::pack( 'C',  0xa0 + $num )
+            : $num < 2 ** 16 - 1 ? CORE::pack( 'Cn', 0xda, $num )
+            : $num < 2 ** 32 - 1 ? CORE::pack( 'CN', 0xdb, $num )
             : die "" # don't arrivie here
         ;
 
@@ -198,6 +200,7 @@ sub _pack {
 #
 
 {
+
     my $p; # position variables for speed.
 
 sub unpack {
@@ -208,18 +211,18 @@ sub unpack {
 
 sub _unpack {
     my ( $value ) = @_;
-    my $byte = unpack( 'C', substr( $value, $p++, 1 ) ); # get header
+    my $byte = CORE::unpack( 'C', substr( $value, $p++, 1 ) ); # get header
 
     die "invalid data" unless defined $byte;
 
     if ( ( $byte >= 0x90 and $byte <= 0x9f ) or $byte == 0xdc or $byte == 0xdd ) {
         my $num;
         if ( $byte == 0xdc ) { # array 16
-            $num = unpack 'n', substr( $value, $p, 2 );
+            $num = CORE::unpack 'n', substr( $value, $p, 2 );
             $p += 2;
         }
         elsif ( $byte == 0xdd ) { # array 32
-            $num = unpack 'N', substr( $value, $p, 4 );
+            $num = CORE::unpack 'N', substr( $value, $p, 4 );
             $p += 4;
         }
         else { # fix array
@@ -233,11 +236,11 @@ sub _unpack {
     elsif ( ( $byte >= 0x80 and $byte <= 0x8f ) or $byte == 0xde or $byte == 0xdf ) {
         my $num;
         if ( $byte == 0xde ) { # map 16
-            $num = unpack 'n', substr( $value, $p, 2 );
+            $num = CORE::unpack 'n', substr( $value, $p, 2 );
             $p += 2;
         }
         elsif ( $byte == 0xdf ) { # map 32
-            $num = unpack 'N', substr( $value, $p, 4 );
+            $num = CORE::unpack 'N', substr( $value, $p, 4 );
             $p += 4;
         }
         else { # fix map
@@ -245,6 +248,7 @@ sub _unpack {
         }
         my %map;
         for ( 0 .. $num - 1 ) {
+            no warnings; # for undef key case
             my $key = _unpack( $value );
             my $val = _unpack( $value );
             $map{ $key } = $val;
@@ -256,24 +260,23 @@ sub _unpack {
         return $byte;
     }
     elsif ( $byte == 0xcc ) { # uint8
-        unpack( 'C', substr( $value, $p++, 1 ) );
+        CORE::unpack( 'C', substr( $value, $p++, 1 ) );
     }
     elsif ( $byte == 0xcd ) { # uint16
         $p += 2;
-        return unpack 'n', substr( $value, $p - 2, 2 );
+        return CORE::unpack 'n', substr( $value, $p - 2, 2 );
     }
     elsif ( $byte == 0xce ) { # unit32
         $p += 4;
-        return unpack 'N', substr( $value, $p - 4, 4 );
+        return CORE::unpack 'N', substr( $value, $p - 4, 4 );
     }
     elsif ( $byte == 0xcf ) { # unit64
         $p += 8;
-        return unpack 'Q>', substr( $value, $p - 8, 8 );
+        return CORE::unpack 'Q>', substr( $value, $p - 8, 8 );
     }
     elsif ( $byte == 0xd3 ) { # int64
         $p += 8;
         return unpack_int64( $value, $p - 8 );
-        return unpack 'q>',  substr( $value, $p - 8, 8 );
     }
     elsif ( $byte == 0xd2 ) { # int32
         $p += 4;
@@ -284,7 +287,7 @@ sub _unpack {
         return unpack_int16( $value, $p - 2 );
     }
     elsif ( $byte == 0xd0 ) { # int8
-        return unpack 'c',  substr( $value, $p++, 1 ); # c / C
+        return CORE::unpack 'c',  substr( $value, $p++, 1 ); # c / C
     }
     elsif ( $byte >= 0xe0 and $byte <= 0xff ) { # negative fixnum
         return $byte - 256;
@@ -293,11 +296,11 @@ sub _unpack {
     elsif ( ( $byte >= 0xa0 and $byte <= 0xbf ) or $byte == 0xda or $byte == 0xdb ) { # raw
         my $num;
         if ( $byte == 0xda ) {
-            $num = unpack 'n', substr( $value, $p, 2 );
+            $num = CORE::unpack 'n', substr( $value, $p, 2 );
             $p += 2 + $num;
         }
         elsif ( $byte == 0xdb ) {
-            $num = unpack 'N', substr( $value, $p, 4 );
+            $num = CORE::unpack 'N', substr( $value, $p, 4 );
             $p += 4 + $num;
         }
         else { # fix raw
@@ -373,7 +376,6 @@ sub execute {
         _count( $self, $value ) or last;
 
         if ( @{ $self->{stack} } > 0 ) {
-            $self->{stack}->[-1];
             pop @{ $self->{stack} } if --$self->{stack}->[-1] == 0;
         }
     }
