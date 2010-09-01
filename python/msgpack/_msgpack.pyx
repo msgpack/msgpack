@@ -1,26 +1,24 @@
 # coding: utf-8
 
-import cStringIO
-
 cdef extern from "Python.h":
     ctypedef char* const_char_ptr "const char*"
     ctypedef struct PyObject
 
-    cdef object PyString_FromStringAndSize(const_char_ptr b, Py_ssize_t len)
+    cdef object PyBytes_FromStringAndSize(const_char_ptr b, Py_ssize_t len)
     cdef PyObject* Py_True
     cdef PyObject* Py_False
 
-    cdef char* PyString_AsString(object o)
     cdef long long PyLong_AsLongLong(object o)
     cdef unsigned long long PyLong_AsUnsignedLongLong(object o)
 
-    cdef int PyMapping_Check(object o)
-    cdef int PySequence_Check(object o)
-    cdef int PyLong_Check(object o)
-    cdef int PyInt_Check(object o)
-    cdef int PyFloat_Check(object o)
-    cdef int PyString_Check(object o)
-    cdef int PyUnicode_Check(object o)
+    cdef bint PyBool_Check(object o)
+    cdef bint PyMapping_Check(object o)
+    cdef bint PySequence_Check(object o)
+    cdef bint PyLong_Check(object o)
+    cdef bint PyInt_Check(object o)
+    cdef bint PyFloat_Check(object o)
+    cdef bint PyBytes_Check(object o)
+    cdef bint PyUnicode_Check(object o)
 
 cdef extern from "stdlib.h":
     void* malloc(size_t)
@@ -81,10 +79,12 @@ cdef class Packer(object):
 
         if o is None:
             ret = msgpack_pack_nil(&self.pk)
-        elif <PyObject*>o == Py_True:
-            ret = msgpack_pack_true(&self.pk)
-        elif <PyObject*>o == Py_False:
-            ret = msgpack_pack_false(&self.pk)
+            #elif PyBool_Check(o):
+        elif isinstance(o, bool):
+            if o:
+                ret = msgpack_pack_true(&self.pk)
+            else:
+                ret = msgpack_pack_false(&self.pk)
         elif PyLong_Check(o):
             if o > 0:
                 ullval = PyLong_AsUnsignedLongLong(o)
@@ -98,7 +98,7 @@ cdef class Packer(object):
         elif PyFloat_Check(o):
             fval = o
             ret = msgpack_pack_double(&self.pk, fval)
-        elif PyString_Check(o):
+        elif PyBytes_Check(o):
             rawval = o
             ret = msgpack_pack_raw(&self.pk, len(o))
             if ret == 0:
@@ -133,7 +133,7 @@ cdef class Packer(object):
         ret = self.__pack(obj)
         if ret:
             raise TypeError
-        buf = PyString_FromStringAndSize(self.pk.buf, self.pk.length)
+        buf = PyBytes_FromStringAndSize(self.pk.buf, self.pk.length)
         self.pk.length = 0
         return buf
 
@@ -262,10 +262,11 @@ cdef class Unpacker(object):
         cdef char* buf = self.buf
         cdef Py_ssize_t tail = self.buf_tail
         cdef Py_ssize_t l
+        cdef bytes b
 
         for b in self.waiting_bytes:
             l = len(b)
-            memcpy(buf + tail, PyString_AsString(b), l)
+            memcpy(buf + tail, <char*>(b), l)
             tail += l
         self.buf_tail = tail
         del self.waiting_bytes[:]
