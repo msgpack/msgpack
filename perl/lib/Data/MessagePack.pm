@@ -1,7 +1,6 @@
 package Data::MessagePack;
 use strict;
 use warnings;
-use XSLoader;
 use 5.008001;
 
 our $VERSION = '0.15';
@@ -12,7 +11,19 @@ our $false = do { bless \(my $dummy = 0), "Data::MessagePack::Boolean" };
 sub true  () { $true  }
 sub false () { $false }
 
-XSLoader::load(__PACKAGE__, $VERSION);
+if ( !__PACKAGE__->can('pack') ) { # this idea comes from Text::Xslate
+    if ( $ENV{ PERL_DATA_MESSAGEPACK } !~ /\b pp \b/xms ) {
+        eval {
+            require XSLoader;
+            XSLoader::load(__PACKAGE__, $VERSION);
+        };
+        die $@ if $@ && $ENV{ PERL_DATA_MESSAGEPACK } =~ /\b xs \b/xms; # force XS
+    }
+    if ( !__PACKAGE__->can('pack') ) {
+        print "PP\n";
+        require 'Data/MessagePack/PP.pm';
+    }
+}
 
 1;
 __END__

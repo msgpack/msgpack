@@ -2,27 +2,22 @@ package Data::MessagePack::PP;
 
 use 5.008000;
 use strict;
-use B ();
-use Scalar::Util qw( blessed );
 use Carp ();
 
-our $VERSION = '0.03';
-
-
-# copied from Data::MessagePack
-our $true  = do { bless \(my $dummy = 1), "Data::MessagePack::Boolean" };
-our $false = do { bless \(my $dummy = 0), "Data::MessagePack::Boolean" };
-
-sub true  () { $true  }
-sub false () { $false }
-
-our $PreferInteger;
+our $VERSION = '0.15';
 
 # See also
 # http://redmine.msgpack.org/projects/msgpack/wiki/FormatSpec
 # http://cpansearch.perl.org/src/YAPPO/Data-Model-0.00006/lib/Data/Model/Driver/Memcached.pm
 # http://frox25.no-ip.org/~mtve/wiki/MessagePack.html : reference to using CORE::pack, CORE::unpack
 
+
+package
+    Data::MessagePack;
+
+use Scalar::Util qw( blessed );
+use strict;
+use B ();
 
 BEGIN {
     # for pack and unpack compatibility
@@ -160,11 +155,11 @@ sub _pack {
 
     elsif ( $flags & B::SVf_POK ) { # raw / check needs before dboule
 
-        if ( $PreferInteger ) {
+        if ( $Data::MessagePack::PreferInteger ) {
             if ( $value =~ /^-?[0-9]+$/ ) { # ok?
                 my $value2 = 0 + $value;
                 if (  0 + $value != B::svref_2object( \$value2 )->int_value ) {
-                    local $PreferInteger;      # avoid for PV => NV
+                    local $Data::MessagePack::PreferInteger; # avoid for PV => NV
                     return _pack( "$value" );
                 }
                 return _pack( $value + 0 );
@@ -346,7 +341,8 @@ sub _unpack {
 # Data::MessagePack::Unpacker
 #
 
-package Data::MessagePack::PP::Unpacker;
+package
+    Data::MessagePack::Unpacker;
 
 use strict;
 
@@ -530,7 +526,7 @@ __END__
 
 =head1 NAME
 
-Data::MessagePack::PP - the pure perl version of Data::MessagePack
+Data::MessagePack::PP - Pure Perl version of Data::MessagePack
 
 =head1 LIMITATION
 
@@ -540,9 +536,10 @@ In Perl 5.8.x, it requires L<Data::Float> and cannot unpack int64 and float (pac
 
 =head1 SEE ALSO
 
+L<http://msgpack.sourceforge.jp/>,
 L<Data::MessagePack>,
+L<Data::Float>,
 L<http://frox25.no-ip.org/~mtve/wiki/MessagePack.html>,
-L<Data::Float>
 
 =head1 AUTHOR
 
