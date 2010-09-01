@@ -77,21 +77,17 @@ TEST(unpack, sequence)
 	msgpack::pack(sbuf, 2);
 	msgpack::pack(sbuf, 3);
 
-	bool cont;
 	size_t offset = 0;
 
 	msgpack::unpacked msg;
 
-	cont = msgpack::unpack(&msg, sbuf.data(), sbuf.size(), &offset);
-	EXPECT_TRUE(cont);
+	msgpack::unpack(&msg, sbuf.data(), sbuf.size(), &offset);
 	EXPECT_EQ(1, msg.get().as<int>());
 
-	cont = msgpack::unpack(&msg, sbuf.data(), sbuf.size(), &offset);
-	EXPECT_TRUE(cont);
+	msgpack::unpack(&msg, sbuf.data(), sbuf.size(), &offset);
 	EXPECT_EQ(2, msg.get().as<int>());
 
-	cont = msgpack::unpack(&msg, sbuf.data(), sbuf.size(), &offset);
-	EXPECT_FALSE(cont);
+	msgpack::unpack(&msg, sbuf.data(), sbuf.size(), &offset);
 	EXPECT_EQ(3, msg.get().as<int>());
 }
 

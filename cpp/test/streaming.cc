@@ -2,28 +2,33 @@
 #include <gtest/gtest.h>
 #include <sstream>
 
-
 TEST(streaming, basic)
 {
-	std::ostringstream stream;
-	msgpack::packer<std::ostream> pk(&stream);
+	msgpack::sbuffer buffer;
 
+	msgpack::packer<msgpack::sbuffer> pk(&buffer);
 	pk.pack(1);
 	pk.pack(2);
 	pk.pack(3);
 
-	std::istringstream input(stream.str());
+	const char* input = buffer.data();
+	const char* const eof = input + buffer.size();
 
 	msgpack::unpacker pac;
+	msgpack::unpacked result;
 
 	int count = 0;
 	while(count < 3) {
 		pac.reserve_buffer(32*1024);
 
-		size_t len = input.readsome(pac.buffer(), pac.buffer_capacity());
+		// read buffer into pac.buffer() upto
+		// pac.buffer_capacity() bytes.
+		size_t len = 1;
+		memcpy(pac.buffer(), input, len);
+		input += len;
+
 		pac.buffer_consumed(len);
 
-		msgpack::unpacked result;
 		while(pac.next(&result)) {
 			msgpack::object obj = result.get();
 			switch(count++) {
@@ -38,6 +43,8 @@ TEST(streaming, basic)
 				return;
 			}
 		}
+
+		EXPECT_TRUE(input < eof);
 	}
 }
 

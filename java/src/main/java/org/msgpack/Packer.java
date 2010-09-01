@@ -22,7 +22,24 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
+import java.math.BigInteger;
 
+/**
+ * Packer enables you to serialize objects into OutputStream.
+ *
+ * <pre>
+ * // create a packer with output stream
+ * Packer pk = new Packer(System.out);
+ *
+ * // store an object with pack() method.
+ * pk.pack(1);
+ *
+ * // you can store String, List, Map, byte[] and primitive types.
+ * pk.pack(new ArrayList());
+ * </pre>
+ *
+ * You can serialize objects that implements {@link MessagePackable} interface.
+ */
 public class Packer {
 	protected byte[] castBytes = new byte[9];
 	protected ByteBuffer castBuffer = ByteBuffer.wrap(castBytes);
@@ -34,7 +51,7 @@ public class Packer {
 
 	public Packer packByte(byte d) throws IOException {
 		if(d < -(1<<5)) {
-			castBytes[0] = (byte)0xd1;
+			castBytes[0] = (byte)0xd0;
 			castBytes[1] = d;
 			out.write(castBytes, 0, 2);
 		} else {
@@ -178,6 +195,27 @@ public class Packer {
 		return this;
 	}
 
+	public Packer packBigInteger(BigInteger d) throws IOException {
+		if(d.bitLength() <= 63) {
+			return packLong(d.longValue());
+		} else if(d.bitLength() <= 64 && d.signum() >= 0) {
+			castBytes[0] = (byte)0xcf;
+			byte[] barray = d.toByteArray();
+			castBytes[1] = barray[barray.length-8];
+			castBytes[2] = barray[barray.length-7];
+			castBytes[3] = barray[barray.length-6];
+			castBytes[4] = barray[barray.length-5];
+			castBytes[5] = barray[barray.length-4];
+			castBytes[6] = barray[barray.length-3];
+			castBytes[7] = barray[barray.length-2];
+			castBytes[8] = barray[barray.length-1];
+			out.write(castBytes);
+			return this;
+		} else {
+			throw new MessageTypeException("can't pack BigInteger larger than 0xffffffffffffffff");
+		}
+	}
+
 	public Packer packFloat(float d) throws IOException {
 		castBytes[0] = (byte)0xca;
 		castBuffer.putFloat(1, d);
@@ -205,6 +243,10 @@ public class Packer {
 	public Packer packFalse() throws IOException {
 		out.write((byte)0xc2);
 		return this;
+	}
+
+	public Packer packBoolean(boolean d) throws IOException {
+		return d ? packTrue() : packFalse();
 	}
 
 	public Packer packArray(int n) throws IOException {
@@ -266,12 +308,6 @@ public class Packer {
 	}
 
 
-	public Packer packWithSchema(Object o, Schema s) throws IOException {
-		s.pack(this, o);
-		return this;
-	}
-
-
 	public Packer packString(String s) throws IOException {
 		byte[] b = ((String)s).getBytes("UTF-8");
 		packRaw(b.length);
@@ -279,39 +315,36 @@ public class Packer {
 	}
 
 
-	public Packer pack(String o) throws IOException {
-		if(o == null) { return packNil(); }
-		return packString(o);
-	}
-
-	public Packer pack(MessagePackable o) throws IOException {
-		if(o == null) { return packNil(); }
-		o.messagePack(this);
-		return this;
-	}
-
-	public Packer pack(byte[] o) throws IOException {
-		if(o == null) { return packNil(); }
-		packRaw(o.length);
-		return packRawBody(o);
-	}
-
-	public Packer pack(List o) throws IOException {
-		if(o == null) { return packNil(); }
-		packArray(o.size());
-		for(Object i : o) { pack(i); }
-		return this;
-	}
-
-	@SuppressWarnings("unchecked")
-	public Packer pack(Map o) throws IOException {
-		if(o == null) { return packNil(); }
-		packMap(o.size());
-		for(Map.Entry e : ((Map<Object,Object>)o).entrySet()) {
-			pack(e.getKey());
-			pack(e.getValue());
+	public Packer pack(boolean o) throws IOException {
+		if(o) {
+			return packTrue();
+		} else {
+			return packFalse();
 		}
-		return this;
+	}
+
+	public Packer pack(byte o) throws IOException {
+		return packByte(o);
+	}
+
+	public Packer pack(short o) throws IOException {
+		return packShort(o);
+	}
+
+	public Packer pack(int o) throws IOException {
+		return packInt(o);
+	}
+
+	public Packer pack(long o) throws IOException {
+		return packLong(o);
+	}
+
+	public Packer pack(float o) throws IOException {
+		return packFloat(o);
+	}
+
+	public Packer pack(double o) throws IOException {
+		return packDouble(o);
 	}
 
 	public Packer pack(Boolean o) throws IOException {
@@ -343,6 +376,11 @@ public class Packer {
 		return packLong(o);
 	}
 
+	public Packer pack(BigInteger o) throws IOException {
+		if(o == null) { return packNil(); }
+		return packBigInteger(o);
+	}
+
 	public Packer pack(Float o) throws IOException {
 		if(o == null) { return packNil(); }
 		return packFloat(o);
@@ -353,8 +391,41 @@ public class Packer {
 		return packDouble(o);
 	}
 
+	public Packer pack(String o) throws IOException {
+		if(o == null) { return packNil(); }
+		return packString(o);
+	}
 
-	@SuppressWarnings("unchecked")
+	public Packer pack(MessagePackable o) throws IOException {
+		if(o == null) { return packNil(); }
+		o.messagePack(this);
+		return this;
+	}
+
+	public Packer pack(byte[] o) throws IOException {
+		if(o == null) { return packNil(); }
+		packRaw(o.length);
+		return packRawBody(o);
+	}
+
+	public Packer pack(List o) throws IOException {
+		if(o == null) { return packNil(); }
+		packArray(o.size());
+		for(Object i : o) { pack(i); }
+		return this;
+	}
+
+	public Packer pack(Map o) throws IOException {
+		if(o == null) { return packNil(); }
+		packMap(o.size());
+		for(Map.Entry<Object,Object> e : ((Map<Object,Object>)o).entrySet()) {
+			pack(e.getKey());
+			pack(e.getValue());
+		}
+		return this;
+	}
+
+
 	public Packer pack(Object o) throws IOException {
 		if(o == null) {
 			return packNil();
@@ -377,7 +448,7 @@ public class Packer {
 		} else if(o instanceof Map) {
 			Map<Object,Object> m = (Map<Object,Object>)o;
 			packMap(m.size());
-			for(Map.Entry e : m.entrySet()) {
+			for(Map.Entry<Object,Object> e : m.entrySet()) {
 				pack(e.getKey());
 				pack(e.getValue());
 			}
@@ -400,8 +471,10 @@ public class Packer {
 			return packFloat((Float)o);
 		} else if(o instanceof Double) {
 			return packDouble((Double)o);
+		} else if(o instanceof BigInteger) {
+			return packBigInteger((BigInteger)o);
 		} else {
-			throw new IOException("unknown object "+o+" ("+o.getClass()+")");
+			throw new MessageTypeException("unknown object "+o+" ("+o.getClass()+")");
 		}
 	}
 }

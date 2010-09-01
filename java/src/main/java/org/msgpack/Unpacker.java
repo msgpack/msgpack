@@ -22,144 +22,382 @@ import java.io.InputStream;
 import java.io.IOException;
 import java.util.Iterator;
 import java.nio.ByteBuffer;
-import org.msgpack.impl.UnpackerImpl;
+import java.math.BigInteger;
 
-public class Unpacker extends UnpackerImpl implements Iterable<Object> {
+/**
+ * Unpacker enables you to deserialize objects from stream.
+ *
+ * Unpacker provides Buffered API, Unbuffered API and
+ * Direct Conversion API.
+ *
+ * Buffered API uses the internal buffer of the Unpacker.
+ * Following code uses Buffered API with an InputStream:
+ * <pre>
+ * // create an unpacker with input stream
+ * Unpacker pac = new Unpacker(System.in);
+ *
+ * // take a object out using next() method, or ...
+ * UnpackResult result = pac.next();
+ *
+ * // use an iterator.
+ * for(MessagePackObject obj : pac) {
+ *   // use MessageConvertable interface to convert the
+ *   // the generic object to the specific type.
+ * }
+ * </pre>
+ *
+ * Following code doesn't use the input stream and feeds buffer
+ * using {@link feed(byte[])} method. This is useful to use
+ * special stream like zlib or event-driven I/O library.
+ * <pre>
+ * // create an unpacker without input stream
+ * Unpacker pac = new Unpacker();
+ *
+ * // feed buffer to the internal buffer.
+ * pac.feed(input_bytes);
+ *
+ * // use next() method or iterators.
+ * for(MessagePackObject obj : pac) {
+ *   // ...
+ * }
+ * </pre>
+ *
+ * The combination of {@link reserveBuffer()}, {@link getBuffer()},
+ * {@link getBufferOffset()}, {@link getBufferCapacity()} and
+ * {@link bufferConsumed()} is useful to omit copying.
+ * <pre>
+ * // create an unpacker without input stream
+ * Unpacker pac = new Unpacker();
+ *
+ * // reserve internal buffer at least 1024 bytes.
+ * pac.reserveBuffer(1024);
+ *
+ * // feed buffer to the internal buffer upto pac.getBufferCapacity() bytes.
+ * System.in.read(pac.getBuffer(), pac.getBufferOffset(), pac.getBufferCapacity());
+ *
+ * // use next() method or iterators.
+ * for(MessagePackObject obj : pac) {
+ *     // ...
+ * }
+ * </pre>
+ *
+ * Unbuffered API doesn't initialize the internal buffer.
+ * You can manage the buffer manually.
+ * <pre>
+ * // create an unpacker with input stream
+ * Unpacker pac = new Unpacker(System.in);
+ *
+ * // manage the buffer manually.
+ * byte[] buffer = new byte[1024];
+ * int filled = System.in.read(buffer);
+ * int offset = 0;
+ *
+ * // deserialize objects using execute() method.
+ * int nextOffset = pac.execute(buffer, offset, filled);
+ *
+ * // take out object if deserialized object is ready.
+ * if(pac.isFinished()) {
+ *     MessagePackObject obj = pac.getData();
+ *     // ...
+ * }
+ * </pre>
+ */
+public class Unpacker implements Iterable<MessagePackObject> {
 
-	public static final int DEFAULT_BUFFER_SIZE = 32*1024;
+	// buffer:
+	// +---------------------------------------------+
+	// | [object] | [obje| unparsed ... | unused  ...|
+	// +---------------------------------------------+
+	//            ^ parsed
+	//                   ^ offset
+	//                                  ^ filled
+	//                                               ^ buffer.length
 
-	private int used;
-	private int offset;
-	private int parsed;
-	private byte[] buffer;
-	private int bufferReserveSize;
-	private InputStream stream;
+	private static final int DEFAULT_BUFFER_SIZE = 32*1024;
 
+	protected int parsed;
+	protected int bufferReserveSize;
+	protected InputStream stream;
+
+	final class BufferedUnpackerMixin extends BufferedUnpackerImpl {
+		boolean fill() throws IOException {
+			if(stream == null) {
+				return false;
+			}
+			reserveBuffer(bufferReserveSize);
+			int rl = stream.read(buffer, filled, buffer.length - filled);
+			// equals: stream.read(getBuffer(), getBufferOffset(), getBufferCapacity());
+			if(rl <= 0) {
+				return false;
+			}
+			bufferConsumed(rl);
+			return true;
+		}
+	};
+
+	final BufferedUnpackerMixin impl = new BufferedUnpackerMixin();
+
+
+	/**
+	 * Calls {@link Unpacker(DEFAULT_BUFFER_SIZE)}
+	 */
 	public Unpacker() {
 		this(DEFAULT_BUFFER_SIZE);
 	}
 
+	/**
+	 * Calls {@link Unpacker(null, bufferReserveSize)}
+	 */
 	public Unpacker(int bufferReserveSize) {
 		this(null, bufferReserveSize);
 	}
 
+	/**
+	 * Calls {@link Unpacker(stream, DEFAULT_BUFFER_SIZE)}
+	 */
 	public Unpacker(InputStream stream) {
 		this(stream, DEFAULT_BUFFER_SIZE);
 	}
 
+	/**
+	 * Constructs the unpacker.
+	 * The stream is used to fill the buffer when more buffer is required by {@link next()} or {@link UnpackIterator#hasNext()} method.
+	 * @param stream input stream to fill the buffer
+	 * @param bufferReserveSize threshold size to expand the size of buffer
+	 */
 	public Unpacker(InputStream stream, int bufferReserveSize) {
-		super();
-		this.used = 0;
-		this.offset = 0;
 		this.parsed = 0;
-		this.buffer = new byte[bufferReserveSize];
 		this.bufferReserveSize = bufferReserveSize/2;
 		this.stream = stream;
 	}
 
-	public Unpacker useSchema(Schema s) {
-		super.setSchema(s);
-		return this;
+
+	/**
+	 * Gets the input stream.
+	 * @return the input stream. it may be null.
+	 */
+	public InputStream getStream() {
+		return this.stream;
 	}
 
-	public void reserveBuffer(int size) {
-		if(buffer.length - used >= size) {
-			return;
-		}
-		/*
-		if(used == parsed && buffer.length >= size) {
-			// rewind buffer
-			used = 0;
-			offset = 0;
-			return;
-		}
-		*/
-
-		int nextSize = buffer.length * 2;
-		while(nextSize < size + used) {
-			nextSize *= 2;
-		}
-
-		byte[] tmp = new byte[nextSize];
-		System.arraycopy(buffer, offset, tmp, 0, used - offset);
-
-		buffer = tmp;
-		used -= offset;
-		offset = 0;
+	/**
+	 * Sets the input stream.
+	 * @param stream the input stream to set.
+	 */
+	public void setStream(InputStream stream) {
+		this.stream = stream;
 	}
 
-	public byte[] getBuffer() {
-		return buffer;
-	}
 
-	public int getBufferOffset() {
-		return used;
-	}
-
-	public int getBufferCapacity() {
-		return buffer.length - used;
-	}
-
-	public void bufferConsumed(int size) {
-		used += size;
-	}
-
-	public void feed(ByteBuffer buffer) {
-		int length = buffer.remaining();
-		if (length == 0) return;
-		reserveBuffer(length);
-		buffer.get(this.buffer, this.offset, length);
-		bufferConsumed(length);
-	}
-
+	/**
+	 * Fills the buffer with the specified buffer.
+	 */
 	public void feed(byte[] buffer) {
 		feed(buffer, 0, buffer.length);
 	}
 
+	/**
+	 * Fills the buffer with the specified buffer.
+	 */
 	public void feed(byte[] buffer, int offset, int length) {
 		reserveBuffer(length);
-		System.arraycopy(buffer, offset, this.buffer, this.offset, length);
+		System.arraycopy(buffer, offset, impl.buffer, impl.offset, length);
 		bufferConsumed(length);
 	}
 
-	public boolean fill() throws IOException {
-		if(stream == null) {
-			return false;
-		}
-		reserveBuffer(bufferReserveSize);
-		int rl = stream.read(getBuffer(), getBufferOffset(), getBufferCapacity());
-		if(rl <= 0) {
-			return false;
-		}
-		bufferConsumed(rl);
-		return true;
+	/**
+	 * Fills the buffer with the specified buffer.
+	 */
+	public void feed(ByteBuffer buffer) {
+		int length = buffer.remaining();
+		if (length == 0) return;
+		reserveBuffer(length);
+		buffer.get(impl.buffer, impl.offset, length);
+		bufferConsumed(length);
 	}
 
-	public Iterator<Object> iterator() {
+	/**
+	 * Swaps the internal buffer with the specified buffer.
+	 * This method doesn't copy the buffer and the its contents will be rewritten by {@link fill()} or {@link feed(byte[])} method.
+	 */
+	public void wrap(byte[] buffer) {
+		wrap(buffer, 0, buffer.length);
+	}
+
+	/**
+	 * Swaps the internal buffer with the specified buffer.
+	 * This method doesn't copy the buffer and the its contents will be rewritten by {@link fill()} or {@link feed(byte[])} method.
+	 */
+	public void wrap(byte[] buffer, int offset, int length) {
+		impl.buffer = buffer;
+		impl.offset = offset;
+		impl.filled = length;
+	}
+
+	/**
+	 * Fills the internal using the input stream.
+	 * @return false if the stream is null or stream.read returns <= 0.
+	 */
+	public boolean fill() throws IOException {
+		return impl.fill();
+	}
+
+
+	/**
+	 * Returns the iterator that calls {@link next()} method repeatedly.
+	 */
+	public Iterator<MessagePackObject> iterator() {
 		return new UnpackIterator(this);
 	}
 
+	/**
+	 * Deserializes one object and returns it.
+	 * @return {@link UnpackResult#isFinished()} returns false if the buffer is insufficient to deserialize one object.
+	 */
+	public UnpackResult next() throws IOException, UnpackException {
+		UnpackResult result = new UnpackResult();
+		impl.next(result);
+		return result;
+	}
+
+	/**
+	 * Deserializes one object and returns it.
+	 * @return false if the buffer is insufficient to deserialize one object.
+	 */
+	public boolean next(UnpackResult result) throws IOException, UnpackException {
+		return impl.next(result);
+	}
+
+
+	/**
+	 * Reserve free space of the internal buffer at least specified size and expands {@link getBufferCapacity()}.
+	 */
+	public void reserveBuffer(int require) {
+		if(impl.buffer == null) {
+			int nextSize = (bufferReserveSize < require) ? require : bufferReserveSize;
+			impl.buffer = new byte[nextSize];
+			return;
+		}
+
+		if(impl.filled <= impl.offset) {
+			// rewind the buffer
+			impl.filled = 0;
+			impl.offset = 0;
+		}
+
+		if(impl.buffer.length - impl.filled >= require) {
+			return;
+		}
+
+		int nextSize = impl.buffer.length * 2;
+		int notParsed = impl.filled - impl.offset;
+		while(nextSize < require + notParsed) {
+			nextSize *= 2;
+		}
+
+		byte[] tmp = new byte[nextSize];
+		System.arraycopy(impl.buffer, impl.offset, tmp, 0, impl.filled - impl.offset);
+
+		impl.buffer = tmp;
+		impl.filled = notParsed;
+		impl.offset = 0;
+	}
+
+	/**
+	 * Returns the internal buffer.
+	 */
+	public byte[] getBuffer() {
+		return impl.buffer;
+	}
+
+	/**
+	 * Returns the size of free space of the internal buffer.
+	 */
+	public int getBufferCapacity() {
+		return impl.buffer.length - impl.filled;
+	}
+
+	/**
+	 * Returns the offset of free space in the internal buffer.
+	 */
+	public int getBufferOffset() {
+		return impl.filled;
+	}
+
+	/**
+	 * Moves front the offset of the free space in the internal buffer.
+	 * Call this method after fill the buffer manually using {@link reserveBuffer()}, {@link getBuffer()}, {@link getBufferOffset()} and {@link getBufferCapacity()} methods.
+	 */
+	public void bufferConsumed(int size) {
+		impl.filled += size;
+	}
+
+	/**
+	 * Deserializes one object upto the offset of the internal buffer.
+	 * Call {@link reset()} method before calling this method again.
+	 * @return true if one object is deserialized. Use {@link getData()} to get the deserialized object.
+	 */
 	public boolean execute() throws UnpackException {
-		int noffset = super.execute(buffer, offset, used);
-		if(noffset <= offset) {
+		int noffset = impl.execute(impl.buffer, impl.offset, impl.filled);
+		if(noffset <= impl.offset) {
 			return false;
 		}
-		parsed += noffset - offset;
-		offset = noffset;
-		return super.isFinished();
+		parsed += noffset - impl.offset;
+		impl.offset = noffset;
+		return impl.isFinished();
 	}
 
-	public Object getData() {
-		return super.getData();
+
+	/**
+	 * Deserializes one object over the specified buffer.
+	 * This method doesn't use the internal buffer.
+	 * Use {@link isFinished()} method to known a object is ready to get.
+	 * Call {@link reset()} method before calling this method again.
+	 * @return offset position that is parsed.
+	 */
+	public int execute(byte[] buffer) throws UnpackException {
+		return execute(buffer, 0, buffer.length);
 	}
 
+	/**
+	 * Deserializes one object over the specified buffer.
+	 * This method doesn't use the internal buffer.
+	 * Use {@link isFinished()} method to known a object is ready to get.
+	 * Call {@link reset()} method before calling this method again.
+	 * @return offset position that is parsed.
+	 */
+	public int execute(byte[] buffer, int offset, int length) throws UnpackException {
+		int noffset = impl.execute(buffer, offset + impl.offset, length);
+		impl.offset = noffset - offset;
+		if(impl.isFinished()) {
+			impl.resetState();
+		}
+		return noffset;
+	}
+
+	/**
+	 * Gets the object deserialized by {@link execute(byte[])} method.
+	 */
+	public MessagePackObject getData() {
+		return impl.getData();
+	}
+
+	/**
+	 * Returns true if an object is ready to get with {@link getData()} method.
+	 */
+	public boolean isFinished() {
+		return impl.isFinished();
+	}
+
+	/**
+	 * Resets the internal state of the unpacker.
+	 */
 	public void reset() {
-		super.reset();
-		parsed = 0;
+		impl.reset();
 	}
 
 	public int getMessageSize() {
-		return parsed - offset + used;
+		return parsed - impl.offset + impl.filled;
 	}
 
 	public int getParsedSize() {
@@ -167,88 +405,168 @@ public class Unpacker extends UnpackerImpl implements Iterable<Object> {
 	}
 
 	public int getNonParsedSize() {
-		return used - offset;
+		return impl.filled - impl.offset;
 	}
 
 	public void skipNonparsedBuffer(int size) {
-		offset += size;
+		impl.offset += size;
 	}
 
 	public void removeNonparsedBuffer() {
-		used = offset;
+		impl.filled = impl.offset;
 	}
 
-	/*
-	public static class Context {
-		private boolean finished;
-		private Object data;
-		private int offset;
-		private UnpackerImpl impl;
 
-		public Context()
-		{
-			this.finished = false;
-			this.impl = new UnpackerImpl();
-		}
-
-		public boolean isFinished()
-		{
-			return finished;
-		}
-
-		public Object getData()
-		{
-			return data;
-		}
-
-		int getOffset()
-		{
-			return offset;
-		}
-
-		void setFinished(boolean finished)
-		{
-			this.finished = finished;
-		}
-
-		void setData(Object data)
-		{
-			this.data = data;
-		}
-
-		void setOffset(int offset)
-		{
-			this.offset = offset;
-		}
-
-		UnpackerImpl getImpl()
-		{
-			return impl;
-		}
+	/**
+	 * Gets one {@code byte} value from the buffer.
+	 * This method calls {@link fill()} method if needed.
+	 * @throws MessageTypeException the first value of the buffer is not a {@code byte}.
+	 */
+	public byte unpackByte() throws IOException, MessageTypeException {
+		return impl.unpackByte();
 	}
 
-	public static int unpack(Context ctx, byte[] buffer) throws UnpackException
-	{
-		return unpack(ctx, buffer, 0, buffer.length);
+	/**
+	 * Gets one {@code short} value from the buffer.
+	 * This method calls {@link fill()} method if needed.
+	 * @throws MessageTypeException the first value of the buffer is not a {@code short}.
+	 */
+	public short unpackShort() throws IOException, MessageTypeException {
+		return impl.unpackShort();
 	}
 
-	public static int unpack(Context ctx, byte[] buffer, int offset, int length) throws UnpackException
-	{
-		UnpackerImpl impl = ctx.getImpl();
-		int noffset = impl.execute(buffer, offset + ctx.getOffset(), length);
-		ctx.setOffset(noffset - offset);
-		if(impl.isFinished()) {
-			ctx.setData(impl.getData());
-			ctx.setFinished(false);
-			impl.reset();
-		} else {
-			ctx.setData(null);
-			ctx.setFinished(true);
-		}
-		int parsed = noffset - offset;
-		ctx.setOffset(parsed);
-		return noffset;
+	/**
+	 * Gets one {@code int} value from the buffer.
+	 * This method calls {@link fill()} method if needed.
+	 * @throws MessageTypeException the first value of the buffer is not a {@code int}.
+	 */
+	public int unpackInt() throws IOException, MessageTypeException {
+		return impl.unpackInt();
 	}
-	*/
+
+	/**
+	 * Gets one {@code long} value from the buffer.
+	 * This method calls {@link fill()} method if needed.
+	 * @throws MessageTypeException the first value of the buffer is not a {@code long}.
+	 */
+	public long unpackLong() throws IOException, MessageTypeException {
+		return impl.unpackLong();
+	}
+
+	/**
+	 * Gets one {@code BigInteger} value from the buffer.
+	 * This method calls {@link fill()} method if needed.
+	 * @throws MessageTypeException the first value of the buffer is not a {@code BigInteger}.
+	 */
+	public BigInteger unpackBigInteger() throws IOException, MessageTypeException {
+		return impl.unpackBigInteger();
+	}
+
+	/**
+	 * Gets one {@code float} value from the buffer.
+	 * This method calls {@link fill()} method if needed.
+	 * @throws MessageTypeException the first value of the buffer is not a {@code float}.
+	 */
+	public float unpackFloat() throws IOException, MessageTypeException {
+		return impl.unpackFloat();
+	}
+
+	/**
+	 * Gets one {@code double} value from the buffer.
+	 * This method calls {@link fill()} method if needed.
+	 * @throws MessageTypeException the first value of the buffer is not a {@code double}.
+	 */
+	public double unpackDouble() throws IOException, MessageTypeException {
+		return impl.unpackDouble();
+	}
+
+	/**
+	 * Gets one {@code null} value from the buffer.
+	 * This method calls {@link fill()} method if needed.
+	 * @throws MessageTypeException the first value of the buffer is not a {@code null}.
+	 */
+	public Object unpackNull() throws IOException, MessageTypeException {
+		return impl.unpackNull();
+	}
+
+	/**
+	 * Gets one {@code boolean} value from the buffer.
+	 * This method calls {@link fill()} method if needed.
+	 * @throws MessageTypeException the first value of the buffer is not a {@code boolean}.
+	 */
+	public boolean unpackBoolean() throws IOException, MessageTypeException {
+		return impl.unpackBoolean();
+	}
+
+	/**
+	 * Gets one array header from the buffer.
+	 * This method calls {@link fill()} method if needed.
+	 * @return the length of the map. There are {@code retval} objects to get.
+	 * @throws MessageTypeException the first value of the buffer is not a array.
+	 */
+	public int unpackArray() throws IOException, MessageTypeException {
+		return impl.unpackArray();
+	}
+
+	/**
+	 * Gets one map header from the buffer.
+	 * This method calls {@link fill()} method if needed.
+	 * @return the length of the map. There are {@code retval * 2} objects to get.
+	 * @throws MessageTypeException the first value of the buffer is not a map.
+	 */
+	public int unpackMap() throws IOException, MessageTypeException {
+		return impl.unpackMap();
+	}
+
+	/**
+	 * Gets one raw header from the buffer.
+	 * This method calls {@link fill()} method if needed.
+	 * @return the length of the raw bytes. There are {@code retval} bytes to get.
+	 * @throws MessageTypeException the first value of the buffer is not a raw bytes.
+	 */
+	public int unpackRaw() throws IOException, MessageTypeException {
+		return impl.unpackRaw();
+	}
+
+	/**
+	 * Gets one raw body from the buffer.
+	 * This method calls {@link fill()} method if needed.
+	 */
+	public byte[] unpackRawBody(int length) throws IOException {
+		return impl.unpackRawBody(length);
+	}
+
+	/**
+	 * Gets one raw bytes from the buffer.
+	 * This method calls {@link fill()} method if needed.
+	 */
+	public byte[] unpackByteArray() throws IOException {
+		return impl.unpackByteArray();
+	}
+
+	/**
+	 * Gets one {@code String} value from the buffer.
+	 * This method calls {@link fill()} method if needed.
+	 * @throws MessageTypeException the first value of the buffer is not a {@code String}.
+	 */
+	final public String unpackString() throws IOException, MessageTypeException {
+		return impl.unpackString();
+	}
+
+	/**
+	 * Gets one {@code Object} value from the buffer.
+	 * This method calls {@link fill()} method if needed.
+	 */
+	final public MessagePackObject unpackObject() throws IOException {
+		return impl.unpackObject();
+	}
+
+	final public void unpack(MessageUnpackable obj) throws IOException, MessageTypeException {
+		obj.messageUnpack(this);
+	}
+
+	final public boolean tryUnpackNull() throws IOException {
+		return impl.tryUnpackNull();
+	}
 }
 

@@ -8,14 +8,19 @@ cp pack.h       ext/
 cp rbinit.c     ext/
 cp unpack.c     ext/
 cp unpack.h     ext/
+cp version.rb   ext/
 cp ../msgpack/pack_define.h     msgpack/
 cp ../msgpack/pack_template.h   msgpack/
 cp ../msgpack/unpack_define.h   msgpack/
 cp ../msgpack/unpack_template.h msgpack/
 cp ../msgpack/sysdep.h          msgpack/
-cat msgpack_test.rb | sed "s/require ['\"]msgpack['\"]/require File.dirname(__FILE__) + '\/test_helper.rb'/" > test/msgpack_test.rb
+cp ../test/cases.mpac           test/
+cp ../test/cases_compact.mpac   test/
+cp ../test/cases.json           test/
 
 gem build msgpack.gemspec
+
+rdoc rbinit.c pack.c unpack.c
 
 if [ $? -eq 0 ]; then
 	rm -rf ext msgpack test/msgpack_test.rb

@@ -3,11 +3,11 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.msgpack</groupId>
   <artifactId>msgpack</artifactId>
-  <version>0.2</version>
+  <version>0.3</version>
   <description>MessagePack for Java</description>
 
   <name>MessagePack for Java</name>
-  <url>http://msgpack.sourceforge.net/</url>
+  <url>http://msgpack.org/</url>
 
   <licenses>
     <license>
@@ -97,29 +97,24 @@
 
   <repositories>
     <repository>
-      <id>msgpack.sourceforge.net</id>
+      <id>msgpack.org</id>
       <name>MessagePack Maven2 Repository</name>
-      <url>http://msgpack.sourceforge.net/maven2</url>
-    </repository>
-    <repository>
-      <id>msgpack.sourceforge.net</id>
-      <name>MessagePack Maven2 Snapshot Repository</name>
-      <url>http://msgpack.sourceforge.net/maven2-snapshot</url>
+      <url>http://msgpack.org/maven2</url>
     </repository>
   </repositories>
 
   <distributionManagement>
     <repository>
       <uniqueVersion>false</uniqueVersion>
-      <id>shell.sourceforge.net</id>
-      <name>Repository at sourceforge.net</name>
-      <url>scp://shell.sourceforge.net/home/groups/m/ms/msgpack/htdocs/maven2/</url>
+      <id>msgpack.org</id>
+      <name>Repository at msgpack.org</name>
+	  <url>file://${project.build.directory}/website/maven2/</url>
     </repository>
     <snapshotRepository>
        <uniqueVersion>true</uniqueVersion>
-       <id>shell.sourceforge.net</id>
-       <name>Repository Name</name>
-       <url>scp://shell.sourceforge.net/home/groups/m/ms/msgpack/htdocs/maven2-snapshot/</url>
+       <id>msgpack.org</id>
+       <name>Repository at msgpack.org</name>
+	   <url>file://${project.build.directory}/website/maven2/</url>
     </snapshotRepository>
   </distributionManagement>
 

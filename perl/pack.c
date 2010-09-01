@@ -49,6 +49,8 @@ static void need(enc_t *enc, STRLEN len);
 #  error  "msgpack only supports IVSIZE = 8,4,2 environment."
 #endif
 
+#define ERR_NESTING_EXCEEDED "perl structure exceeds maximum nesting level (max_depth set too low?)"
+
 
 static void need(enc_t *enc, STRLEN len)
 {
@@ -146,9 +148,10 @@ static int try_int(enc_t* enc, const char *p, size_t len) {
 }
 
 
-static void _msgpack_pack_rv(enc_t *enc, SV* sv);
+static void _msgpack_pack_rv(enc_t *enc, SV* sv, int depth);
 
-static void _msgpack_pack_sv(enc_t *enc, SV* sv) {
+static void _msgpack_pack_sv(enc_t *enc, SV* sv, int depth) {
+    if (depth <= 0) Perl_croak(aTHX_ ERR_NESTING_EXCEEDED);
     SvGETMAGIC(sv);
 
     if (sv==NULL) {
@@ -171,7 +174,7 @@ static void _msgpack_pack_sv(enc_t *enc, SV* sv) {
     } else if (SvIOKp(sv)) {
         PACK_IV(enc, SvIV(sv));
     } else if (SvROK(sv)) {
-        _msgpack_pack_rv(enc, SvRV(sv));
+        _msgpack_pack_rv(enc, SvRV(sv), depth-1);
     } else if (!SvOK(sv)) {
         msgpack_pack_nil(enc);
     } else if (isGV(sv)) {
@@ -182,8 +185,9 @@ static void _msgpack_pack_sv(enc_t *enc, SV* sv) {
     }
 }
 
-static void _msgpack_pack_rv(enc_t *enc, SV* sv) {
+static void _msgpack_pack_rv(enc_t *enc, SV* sv, int depth) {
     svtype svt;
+    if (depth <= 0) Perl_croak(aTHX_ ERR_NESTING_EXCEEDED);
     SvGETMAGIC(sv);
     svt = SvTYPE(sv);
 
@@ -207,8 +211,8 @@ static void _msgpack_pack_rv(enc_t *enc, SV* sv) {
         msgpack_pack_map(enc, count);
 
         while (he = hv_iternext(hval)) {
-            _msgpack_pack_sv(enc, hv_iterkeysv(he));
-            _msgpack_pack_sv(enc, HeVAL(he));
+            _msgpack_pack_sv(enc, hv_iterkeysv(he), depth);
+            _msgpack_pack_sv(enc, HeVAL(he), depth);
         }
     } else if (svt == SVt_PVAV) {
         AV* ary = (AV*)sv;
@@ -218,7 +222,7 @@ static void _msgpack_pack_rv(enc_t *enc, SV* sv) {
         for (i=0; i<len; i++) {
             SV** svp = av_fetch(ary, i, 0);
             if (svp) {
-                _msgpack_pack_sv(enc, *svp);
+                _msgpack_pack_sv(enc, *svp, depth);
             } else {
                 msgpack_pack_nil(enc);
             }
@@ -244,11 +248,13 @@ static void _msgpack_pack_rv(enc_t *enc, SV* sv) {
 
 XS(xs_pack) {
     dXSARGS;
-    if (items != 2) {
-        Perl_croak(aTHX_ "Usage: Data::MessagePack->pack($dat)");
+    if (items < 2) {
+        Perl_croak(aTHX_ "Usage: Data::MessagePack->pack($dat [,$max_depth])");
     }
 
-    SV* val = ST(1);
+    SV* val   = ST(1);
+    int depth = 512;
+    if (items >= 3) depth = SvIV(ST(2));
 
     enc_t enc;
     enc.sv        = sv_2mortal(NEWSV(0, INIT_SIZE));
@@ -256,7 +262,7 @@ XS(xs_pack) {
     enc.end       = SvEND(enc.sv);
     SvPOK_only(enc.sv);
 
-    _msgpack_pack_sv(&enc, val);
+    _msgpack_pack_sv(&enc, val, depth);
 
     SvCUR_set(enc.sv, enc.cur - SvPVX (enc.sv));
     *SvEND (enc.sv) = 0; /* many xs functions expect a trailing 0 for text strings */

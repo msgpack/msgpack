@@ -1,7 +1,7 @@
 #!/bin/sh
 svn checkout -r114 http://thrift-protobuf-compare.googlecode.com/svn/trunk/ thrift-protobuf-compare-base
 cp -rf thrift-protobuf-compare/tpc thrift-protobuf-compare-base
-cp ../dist/msgpack.jar thrift-protobuf-compare-base/tpc/lib/
+cp ../target/msgpack*.jar thrift-protobuf-compare-base/tpc/lib/msgpack.jar
 cd thrift-protobuf-compare-base/tpc/
 ant compile
 ./run-benchmark.sh

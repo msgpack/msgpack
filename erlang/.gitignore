@@ -1,0 +1,5 @@
+MANIFEST
+*.beam
+.omakedb*
+*.omc
+*~

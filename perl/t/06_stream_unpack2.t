@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 use Data::MessagePack;
-use Test::More;
+use Test::More tests => 6;
 
 my $input = [(undef)x16];
 my $packed = Data::MessagePack->pack($input);
@@ -22,5 +22,4 @@ is_deeply(Data::MessagePack->unpack($packed), $input);
     is_deeply $up->data, $input;
 }
 
-done_testing;
 

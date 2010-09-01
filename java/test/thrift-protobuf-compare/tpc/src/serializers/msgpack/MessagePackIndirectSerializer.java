@@ -58,7 +58,7 @@ public class MessagePackIndirectSerializer implements ObjectSerializer<MediaCont
 	}
 
 	public MediaContent deserialize(byte[] array) throws Exception {
-		UnbufferedUnpacker pac = new UnbufferedUnpacker();
+		Unpacker pac = new Unpacker();
 		pac.execute(array);
 		Object obj = pac.getData();
 		return (MediaContent)MediaContent.getSchema().convert(obj);

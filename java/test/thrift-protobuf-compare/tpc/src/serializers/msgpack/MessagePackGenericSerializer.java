@@ -62,7 +62,7 @@ public class MessagePackGenericSerializer implements ObjectSerializer<Object>
 	}
 
 	public Object deserialize(byte[] array) throws Exception {
-		UnbufferedUnpacker pac = new UnbufferedUnpacker().useSchema(MEDIA_CONTENT_SCHEMA);
+		Unpacker pac = new Unpacker().useSchema(MEDIA_CONTENT_SCHEMA);
 		pac.execute(array);
 		return (Object)pac.getData();
 	}

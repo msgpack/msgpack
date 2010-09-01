@@ -1,4 +1,6 @@
 use inc::Module::Install;
+use Config;
+
 name 'Data-MessagePack';
 all_from 'lib/Data/MessagePack.pm';
 readme_from('lib/Data/MessagePack.pm');
@@ -10,6 +12,8 @@ can_cc or die "This module requires a C compiler";
 tests 't/*.t';
 recursive_author_tests('xt');
 use_ppport 3.19;
+
+requires_c99(); # msgpack C library requires C99.
 
 clean_files qw{
     *.stackdump
@@ -32,7 +36,7 @@ if ($Module::Install::AUTHOR && -d File::Spec->catfile('..', 'msgpack')) {
     }
 }
 
-requires 'Test::More' => 0.95; # done_testing
+requires 'Test::More' => 0.94; # done_testing
 test_requires('Test::Requires');
 
 auto_set_repository();
