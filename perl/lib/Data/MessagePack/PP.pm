@@ -361,16 +361,13 @@ sub execute_limit {
 
 {
     my $p;
-    #my $r; # remained data.
 
 sub execute {
     my ( $self, $data, $offset, $limit ) = @_;
-    #my $value = ( defined $self->{ remain } ? $self->{ remain } : '' ) . substr( $data, $offset, $limit );
     my $value = substr( $data, $offset, $limit ? $limit : length $data );
     my $len   = length $value;
 
     $p = 0;
-    #$r = 0;
 
     while ( $len > $p ) {
         _count( $self, $value ) or last;
@@ -384,9 +381,6 @@ sub execute {
         $self->{ data } .= substr( $value, 0, $p );
         $self->{ remain } = undef;
     }
-    else { # I thought this feature is needed. but XS version can't do so
-        #$self->{ remain } = substr( $value, 0, $p + $r );
-    }
 
     return $p;
 }
@@ -399,12 +393,6 @@ sub _count {
     if ( ( $byte >= 0x90 and $byte <= 0x9f ) or $byte == 0xdc or $byte == 0xdd ) {
         my $num;
         if ( $byte == 0xdc ) { # array 16
-            # I thought this feature is needed. but XS version can't do so. So commented out.
-            #my $len = length substr( $value, $p, 2 );
-            #if ( $len != 2 ) {
-            #    $r = $len;
-            #    return 0;
-            #}
             $num = unpack 'n', substr( $value, $p, 2 );
             $p += 2;
         }

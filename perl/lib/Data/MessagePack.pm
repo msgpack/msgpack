@@ -21,7 +21,6 @@ if ( !__PACKAGE__->can('pack') ) { # this idea comes from Text::Xslate
         die $@ if $@ && $backend =~ /\b xs \b/xms; # force XS
     }
     if ( !__PACKAGE__->can('pack') ) {
-        print "PP\n";
         require 'Data/MessagePack/PP.pm';
     }
 }
