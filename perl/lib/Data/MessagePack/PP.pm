@@ -509,15 +509,15 @@ L<http://msgpack.sourceforge.jp/>,
 L<Data::MessagePack>,
 L<http://frox25.no-ip.org/~mtve/wiki/MessagePack.html>,
 
-=head1 AUTHOR
-
-makamaka
-
 =head1 LIMITATION
 
 Currently this module works completely in Perl 5.10 or later.
 In Perl 5.8.x, it cannot C<unpack> uint64 and int64.
 
+
+=head1 AUTHOR
+
+makamaka
 
 =head1 COPYRIGHT AND LICENSE
 
