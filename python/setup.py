@@ -69,6 +69,7 @@ setup(name='msgpack-python',
       url='http://msgpack.sourceforge.net/',
       download_url='http://pypi.python.org/pypi/msgpack/',
       classifiers=[
+          'Programming Language :: Python :: 3',
           'Development Status :: 4 - Beta',
           'Intended Audience :: Developers',
           'License :: OSI Approved :: Apache Software License',
