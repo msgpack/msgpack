@@ -22,37 +22,19 @@ use B ();
 BEGIN {
     # for pack and unpack compatibility
     if ( $] < 5.010 ) {
-        require Data::Float;
-        *pack_double = sub {
-            my $float_hex = Data::Float::float_hex( $_[0] );
-            my ( $sign, $sgnf, $exp ) = $float_hex =~ /^([-+])0x1\.([a-z0-9]+)p([-+][\d]+)$/;
-            my @bits;
-
-            $sign = $sign eq '-' ? 1 : 0;
-            $exp  = sprintf( '%011b', 1023 + $exp );
-
-            my $bit  = $sign . $exp . join( '', map { unpack('B4', pack('H', $_) ) } split //, $sgnf );
-
-            while ( $bit =~ /(.{8})/g ) {
-                push @bits, $1;
-            }
-
-             return pack( 'C*', 0xcb, map { unpack( 'C', pack("B*", $_ ) ) } @bits );
-        };
-        *unpack_double = sub {
-            my $bits = join('', map { sprintf('%08b', $_) } unpack( 'C*', substr( $_[0], $_[1], 8 ) ) );
-            my $sign = substr($bits, 0, 1) ? '-' : '+';
-            my $sgnf = substr($bits, 12, 52);
-            my $exp  = substr($bits, 1, 11);
-            $bits = '';
-            while ( $sgnf =~ /(.{4})/g ) {
-                $bits .= unpack('H',pack('B4', $1));
-            }
-            $exp = ((unpack("C*",(pack("B8", (substr('00000'.$exp,0,8) )))) <<8 )
-                    + unpack("C*",(pack("B8", (substr('00000'.$exp,8,8) ))))) - 1023;
-            return Data::Float::hex_float( $sign . '0x1.' . $bits . 'p' . $exp ) + 0.0;
-        };
-        *unpack_float  = sub { Carp::croak("unpack_float is disable in less than Perl 5.10"); };
+        my $bo_is_le = unpack ( 'd', "\x00\x00\x00\x00\x00\x00\xf0\x3f") == 1; # 1.0LE
+        *pack_double = $bo_is_le ? sub {
+            my @v = unpack( 'V2', pack( 'd', $_[0] ) );
+            return pack 'CN2', 0xcb, @v[1,0];
+        }  : sub { pack 'Cd', 0xcb, $_[0]; };
+        *unpack_float = $bo_is_le ? sub {
+            my @v = unpack( 'v2', substr( $_[0], $_[1], 4 ) );
+            return unpack( 'f', pack( 'n2', @v[1,0] ) );
+        } : sub { return unpack( 'f', substr( $_[0], $_[1], 4 ) ); };
+        *unpack_double = $bo_is_le ? sub {
+            my @v = unpack( 'V2', substr( $_[0], $_[1], 8 ) );
+            return unpack( 'd', pack( 'N2', @v[1,0] ) );
+        } : sub { return unpack( 'd', substr( $_[0], $_[1], 8 ) ); };
         *unpack_int16  = sub {
             my $v = unpack 'n', substr( $_[0], $_[1], 2 );
             return $v ? $v - 0x10000 : 0;
@@ -62,14 +44,16 @@ BEGIN {
             return $v ? -(~$v + 1) : $v;
         };
         *unpack_int64  = sub { Carp::croak("unpack_int64 is disable in less than Perl 5.10"); };
+        *unpack_uint64 = sub { Carp::croak("unpack_uint64 is disable in less than Perl 5.10"); };
     }
     else {
         *pack_double   = sub { return pack 'Cd>', 0xcb, $_[0]; };
-        *unpack_double = sub { return unpack( 'd>', substr( $_[0], $_[1], 8 ) ); };
         *unpack_float  = sub { return unpack( 'f>', substr( $_[0], $_[1], 4 ) ); };
-        *unpack_int16  = sub { return unpack 'n!',  substr( $_[0], $_[1], 2 ); };
-        *unpack_int32  = sub { return unpack 'N!',  substr( $_[0], $_[1], 4 ); };
-        *unpack_int64  = sub { return unpack 'Q>',  substr( $_[0], $_[1], 8 ); };
+        *unpack_double = sub { return unpack( 'd>', substr( $_[0], $_[1], 8 ) ); };
+        *unpack_int16  = sub { return unpack( 'n!', substr( $_[0], $_[1], 2 ) ); };
+        *unpack_int32  = sub { return unpack( 'N!', substr( $_[0], $_[1], 4 ) ); };
+        *unpack_int64  = sub { return unpack( 'q>', substr( $_[0], $_[1], 8 ) ); };
+        *unpack_uint64 = sub { return unpack( 'Q>', substr( $_[0], $_[1], 8 ) ); };
     }
     # for 5.8 etc.
     unless ( defined &utf8::is_utf8 ) {
@@ -272,7 +256,7 @@ sub _unpack {
     }
     elsif ( $byte == 0xcf ) { # unit64
         $p += 8;
-        return CORE::unpack 'Q>', substr( $value, $p - 8, 8 );
+        return pack_uint64( $value, $p - 8 );
     }
     elsif ( $byte == 0xd3 ) { # int64
         $p += 8;
@@ -516,24 +500,24 @@ __END__
 
 =head1 NAME
 
-Data::MessagePack::PP - Pure Perl version of Data::MessagePack
-
-=head1 LIMITATION
-
-Currently this module works completely in Perl 5.10 or later.
-In Perl 5.8.x, it requires L<Data::Float> and cannot unpack int64 and float (pack int64 too).
+Data::MessagePack::PP - Pure Perl implementation of Data::MessagePack
 
 
 =head1 SEE ALSO
 
 L<http://msgpack.sourceforge.jp/>,
 L<Data::MessagePack>,
-L<Data::Float>,
 L<http://frox25.no-ip.org/~mtve/wiki/MessagePack.html>,
 
 =head1 AUTHOR
 
 makamaka
+
+=head1 LIMITATION
+
+Currently this module works completely in Perl 5.10 or later.
+In Perl 5.8.x, it cannot C<unpack> uint64 and int64.
+
 
 =head1 COPYRIGHT AND LICENSE
 

@@ -21,12 +21,9 @@ if ( $] >= 5.008005 and $use_xs ) {
     if ($ENV{DEBUG}) {
         cc_append_to_ccflags '-g';
     }
-    # for author's test_pp
-    requires 'Data::Float' => 0 if ( $Module::Install::AUTHOR and $] < 5.010 );
 }
-else { # for Data::MessagePack::PP
+else {
     print "configure PP version\n";
-    requires 'Data::Float' => 0 if ( $] < 5.010 );
 }
 
 clean_files qw{
