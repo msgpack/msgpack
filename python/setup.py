@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-version = (0, 1, 5, 'dev')
+version = (0, 1, 5, 'final')
 
 import os
 from glob import glob
