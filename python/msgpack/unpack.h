@@ -175,7 +175,7 @@ static inline int template_callback_map_item(unpack_user* u, msgpack_unpack_obje
 static inline int template_callback_raw(unpack_user* u, const char* b, const char* p, unsigned int l, msgpack_unpack_object* o)
 {
     PyObject *py;
-    py = PyString_FromStringAndSize(p, l);
+    py = PyBytes_FromStringAndSize(p, l);
     if (!py)
         return -1;
     *o = py;
