@@ -22,7 +22,10 @@ use B ();
 BEGIN {
     # for pack and unpack compatibility
     if ( $] < 5.010 ) {
+        # require $Config{byteorder}; my $bo_is_le = ( $Config{byteorder} =~ /^1234/ );
+        # which better?
         my $bo_is_le = unpack ( 'd', "\x00\x00\x00\x00\x00\x00\xf0\x3f") == 1; # 1.0LE
+        # In really, since 5.9.2 '>' is introduced.
         *pack_double = $bo_is_le ? sub {
             my @v = unpack( 'V2', pack( 'd', $_[0] ) );
             return pack 'CN2', 0xcb, @v[1,0];
