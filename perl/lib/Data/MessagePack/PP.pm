@@ -26,6 +26,14 @@ BEGIN {
         # which better?
         my $bo_is_le = unpack ( 'd', "\x00\x00\x00\x00\x00\x00\xf0\x3f") == 1; # 1.0LE
         # In really, since 5.9.2 '>' is introduced.
+        *pack_uint64 = $bo_is_le ? sub {
+            my @v = unpack( 'V2', pack( 'Q', $_[0] ) );
+            return pack 'CN2', 0xcf, @v[1,0];
+        }  : sub { pack 'CQ', 0xcf, $_[0]; };
+        *pack_int64 = $bo_is_le ? sub {
+            my @v = unpack( 'V2', pack( 'q', $_[0] ) );
+            return pack 'CN2', 0xd3, @v[1,0];
+        }  : sub { pack 'Cq', 0xd3, $_[0]; };
         *pack_double = $bo_is_le ? sub {
             my @v = unpack( 'V2', pack( 'd', $_[0] ) );
             return pack 'CN2', 0xcb, @v[1,0];
@@ -43,13 +51,22 @@ BEGIN {
             return $v ? $v - 0x10000 : 0;
         };
         *unpack_int32  = sub {
+            no warnings; # avoid for warning about Hexadecimal number
             my $v = unpack 'N', substr( $_[0], $_[1], 4 );
-            return $v ? -(~$v + 1) : $v;
+            return $v ? $v - 0x100000000 : 0;
         };
-        *unpack_int64  = sub { Carp::croak("unpack_int64 is disable in less than Perl 5.10"); };
-        *unpack_uint64 = sub { Carp::croak("unpack_uint64 is disable in less than Perl 5.10"); };
+        *unpack_int64 = sub {
+            my @v = unpack( 'V*', substr( $_[0], $_[1], 8 ) );
+            return unpack( 'q', pack( 'N2', @v[1,0] ) );
+        };
+        *unpack_uint64 = sub {
+            my @v = unpack( 'V*', substr( $_[0], $_[1], 8 ) );
+            return unpack( 'Q', pack( 'N2', @v[1,0] ) );
+        };
     }
     else {
+        *pack_uint64   = sub { return pack 'CQ>', 0xcf, $_[0]; };
+        *pack_int64    = sub { return pack 'Cq>', 0xd3, $_[0]; };
         *pack_double   = sub { return pack 'Cd>', 0xcb, $_[0]; };
         *unpack_float  = sub { return unpack( 'f>', substr( $_[0], $_[1], 4 ) ); };
         *unpack_double = sub { return unpack( 'd>', substr( $_[0], $_[1], 8 ) ); };
@@ -130,14 +147,14 @@ sub _pack {
                     : $value < 2 ** 8 ?  CORE::pack 'CC', 0xcc, $value
                     : $value < 2 ** 16 ? CORE::pack 'Cn', 0xcd, $value
                     : $value < 2 ** 32 ? CORE::pack 'CN', 0xce, $value
-                    : CORE::pack 'CQ>', 0xcf, $value;
+                    : pack_uint64( $value );
         }
         else {
             return    -$value <= 32 ?      CORE::pack 'C', ($value & 255)
                     : -$value <= 2 **  7 ? CORE::pack 'Cc', 0xd0, $value
                     : -$value <= 2 ** 15 ? CORE::pack 'Cn', 0xd1, $value
                     : -$value <= 2 ** 31 ? CORE::pack 'CN', 0xd2, $value
-                    : CORE::pack 'Cq>', 0xd3, $value;
+                    : pack_int64( $value );
         }
 
     }
@@ -147,7 +164,9 @@ sub _pack {
         if ( $Data::MessagePack::PreferInteger ) {
             if ( $value =~ /^-?[0-9]+$/ ) { # ok?
                 my $value2 = 0 + $value;
-                if (  0 + $value != B::svref_2object( \$value2 )->int_value ) {
+                if ( $value > 0xFFFFFFFF or $value < '-'.0x80000000 or # <- needless but for XS compat
+                    0 + $value != B::svref_2object( \$value2 )->int_value
+                ) {
                     local $Data::MessagePack::PreferInteger; # avoid for PV => NV
                     return _pack( "$value" );
                 }
@@ -259,7 +278,7 @@ sub _unpack {
     }
     elsif ( $byte == 0xcf ) { # unit64
         $p += 8;
-        return pack_uint64( $value, $p - 8 );
+        return unpack_uint64( $value, $p - 8 );
     }
     elsif ( $byte == 0xd3 ) { # int64
         $p += 8;
@@ -505,11 +524,9 @@ __END__
 
 Data::MessagePack::PP - Pure Perl implementation of Data::MessagePack
 
-=head1 LIMITATION
+=head1 DESCRIPTION
 
-Currently this module works completely in Perl 5.10 or later.
-In Perl 5.8.x, it cannot C<unpack> uint64 and int64.
-
+This module is used by L<Data::MessagePack> internally.
 
 =head1 SEE ALSO
 
