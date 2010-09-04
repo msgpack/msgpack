@@ -11,19 +11,31 @@ license 'perl';
 tests 't/*.t';
 recursive_author_tests('xt');
 
-my $use_xs = want_xs();
 
-if ( $] >= 5.008005 and $use_xs ) {
-    can_cc or die "This module requires a C compiler";
-    use_ppport 3.19;
-    requires_c99(); # msgpack C library requires C99.
-    cc_src_paths('xs-src');
-    if ($ENV{DEBUG}) {
-        cc_append_to_ccflags '-g';
+if ( $] >= 5.008005 and want_xs() ) {
+    can_cc or die "This module requires a C compiler. Please retry with --pp";
+
+    my $has_c99 = c99_available(); # msgpack C library requires C99.
+
+    if ( $has_c99 ) {
+        use_ppport 3.19;
+        cc_src_paths('xs-src');
+        if ($ENV{DEBUG}) {
+            cc_append_to_ccflags '-g';
+        }
+    }
+    else {
+        print <<NOT_SUPPORT_C99;
+
+This distribution requires a C99 compiler, but yours seems not to support C99.
+Instead of XS, configure PP version.
+
+NOT_SUPPORT_C99
+
     }
 }
 else {
-    print "configure PP version\n";
+    print "configure PP version\n\n";
 }
 
 clean_files qw{
