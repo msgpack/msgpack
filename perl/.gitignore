@@ -11,3 +11,4 @@ pm_to_blib
 unpack.o
 MANIFEST
 ppport.h
+.testenv/

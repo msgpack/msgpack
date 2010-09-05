@@ -1,3 +1,11 @@
+0.16_01
+
+    - added PP version (used in cases PERL_DATA_MESSAGEPACK=pp or fail to load XS).
+    - made Makefile.PL PP configurable.
+    - test_pp in author's test
+    - modified t/05_preferred_int.t for Win32
+      (makamaka)
+
 0.16
 
     - tests on 64bit machines with -Duselongdouble
