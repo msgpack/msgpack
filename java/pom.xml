@@ -29,6 +29,12 @@
       <version>4.8.1</version>
       <scope>test</scope>
     </dependency>
+
+    <dependency>
+      <groupId>jboss</groupId>
+      <artifactId>javassist</artifactId>
+      <version>3.7.ga</version>
+    </dependency>
   </dependencies>
 
   <build>
@@ -100,6 +106,12 @@
       <id>msgpack.org</id>
       <name>MessagePack Maven2 Repository</name>
       <url>http://msgpack.org/maven2</url>
+    </repository>
+
+    <repository>
+      <id>repo2.maven.org</id>
+      <name>repo2.maven.org Maven2 Repository</name>
+      <url>http://repo2.maven.org/maven2</url>
     </repository>
   </repositories>
 
