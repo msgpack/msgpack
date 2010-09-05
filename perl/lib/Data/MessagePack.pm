@@ -4,7 +4,7 @@ use warnings;
 use XSLoader;
 use 5.008001;
 
-our $VERSION = '0.15';
+our $VERSION = '0.16';
 our $PreferInteger = 0;
 
 our $true  = do { bless \(my $dummy = 1), "Data::MessagePack::Boolean" };
