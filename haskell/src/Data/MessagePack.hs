@@ -16,6 +16,7 @@ module Data.MessagePack(
   module Data.MessagePack.Object,
   module Data.MessagePack.Put,
   module Data.MessagePack.Parser,
+  module Data.MessagePack.Iteratee,
   
   -- * Simple functions of Pack and Unpack
   pack,
@@ -30,6 +31,9 @@ module Data.MessagePack(
   unpackFromString,
   unpackFromHandle,
   unpackFromFile,
+  unpackFromStringI,
+  unpackFromHandleI,
+  unpackFromFileI,
   
   ) where
 
@@ -47,6 +51,7 @@ import System.IO
 import Data.MessagePack.Object
 import Data.MessagePack.Put
 import Data.MessagePack.Parser
+import Data.MessagePack.Iteratee
 
 bufferSize :: Int
 bufferSize = 4 * 1024
@@ -67,7 +72,7 @@ pack = packToString . put
 -- | Unpack MessagePack string to Haskell data.
 unpack :: (ObjectGet a, IsByteString s) => s -> a
 unpack bs =
-  runIdentity $ I.run $ I.joinIM $ I.enumPure1Chunk (toBS bs) (parserToIteratee get)
+  runIdentity $ I.run $ I.joinIM $ I.enumPure1Chunk (toBS bs) getI
 
 -- TODO: tryUnpack
 
@@ -86,32 +91,32 @@ packToFile path = L.writeFile path . packToString
 -- | Unpack from ByteString
 unpackFromString :: (Monad m, IsByteString s) => s -> A.Parser a -> m a
 unpackFromString bs =
-  I.run . I.joinIM . I.enumPure1Chunk (toBS bs) . parserToIteratee
+  unpackFromStringI bs . parserToIteratee
 
 -- | Unpack from Handle
 unpackFromHandle :: CIO.MonadCatchIO m => Handle -> A.Parser a -> m a
 unpackFromHandle h =
-  I.run . I.joinIM . I.enumHandle bufferSize h . parserToIteratee
+  unpackFromHandleI h .parserToIteratee
 
 -- | Unpack from File
 unpackFromFile :: CIO.MonadCatchIO m => FilePath -> A.Parser a -> m a
-unpackFromFile path p =
+unpackFromFile path =
+  unpackFromFileI path . parserToIteratee
+
+-- | Iteratee interface to unpack from ByteString
+unpackFromStringI :: (Monad m, IsByteString s) => s -> I.Iteratee B.ByteString m a -> m a
+unpackFromStringI bs =
+  I.run . I.joinIM . I.enumPure1Chunk (toBS bs)
+
+-- | Iteratee interface to unpack from Handle
+unpackFromHandleI :: CIO.MonadCatchIO m => Handle -> I.Iteratee B.ByteString m a -> m a
+unpackFromHandleI h =
+  I.run . I.joinIM . I.enumHandle bufferSize h
+
+-- | Iteratee interface to unpack from File
+unpackFromFileI :: CIO.MonadCatchIO m => FilePath -> I.Iteratee B.ByteString m a -> m a
+unpackFromFileI path p =
   CIO.bracket
   (liftIO $ openBinaryFile path ReadMode)
   (liftIO . hClose)
-  (flip unpackFromHandle p)
-
-parserToIteratee :: Monad m => A.Parser a -> I.Iteratee B.ByteString m a
-parserToIteratee p = I.icont (itr (A.parse p)) Nothing
-  where
-    itr pcont s = case s of
-      I.EOF _ ->
-        I.throwErr (I.setEOF s)
-      I.Chunk bs ->
-        case pcont bs of
-          A.Fail _ _ msg ->
-            I.throwErr (I.iterStrExc msg)
-          A.Partial cont ->
-            I.icont (itr cont) Nothing
-          A.Done remain ret ->
-            I.idone ret (I.Chunk remain)
+  (flip unpackFromHandleI p)

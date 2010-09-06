@@ -33,3 +33,4 @@ Library
     Data.MessagePack.Object
     Data.MessagePack.Put
     Data.MessagePack.Parser
+    Data.MessagePack.Iteratee
