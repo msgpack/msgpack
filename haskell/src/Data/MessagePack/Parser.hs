@@ -40,172 +40,132 @@ class ObjectGet a where
   -- | Deserialize a value
   get :: A.Parser a
 
+instance ObjectGet Object where
+  get =
+    A.choice
+    [ liftM ObjectInteger get
+    , liftM (\() -> ObjectNil) get
+    , liftM ObjectBool get
+    , liftM ObjectDouble get
+    , liftM ObjectRAW get
+    , liftM ObjectArray get
+    , liftM ObjectMap get
+    ]
+
 instance ObjectGet Int where
-  get = parseInt
+  get = do
+    c <- A.anyWord8
+    case c of
+      _ | c .&. 0x80 == 0x00 ->
+        return $ fromIntegral c
+      _ | c .&. 0xE0 == 0xE0 ->
+        return $ fromIntegral (fromIntegral c :: Int8)
+      0xCC ->
+        return . fromIntegral =<< A.anyWord8
+      0xCD ->
+        return . fromIntegral =<< parseUint16
+      0xCE ->
+        return . fromIntegral =<< parseUint32
+      0xCF ->
+        return . fromIntegral =<< parseUint64
+      0xD0 ->
+        return . fromIntegral =<< parseInt8
+      0xD1 ->
+        return . fromIntegral =<< parseInt16
+      0xD2 ->
+        return . fromIntegral =<< parseInt32
+      0xD3 ->
+        return . fromIntegral =<< parseInt64
+      _ ->
+        fail $ printf "invlid integer tag: 0x%02X" c
 
 instance ObjectGet () where
-  get = parseNil
+  get = do
+    c <- A.anyWord8
+    case c of
+      0xC0 ->
+        return ()
+      _ ->
+        fail $ printf "invlid nil tag: 0x%02X" c
 
 instance ObjectGet Bool where
-  get = parseBool
+  get = do
+    c <- A.anyWord8
+    case c of
+      0xC3 ->
+        return True
+      0xC2 ->
+        return False
+      _ ->
+        fail $ printf "invlid bool tag: 0x%02X" c
 
 instance ObjectGet Double where
-  get = parseDouble
+  get = do
+    c <- A.anyWord8
+    case c of
+      0xCA ->
+        return . realToFrac . runGet getFloat32be . toLBS =<< A.take 4
+      0xCB ->
+        return . runGet getFloat64be . toLBS =<< A.take 8
+      _ ->
+        fail $ printf "invlid double tag: 0x%02X" c
 
 instance ObjectGet B.ByteString where
-  get = parseRAW
+  get = do
+    c <- A.anyWord8
+    case c of
+      _ | c .&. 0xE0 == 0xA0 ->
+        A.take . fromIntegral $ c .&. 0x1F
+      0xDA ->
+        A.take . fromIntegral =<< parseUint16
+      0xDB ->
+        A.take . fromIntegral =<< parseUint32
+      _ ->
+        fail $ printf "invlid raw tag: 0x%02X" c
 
 instance ObjectGet a => ObjectGet [a] where
-  get = parseArray
+  get = parseArray (flip replicateM get)
 
 instance ObjectGet a => ObjectGet (V.Vector a) where
-  get = parseArrayVector
+  get = parseArray (flip V.replicateM get)
+
+parseArray :: (Int -> A.Parser a) -> A.Parser a
+parseArray aget = do
+  c <- A.anyWord8
+  case c of
+    _ | c .&. 0xF0 == 0x90 ->
+      aget . fromIntegral $ c .&. 0x0F
+    0xDC ->
+      aget . fromIntegral =<< parseUint16
+    0xDD ->
+      aget . fromIntegral =<< parseUint32
+    _ ->
+      fail $ printf "invlid array tag: 0x%02X" c
 
 instance (ObjectGet k, ObjectGet v) => ObjectGet [(k, v)] where
-  get = parseMap
+  get = parseMap (flip replicateM parsePair)
 
 instance (ObjectGet k, ObjectGet v) => ObjectGet (V.Vector (k, v)) where
-  get = parseMapVector
-
-instance ObjectGet Object where
-  get = parseObject
-
-parseInt :: A.Parser Int
-parseInt = do
-  c <- A.anyWord8
-  case c of
-    _ | c .&. 0x80 == 0x00 ->
-      return $ fromIntegral c
-    _ | c .&. 0xE0 == 0xE0 ->
-      return $ fromIntegral (fromIntegral c :: Int8)      
-    0xCC ->
-      return . fromIntegral =<< A.anyWord8
-    0xCD ->
-      return . fromIntegral =<< parseUint16
-    0xCE ->
-      return . fromIntegral =<< parseUint32
-    0xCF ->
-      return . fromIntegral =<< parseUint64
-    0xD0 ->
-      return . fromIntegral =<< parseInt8
-    0xD1 ->
-      return . fromIntegral =<< parseInt16
-    0xD2 ->
-      return . fromIntegral =<< parseInt32
-    0xD3 ->
-      return . fromIntegral =<< parseInt64
-    _ ->
-      fail $ printf "invlid integer tag: 0x%02X" c
-
-parseNil :: A.Parser ()
-parseNil = do
-  _ <- A.word8 0xC0
-  return ()
-
-parseBool :: A.Parser Bool
-parseBool = do
-  c <- A.anyWord8
-  case c of
-    0xC3 ->
-      return True
-    0xC2 ->
-      return False
-    _ ->
-      fail $ printf "invlid bool tag: 0x%02X" c
-
-parseDouble :: A.Parser Double
-parseDouble = do
-  c <- A.anyWord8
-  case c of
-    0xCA ->
-      return . realToFrac . runGet getFloat32be . toLBS =<< A.take 4
-    0xCB ->
-      return . runGet getFloat64be . toLBS =<< A.take 8
-    _ ->
-      fail $ printf "invlid double tag: 0x%02X" c
-
-parseRAW :: A.Parser B.ByteString
-parseRAW = do
-  c <- A.anyWord8
-  case c of
-    _ | c .&. 0xE0 == 0xA0 ->
-      A.take . fromIntegral $ c .&. 0x1F
-    0xDA ->
-      A.take . fromIntegral =<< parseUint16
-    0xDB ->
-      A.take . fromIntegral =<< parseUint32
-    _ ->
-      fail $ printf "invlid raw tag: 0x%02X" c
-  
-parseArray :: ObjectGet a => A.Parser [a]
-parseArray = do
-  c <- A.anyWord8
-  case c of
-    _ | c .&. 0xF0 == 0x90 ->
-      flip replicateM get . fromIntegral $ c .&. 0x0F
-    0xDC ->
-      flip replicateM get . fromIntegral =<< parseUint16
-    0xDD ->
-      flip replicateM get . fromIntegral =<< parseUint32
-    _ ->
-      fail $ printf "invlid array tag: 0x%02X" c
-
-parseArrayVector :: ObjectGet a => A.Parser (V.Vector a)
-parseArrayVector = do
-  c <- A.anyWord8
-  case c of
-    _ | c .&. 0xF0 == 0x90 ->
-      flip V.replicateM get . fromIntegral $ c .&. 0x0F
-    0xDC ->
-      flip V.replicateM get . fromIntegral =<< parseUint16
-    0xDD ->
-      flip V.replicateM get . fromIntegral =<< parseUint32
-    _ ->
-      fail $ printf "invlid array tag: 0x%02X" c
-
-parseMap :: (ObjectGet k, ObjectGet v) => A.Parser [(k, v)]
-parseMap = do
-  c <- A.anyWord8
-  case c of
-    _ | c .&. 0xF0 == 0x80 ->
-      flip replicateM parsePair . fromIntegral $ c .&. 0x0F
-    0xDE ->
-      flip replicateM parsePair . fromIntegral =<< parseUint16
-    0xDF ->
-      flip replicateM parsePair . fromIntegral =<< parseUint32
-    _ ->
-      fail $ printf "invlid map tag: 0x%02X" c
-
-parseMapVector :: (ObjectGet k, ObjectGet v) => A.Parser (V.Vector (k, v))
-parseMapVector = do
-  c <- A.anyWord8
-  case c of
-    _ | c .&. 0xF0 == 0x80 ->
-      flip V.replicateM parsePair . fromIntegral $ c .&. 0x0F
-    0xDE ->
-      flip V.replicateM parsePair . fromIntegral =<< parseUint16
-    0xDF ->
-      flip V.replicateM parsePair . fromIntegral =<< parseUint32
-    _ ->
-      fail $ printf "invlid map tag: 0x%02X" c
-
-parseObject :: A.Parser Object
-parseObject =
-  A.choice
-  [ liftM ObjectInteger parseInt
-  , liftM (const ObjectNil) parseNil
-  , liftM ObjectBool parseBool
-  , liftM ObjectDouble parseDouble
-  , liftM ObjectRAW parseRAW
-  , liftM ObjectArray parseArray
-  , liftM ObjectMap parseMap
-  ]
+  get = parseMap (flip V.replicateM parsePair)
 
 parsePair :: (ObjectGet k, ObjectGet v) => A.Parser (k, v)
 parsePair = do
   a <- get
   b <- get
   return (a, b)
+
+parseMap :: (Int -> A.Parser a) -> A.Parser a
+parseMap aget = do
+  c <- A.anyWord8
+  case c of
+    _ | c .&. 0xF0 == 0x80 ->
+      aget . fromIntegral $ c .&. 0x0F
+    0xDE ->
+      aget . fromIntegral =<< parseUint16
+    0xDF ->
+      aget . fromIntegral =<< parseUint32
+    _ ->
+      fail $ printf "invlid map tag: 0x%02X" c
 
 parseUint16 :: A.Parser Word16
 parseUint16 = do

@@ -35,168 +35,120 @@ class ObjectPut a where
   put :: a -> Put
 
 instance ObjectPut Object where
-  put = putObject
+  put obj =
+    case obj of
+      ObjectInteger n ->
+        put n
+      ObjectNil ->
+        put ()
+      ObjectBool b ->
+        put b
+      ObjectDouble d ->
+        put d
+      ObjectRAW raw ->
+        put raw
+      ObjectArray arr ->
+        put arr
+      ObjectMap m ->
+        put m
 
 instance ObjectPut Int where
-  put = putInteger
+  put n =
+    case n of
+      _ | n >= 0 && n <= 127 ->
+        putWord8 $ fromIntegral n
+      _ | n >= -32 && n <= -1 ->
+        putWord8 $ fromIntegral n
+      _ | n >= 0 && n < 0x100 -> do
+        putWord8 0xCC
+        putWord8 $ fromIntegral n
+      _ | n >= 0 && n < 0x10000 -> do
+        putWord8 0xCD
+        putWord16be $ fromIntegral n
+      _ | n >= 0 && n < 0x100000000 -> do
+        putWord8 0xCE
+        putWord32be $ fromIntegral n
+      _ | n >= 0 -> do
+        putWord8 0xCF
+        putWord64be $ fromIntegral n
+      _ | n >= -0x80 -> do
+        putWord8 0xD0
+        putWord8 $ fromIntegral n
+      _ | n >= -0x8000 -> do
+        putWord8 0xD1
+        putWord16be $ fromIntegral n
+      _ | n >= -0x80000000 -> do
+        putWord8 0xD2
+        putWord32be $ fromIntegral n
+      _ -> do
+        putWord8 0xD3
+        putWord64be $ fromIntegral n
 
 instance ObjectPut () where
-  put _ = putNil
+  put _ = 
+    putWord8 0xC0
 
 instance ObjectPut Bool where
-  put = putBool
+  put True = putWord8 0xC3
+  put False = putWord8 0xC2
 
 instance ObjectPut Double where
-  put = putDouble
+  put d = do
+    putWord8 0xCB
+    putFloat64be d
 
 instance ObjectPut B.ByteString where
-  put = putRAW
+  put bs = do
+    case len of
+      _ | len <= 31 -> do
+        putWord8 $ 0xA0 .|. fromIntegral len
+      _ | len < 0x10000 -> do
+        putWord8 0xDA
+        putWord16be $ fromIntegral len
+      _ -> do
+        putWord8 0xDB
+        putWord32be $ fromIntegral len
+    putByteString bs
+    where
+      len = B.length bs
 
 instance ObjectPut a => ObjectPut [a] where
-  put = putArray
+  put = putArray length (mapM_ put)
 
 instance ObjectPut a => ObjectPut (V.Vector a) where
-  put = putArrayVector
+  put = putArray V.length (V.mapM_ put)
+
+putArray :: (a -> Int) -> (a -> Put) -> a -> Put
+putArray lf pf arr = do
+  case lf arr of
+    len | len <= 15 ->
+      putWord8 $ 0x90 .|. fromIntegral len
+    len | len < 0x10000 -> do
+      putWord8 0xDC
+      putWord16be $ fromIntegral len
+    len -> do
+      putWord8 0xDD
+      putWord32be $ fromIntegral len
+  pf arr
 
 instance (ObjectPut k, ObjectPut v) => ObjectPut [(k, v)] where
-  put = putMap
+  put = putMap length (mapM_ putPair)
 
 instance (ObjectPut k, ObjectPut v) => ObjectPut (V.Vector (k, v)) where
-  put = putMapVector
+  put = putMap V.length (V.mapM_ putPair)
 
-putObject :: Object -> Put
-putObject obj =
-  case obj of
-    ObjectInteger n ->
-      putInteger n
-    ObjectNil ->
-      putNil
-    ObjectBool b ->
-      putBool b
-    ObjectDouble d ->
-      putDouble d
-    ObjectRAW raw ->
-      putRAW raw
-    ObjectArray arr ->
-      putArray arr
-    ObjectMap m ->
-      putMap m
+putPair :: (ObjectPut a, ObjectPut b) => (a, b) -> Put
+putPair (a, b) = put a >> put b
 
-putInteger :: Int -> Put      
-putInteger n =
-  case n of
-    _ | n >= 0 && n <= 127 ->
-      putWord8 $ fromIntegral n
-    _ | n >= -32 && n <= -1 ->
-      putWord8 $ fromIntegral n
-    _ | n >= 0 && n < 0x100 -> do
-      putWord8 0xCC
-      putWord8 $ fromIntegral n
-    _ | n >= 0 && n < 0x10000 -> do
-      putWord8 0xCD
-      putWord16be $ fromIntegral n
-    _ | n >= 0 && n < 0x100000000 -> do
-      putWord8 0xCE
-      putWord32be $ fromIntegral n
-    _ | n >= 0 -> do
-      putWord8 0xCF
-      putWord64be $ fromIntegral n
-    _ | n >= -0x80 -> do
-      putWord8 0xD0
-      putWord8 $ fromIntegral n
-    _ | n >= -0x8000 -> do
-      putWord8 0xD1
-      putWord16be $ fromIntegral n
-    _ | n >= -0x80000000 -> do
-      putWord8 0xD2
-      putWord32be $ fromIntegral n
-    _ -> do
-      putWord8 0xD3
-      putWord64be $ fromIntegral n
-
-putNil :: Put
-putNil = putWord8 0xC0
-
-putBool :: Bool -> Put
-putBool True = putWord8 0xC3
-putBool False = putWord8 0xC2
-
-putDouble :: Double -> Put
-putDouble d = do
-  putWord8 0xCB
-  putFloat64be d
-
-putRAW :: B.ByteString -> Put
-putRAW bs = do
-  case len of
-    _ | len <= 31 -> do
-      putWord8 $ 0xA0 .|. fromIntegral len
-    _ | len < 0x10000 -> do
-      putWord8 0xDA
-      putWord16be $ fromIntegral len
-    _ -> do
-      putWord8 0xDB
-      putWord32be $ fromIntegral len
-  putByteString bs
-  where
-    len = B.length bs
-
-putArray :: ObjectPut a => [a] -> Put
-putArray arr = do
-  case len of
-    _ | len <= 15 ->
-      putWord8 $ 0x90 .|. fromIntegral len
-    _ | len < 0x10000 -> do
-      putWord8 0xDC
-      putWord16be $ fromIntegral len
-    _ -> do
-      putWord8 0xDD
-      putWord32be $ fromIntegral len
-  mapM_ put arr
-  where
-    len = length arr
-
-putArrayVector :: ObjectPut a => V.Vector a -> Put
-putArrayVector arr = do
-  case len of
-    _ | len <= 15 ->
-      putWord8 $ 0x90 .|. fromIntegral len
-    _ | len < 0x10000 -> do
-      putWord8 0xDC
-      putWord16be $ fromIntegral len
-    _ -> do
-      putWord8 0xDD
-      putWord32be $ fromIntegral len
-  V.mapM_ put arr
-  where
-    len = V.length arr
-
-putMap :: (ObjectPut k, ObjectPut v) => [(k, v)] -> Put
-putMap m = do
-  case len of
-    _ | len <= 15 ->
+putMap :: (a -> Int) -> (a -> Put) -> a -> Put
+putMap lf pf m = do
+  case lf m of
+    len | len <= 15 ->
       putWord8 $ 0x80 .|. fromIntegral len
-    _ | len < 0x10000 -> do
+    len | len < 0x10000 -> do
       putWord8 0xDE
       putWord16be $ fromIntegral len
-    _ -> do
+    len -> do
       putWord8 0xDF
       putWord32be $ fromIntegral len
-  mapM_ (\(k, v) -> put k >> put v) m
-  where
-    len = length m
-
-putMapVector :: (ObjectPut k, ObjectPut v) => V.Vector (k, v) -> Put
-putMapVector m = do
-  case len of
-    _ | len <= 15 ->
-      putWord8 $ 0x80 .|. fromIntegral len
-    _ | len < 0x10000 -> do
-      putWord8 0xDE
-      putWord16be $ fromIntegral len
-    _ -> do
-      putWord8 0xDF
-      putWord32be $ fromIntegral len
-  V.mapM_ (\(k, v) -> put k >> put v) m
-  where
-    len = V.length m
+  pf m
