@@ -45,7 +45,6 @@ import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as L
 import Data.Functor.Identity
 import qualified Data.Iteratee as I
-import qualified Data.Iteratee.IO as I
 import System.IO
 
 import Data.MessagePack.Object
@@ -111,7 +110,7 @@ unpackFromStringI bs =
 -- | Iteratee interface to unpack from Handle
 unpackFromHandleI :: CIO.MonadCatchIO m => Handle -> I.Iteratee B.ByteString m a -> m a
 unpackFromHandleI h =
-  I.run . I.joinIM . I.enumHandle bufferSize h
+  I.run . I.joinIM . enumHandleNonBlocking bufferSize h
 
 -- | Iteratee interface to unpack from File
 unpackFromFileI :: CIO.MonadCatchIO m => FilePath -> I.Iteratee B.ByteString m a -> m a
