@@ -1,12 +1,16 @@
 NAME
-    Data::MessagePack - messagepack
+    Data::MessagePack - MessagePack serialising/deserialising
 
 SYNOPSIS
         my $packed = Data::MessagePack->pack($dat);
         my $unpacked = Data::MessagePack->unpack($dat);
 
 DESCRIPTION
-    Data::MessagePack is a binary packer for perl.
+    This module converts Perl data structures to MessagePack and vice versa.
+
+    MessagePack is a binary-based efficient object serialization format. It
+    enables to exchange structured objects between many languages like JSON.
+    But unlike JSON, it is very fast and small.
 
 METHODS
     my $packed = Data::MessagePack->pack($data);
@@ -22,13 +26,19 @@ Configuration Variables
 AUTHORS
     Tokuhiro Matsuno
 
+    Makamaka Hannyaharamitu
+
 THANKS TO
     Jun Kuriyama
+
+    Dan Kogai
+
+    FURUHASHI Sadayuki
 
 LICENSE
     This library is free software; you can redistribute it and/or modify it
     under the same terms as Perl itself.
 
 SEE ALSO
-    <http://msgpack.sourceforge.jp/>
+    <http://msgpack.org/>
 
