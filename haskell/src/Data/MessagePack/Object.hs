@@ -1,5 +1,6 @@
-{-# LANGUAGE TypeSynonymInstances #-}
-{-# LANGUAGE FlexibleInstances #-}
+{-# Language TypeSynonymInstances #-}
+{-# Language FlexibleInstances #-}
+{-# Language OverlappingInstances #-}
 
 --------------------------------------------------------------------
 -- |
