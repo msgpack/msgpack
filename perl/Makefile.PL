@@ -64,7 +64,7 @@ if($Module::Install::AUTHOR) {
     postamble qq{test :: test_pp\n\n};
 }
 
-auto_set_repository();
+repository('http://github.com/msgpack/msgpack');
 auto_include;
 WriteAll;
 

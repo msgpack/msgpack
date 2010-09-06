@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use 5.008001;
 
-our $VERSION = '0.16';
+our $VERSION = '0.16_04';
 our $PreferInteger = 0;
 
 our $true  = do { bless \(my $dummy = 1), "Data::MessagePack::Boolean" };
@@ -30,7 +30,7 @@ __END__
 
 =head1 NAME
 
-Data::MessagePack - messagepack
+Data::MessagePack - MessagePack serialising/deserialising
 
 =head1 SYNOPSIS
 
@@ -39,7 +39,10 @@ Data::MessagePack - messagepack
 
 =head1 DESCRIPTION
 
-Data::MessagePack is a binary packer for perl.
+This module converts Perl data structures to MessagePack and vice versa.
+
+MessagePack is a binary-based efficient object serialization format.
+It enables to exchange structured objects between many languages like JSON. But unlike JSON, it is very fast and small.
 
 =head1 METHODS
 
@@ -69,9 +72,15 @@ Pack the string as int when the value looks like int(EXPERIMENTAL).
 
 Tokuhiro Matsuno
 
+Makamaka Hannyaharamitu
+
 =head1 THANKS TO
 
 Jun Kuriyama
+
+Dan Kogai
+
+FURUHASHI Sadayuki
 
 =head1 LICENSE
 
@@ -81,5 +90,5 @@ it under the same terms as Perl itself.
 
 =head1 SEE ALSO
 
-L<http://msgpack.sourceforge.jp/>
+L<http://msgpack.org/>
 
