@@ -1,15 +1,15 @@
 Name:               msgpack
-Version:            0.3.0
+Version:            0.3.1
 Synopsis:           A Haskell binding to MessagePack
 Description:
-  A Haskell binding to MessagePack <http://msgpack.sourceforge.jp/>
+  A Haskell binding to MessagePack <http://msgpack.org/>
 
 License:            BSD3
 License-File:       LICENSE
 Category:           Data
 Author:             Hideyuki Tanaka
 Maintainer:         Hideyuki Tanaka <tanaka.hideyuki@gmail.com>
-Homepage:           http://github.com/tanakh/hsmsgpack
+Homepage:           http://github.com/msgpack/msgpack
 Stability:          Experimental
 Tested-with:        GHC == 6.12.3
 Cabal-Version:      >= 1.2
