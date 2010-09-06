@@ -1,3 +1,8 @@
+0.16_02
+
+    - document enhancement(tokuhirom)
+    - M::I::XSUtil 0.26 is broken. use 0.27.
+
 0.16_01
 
     - added PP version (used in cases PERL_DATA_MESSAGEPACK=pp or fail to load XS).
