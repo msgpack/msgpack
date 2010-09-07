@@ -1,6 +1,7 @@
 {-# Language TypeSynonymInstances #-}
 {-# Language FlexibleInstances #-}
 {-# Language OverlappingInstances #-}
+{-# Language DeriveDataTypeable #-}
 
 --------------------------------------------------------------------
 -- |
@@ -30,6 +31,7 @@ import Control.Monad
 import Control.Monad.Trans.Error ()
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as C8
+import Data.Typeable
 
 -- | Object Representation of MessagePack data.
 data Object =
@@ -40,7 +42,7 @@ data Object =
   | ObjectRAW B.ByteString
   | ObjectArray [Object]
   | ObjectMap [(Object, Object)]
-  deriving (Show)
+  deriving (Show, Eq, Ord, Typeable)
 
 instance NFData Object where
   rnf obj =
