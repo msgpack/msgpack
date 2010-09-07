@@ -25,6 +25,7 @@ module Data.MessagePack(
   -- * Pack functions
   packToString,
   packToHandle,
+  packToHandle',
   packToFile,
   
   -- * Unpack functions
@@ -82,6 +83,10 @@ packToString = runPut
 -- | Pack to Handle
 packToHandle :: Handle -> Put -> IO ()
 packToHandle h = L.hPutStr h . packToString
+
+-- | Pack to Handle and Flush Handle
+packToHandle' :: Handle -> Put -> IO ()
+packToHandle' h p = packToHandle h p >> hFlush h
 
 -- | Pack to File
 packToFile :: FilePath -> Put -> IO ()
