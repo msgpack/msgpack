@@ -25,6 +25,7 @@ module Data.MessagePack.Object(
   Result,
   ) where
 
+import Control.DeepSeq
 import Control.Monad
 import Control.Monad.Trans.Error ()
 import qualified Data.ByteString as B
@@ -40,6 +41,17 @@ data Object =
   | ObjectArray [Object]
   | ObjectMap [(Object, Object)]
   deriving (Show)
+
+instance NFData Object where
+  rnf obj =
+    case obj of
+      ObjectNil -> ()
+      ObjectBool b -> rnf b
+      ObjectInteger n -> rnf n
+      ObjectDouble d -> rnf d
+      ObjectRAW bs -> bs `seq` ()
+      ObjectArray a -> rnf a
+      ObjectMap m -> rnf m
 
 -- | The class of types serializable to and from MessagePack object
 class OBJECT a where
