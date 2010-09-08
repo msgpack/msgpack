@@ -1,18 +1,18 @@
 Name:               msgpack
-Version:            0.3.1
+Version:            0.3.1.1
 Synopsis:           A Haskell binding to MessagePack
 Description:
   A Haskell binding to MessagePack <http://msgpack.org/>
 
 License:            BSD3
 License-File:       LICENSE
+Copyright:          Copyright (c) 2009-2010, Hideyuki Tanaka
 Category:           Data
 Author:             Hideyuki Tanaka
 Maintainer:         Hideyuki Tanaka <tanaka.hideyuki@gmail.com>
 Homepage:           http://github.com/msgpack/msgpack
 Stability:          Experimental
-Tested-with:        GHC == 6.12.3
-Cabal-Version:      >= 1.2
+Cabal-Version:      >= 1.6
 Build-Type:         Simple
 
 Library
@@ -27,7 +27,7 @@ Library
                     data-binary-ieee754 >= 0.4 && < 0.5,
                     deepseq >= 1.1 && <1.2
 
-  Ghc-options:      -Wall -O2
+  Ghc-options:      -Wall
   Hs-source-dirs:   src
 
   Exposed-modules:
@@ -36,3 +36,7 @@ Library
     Data.MessagePack.Put
     Data.MessagePack.Parser
     Data.MessagePack.Iteratee
+
+Source-repository head
+  Type:     git
+  Location: git://github.com/msgpack/msgpack.git
