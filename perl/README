@@ -32,8 +32,14 @@ ABOUT MESSAGEPACK FORMAT
     visit to <http://msgpack.org/>.
 
 METHODS
-    my $packed = Data::MessagePack->pack($data);
-        pack the $data to messagepack format string.
+    my $packed = Data::MessagePack->pack($data[, $max_depth]);
+        Pack the $data to messagepack format string.
+
+        This method throws exception when nesting perl structure more than
+        $max_depth(default: 512) for detecting circular reference.
+
+        Data::MessagePack->pack() throws exception when encountered blessed
+        object. Because MessagePack is language independent format.
 
     my $unpacked = Data::MessagePack->unpack($msgpackstr);
         unpack the $msgpackstr to messagepack format string.
