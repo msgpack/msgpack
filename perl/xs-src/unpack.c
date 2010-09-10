@@ -22,7 +22,7 @@ typedef struct {
     struct template ## name
 
 #define msgpack_unpack_func(ret, name) \
-    ret template ## name
+    STATIC_INLINE ret template ## name
 
 #define msgpack_unpack_callback(name) \
     template_callback ## name
