@@ -2,16 +2,7 @@
  * code is written by tokuhirom.
  * buffer alocation technique is taken from JSON::XS. thanks to mlehmann.
  */
-#ifdef __cplusplus
-extern "C" {
-#endif
-#include "EXTERN.h"
-#include "perl.h"
-#include "XSUB.h"
-#include "ppport.h"
-#ifdef __cplusplus
-};
-#endif
+#include "perlxs.h"
 
 #include "msgpack/pack_define.h"
 
@@ -52,7 +43,7 @@ static void need(enc_t *enc, STRLEN len);
 #define ERR_NESTING_EXCEEDED "perl structure exceeds maximum nesting level (max_depth set too low?)"
 
 
-static void need(enc_t *enc, STRLEN len)
+STATIC_INLINE void need(enc_t *enc, STRLEN len)
 {
     if (enc->cur + len >= enc->end) {
         STRLEN cur = enc->cur - (char *)SvPVX (enc->sv);
@@ -65,7 +56,7 @@ static void need(enc_t *enc, STRLEN len)
 
 static int s_pref_int = 0;
 
-static int pref_int_set(pTHX_ SV* sv, MAGIC* mg) {
+STATIC_INLINE int pref_int_set(pTHX_ SV* sv, MAGIC* mg) {
     if (SvTRUE(sv)) {
         s_pref_int = 1;
     } else {
@@ -94,7 +85,7 @@ void boot_Data__MessagePack_pack(void) {
 }
 
 
-static int try_int(enc_t* enc, const char *p, size_t len) {
+STATIC_INLINE int try_int(enc_t* enc, const char *p, size_t len) {
     int negative = 0;
     const char* pe = p + len;
     uint64_t num = 0;
@@ -150,7 +141,7 @@ static int try_int(enc_t* enc, const char *p, size_t len) {
 
 static void _msgpack_pack_rv(enc_t *enc, SV* sv, int depth);
 
-static void _msgpack_pack_sv(enc_t *enc, SV* sv, int depth) {
+STATIC_INLINE void _msgpack_pack_sv(enc_t *enc, SV* sv, int depth) {
     if (depth <= 0) Perl_croak(aTHX_ ERR_NESTING_EXCEEDED);
     SvGETMAGIC(sv);
 
@@ -185,7 +176,7 @@ static void _msgpack_pack_sv(enc_t *enc, SV* sv, int depth) {
     }
 }
 
-static void _msgpack_pack_rv(enc_t *enc, SV* sv, int depth) {
+STATIC_INLINE void _msgpack_pack_rv(enc_t *enc, SV* sv, int depth) {
     svtype svt;
     if (depth <= 0) Perl_croak(aTHX_ ERR_NESTING_EXCEEDED);
     SvGETMAGIC(sv);

@@ -1,38 +1,65 @@
-{-# LANGUAGE TypeSynonymInstances #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE OverlappingInstances #-}
-{-# LANGUAGE IncoherentInstances #-}
+{-# Language TypeSynonymInstances #-}
+{-# Language FlexibleInstances #-}
+{-# Language OverlappingInstances #-}
+{-# Language DeriveDataTypeable #-}
 
 --------------------------------------------------------------------
 -- |
--- Module    : Data.MessagePack.Class
--- Copyright : (c) Hideyuki Tanaka, 2009
+-- Module    : Data.MessagePack.Object
+-- Copyright : (c) Hideyuki Tanaka, 2009-2010
 -- License   : BSD3
 --
 -- Maintainer:  tanaka.hideyuki@gmail.com
 -- Stability :  experimental
 -- Portability: portable
 --
--- Serializing Haskell values to and from MessagePack Objects.
+-- MessagePack object definition
 --
 --------------------------------------------------------------------
 
-module Data.MessagePack.Class(
+module Data.MessagePack.Object(
+  -- * MessagePack Object
+  Object(..),
+  
   -- * Serialization to and from Object
   OBJECT(..),
   Result,
-  pack,
   ) where
 
-import Control.Monad.Error
-import Data.ByteString.Char8 (ByteString)
+import Control.DeepSeq
+import Control.Monad
+import Control.Monad.Trans.Error ()
+import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as C8
+import Data.Typeable
 
-import Data.MessagePack.Base
+-- | Object Representation of MessagePack data.
+data Object =
+  ObjectNil
+  | ObjectBool Bool
+  | ObjectInteger Int
+  | ObjectDouble Double
+  | ObjectRAW B.ByteString
+  | ObjectArray [Object]
+  | ObjectMap [(Object, Object)]
+  deriving (Show, Eq, Ord, Typeable)
+
+instance NFData Object where
+  rnf obj =
+    case obj of
+      ObjectNil -> ()
+      ObjectBool b -> rnf b
+      ObjectInteger n -> rnf n
+      ObjectDouble d -> rnf d
+      ObjectRAW bs -> bs `seq` ()
+      ObjectArray a -> rnf a
+      ObjectMap m -> rnf m
 
 -- | The class of types serializable to and from MessagePack object
 class OBJECT a where
+  -- | Encode a value to MessagePack object
   toObject :: a -> Object
+  -- | Decode a value from MessagePack object
   fromObject :: Object -> Result a
 
 -- | A type for parser results
@@ -65,7 +92,7 @@ instance OBJECT Double where
   fromObject (ObjectDouble d) = Right d
   fromObject _ = Left fromObjectError
 
-instance OBJECT ByteString where
+instance OBJECT B.ByteString where
   toObject = ObjectRAW
   fromObject (ObjectRAW bs) = Right bs
   fromObject _ = Left fromObjectError
@@ -95,7 +122,3 @@ instance OBJECT a => OBJECT (Maybe a) where
   
   fromObject ObjectNil = return Nothing
   fromObject obj = liftM Just $ fromObject obj
-
--- | Pack a serializable Haskell value.
-pack :: OBJECT a => Packer -> a -> IO ()
-pack pc = packObject pc . toObject
