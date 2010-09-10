@@ -131,7 +131,7 @@ STATIC_INLINE int template_callback_raw(unpack_user* u, const char* b, const cha
 
 #include "msgpack/unpack_template.h"
 
-SV* _msgpack_unpack(SV* data, int limit) {
+STATIC_INLINE SV* _msgpack_unpack(SV* data, int limit) {
     msgpack_unpack_t mp;
     unpack_user u = {0, &PL_sv_undef};
 	int ret;
@@ -194,7 +194,7 @@ XS(xs_unpack) {
 /* ------------------------------ stream -- */
 /* http://twitter.com/frsyuki/status/13249304748 */
 
-static void _reset(SV* self) {
+STATIC_INLINE void _reset(SV* self) {
 	unpack_user u = {0, &PL_sv_undef, 0};
 
 	UNPACKER(self, mp);
@@ -220,7 +220,7 @@ XS(xs_unpacker_new) {
     XSRETURN(1);
 }
 
-static SV* _execute_impl(SV* self, SV* data, UV off, I32 limit) {
+STATIC_INLINE SV* _execute_impl(SV* self, SV* data, UV off, I32 limit) {
     UNPACKER(self, mp);
 
     size_t from = off;
