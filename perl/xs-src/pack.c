@@ -2,16 +2,7 @@
  * code is written by tokuhirom.
  * buffer alocation technique is taken from JSON::XS. thanks to mlehmann.
  */
-#ifdef __cplusplus
-extern "C" {
-#endif
-#include "EXTERN.h"
-#include "perl.h"
-#include "XSUB.h"
-#include "ppport.h"
-#ifdef __cplusplus
-};
-#endif
+#include "perlxs.h"
 
 #include "msgpack/pack_define.h"
 
