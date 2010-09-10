@@ -74,9 +74,13 @@ If you want to get more informations about messagepack format, please visit to L
 
 =over 4
 
-=item my $packed = Data::MessagePack->pack($data);
+=item my $packed = Data::MessagePack->pack($data[, $max_depth]);
 
-pack the $data to messagepack format string.
+Pack the $data to messagepack format string.
+
+This method throws exception when nesting perl structure more than $max_depth(default: 512) for detecting circular reference.
+
+Data::MessagePack->pack() throws exception when encountered blessed object. Because MessagePack is language independent format.
 
 =item my $unpacked = Data::MessagePack->unpack($msgpackstr);
 
