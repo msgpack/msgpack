@@ -12,3 +12,4 @@ unpack.o
 MANIFEST
 ppport.h
 .testenv/
+xshelper.h
