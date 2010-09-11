@@ -1,7 +1,7 @@
 --------------------------------------------------------------------
 -- |
 -- Module    : Data.MessagePack
--- Copyright : (c) Hideyuki Tanaka, 2009
+-- Copyright : (c) Hideyuki Tanaka, 2009-2010
 -- License   : BSD3
 --
 -- Maintainer:  tanaka.hideyuki@gmail.com
@@ -13,51 +13,114 @@
 --------------------------------------------------------------------
 
 module Data.MessagePack(
-  module Data.MessagePack.Base,
-  module Data.MessagePack.Class,
-  module Data.MessagePack.Feed,
-  module Data.MessagePack.Monad,
-  module Data.MessagePack.Stream,
+  module Data.MessagePack.Object,
+  module Data.MessagePack.Put,
+  module Data.MessagePack.Parser,
+  module Data.MessagePack.Iteratee,
   
-  -- * Pack and Unpack
-  packb,
-  unpackb,
+  -- * Simple functions of Pack and Unpack
+  pack,
+  unpack,
   
-  -- * Pure version of Pack and Unpack
-  packb',
-  unpackb',
+  -- * Pack functions
+  packToString,
+  packToHandle,
+  packToHandle',
+  packToFile,
+  
+  -- * Unpack functions
+  unpackFromString,
+  unpackFromHandle,
+  unpackFromFile,
+  unpackFromStringI,
+  unpackFromHandleI,
+  unpackFromFileI,
+  
   ) where
 
-import Data.ByteString (ByteString)
-import System.IO.Unsafe
+import qualified Control.Monad.CatchIO as CIO
+import Control.Monad.IO.Class
+import qualified Data.Attoparsec as A
+import Data.Binary.Put
+import qualified Data.ByteString as B
+import qualified Data.ByteString.Lazy as L
+import Data.Functor.Identity
+import qualified Data.Iteratee as I
+import System.IO
 
-import Data.MessagePack.Base
-import Data.MessagePack.Class
-import Data.MessagePack.Feed
-import Data.MessagePack.Monad
-import Data.MessagePack.Stream
+import Data.MessagePack.Object
+import Data.MessagePack.Put
+import Data.MessagePack.Parser
+import Data.MessagePack.Iteratee
+
+bufferSize :: Int
+bufferSize = 4 * 1024
+
+class IsByteString s where
+  toBS :: s -> B.ByteString
+
+instance IsByteString B.ByteString where
+  toBS = id
+
+instance IsByteString L.ByteString where
+  toBS = B.concat . L.toChunks
 
 -- | Pack Haskell data to MessagePack string.
-packb :: OBJECT a => a -> IO ByteString
-packb dat = do
-  sb <- newSimpleBuffer
-  pc <- newPacker sb
-  pack pc dat
-  simpleBufferData sb
+pack :: ObjectPut a => a -> L.ByteString
+pack = packToString . put
 
 -- | Unpack MessagePack string to Haskell data.
-unpackb :: OBJECT a => ByteString -> IO (Result a)
-unpackb bs = do
-  withZone $ \z -> do
-    r <- unpackObject z bs
-    return $ case r of
-      Left err -> Left (show err)
-      Right (_, dat) -> fromObject dat
+unpack :: (ObjectGet a, IsByteString s) => s -> a
+unpack bs =
+  runIdentity $ I.run $ I.joinIM $ I.enumPure1Chunk (toBS bs) getI
 
--- | Pure version of 'packb'.
-packb' :: OBJECT a => a -> ByteString
-packb' dat = unsafePerformIO $ packb dat
+-- TODO: tryUnpack
 
--- | Pure version of 'unpackb'.
-unpackb' :: OBJECT a => ByteString -> Result a
-unpackb' bs = unsafePerformIO $ unpackb bs
+-- | Pack to ByteString.
+packToString :: Put -> L.ByteString
+packToString = runPut
+
+-- | Pack to Handle
+packToHandle :: Handle -> Put -> IO ()
+packToHandle h = L.hPutStr h . packToString
+
+-- | Pack to Handle and Flush Handle
+packToHandle' :: Handle -> Put -> IO ()
+packToHandle' h p = packToHandle h p >> hFlush h
+
+-- | Pack to File
+packToFile :: FilePath -> Put -> IO ()
+packToFile path = L.writeFile path . packToString
+
+-- | Unpack from ByteString
+unpackFromString :: (Monad m, IsByteString s) => s -> A.Parser a -> m a
+unpackFromString bs =
+  unpackFromStringI bs . parserToIteratee
+
+-- | Unpack from Handle
+unpackFromHandle :: CIO.MonadCatchIO m => Handle -> A.Parser a -> m a
+unpackFromHandle h =
+  unpackFromHandleI h .parserToIteratee
+
+-- | Unpack from File
+unpackFromFile :: CIO.MonadCatchIO m => FilePath -> A.Parser a -> m a
+unpackFromFile path =
+  unpackFromFileI path . parserToIteratee
+
+-- | Iteratee interface to unpack from ByteString
+unpackFromStringI :: (Monad m, IsByteString s) => s -> I.Iteratee B.ByteString m a -> m a
+unpackFromStringI bs =
+  I.run . I.joinIM . I.enumPure1Chunk (toBS bs)
+
+-- | Iteratee interface to unpack from Handle
+unpackFromHandleI :: CIO.MonadCatchIO m => Handle -> I.Iteratee B.ByteString m a -> m a
+unpackFromHandleI h =
+  I.run . I.joinIM . enumHandleNonBlocking bufferSize h
+
+-- | Iteratee interface to unpack from File
+unpackFromFileI :: CIO.MonadCatchIO m => FilePath -> I.Iteratee B.ByteString m a -> m a
+unpackFromFileI path p =
+  CIO.bracket
+  (liftIO $ openBinaryFile path ReadMode)
+  (liftIO . hClose)
+  (flip unpackFromHandleI p)

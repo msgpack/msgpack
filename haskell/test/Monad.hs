@@ -1,16 +1,21 @@
-import Control.Monad.Trans
+{-# Language OverloadedStrings #-}
+
+import Control.Monad.IO.Class
+import qualified Data.ByteString as B
 import Data.MessagePack
 
 main = do
-  sb <- packToString $ do
+  sb <- return $ packToString $ do
     put [1,2,3::Int]
     put (3.14 :: Double)
-    put "Hoge"
+    put ("Hoge" :: B.ByteString)
   
   print sb
   
-  unpackFromString sb $ do
+  r <- unpackFromString sb $ do
     arr <- get
     dbl <- get
     str <- get
-    liftIO $ print (arr :: [Int], dbl :: Double, str :: String)
+    return (arr :: [Int], dbl :: Double, str :: B.ByteString)
+  
+  print r

@@ -1,6 +1,6 @@
 AC_INIT(src/object.cpp)
 AC_CONFIG_AUX_DIR(ac)
-AM_INIT_AUTOMAKE(msgpack, 0.5.2)
+AM_INIT_AUTOMAKE(msgpack, 0.5.4)
 AC_CONFIG_HEADER(config.h)
 
 AC_SUBST(CFLAGS)

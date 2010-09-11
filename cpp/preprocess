@@ -29,3 +29,6 @@ cp -f ../msgpack/unpack_template.h src/msgpack/
 cp -f ../test/cases.mpac           test/
 cp -f ../test/cases_compact.mpac   test/
 
+sed -e 's/8\.00/9.00/' < msgpack_vc8.vcproj > msgpack_vc2008.vcproj
+sed -e 's/9\.00/10.00/' -e 's/msgpack_vc8/msgpack_vc2008/' < msgpack_vc8.sln > msgpack_vc2008.sln
+

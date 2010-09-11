@@ -26,10 +26,11 @@ copy src\msgpack\object.hpp            include\msgpack\
 copy src\msgpack\zone.hpp              include\msgpack\
 copy src\msgpack\type.hpp              include\msgpack\type\
 copy src\msgpack\type\bool.hpp         include\msgpack\type\
+copy src\msgpack\type\deque.hpp        include\msgpack\type\
+copy src\msgpack\type\fixint.hpp       include\msgpack\type\
 copy src\msgpack\type\float.hpp        include\msgpack\type\
 copy src\msgpack\type\int.hpp          include\msgpack\type\
 copy src\msgpack\type\list.hpp         include\msgpack\type\
-copy src\msgpack\type\deque.hpp        include\msgpack\type\
 copy src\msgpack\type\map.hpp          include\msgpack\type\
 copy src\msgpack\type\nil.hpp          include\msgpack\type\
 copy src\msgpack\type\pair.hpp         include\msgpack\type\

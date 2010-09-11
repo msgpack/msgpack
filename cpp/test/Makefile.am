@@ -13,6 +13,8 @@ check_PROGRAMS = \
 		convert \
 		buffer \
 		cases \
+		fixint \
+		fixint_c \
 		version \
 		msgpackc_test \
 		msgpack_test
@@ -37,6 +39,10 @@ buffer_SOURCES = buffer.cc
 buffer_LDADD = -lz
 
 cases_SOURCES = cases.cc
+
+fixint_SOURCES = fixint.cc
+
+fixint_c_SOURCES = fixint_c.cc
 
 version_SOURCES = version.cc
 

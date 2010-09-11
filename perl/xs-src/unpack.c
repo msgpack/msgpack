@@ -2,13 +2,9 @@
 extern "C" {
 #endif
 
-#include "EXTERN.h"
-#include "perl.h"
-#include "XSUB.h"
-#include "util.h"
 #define NEED_newRV_noinc
 #define NEED_sv_2pv_flags
-#include "ppport.h"
+#include "perlxs.h"
 
 #ifdef __cplusplus
 };
@@ -26,7 +22,7 @@ typedef struct {
     struct template ## name
 
 #define msgpack_unpack_func(ret, name) \
-    ret template ## name
+    STATIC_INLINE ret template ## name
 
 #define msgpack_unpack_callback(name) \
     template_callback ## name
@@ -38,7 +34,7 @@ typedef struct {
 /* ---------------------------------------------------------------------- */
 /* utility functions                                                      */
 
-static INLINE SV *
+STATIC_INLINE SV *
 get_bool (const char *name) {
     SV * sv = sv_mortalcopy(get_sv( name, 1 ));
 
@@ -60,19 +56,19 @@ static SV* template_data(msgpack_unpack_t* u);
 static int template_execute(msgpack_unpack_t* u,
     const char* data, size_t len, size_t* off);
 
-static INLINE SV* template_callback_root(unpack_user* u)
+STATIC_INLINE SV* template_callback_root(unpack_user* u)
 { return &PL_sv_undef; }
 
-static INLINE int template_callback_uint8(unpack_user* u, uint8_t d, SV** o)
+STATIC_INLINE int template_callback_uint8(unpack_user* u, uint8_t d, SV** o)
 { *o = sv_2mortal(newSVuv(d)); return 0; }
 
-static INLINE int template_callback_uint16(unpack_user* u, uint16_t d, SV** o)
+STATIC_INLINE int template_callback_uint16(unpack_user* u, uint16_t d, SV** o)
 { *o = sv_2mortal(newSVuv(d)); return 0; }
 
-static INLINE int template_callback_uint32(unpack_user* u, uint32_t d, SV** o)
+STATIC_INLINE int template_callback_uint32(unpack_user* u, uint32_t d, SV** o)
 { *o = sv_2mortal(newSVuv(d)); return 0; }
 
-static INLINE int template_callback_uint64(unpack_user* u, uint64_t d, SV** o)
+STATIC_INLINE int template_callback_uint64(unpack_user* u, uint64_t d, SV** o)
 {
 #if IVSIZE==4
     *o = sv_2mortal(newSVnv(d));
@@ -82,47 +78,47 @@ static INLINE int template_callback_uint64(unpack_user* u, uint64_t d, SV** o)
     return 0;
 }
 
-static INLINE int template_callback_int8(unpack_user* u, int8_t d, SV** o)
+STATIC_INLINE int template_callback_int8(unpack_user* u, int8_t d, SV** o)
 { *o = sv_2mortal(newSViv((long)d)); return 0; }
 
-static INLINE int template_callback_int16(unpack_user* u, int16_t d, SV** o)
+STATIC_INLINE int template_callback_int16(unpack_user* u, int16_t d, SV** o)
 { *o = sv_2mortal(newSViv((long)d)); return 0; }
 
-static INLINE int template_callback_int32(unpack_user* u, int32_t d, SV** o)
+STATIC_INLINE int template_callback_int32(unpack_user* u, int32_t d, SV** o)
 { *o = sv_2mortal(newSViv((long)d)); return 0; }
 
-static INLINE int template_callback_int64(unpack_user* u, int64_t d, SV** o)
+STATIC_INLINE int template_callback_int64(unpack_user* u, int64_t d, SV** o)
 { *o = sv_2mortal(newSViv(d)); return 0; }
 
-static INLINE int template_callback_float(unpack_user* u, float d, SV** o)
+STATIC_INLINE int template_callback_float(unpack_user* u, float d, SV** o)
 { *o = sv_2mortal(newSVnv(d)); return 0; }
 
-static INLINE int template_callback_double(unpack_user* u, double d, SV** o)
+STATIC_INLINE int template_callback_double(unpack_user* u, double d, SV** o)
 { *o = sv_2mortal(newSVnv(d)); return 0; }
 
 /* &PL_sv_undef is not so good. see http://gist.github.com/387743 */
-static INLINE int template_callback_nil(unpack_user* u, SV** o)
+STATIC_INLINE int template_callback_nil(unpack_user* u, SV** o)
 { *o = sv_newmortal(); return 0; }
 
-static INLINE int template_callback_true(unpack_user* u, SV** o)
+STATIC_INLINE int template_callback_true(unpack_user* u, SV** o)
 { *o = get_bool("Data::MessagePack::true") ; return 0; }
 
-static INLINE int template_callback_false(unpack_user* u, SV** o)
+STATIC_INLINE int template_callback_false(unpack_user* u, SV** o)
 { *o = get_bool("Data::MessagePack::false") ; return 0; }
 
-static INLINE int template_callback_array(unpack_user* u, unsigned int n, SV** o)
+STATIC_INLINE int template_callback_array(unpack_user* u, unsigned int n, SV** o)
 { AV* a = (AV*)sv_2mortal((SV*)newAV()); *o = sv_2mortal((SV*)newRV_inc((SV*)a)); av_extend(a, n); return 0; }
 
-static INLINE int template_callback_array_item(unpack_user* u, SV** c, SV* o)
+STATIC_INLINE int template_callback_array_item(unpack_user* u, SV** c, SV* o)
 { av_push((AV*)SvRV(*c), o); SvREFCNT_inc(o); return 0; }  /* FIXME set value directry RARRAY_PTR(obj)[RARRAY_LEN(obj)++] */
 
-static INLINE int template_callback_map(unpack_user* u, unsigned int n, SV** o)
+STATIC_INLINE int template_callback_map(unpack_user* u, unsigned int n, SV** o)
 { HV * h = (HV*)sv_2mortal((SV*)newHV()); *o = sv_2mortal(newRV_inc((SV*)h)); return 0; }
 
-static INLINE int template_callback_map_item(unpack_user* u, SV** c, SV* k, SV* v)
+STATIC_INLINE int template_callback_map_item(unpack_user* u, SV** c, SV* k, SV* v)
 { hv_store_ent((HV*)SvRV(*c), k, v, 0); SvREFCNT_inc(v); return 0; }
 
-static INLINE int template_callback_raw(unpack_user* u, const char* b, const char* p, unsigned int l, SV** o)
+STATIC_INLINE int template_callback_raw(unpack_user* u, const char* b, const char* p, unsigned int l, SV** o)
 { *o = sv_2mortal((l==0) ? newSVpv("", 0) : newSVpv(p, l)); return 0; }
 /* { *o = newSVpvn_flags(p, l, SVs_TEMP); return 0; }  <= this does not works. */
 
@@ -135,7 +131,7 @@ static INLINE int template_callback_raw(unpack_user* u, const char* b, const cha
 
 #include "msgpack/unpack_template.h"
 
-SV* _msgpack_unpack(SV* data, int limit) {
+STATIC_INLINE SV* _msgpack_unpack(SV* data, int limit) {
     msgpack_unpack_t mp;
     unpack_user u = {0, &PL_sv_undef};
 	int ret;
@@ -198,7 +194,7 @@ XS(xs_unpack) {
 /* ------------------------------ stream -- */
 /* http://twitter.com/frsyuki/status/13249304748 */
 
-static void _reset(SV* self) {
+STATIC_INLINE void _reset(SV* self) {
 	unpack_user u = {0, &PL_sv_undef, 0};
 
 	UNPACKER(self, mp);
@@ -224,7 +220,7 @@ XS(xs_unpacker_new) {
     XSRETURN(1);
 }
 
-static SV* _execute_impl(SV* self, SV* data, UV off, I32 limit) {
+STATIC_INLINE SV* _execute_impl(SV* self, SV* data, UV off, I32 limit) {
     UNPACKER(self, mp);
 
     size_t from = off;

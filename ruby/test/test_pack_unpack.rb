@@ -153,7 +153,8 @@ class MessagePackTestPackUnpack < Test::Unit::TestCase
 	end
 
 	it "{1=>1}" do
-		match ({1=>1}), "\x81\x01\x01"
+		obj = {1=>1}
+		match obj, "\x81\x01\x01"
 	end
 
 	it "1.0" do
@@ -165,15 +166,18 @@ class MessagePackTestPackUnpack < Test::Unit::TestCase
 	end
 
 	it "[0, 1, ..., 14]" do
-		match (0..14).to_a, "\x9f\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e"
+		obj = (0..14).to_a
+		match obj, "\x9f\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e"
 	end
 
 	it "[0, 1, ..., 15]" do
-		match (0..15).to_a, "\xdc\x00\x10\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f"
+		obj = (0..15).to_a
+		match obj, "\xdc\x00\x10\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f"
 	end
 
 	it "{}" do
-		match ({}), "\x80"
+		obj = {}
+		match obj, "\x80"
 	end
 
 ## FIXME

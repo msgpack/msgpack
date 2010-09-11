@@ -18,7 +18,7 @@
 #ifndef MSGPACK_ZONE_H__
 #define MSGPACK_ZONE_H__
 
-#include "msgpack/sysdep.h"
+#include "sysdep.h"
 
 #ifdef __cplusplus
 extern "C" {
