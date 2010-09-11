@@ -1,3 +1,7 @@
+0.22
+
+    - fixed issue on ithreads(broken from 0.21)
+
 0.21
 
     - doc enhancment
