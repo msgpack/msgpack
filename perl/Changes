@@ -1,10 +1,15 @@
+0.23
+
+    (NO FEATURE CHANGES)
+    - fixed english docs(hanekomu++)
+
 0.22
 
     - fixed issue on ithreads(broken from 0.21)
 
 0.21
 
-    - doc enhancment
+    - doc enhancments
     - micro performance tuning.
 
 0.20

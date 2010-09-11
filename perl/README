@@ -22,35 +22,37 @@ ABOUT MESSAGEPACK FORMAT
             say length(Storable::nfreeze({a=>1, b=>2}));       # => 21
             say length(Data::MessagePack->pack({a=>1, b=>2})); # => 7
 
-        MessagePack format saves memory than JSON and Storable format.
+        The MessagePack format saves memory than JSON and Storable format.
 
     STREAMING DESERIALIZER
         MessagePack supports streaming deserializer. It is useful for
         networking such as RPC.
 
-    If you want to get more informations about messagepack format, please
+    If you want to get more information about the MessagePack format, please
     visit to <http://msgpack.org/>.
 
 METHODS
     my $packed = Data::MessagePack->pack($data[, $max_depth]);
         Pack the $data to messagepack format string.
 
-        This method throws exception when nesting perl structure more than
-        $max_depth(default: 512) for detecting circular reference.
+        This method throws an exception when the perl structure is nested
+        more than $max_depth levels(default: 512) in order to detect
+        circular references.
 
-        Data::MessagePack->pack() throws exception when encountered blessed
-        object. Because MessagePack is language independent format.
+        Data::MessagePack->pack() throws an exception when encountering
+        blessed object, because MessagePack is language-independent format.
 
     my $unpacked = Data::MessagePack->unpack($msgpackstr);
-        unpack the $msgpackstr to messagepack format string.
+        unpack the $msgpackstr to a MessagePack format string.
 
 Configuration Variables
     $Data::MessagePack::PreferInteger
         Pack the string as int when the value looks like int(EXPERIMENTAL).
 
 SPEED
-    This is result of benchmark/serialize.pl and benchmark/deserialize.pl on
-    my SC440(Linux 2.6.32-23-server #37-Ubuntu SMP).
+    This is the result of benchmark/serialize.pl and
+    benchmark/deserialize.pl on my SC440(Linux 2.6.32-23-server #37-Ubuntu
+    SMP).
 
         -- serialize
         JSON::XS: 2.3
@@ -81,6 +83,8 @@ THANKS TO
     Dan Kogai
 
     FURUHASHI Sadayuki
+
+    hanekomu
 
 LICENSE
     This library is free software; you can redistribute it and/or modify it
