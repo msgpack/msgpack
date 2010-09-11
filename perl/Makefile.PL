@@ -18,7 +18,7 @@ if ( $] >= 5.008005 and want_xs() ) {
     my $has_c99 = c99_available(); # msgpack C library requires C99.
 
     if ( $has_c99 ) {
-        use_ppport 3.19;
+        use_xshelper();
         cc_src_paths('xs-src');
         if ($ENV{DEBUG}) {
             cc_append_to_ccflags '-g';

@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use 5.008001;
 
-our $VERSION = '0.21';
+our $VERSION = '0.22';
 our $PreferInteger = 0;
 
 our $true  = do { bless \(my $dummy = 1), "Data::MessagePack::Boolean" };

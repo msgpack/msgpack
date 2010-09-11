@@ -2,7 +2,7 @@
  * code is written by tokuhirom.
  * buffer alocation technique is taken from JSON::XS. thanks to mlehmann.
  */
-#include "perlxs.h"
+#include "xshelper.h"
 
 #include "msgpack/pack_define.h"
 
@@ -45,6 +45,7 @@ static void need(enc_t *enc, STRLEN len);
 
 STATIC_INLINE void need(enc_t *enc, STRLEN len)
 {
+    dTHX;
     if (enc->cur + len >= enc->end) {
         STRLEN cur = enc->cur - (char *)SvPVX (enc->sv);
         SvGROW (enc->sv, cur + (len < (cur >> 2) ? cur >> 2 : len) + 1);
@@ -79,6 +80,7 @@ MGVTBL pref_int_vtbl = {
 };
 
 void boot_Data__MessagePack_pack(void) {
+    dTHX;
     SV* var = get_sv("Data::MessagePack::PreferInteger", 0);
     sv_magicext(var, NULL, PERL_MAGIC_ext, &pref_int_vtbl, NULL, 0);
     SvSETMAGIC(var);
@@ -142,6 +144,7 @@ STATIC_INLINE int try_int(enc_t* enc, const char *p, size_t len) {
 static void _msgpack_pack_rv(enc_t *enc, SV* sv, int depth);
 
 STATIC_INLINE void _msgpack_pack_sv(enc_t *enc, SV* sv, int depth) {
+    dTHX;
     if (depth <= 0) Perl_croak(aTHX_ ERR_NESTING_EXCEEDED);
     SvGETMAGIC(sv);
 
@@ -178,6 +181,7 @@ STATIC_INLINE void _msgpack_pack_sv(enc_t *enc, SV* sv, int depth) {
 
 STATIC_INLINE void _msgpack_pack_rv(enc_t *enc, SV* sv, int depth) {
     svtype svt;
+    dTHX;
     if (depth <= 0) Perl_croak(aTHX_ ERR_NESTING_EXCEEDED);
     SvGETMAGIC(sv);
     svt = SvTYPE(sv);
