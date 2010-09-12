@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use 5.008001;
 
-our $VERSION = '0.22';
+our $VERSION = '0.23';
 our $PreferInteger = 0;
 
 our $true  = do { bless \(my $dummy = 1), "Data::MessagePack::Boolean" };
@@ -60,7 +60,7 @@ Messagepack is language independent binary serialize format.
     say length(Storable::nfreeze({a=>1, b=>2}));       # => 21
     say length(Data::MessagePack->pack({a=>1, b=>2})); # => 7
 
-MessagePack format saves memory than JSON and Storable format.
+The MessagePack format saves memory than JSON and Storable format.
 
 =item STREAMING DESERIALIZER
 
@@ -68,7 +68,7 @@ MessagePack supports streaming deserializer. It is useful for networking such as
 
 =back
 
-If you want to get more informations about messagepack format, please visit to L<http://msgpack.org/>.
+If you want to get more information about the MessagePack format, please visit to L<http://msgpack.org/>.
 
 =head1 METHODS
 
@@ -78,13 +78,13 @@ If you want to get more informations about messagepack format, please visit to L
 
 Pack the $data to messagepack format string.
 
-This method throws exception when nesting perl structure more than $max_depth(default: 512) for detecting circular reference.
+This method throws an exception when the perl structure is nested more than $max_depth levels(default: 512) in order to detect circular references.
 
-Data::MessagePack->pack() throws exception when encountered blessed object. Because MessagePack is language independent format.
+Data::MessagePack->pack() throws an exception when encountering blessed object, because MessagePack is language-independent format.
 
 =item my $unpacked = Data::MessagePack->unpack($msgpackstr);
 
-unpack the $msgpackstr to messagepack format string.
+unpack the $msgpackstr to a MessagePack format string.
 
 =back
 
@@ -100,7 +100,7 @@ Pack the string as int when the value looks like int(EXPERIMENTAL).
 
 =head1 SPEED
 
-This is result of benchmark/serialize.pl and benchmark/deserialize.pl on my SC440(Linux 2.6.32-23-server #37-Ubuntu SMP).
+This is the result of benchmark/serialize.pl and benchmark/deserialize.pl on my SC440(Linux 2.6.32-23-server #37-Ubuntu SMP).
 
     -- serialize
     JSON::XS: 2.3
@@ -133,6 +133,8 @@ Jun Kuriyama
 Dan Kogai
 
 FURUHASHI Sadayuki
+
+hanekomu
 
 =head1 LICENSE
 
