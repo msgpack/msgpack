@@ -3,6 +3,7 @@ package org.msgpack.util.annotation;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Modifier;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
@@ -124,6 +125,8 @@ public class PackUnpackUtil {
 
 		static final String VARIABLE_NAME_OBJ = "obj";
 
+		static final String METHOD_NAME_VALUEOF = "valueOf";
+
 		static final String METHOD_NAME_MSGPACK = "messagePack";
 
 		static final String METHOD_NAME_MSGUNPACK = "messageUnpack";
@@ -187,7 +190,8 @@ public class PackUnpackUtil {
 			String origName = origClass.getName();
 			String enhName = origName + Constants.POSTFIX_TYPE_NAME_ENHANCER;
 			CtClass origCtClass = pool.get(origName);
-			checkPackUnpackAnnotation(origCtClass);
+			checkClassValidation(origCtClass);
+			checkDefaultConstructorValidation(origCtClass);
 			CtClass enhCtClass = pool.makeClass(enhName);
 			setSuperclass(enhCtClass, origCtClass);
 			setInterfaces(enhCtClass);
@@ -198,6 +202,28 @@ public class PackUnpackUtil {
 			return createClass(enhCtClass);
 		}
 
+		private void checkClassValidation(CtClass origCtClass) {
+			// not public, abstract, final
+			int mod = origCtClass.getModifiers();
+			if ((!Modifier.isPublic(mod)) || Modifier.isAbstract(mod)
+					|| Modifier.isFinal(mod)) {
+				throwClassValidationException(origCtClass);
+			}
+			// interface, enum
+			if (origCtClass.isInterface() || origCtClass.isEnum()) {
+				throwClassValidationException(origCtClass);
+			}
+			// annotation
+			checkPackUnpackAnnotation(origCtClass);
+		}
+
+		private static void throwClassValidationException(CtClass origCtClass) {
+			throw new PackUnpackUtilException(
+					"it must be a public class and have @"
+							+ MessagePackUnpackable.class.getName() + ": "
+							+ origCtClass.getName());
+		}
+
 		private void checkPackUnpackAnnotation(CtClass origCtClass) {
 			try {
 				Object[] objs = origCtClass.getAnnotations();
@@ -206,12 +232,30 @@ public class PackUnpackUtil {
 						return;
 					}
 				}
-				throw new PackUnpackUtilException(
-						"Not annotated with this class: "
-								+ origCtClass.getName());
+				throwClassValidationException(origCtClass);
 			} catch (ClassNotFoundException e) {
 				throw new PackUnpackUtilException(e.getMessage(), e);
 			}
+		}
+
+		private void checkDefaultConstructorValidation(CtClass origCtClass) {
+			CtConstructor cons = null;
+			try {
+				cons = origCtClass.getDeclaredConstructor(new CtClass[0]);
+			} catch (NotFoundException e) {
+				throwConstructoValidationException(origCtClass);
+			}
+			int mod = cons.getModifiers();
+			if (!(Modifier.isPublic(mod) || Modifier.isProtected(mod))) {
+				throwConstructoValidationException(origCtClass);
+			}
+		}
+
+		private static void throwConstructoValidationException(
+				CtClass origCtClass) {
+			throw new PackUnpackUtilException(
+					"it must have a public zero-argument constructor: "
+							+ origCtClass.getName());
 		}
 
 		private void setSuperclass(CtClass enhCtClass, CtClass origCtClass)
@@ -328,9 +372,43 @@ public class PackUnpackUtil {
 			CtClass type = field.getType();
 			sb.append(field.getName()).append(Constants.CHAR_NAME_SPACE)
 					.append(Constants.CHAR_NAME_EQUAL).append(
-							Constants.CHAR_NAME_SPACE).append(
-							Constants.VARIABLE_NAME_PK).append(
-							Constants.CHAR_NAME_DOT);
+							Constants.CHAR_NAME_SPACE);
+			insertValueOfMethodAndLeftParenthesis(sb, type);
+			sb.append(Constants.VARIABLE_NAME_PK).append(
+					Constants.CHAR_NAME_DOT);
+			insertUnpackMethod(sb, type);
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS).append(
+					Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			insertValueOfMethodAndRightParenthesis(sb, type);
+			sb.append(Constants.CHAR_NAME_SEMICOLON).append(
+					Constants.CHAR_NAME_SPACE);
+
+		}
+
+		private void insertValueOfMethodAndLeftParenthesis(StringBuilder sb,
+				CtClass type) throws NotFoundException {
+			if (type.isPrimitive()) { // primitive type
+				return;
+			} else { // reference type
+				if (type.equals(pool.get(Constants.TYPE_NAME_BOOLEAN2)) // Boolean
+						|| type.equals(pool.get(Constants.TYPE_NAME_BYTE2)) // Byte
+						|| type.equals(pool.get(Constants.TYPE_NAME_DOUBLE2)) // Double
+						|| type.equals(pool.get(Constants.TYPE_NAME_FLOAT2)) // Float
+						|| type.equals(pool.get(Constants.TYPE_NAME_INT2)) // Integer
+						|| type.equals(pool.get(Constants.TYPE_NAME_LONG2)) // Long
+						|| type.equals(pool.get(Constants.TYPE_NAME_SHORT2)) // Short
+				) {
+					sb.append(type.getName()).append(Constants.CHAR_NAME_DOT)
+							.append(Constants.METHOD_NAME_VALUEOF).append(
+									Constants.CHAR_NAME_LEFT_PARENTHESIS);
+				} else {
+					return;
+				}
+			}
+		}
+
+		private void insertUnpackMethod(StringBuilder sb, CtClass type)
+				throws NotFoundException {
 			if (type.equals(CtClass.booleanType)) { // boolean
 				sb.append(Constants.METHOD_NAME_UNPACKBOOLEAN);
 			} else if (type.equals(CtClass.byteType)) { // byte
@@ -379,10 +457,26 @@ public class PackUnpackUtil {
 							+ type.getName());
 				}
 			}
-			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS).append(
-					Constants.CHAR_NAME_RIGHT_PARENTHESIS).append(
-					Constants.CHAR_NAME_SEMICOLON).append(
-					Constants.CHAR_NAME_SPACE);
+		}
+
+		private void insertValueOfMethodAndRightParenthesis(StringBuilder sb,
+				CtClass type) throws NotFoundException {
+			if (type.isPrimitive()) { // primitive type
+				return;
+			} else { // reference type
+				if (type.equals(pool.get(Constants.TYPE_NAME_BOOLEAN2)) // Boolean
+						|| type.equals(pool.get(Constants.TYPE_NAME_BYTE2)) // Byte
+						|| type.equals(pool.get(Constants.TYPE_NAME_DOUBLE2)) // Double
+						|| type.equals(pool.get(Constants.TYPE_NAME_FLOAT2)) // Float
+						|| type.equals(pool.get(Constants.TYPE_NAME_INT2)) // Integer
+						|| type.equals(pool.get(Constants.TYPE_NAME_LONG2)) // Long
+						|| type.equals(pool.get(Constants.TYPE_NAME_SHORT2)) // Short
+				) {
+					sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+				} else {
+					return;
+				}
+			}
 		}
 
 		private void addMessageConvertMethod(CtClass enhCtClass,
