@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Modifier;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -196,9 +197,10 @@ public class PackUnpackUtil {
 			setSuperclass(enhCtClass, origCtClass);
 			setInterfaces(enhCtClass);
 			addConstructor(enhCtClass);
-			addMessagePackMethod(enhCtClass, origCtClass);
-			addMessageUnpackMethod(enhCtClass, origCtClass);
-			addMessageConvertMethod(enhCtClass, origCtClass);
+			CtField[] fields = getDeclaredFields(origCtClass);
+			addMessagePackMethod(enhCtClass, origCtClass, fields);
+			addMessageUnpackMethod(enhCtClass, origCtClass, fields);
+			addMessageConvertMethod(enhCtClass, origCtClass, fields);
 			return createClass(enhCtClass);
 		}
 
@@ -279,9 +281,54 @@ public class PackUnpackUtil {
 			enhCtClass.addConstructor(newCtCons);
 		}
 
+		private CtField[] getDeclaredFields(CtClass origCtClass) {
+			ArrayList<CtField> allFields = new ArrayList<CtField>();
+			try {
+				CtClass nextCtClass = origCtClass;
+				while (!nextCtClass
+						.equals(pool.get(Constants.TYPE_NAME_OBJECT))) {
+					CtField[] fields = nextCtClass.getDeclaredFields();
+					for (CtField field : fields) {
+						try {
+							checkFieldValidation(field, allFields);
+							allFields.add(field);
+						} catch (PackUnpackUtilException e) { // ignore
+						}
+					}
+					nextCtClass = nextCtClass.getSuperclass();
+				}
+
+			} catch (NotFoundException e) {
+				throw new PackUnpackUtilException(e.getMessage(), e);
+			}
+			return allFields.toArray(new CtField[0]);
+		}
+
+		private void checkFieldValidation(CtField field,
+				ArrayList<CtField> allFields) {
+			// check modifiers (public or protected)
+			int mod = field.getModifiers();
+			if ((!(Modifier.isPublic(mod) || Modifier.isProtected(mod)))
+					|| Modifier.isStatic(mod) || Modifier.isFinal(mod)
+					|| Modifier.isTransient(mod)) {
+				throwFieldValidationException(field);
+			}
+			// check same name
+			for (CtField f : allFields) {
+				if (f.getName().equals(field.getName())) {
+					throwFieldValidationException(field);
+				}
+			}
+		}
+
+		private static void throwFieldValidationException(CtField field) {
+			throw new PackUnpackUtilException("it must be a public field: "
+					+ field.getName());
+		}
+
 		private void addMessagePackMethod(CtClass enhCtClass,
-				CtClass origCtClass) throws CannotCompileException,
-				NotFoundException {
+				CtClass origCtClass, CtField[] fields)
+				throws CannotCompileException, NotFoundException {
 			StringBuilder sb = new StringBuilder();
 			sb.append(Constants.KEYWORD_MODIFIER_PUBLIC).append(
 					Constants.CHAR_NAME_SPACE).append(Constants.TYPE_NAME_VOID)
@@ -299,7 +346,6 @@ public class PackUnpackUtil {
 							Constants.CHAR_NAME_SPACE).append(
 							Constants.CHAR_NAME_LEFT_CURLY_BRACHET).append(
 							Constants.CHAR_NAME_SPACE);
-			CtField[] fields = origCtClass.getDeclaredFields();
 			sb.append(Constants.VARIABLE_NAME_PK).append(
 					Constants.CHAR_NAME_DOT).append(
 					Constants.METHOD_NAME_PACKARRAY).append(
@@ -328,8 +374,8 @@ public class PackUnpackUtil {
 		}
 
 		private void addMessageUnpackMethod(CtClass enhCtClass,
-				CtClass origCtClass) throws CannotCompileException,
-				NotFoundException {
+				CtClass origCtClass, CtField[] fields)
+				throws CannotCompileException, NotFoundException {
 			StringBuilder sb = new StringBuilder();
 			sb.append(Constants.KEYWORD_MODIFIER_PUBLIC).append(
 					Constants.CHAR_NAME_SPACE).append(Constants.TYPE_NAME_VOID)
@@ -350,7 +396,6 @@ public class PackUnpackUtil {
 							Constants.CHAR_NAME_SPACE).append(
 							Constants.CHAR_NAME_LEFT_CURLY_BRACHET).append(
 							Constants.CHAR_NAME_SPACE);
-			CtField[] fields = origCtClass.getFields();
 			sb.append(Constants.VARIABLE_NAME_PK).append(
 					Constants.CHAR_NAME_DOT).append(
 					Constants.METHOD_NAME_UNPACKARRAY).append(
@@ -370,18 +415,50 @@ public class PackUnpackUtil {
 		private void insertCodeOfMessageUnpack(CtField field, StringBuilder sb)
 				throws NotFoundException {
 			CtClass type = field.getType();
-			sb.append(field.getName()).append(Constants.CHAR_NAME_SPACE)
-					.append(Constants.CHAR_NAME_EQUAL).append(
-							Constants.CHAR_NAME_SPACE);
+			insertRightVariable(sb, field, type);
 			insertValueOfMethodAndLeftParenthesis(sb, type);
 			sb.append(Constants.VARIABLE_NAME_PK).append(
 					Constants.CHAR_NAME_DOT);
 			insertUnpackMethod(sb, type);
-			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS).append(
-					Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			insertUnpackMethodArgumenet(sb, field, type);
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
 			insertValueOfMethodAndRightParenthesis(sb, type);
 			sb.append(Constants.CHAR_NAME_SEMICOLON).append(
 					Constants.CHAR_NAME_SPACE);
+
+		}
+
+		private void insertRightVariable(StringBuilder sb, CtField field,
+				CtClass type) throws NotFoundException {
+			if (type.isPrimitive()) { // primitive type
+				sb.append(field.getName()).append(Constants.CHAR_NAME_SPACE)
+						.append(Constants.CHAR_NAME_EQUAL).append(
+								Constants.CHAR_NAME_SPACE);
+			} else { // reference type
+				if (type.equals(pool.get(Constants.TYPE_NAME_BOOLEAN2)) // Boolean
+						|| type.equals(pool.get(Constants.TYPE_NAME_BYTE2)) // Byte
+						|| type.equals(pool.get(Constants.TYPE_NAME_DOUBLE2)) // Double
+						|| type.equals(pool.get(Constants.TYPE_NAME_FLOAT2)) // Float
+						|| type.equals(pool.get(Constants.TYPE_NAME_INT2)) // Integer
+						|| type.equals(pool.get(Constants.TYPE_NAME_LONG2)) // Long
+						|| type.equals(pool.get(Constants.TYPE_NAME_SHORT2)) // Short
+						|| type
+								.equals(pool
+										.get(Constants.TYPE_NAME_BIGINTEGER)) // BigInteger
+						|| type.equals(pool.get(Constants.TYPE_NAME_STRING)) // String
+						|| type.equals(pool.get(Constants.TYPE_NAME_BYTEARRAY)) // byte[]
+						|| type.subtypeOf(pool.get(Constants.TYPE_NAME_LIST)) // List
+						|| type.subtypeOf(pool.get(Constants.TYPE_NAME_MAP)) // Map
+				) {
+					sb.append(field.getName())
+							.append(Constants.CHAR_NAME_SPACE).append(
+									Constants.CHAR_NAME_EQUAL).append(
+									Constants.CHAR_NAME_SPACE);
+				} else { // MessageUnpackable
+					return;
+				}
+			}
 
 		}
 
@@ -424,6 +501,7 @@ public class PackUnpackUtil {
 			} else if (type.equals(CtClass.shortType)) { // short
 				sb.append(Constants.METHOD_NAME_UNPACKSHORT);
 			} else { // reference type
+				Class<?> c = null;
 				if (type.equals(pool.get(Constants.TYPE_NAME_BOOLEAN2))) { // Boolean
 					sb.append(Constants.METHOD_NAME_UNPACKBOOLEAN);
 				} else if (type.equals(pool.get(Constants.TYPE_NAME_BYTE2))) { // Byte
@@ -450,11 +528,28 @@ public class PackUnpackUtil {
 				} else if (type.subtypeOf(pool.get(Constants.TYPE_NAME_MAP))) { // Map
 					sb.append(Constants.METHOD_NAME_UNPACKMAP);
 				} else if (type.subtypeOf(pool
-						.get(Constants.TYPE_NAME_MSGUNPACKABLE))) { // MessageUnpackable
-					sb.append(Constants.METHOD_NAME_UNPACKOBJECT);
+						.get(Constants.TYPE_NAME_MSGUNPACKABLE))
+						|| ((c = getCache(type.getName())) != null)) { // MessageUnpackable
+					sb.append(Constants.METHOD_NAME_UNPACK);
 				} else {
 					throw new NotFoundException("unknown type:  "
 							+ type.getName());
+				}
+			}
+		}
+
+		private void insertUnpackMethodArgumenet(StringBuilder sb,
+				CtField field, CtClass type) throws NotFoundException {
+			if (type.isPrimitive()) { // primitive type
+				return;
+			} else { // reference type
+				Class<?> c = null;
+				if (type.equals(pool.get(Constants.TYPE_NAME_MSGUNPACKABLE))
+						|| ((c = getCache(type.getName())) != null)) {
+					sb.append("(org.msgpack.MessageUnpackable)");
+					sb.append(field.getName());
+				} else {
+					return;
 				}
 			}
 		}
@@ -480,7 +575,8 @@ public class PackUnpackUtil {
 		}
 
 		private void addMessageConvertMethod(CtClass enhCtClass,
-				CtClass origCtClass) throws CannotCompileException {
+				CtClass origCtClass, CtField[] fields)
+				throws CannotCompileException {
 			StringBuilder sb = new StringBuilder();
 			sb.append(Constants.KEYWORD_MODIFIER_PUBLIC).append(
 					Constants.CHAR_NAME_SPACE).append(Constants.TYPE_NAME_VOID)
@@ -547,33 +643,33 @@ public class PackUnpackUtil {
 		}
 	}
 
-	public static void main(final String[] args) throws Exception {
-		@MessagePackUnpackable
-		class Image {
-			public String uri = "";
+	@MessagePackUnpackable
+	public static class Image {
+		public String uri = "";
 
-			public String title = "";
+		public String title = "";
 
-			public int width = 0;
+		public int width = 0;
 
-			public int height = 0;
+		public int height = 0;
 
-			public int size = 0;
+		public int size = 0;
 
-			public boolean equals(Image obj) {
-				return uri.equals(obj.uri) && title.equals(obj.title)
-						&& width == obj.width && height == obj.height
-						&& size == obj.size;
-			}
-
-			public boolean equals(Object obj) {
-				if (obj.getClass() != Image.class) {
-					return false;
-				}
-				return equals((Image) obj);
-			}
+		public boolean equals(Image obj) {
+			return uri.equals(obj.uri) && title.equals(obj.title)
+					&& width == obj.width && height == obj.height
+					&& size == obj.size;
 		}
 
+		public boolean equals(Object obj) {
+			if (obj.getClass() != Image.class) {
+				return false;
+			}
+			return equals((Image) obj);
+		}
+	}
+
+	public static void main(final String[] args) throws Exception {
 		PackUnpackUtil.getEnhancedClass(Image.class);
 		Image src = (Image) PackUnpackUtil.newEnhancedInstance(Image.class);
 		src.title = "msgpack";
