@@ -69,6 +69,7 @@ public class TestMessagePackUnpackable extends TestCase {
 		src.f6 = false;
 		src.f7 = new BigInteger("7");
 		src.f8 = "8";
+		src.f9 = new byte[] { 0x01, 0x02 };
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		new Packer(out).pack(src);
 		GeneralReferenceTypeFieldsClass dst = (GeneralReferenceTypeFieldsClass) PackUnpackUtil
@@ -85,6 +86,8 @@ public class TestMessagePackUnpackable extends TestCase {
 		assertEquals(src.f6, dst.f6);
 		assertEquals(src.f7, dst.f7);
 		assertEquals(src.f8, dst.f8);
+		assertEquals(src.f9[0], dst.f9[0]);
+		assertEquals(src.f9[1], dst.f9[1]);
 	}
 
 	@MessagePackUnpackable
@@ -98,13 +101,13 @@ public class TestMessagePackUnpackable extends TestCase {
 		public Boolean f6;
 		public BigInteger f7;
 		public String f8;
+		public byte[] f9;
 
 		public GeneralReferenceTypeFieldsClass() {
 		}
 	}
 
 	public void testListAndMap() throws Exception {
-		// TODO
 	}
 
 	@MessagePackUnpackable

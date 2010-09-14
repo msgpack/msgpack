@@ -71,7 +71,8 @@ public class PackUnpackUtil {
 
 		static final String TYPE_NAME_SHORT2 = Short.class.getName();
 
-		static final String TYPE_NAME_BYTEARRAY = byte[].class.getName();
+		//static final String TYPE_NAME_BYTEARRAY = byte[].class.getName();
+		static final String TYPE_NAME_BYTEARRAY = "byte[]";
 
 		static final String TYPE_NAME_LIST = List.class.getName();
 
