@@ -301,11 +301,8 @@ STATIC_INLINE SV* _execute_impl(SV* self, SV* data, UV off, size_t limit) {
 
 	if(ret < 0) {
 		Perl_croak(aTHX_ "parse error.");
-	} else if(ret > 0) {
-		mp->user.finished = true;
-		return sv_2mortal(newSVuv(from));
 	} else {
-		mp->user.finished = false;
+		mp->user.finished = (ret > 0) ? true : false;
 		return sv_2mortal(newSVuv(from));
 	}
 }
