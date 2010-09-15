@@ -3,6 +3,9 @@ package org.msgpack.util.annotation;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -16,9 +19,9 @@ import org.msgpack.Unpacker;
 public class TestMessagePackUnpackable extends TestCase {
 
 	@Test
-	public void testGeneralPrimitiveTypeFields() throws Exception {
-		GeneralPrimitiveTypeFieldsClass src = (GeneralPrimitiveTypeFieldsClass) PackUnpackUtil
-				.newEnhancedInstance(GeneralPrimitiveTypeFieldsClass.class);
+	public void testPrimitiveTypeFields() throws Exception {
+		PrimitiveTypeFieldsClass src = (PrimitiveTypeFieldsClass) PackUnpackUtil
+				.newEnhancedInstance(PrimitiveTypeFieldsClass.class);
 		src.f0 = (byte) 0;
 		src.f1 = 1;
 		src.f2 = 2;
@@ -28,8 +31,8 @@ public class TestMessagePackUnpackable extends TestCase {
 		src.f6 = false;
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		new Packer(out).pack(src);
-		GeneralPrimitiveTypeFieldsClass dst = (GeneralPrimitiveTypeFieldsClass) PackUnpackUtil
-				.newEnhancedInstance(GeneralPrimitiveTypeFieldsClass.class);
+		PrimitiveTypeFieldsClass dst = (PrimitiveTypeFieldsClass) PackUnpackUtil
+				.newEnhancedInstance(PrimitiveTypeFieldsClass.class);
 		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
 		Unpacker pac = new Unpacker(in);
 		pac.unpack((MessageUnpackable) dst);
@@ -43,7 +46,7 @@ public class TestMessagePackUnpackable extends TestCase {
 	}
 
 	@MessagePackUnpackable
-	public static class GeneralPrimitiveTypeFieldsClass {
+	public static class PrimitiveTypeFieldsClass {
 		public byte f0;
 		public short f1;
 		public int f2;
@@ -52,7 +55,7 @@ public class TestMessagePackUnpackable extends TestCase {
 		public double f5;
 		public boolean f6;
 
-		public GeneralPrimitiveTypeFieldsClass() {
+		public PrimitiveTypeFieldsClass() {
 		}
 	}
 
@@ -107,15 +110,93 @@ public class TestMessagePackUnpackable extends TestCase {
 		}
 	}
 
-	public void testListAndMap() throws Exception {
+	public void testListTypes() throws Exception {
+		SampleListTypes src = (SampleListTypes) PackUnpackUtil
+				.newEnhancedInstance(SampleListTypes.class);
+		src.f0 = new ArrayList<Integer>();
+		src.f1 = new ArrayList<Integer>();
+		src.f1.add(1);
+		src.f1.add(2);
+		src.f1.add(3);
+		src.f2 = new ArrayList<String>();
+		src.f2.add("e1");
+		src.f2.add("e2");
+		src.f2.add("e3");
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		new Packer(out).pack(src);
+		SampleListTypes dst = (SampleListTypes) PackUnpackUtil
+				.newEnhancedInstance(SampleListTypes.class);
+		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+		Unpacker pac = new Unpacker(in);
+		pac.unpack((MessageUnpackable) dst);
+		assertEquals(src.f0.size(), dst.f0.size());
+		assertEquals(src.f1.size(), dst.f1.size());
+		for (int i = 0; i < src.f1.size(); ++i) {
+			assertEquals(src.f1.get(i), dst.f1.get(i));
+		}
+		assertEquals(src.f2.size(), dst.f2.size());
+		for (int i = 0; i < src.f2.size(); ++i) {
+			assertEquals(src.f2.get(i), dst.f2.get(i));
+		}
 	}
 
 	@MessagePackUnpackable
-	public static class ListAndMapClass {
-		public List<String> f0;
-		public Map<String, String> f1;
+	public static class SampleListTypes {
+		public List<Integer> f0;
+		public List<Integer> f1;
+		public List<String> f2;
 
-		public ListAndMapClass() {
+		public SampleListTypes() {
+		}
+	}
+
+	public void testMapTypes() throws Exception {
+		SampleMapTypes src = (SampleMapTypes) PackUnpackUtil
+				.newEnhancedInstance(SampleMapTypes.class);
+		src.f0 = new HashMap<Integer, Integer>();
+		src.f1 = new HashMap<Integer, Integer>();
+		src.f1.put(1, 1);
+		src.f1.put(2, 2);
+		src.f1.put(3, 3);
+		src.f2 = new HashMap<String, Integer>();
+		src.f2.put("k1", 1);
+		src.f2.put("k2", 2);
+		src.f2.put("k3", 3);
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		new Packer(out).pack(src);
+		SampleMapTypes dst = (SampleMapTypes) PackUnpackUtil
+				.newEnhancedInstance(SampleMapTypes.class);
+		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+		Unpacker pac = new Unpacker(in);
+		pac.unpack((MessageUnpackable) dst);
+		assertEquals(src.f0.size(), dst.f0.size());
+		assertEquals(src.f1.size(), dst.f1.size());
+		Iterator<Integer> srcf1 = src.f1.keySet().iterator();
+		Iterator<Integer> dstf1 = dst.f1.keySet().iterator();
+		while (srcf1.hasNext()) {
+			Integer s1 = srcf1.next();
+			Integer d1 = dstf1.next();
+			assertEquals(s1, d1);
+			assertEquals(src.f1.get(s1), dst.f1.get(d1));
+		}
+		assertEquals(src.f2.size(), dst.f2.size());
+		Iterator<String> srcf2 = src.f2.keySet().iterator();
+		Iterator<String> dstf2 = dst.f2.keySet().iterator();
+		while (srcf2.hasNext()) {
+			String s2 = srcf2.next();
+			String d2 = dstf2.next();
+			assertEquals(s2, d2);
+			assertEquals(src.f2.get(s2), dst.f2.get(d2));
+		}
+	}
+
+	@MessagePackUnpackable
+	public static class SampleMapTypes {
+		public Map<Integer, Integer> f0;
+		public Map<Integer, Integer> f1;
+		public Map<String, Integer> f2;
+
+		public SampleMapTypes() {
 		}
 	}
 
