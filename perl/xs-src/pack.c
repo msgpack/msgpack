@@ -32,10 +32,13 @@ static void need(enc_t *enc, STRLEN len);
 
 #if   IVSIZE == 8
 #  define PACK_IV msgpack_pack_int64
+#  define PACK_UV msgpack_pack_uint64
 #elif IVSIZE == 4
 #  define PACK_IV msgpack_pack_int32
+#  define PACK_UV msgpack_pack_uint32
 #elif IVSIZE == 2
 #  define PACK_IV msgpack_pack_int16
+#  define PACK_UV msgpack_pack_uint16
 #else
 #  error  "msgpack only supports IVSIZE = 8,4,2 environment."
 #endif
@@ -150,21 +153,21 @@ STATIC_INLINE void _msgpack_pack_sv(enc_t* const enc, SV* const sv, int const de
     SvGETMAGIC(sv);
 
     if (SvPOKp(sv)) {
-        STRLEN len;
-        char * csv = SvPV(sv, len);
+        STRLEN const len     = SvCUR(sv);
+        const char* const pv = SvPVX_const(sv);
 
-        if (s_pref_int && try_int(enc, csv, len)) {
+        if (s_pref_int && try_int(enc, pv, len)) {
             return;
         } else {
             msgpack_pack_raw(enc, len);
-            msgpack_pack_raw_body(enc, csv, len);
+            msgpack_pack_raw_body(enc, pv, len);
         }
     } else if (SvNIOKp(sv)) {
         if(SvUOK(sv)) {
-            msgpack_pack_uint32(enc, SvUV(sv));
+            PACK_UV(enc, SvUVX(sv));
         }
         else if(SvIOKp(sv)) {
-            PACK_IV(enc, SvIV(sv));
+            PACK_IV(enc, SvIVX(sv));
         }
         else {
             /* XXX long double is not supported yet. */
