@@ -48,7 +48,7 @@ STATIC_INLINE void need(enc_t *enc, STRLEN len)
     dTHX;
     if (enc->cur + len >= enc->end) {
         STRLEN cur = enc->cur - (char *)SvPVX (enc->sv);
-        SvGROW (enc->sv, cur + (len < (cur >> 2) ? cur >> 2 : len) + 1);
+        sv_grow (enc->sv, cur + (len < (cur >> 2) ? cur >> 2 : len) + 1);
         enc->cur = SvPVX (enc->sv) + cur;
         enc->end = SvPVX (enc->sv) + SvLEN (enc->sv) - 1;
     }
@@ -159,13 +159,17 @@ STATIC_INLINE void _msgpack_pack_sv(enc_t* const enc, SV* const sv, int const de
             msgpack_pack_raw(enc, len);
             msgpack_pack_raw_body(enc, csv, len);
         }
-    } else if (SvNOKp(sv)) {
-        /* XXX long double is not supported yet. */
-        msgpack_pack_double(enc, (double)SvNVX(sv));
-    } else if (SvIOK_UV(sv)) {
-        msgpack_pack_uint32(enc, SvUV(sv));
-    } else if (SvIOKp(sv)) {
-        PACK_IV(enc, SvIV(sv));
+    } else if (SvNIOKp(sv)) {
+        if(SvUOK(sv)) {
+            msgpack_pack_uint32(enc, SvUV(sv));
+        }
+        else if(SvIOKp(sv)) {
+            PACK_IV(enc, SvIV(sv));
+        }
+        else {
+            /* XXX long double is not supported yet. */
+            msgpack_pack_double(enc, (double)SvNVX(sv));
+        }
     } else if (SvROK(sv)) {
         _msgpack_pack_rv(enc, SvRV(sv), depth-1);
     } else if (!SvOK(sv)) {
