@@ -235,21 +235,6 @@ STATIC_INLINE SV* _msgpack_unpack(SV* data, size_t limit PERL_UNUSED_DECL) {
 	}
 }
 
-XS(xs_unpack_limit) {
-    dXSARGS;
-
-    if (items != 3) {
-        Perl_croak(aTHX_ "Usage: Data::MessagePack->unpack('datadata', $limit)");
-    }
-
-    {
-        int limit = SvIV(ST(2));
-        ST(0) = _msgpack_unpack(ST(1), limit);
-    }
-    XSRETURN(1);
-}
-
-
 XS(xs_unpack) {
     dXSARGS;
     SV* const data = ST(1);
