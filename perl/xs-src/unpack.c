@@ -368,7 +368,7 @@ XS(xs_unpacker_data) {
     }
 
 	UNPACKER(ST(0), mp);
-	ST(0) = sv_2mortal(newSVsv(template_data(mp)));
+	ST(0) = sv_mortalcopy(template_data(mp));
 
     XSRETURN(1);
 }
