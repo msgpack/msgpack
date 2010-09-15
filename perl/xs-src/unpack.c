@@ -50,7 +50,8 @@ static int template_execute(msgpack_unpack_t* u PERL_UNUSED_DECL,
 
 STATIC_INLINE SV* template_callback_root(unpack_user* u PERL_UNUSED_DECL)
 {
-    return NULL;
+    dTHX;
+    return &PL_sv_undef;
 }
 
 STATIC_INLINE int template_callback_uint8(unpack_user* u PERL_UNUSED_DECL, uint8_t d, SV** o)
@@ -309,7 +310,7 @@ STATIC_INLINE SV* _execute_impl(SV* self, SV* data, UV off, size_t limit) {
 XS(xs_unpacker_execute) {
     dXSARGS;
     if (items != 3) {
-        Perl_croak(aTHX_ "Usage: $unpacker->execute(data, off)");
+        Perl_croak(aTHX_ "Usage: $unpacker->execute_limit(data, off)");
     }
 
 	UNPACKER(ST(0), mp);
@@ -397,8 +398,8 @@ XS(xs_unpacker_destroy) {
     }
 
 	UNPACKER(ST(0), mp);
-    SV* const data = template_data(mp);
-    if (data) {
+    SV * data = template_data(mp);
+    if (SvOK(data)) {
         SvREFCNT_dec(data);
     }
     Safefree(mp);
