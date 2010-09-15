@@ -157,9 +157,9 @@ STATIC_INLINE int template_callback_false(unpack_user* u PERL_UNUSED_DECL, SV** 
 STATIC_INLINE int template_callback_array(unpack_user* u PERL_UNUSED_DECL, unsigned int n, SV** o)
 {
     dTHX;
-    AV* a = (AV*)sv_2mortal((SV*)newAV());
-    *o = sv_2mortal((SV*)newRV_inc((SV*)a));
-    av_extend(a, n);
+    AV* const a = newAV();
+    *o = sv_2mortal(newRV_noinc((SV*)a));
+    av_extend(a, n + 1);
     return 0;
 }
 
@@ -167,15 +167,15 @@ STATIC_INLINE int template_callback_array_item(unpack_user* u PERL_UNUSED_DECL, 
 {
     dTHX;
     av_push((AV*)SvRV(*c), o);
-    SvREFCNT_inc(o);
+    SvREFCNT_inc_simple_void_NN(o);
     return 0;
 }
 
 STATIC_INLINE int template_callback_map(unpack_user* u PERL_UNUSED_DECL, unsigned int n PERL_UNUSED_DECL, SV** o)
 {
     dTHX;
-    HV* h = (HV*)sv_2mortal((SV*)newHV());
-    *o = sv_2mortal(newRV_inc((SV*)h));
+    HV* const h = newHV();
+    *o = sv_2mortal(newRV_noinc((SV*)h));
     return 0;
 }
 
@@ -183,7 +183,7 @@ STATIC_INLINE int template_callback_map_item(unpack_user* u PERL_UNUSED_DECL, SV
 {
     dTHX;
     (void)hv_store_ent((HV*)SvRV(*c), k, v, 0);
-    SvREFCNT_inc(v);
+    SvREFCNT_inc_simple_void_NN(v);
     return 0;
 }
 
