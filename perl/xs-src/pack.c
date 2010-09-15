@@ -143,14 +143,13 @@ STATIC_INLINE int try_int(enc_t* enc, const char *p, size_t len) {
 
 static void _msgpack_pack_rv(enc_t *enc, SV* sv, int depth);
 
-STATIC_INLINE void _msgpack_pack_sv(enc_t *enc, SV* sv, int depth) {
+STATIC_INLINE void _msgpack_pack_sv(enc_t* const enc, SV* const sv, int const depth) {
     dTHX;
+    assert(sv);
     if (depth <= 0) Perl_croak(aTHX_ ERR_NESTING_EXCEEDED);
     SvGETMAGIC(sv);
 
-    if (sv==NULL) {
-        msgpack_pack_nil(enc);
-    } else if (SvPOKp(sv)) {
+    if (SvPOKp(sv)) {
         STRLEN len;
         char * csv = SvPV(sv, len);
 
