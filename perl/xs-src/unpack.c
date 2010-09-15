@@ -166,7 +166,8 @@ STATIC_INLINE int template_callback_array(unpack_user* u PERL_UNUSED_DECL, unsig
 STATIC_INLINE int template_callback_array_item(unpack_user* u PERL_UNUSED_DECL, SV** c, SV* o)
 {
     dTHX;
-    av_push((AV*)SvRV(*c), o);
+    AV* const a = (AV*)SvRV(*c);
+    (void)av_store(a, AvFILLp(a) + 1, o); // the same as av_push(a, o)
     SvREFCNT_inc_simple_void_NN(o);
     return 0;
 }
