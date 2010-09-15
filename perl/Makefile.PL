@@ -1,4 +1,5 @@
 use inc::Module::Install;
+use Module::Install::XSUtil 0.32;
 use Config;
 
 name 'Data-MessagePack';
