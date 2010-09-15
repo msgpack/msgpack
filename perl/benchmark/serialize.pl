@@ -9,7 +9,7 @@ my $a = {
     "method" => "handleMessage",
     "params" => [ "user1", "we were just talking" ],
     "id"     => undef,
-    "array"  => [ 1, 11, 234, -5, 1e5, 1e7, 1, 0, 3.14, sqrt(2) ]
+    "array"  => [ 1, 1024, 70000, -5, 1e5, 1e7, 1, 0, 3.14, sqrt(2) ],
 };
 
 print "-- serialize\n";
