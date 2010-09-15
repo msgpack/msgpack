@@ -190,8 +190,8 @@ STATIC_INLINE int template_callback_map_item(unpack_user* u PERL_UNUSED_DECL, SV
 STATIC_INLINE int template_callback_raw(unpack_user* u PERL_UNUSED_DECL, const char* b PERL_UNUSED_DECL, const char* p, unsigned int l, SV** o)
 {
     dTHX;
-    /*  *o = newSVpvn_flags(p, l, SVs_TEMP); <= this does not work. */
-    *o = sv_2mortal((l==0) ? newSVpv("", 0) : newSVpv(p, l));
+    /*  newSVpvn_flags(p, l, SVs_TEMP) returns an undef if l == 0 */
+    *o = ((l==0) ? newSVpvs_flags("", SVs_TEMP) : newSVpvn_flags(p, l, SVs_TEMP));
     return 0;
 }
 
