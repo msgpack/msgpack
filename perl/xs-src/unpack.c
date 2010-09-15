@@ -50,16 +50,31 @@ static int template_execute(msgpack_unpack_t* u,
     const char* data, size_t len, size_t* off);
 
 STATIC_INLINE SV* template_callback_root(unpack_user* u)
-{ dTHX; return &PL_sv_undef; }
+{
+    dTHX;
+    return &PL_sv_undef;
+}
 
 STATIC_INLINE int template_callback_uint8(unpack_user* u, uint8_t d, SV** o)
-{ dTHX; *o = sv_2mortal(newSVuv(d)); return 0; }
+{
+    dTHX;
+    *o = sv_2mortal(newSVuv(d));
+    return 0;
+}
 
 STATIC_INLINE int template_callback_uint16(unpack_user* u, uint16_t d, SV** o)
-{ dTHX; *o = sv_2mortal(newSVuv(d)); return 0; }
+{
+    dTHX;
+    *o = sv_2mortal(newSVuv(d));
+    return 0;
+}
 
 STATIC_INLINE int template_callback_uint32(unpack_user* u, uint32_t d, SV** o)
-{ dTHX; *o = sv_2mortal(newSVuv(d)); return 0; }
+{
+    dTHX;
+    *o = sv_2mortal(newSVuv(d));
+    return 0;
+}
 
 STATIC_INLINE int template_callback_uint64(unpack_user* u, uint64_t d, SV** o)
 {
@@ -72,49 +87,109 @@ STATIC_INLINE int template_callback_uint64(unpack_user* u, uint64_t d, SV** o)
     return 0;
 }
 
-STATIC_INLINE int template_callback_int8(unpack_user* u, int8_t d, SV** o)
-{ dTHX; *o = sv_2mortal(newSViv((long)d)); return 0; }
+STATIC_INLINE int template_callback_int8(unpack_user* u PERL_UNUSED_DECL, int8_t d, SV** o)
+{
+    dTHX;
+    *o = sv_2mortal(newSViv(d));
+    return 0;
+}
 
-STATIC_INLINE int template_callback_int16(unpack_user* u, int16_t d, SV** o)
-{ dTHX; *o = sv_2mortal(newSViv((long)d)); return 0; }
+STATIC_INLINE int template_callback_int16(unpack_user* u PERL_UNUSED_DECL, int16_t d, SV** o)
+{
+    dTHX;
+    *o = sv_2mortal(newSViv(d));
+    return 0;
+}
 
 STATIC_INLINE int template_callback_int32(unpack_user* u, int32_t d, SV** o)
-{ dTHX; *o = sv_2mortal(newSViv((long)d)); return 0; }
+{
+    dTHX;
+    *o = sv_2mortal(newSViv(d));
+    return 0;
+}
 
 STATIC_INLINE int template_callback_int64(unpack_user* u, int64_t d, SV** o)
-{ dTHX; *o = sv_2mortal(newSViv(d)); return 0; }
+{
+    dTHX;
+    *o = sv_2mortal(newSViv(d));
+    return 0;
+}
 
 STATIC_INLINE int template_callback_float(unpack_user* u, float d, SV** o)
-{ dTHX; *o = sv_2mortal(newSVnv(d)); return 0; }
+{
+    dTHX;
+    *o = sv_2mortal(newSVnv(d));
+    return 0;
+}
 
 STATIC_INLINE int template_callback_double(unpack_user* u, double d, SV** o)
-{ dTHX; *o = sv_2mortal(newSVnv(d)); return 0; }
+{
+    dTHX;
+    *o = sv_2mortal(newSVnv(d));
+    return 0;
+}
 
 /* &PL_sv_undef is not so good. see http://gist.github.com/387743 */
 STATIC_INLINE int template_callback_nil(unpack_user* u, SV** o)
-{ dTHX; *o = sv_newmortal(); return 0; }
+{
+    dTHX;
+    *o = sv_newmortal();
+    return 0;
+}
 
 STATIC_INLINE int template_callback_true(unpack_user* u, SV** o)
-{ dTHX; *o = get_bool("Data::MessagePack::true") ; return 0; }
+{
+    dTHX;
+    *o = get_bool("Data::MessagePack::true");
+    return 0;
+}
 
 STATIC_INLINE int template_callback_false(unpack_user* u, SV** o)
-{ dTHX; *o = get_bool("Data::MessagePack::false") ; return 0; }
+{
+    dTHX; *o = get_bool("Data::MessagePack::false");
+    return 0;
+}
 
 STATIC_INLINE int template_callback_array(unpack_user* u, unsigned int n, SV** o)
-{ dTHX; AV* a = (AV*)sv_2mortal((SV*)newAV()); *o = sv_2mortal((SV*)newRV_inc((SV*)a)); av_extend(a, n); return 0; }
+{
+    dTHX;
+    AV* a = (AV*)sv_2mortal((SV*)newAV());
+    *o = sv_2mortal((SV*)newRV_inc((SV*)a));
+    av_extend(a, n);
+    return 0;
+}
 
 STATIC_INLINE int template_callback_array_item(unpack_user* u, SV** c, SV* o)
-{ dTHX; av_push((AV*)SvRV(*c), o); SvREFCNT_inc(o); return 0; }  /* FIXME set value directry RARRAY_PTR(obj)[RARRAY_LEN(obj)++] */
+{
+    dTHX;
+    av_push((AV*)SvRV(*c), o);
+    SvREFCNT_inc(o);
+    return 0;
+}
 
 STATIC_INLINE int template_callback_map(unpack_user* u, unsigned int n, SV** o)
-{ dTHX; HV * h = (HV*)sv_2mortal((SV*)newHV()); *o = sv_2mortal(newRV_inc((SV*)h)); return 0; }
+{
+    dTHX;
+    HV* h = (HV*)sv_2mortal((SV*)newHV());
+    *o = sv_2mortal(newRV_inc((SV*)h));
+    return 0;
+}
 
 STATIC_INLINE int template_callback_map_item(unpack_user* u, SV** c, SV* k, SV* v)
-{ dTHX; hv_store_ent((HV*)SvRV(*c), k, v, 0); SvREFCNT_inc(v); return 0; }
+{
+    dTHX;
+    hv_store_ent((HV*)SvRV(*c), k, v, 0);
+    SvREFCNT_inc(v);
+    return 0;
+}
 
 STATIC_INLINE int template_callback_raw(unpack_user* u, const char* b, const char* p, unsigned int l, SV** o)
-{ dTHX; *o = sv_2mortal((l==0) ? newSVpv("", 0) : newSVpv(p, l)); return 0; }
-/* { *o = newSVpvn_flags(p, l, SVs_TEMP); return 0; }  <= this does not works. */
+{
+    dTHX;
+    /*  *o = newSVpvn_flags(p, l, SVs_TEMP); <= this does not work. */
+    *o = sv_2mortal((l==0) ? newSVpv("", 0) : newSVpv(p, l));
+    return 0;
+}
 
 #define UNPACKER(from, name) \
 	msgpack_unpack_t *name; \
