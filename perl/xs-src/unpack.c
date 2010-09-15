@@ -382,9 +382,7 @@ XS(xs_unpacker_reset) {
 	UNPACKER(ST(0), mp);
     {
         SV * data = template_data(mp);
-        if (data) {
-            SvREFCNT_dec(data);
-        }
+        SvREFCNT_dec(data);
     }
     _reset(ST(0));
 
