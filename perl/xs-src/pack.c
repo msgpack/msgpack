@@ -60,7 +60,7 @@ STATIC_INLINE void need(enc_t *enc, STRLEN len)
 
 static int s_pref_int = 0;
 
-STATIC_INLINE int pref_int_set(pTHX_ SV* sv, MAGIC* mg) {
+STATIC_INLINE int pref_int_set(pTHX_ SV* sv, MAGIC* mg PERL_UNUSED_DECL) {
     if (SvTRUE(sv)) {
         s_pref_int = 1;
     } else {
@@ -211,7 +211,7 @@ STATIC_INLINE void _msgpack_pack_rv(enc_t *enc, SV* sv, int depth) {
 
         msgpack_pack_map(enc, count);
 
-        while (he = hv_iternext(hval)) {
+        while ((he = hv_iternext(hval))) {
             _msgpack_pack_sv(enc, hv_iterkeysv(he), depth);
             _msgpack_pack_sv(enc, HeVAL(he), depth);
         }
