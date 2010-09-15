@@ -285,20 +285,19 @@ XS(xs_unpacker_new) {
     XSRETURN(1);
 }
 
-STATIC_INLINE SV* _execute_impl(SV* self, SV* data, UV off, I32 limit) {
+STATIC_INLINE SV* _execute_impl(SV* self, SV* data, UV off, size_t limit) {
     dTHX;
     UNPACKER(self, mp);
 
     size_t from = off;
 	const char* dptr = SvPV_nolen_const(data);
-	long dlen = limit;
 	int ret;
 
-	if(from >= (size_t)dlen) {
+	if(from >= limit) {
         Perl_croak(aTHX_ "offset is bigger than data buffer size.");
 	}
 
-	ret = template_execute(mp, dptr, (size_t)dlen, &from);
+	ret = template_execute(mp, dptr, limit, &from);
 
 	if(ret < 0) {
 		Perl_croak(aTHX_ "parse error.");
@@ -323,7 +322,7 @@ XS(xs_unpacker_execute) {
         SV* data = ST(1);
         IV  off  = SvIV(ST(2)); /* offset of $data. normaly, 0. */
 
-        ST(0) = _execute_impl(self, data, off, sv_len(data));
+        ST(0) = _execute_impl(self, data, off, (size_t)sv_len(data));
 
         {
             SV * d2 = template_data(mp);
@@ -348,7 +347,7 @@ XS(xs_unpacker_execute_limit) {
     IV off   = SvIV(ST(2));
     IV limit = SvIV(ST(3));
 
-    ST(0) = _execute_impl(self, data, off, limit);
+    ST(0) = _execute_impl(self, data, off, (size_t)limit);
 
     XSRETURN(1);
 }
