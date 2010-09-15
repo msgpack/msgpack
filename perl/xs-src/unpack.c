@@ -37,7 +37,6 @@ get_bool (const char *name) {
 }
 
 /* ---------------------------------------------------------------------- */
-
 struct template_context;
 typedef struct template_context msgpack_unpack_t;
 
@@ -166,6 +165,7 @@ STATIC_INLINE int template_callback_array_item(unpack_user* u PERL_UNUSED_DECL, 
 {
     dTHX;
     AV* const a = (AV*)SvRV(*c);
+    assert(SvTYPE(a) == SVt_PVAV);
     (void)av_store(a, AvFILLp(a) + 1, o); // the same as av_push(a, o)
     SvREFCNT_inc_simple_void_NN(o);
     return 0;
@@ -182,7 +182,9 @@ STATIC_INLINE int template_callback_map(unpack_user* u PERL_UNUSED_DECL, unsigne
 STATIC_INLINE int template_callback_map_item(unpack_user* u PERL_UNUSED_DECL, SV** c, SV* k, SV* v)
 {
     dTHX;
-    (void)hv_store_ent((HV*)SvRV(*c), k, v, 0);
+    HV* const h = (HV*)SvRV(*c);
+    assert(SvTYPE(h) == SVt_PVHV);
+    (void)hv_store_ent(h, k, v, 0);
     SvREFCNT_inc_simple_void_NN(v);
     return 0;
 }
@@ -321,12 +323,10 @@ XS(xs_unpacker_execute) {
 
         ST(0) = _execute_impl(self, data, off, (size_t)sv_len(data));
 
-        {
-            SV * d2 = template_data(mp);
-            if (!mp->user.incremented && d2) {
-                SvREFCNT_inc(d2);
-                mp->user.incremented = true;
-            }
+        if (!mp->user.incremented) {
+            SV* tmp_obj = template_data(mp);
+            SvREFCNT_inc_simple_void_NN(tmp_obj);
+            mp->user.incremented = true;
         }
     }
 
@@ -368,7 +368,7 @@ XS(xs_unpacker_data) {
     }
 
 	UNPACKER(ST(0), mp);
-	ST(0) = sv_mortalcopy(template_data(mp));
+	ST(0) = template_data(mp);
 
     XSRETURN(1);
 }
@@ -380,10 +380,9 @@ XS(xs_unpacker_reset) {
     }
 
 	UNPACKER(ST(0), mp);
-    {
-        SV * data = template_data(mp);
-        SvREFCNT_dec(data);
-    }
+
+    SV* const data = template_data(mp);
+    SvREFCNT_dec(data);
     _reset(ST(0));
 
     XSRETURN(0);
@@ -396,10 +395,9 @@ XS(xs_unpacker_destroy) {
     }
 
 	UNPACKER(ST(0), mp);
-    SV * data = template_data(mp);
-    if (SvOK(data)) {
-        SvREFCNT_dec(data);
-    }
+
+    SV* const data = template_data(mp);
+    SvREFCNT_dec(data);
     Safefree(mp);
 
     XSRETURN(0);
