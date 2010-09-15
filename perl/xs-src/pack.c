@@ -252,7 +252,7 @@ XS(xs_pack) {
     if (items >= 3) depth = SvIV(ST(2));
 
     enc_t enc;
-    enc.sv        = sv_2mortal(NEWSV(0, INIT_SIZE));
+    enc.sv        = sv_2mortal(newSV(INIT_SIZE));
     enc.cur       = SvPVX(enc.sv);
     enc.end       = SvEND(enc.sv);
     SvPOK_only(enc.sv);
