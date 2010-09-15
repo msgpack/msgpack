@@ -1,14 +1,6 @@
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #define NEED_newRV_noinc
 #define NEED_sv_2pv_flags
 #include "xshelper.h"
-
-#ifdef __cplusplus
-};
-#endif
 
 typedef struct {
     int finished;

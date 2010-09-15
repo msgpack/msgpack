@@ -1,14 +1,4 @@
-#ifdef __cplusplus
-extern "C" {
-#endif
-#include "EXTERN.h"
-#include "perl.h"
-#include "XSUB.h"
-#define NEED_newCONSTSUB
-#include "ppport.h"
-#ifdef __cplusplus
-};
-#endif
+#include "xshelper.h"
 
 XS(xs_pack);
 XS(xs_unpack);
@@ -24,13 +14,11 @@ void boot_Data__MessagePack_pack(void);
 
 XS(boot_Data__MessagePack) {
     dXSARGS;
-    HV * stash;
 
     boot_Data__MessagePack_pack();
 
     newXS("Data::MessagePack::pack", xs_pack, __FILE__);
     newXS("Data::MessagePack::unpack", xs_unpack, __FILE__);
-    stash = gv_stashpvn("Data::MessagePack", strlen("Data::MessagePack"), TRUE);
 
     newXS("Data::MessagePack::Unpacker::new",           xs_unpacker_new, __FILE__);
     newXS("Data::MessagePack::Unpacker::execute",       xs_unpacker_execute, __FILE__);
