@@ -13,17 +13,18 @@
     static inline void msgpack_pack ## name
 
 typedef struct {
-    char *cur; /* SvPVX (sv) + current output position */
-    char *end; /* SvEND (sv) */
-    SV *sv;    /* result scalar */
+    char *cur;       /* SvPVX (sv) + current output position */
+    const char *end; /* SvEND (sv) */
+    SV *sv;          /* result scalar */
 } enc_t;
-static void need(enc_t *enc, STRLEN len);
+
+STATIC_INLINE void need(enc_t* const enc, STRLEN const len);
 
 #define msgpack_pack_user enc_t*
 
 #define msgpack_pack_append_buffer(enc, buf, len) \
-    need(enc, len); \
-    memcpy(enc->cur, buf, len); \
+    need(enc, len);                               \
+    memcpy(enc->cur, buf, len);                   \
     enc->cur += len;
 
 #include "msgpack/pack_template.h"
@@ -46,14 +47,14 @@ static void need(enc_t *enc, STRLEN len);
 #define ERR_NESTING_EXCEEDED "perl structure exceeds maximum nesting level (max_depth set too low?)"
 
 
-STATIC_INLINE void need(enc_t *enc, STRLEN len)
+STATIC_INLINE void need(enc_t* const enc, STRLEN const len)
 {
-    dTHX;
     if (enc->cur + len >= enc->end) {
-        STRLEN cur = enc->cur - (char *)SvPVX (enc->sv);
+        dTHX;
+        STRLEN const cur = enc->cur - SvPVX_const(enc->sv);
         sv_grow (enc->sv, cur + (len < (cur >> 2) ? cur >> 2 : len) + 1);
-        enc->cur = SvPVX (enc->sv) + cur;
-        enc->end = SvPVX (enc->sv) + SvLEN (enc->sv) - 1;
+        enc->cur = SvPVX_mutable(enc->sv) + cur;
+        enc->end = SvPVX_const(enc->sv) + SvLEN (enc->sv) - 1;
     }
 }
 
