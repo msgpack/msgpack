@@ -294,7 +294,7 @@ STATIC_INLINE SV* _execute_impl(SV* self, SV* data, UV off, size_t limit) {
 	int ret;
 
 	if(from >= limit) {
-        Perl_croak(aTHX_ "offset is bigger than data buffer size.");
+        Perl_croak(aTHX_ "offset (%lu) is bigger than data buffer size (%lu)", (unsigned long)off, (unsigned long)limit);
 	}
 
 	ret = template_execute(mp, dptr, limit, &from);
