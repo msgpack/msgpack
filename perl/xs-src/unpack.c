@@ -204,7 +204,7 @@ STATIC_INLINE int template_callback_raw(unpack_user* u PERL_UNUSED_DECL, const c
 
 #include "msgpack/unpack_template.h"
 
-STATIC_INLINE SV* _msgpack_unpack(SV* data, int limit) {
+STATIC_INLINE SV* _msgpack_unpack(SV* data, size_t limit PERL_UNUSED_DECL) {
     msgpack_unpack_t mp;
     dTHX;
     unpack_user u = {0, &PL_sv_undef, false};
@@ -252,14 +252,20 @@ XS(xs_unpack_limit) {
 
 XS(xs_unpack) {
     dXSARGS;
+    SV* const data = ST(1);
+    size_t limit;
 
-    if (items != 2) {
-        Perl_croak(aTHX_ "Usage: Data::MessagePack->unpack('datadata')");
+    if (items == 2) {
+        limit = sv_len(data);
+    }
+    else if(items == 3) {
+        limit = SvUVx(ST(2));
+    }
+    else {
+        Perl_croak(aTHX_ "Usage: Data::MessagePack->unpack('data' [, $limit])");
     }
 
-    {
-        ST(0) = _msgpack_unpack(ST(1), sv_len(ST(1)));
-    }
+    ST(0) = _msgpack_unpack(data, limit);
 
     XSRETURN(1);
 }
