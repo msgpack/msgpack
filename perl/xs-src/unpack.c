@@ -196,12 +196,15 @@ STATIC_INLINE int template_callback_raw(unpack_user* u PERL_UNUSED_DECL, const c
     return 0;
 }
 
-#define UNPACKER(from, name) \
-	msgpack_unpack_t *name; \
-    name = INT2PTR(msgpack_unpack_t*, SvROK((from)) ? SvIV(SvRV((from))) : SvIV((from))); \
-	if(name == NULL) { \
-		Perl_croak(aTHX_ "NULL found for " # name " when shouldn't be."); \
-	}
+#define UNPACKER(from, name)                                              \
+    msgpack_unpack_t *name;                                               \
+    if(!(SvROK(from) && SvIOK(SvRV(from)))) {                             \
+        Perl_croak(aTHX_ "Invalid unpacker instance for " #name);         \
+    }                                                                     \
+    name = INT2PTR(msgpack_unpack_t*, SvIVX(SvRV((from))));               \
+    if(name == NULL) {                                                    \
+        Perl_croak(aTHX_ "NULL found for " # name " when shouldn't be."); \
+    }
 
 #include "msgpack/unpack_template.h"
 
