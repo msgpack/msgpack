@@ -111,7 +111,11 @@ STATIC_INLINE int template_callback_int32(unpack_user* u PERL_UNUSED_DECL, int32
 STATIC_INLINE int template_callback_int64(unpack_user* u PERL_UNUSED_DECL, int64_t d, SV** o)
 {
     dTHX;
+#if IVSIZE==4
+    *o = sv_2mortal(newSVnv(d));
+#else
     *o = sv_2mortal(newSViv(d));
+#endif
     return 0;
 }
 
