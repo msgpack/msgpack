@@ -238,7 +238,7 @@ STATIC_INLINE void _msgpack_pack_rv(enc_t *enc, SV* sv, int depth) {
         else if (len == 1 && *pv == '0')
             msgpack_pack_false(enc); 
         else {
-            sv_dump(sv);
+            //sv_dump(sv);
             croak("cannot encode reference to scalar '%s' unless the scalar is 0 or 1",
                     SvPV_nolen (sv_2mortal (newRV_inc (sv))));
         }
