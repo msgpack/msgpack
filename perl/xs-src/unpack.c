@@ -3,9 +3,8 @@
 #include "xshelper.h"
 
 typedef struct {
-    int finished;
-    SV* source;
-    int incremented;
+    bool finished;
+    bool incremented;
 } unpack_user;
 
 #include "msgpack/unpack_define.h"
@@ -211,7 +210,7 @@ STATIC_INLINE int template_callback_raw(unpack_user* u PERL_UNUSED_DECL, const c
 STATIC_INLINE SV* _msgpack_unpack(SV* data, size_t limit PERL_UNUSED_DECL) {
     msgpack_unpack_t mp;
     dTHX;
-    unpack_user u = {0, &PL_sv_undef, false};
+    unpack_user u = {false, false};
 	int ret;
 	size_t from = 0;
     STRLEN dlen;
@@ -221,10 +220,7 @@ STATIC_INLINE SV* _msgpack_unpack(SV* data, size_t limit PERL_UNUSED_DECL) {
 	template_init(&mp);
     mp.user = u;
 
-	mp.user.source = data;
 	ret = template_execute(&mp, dptr, (size_t)dlen, &from);
-	mp.user.source = &PL_sv_undef;
-
 	obj = template_data(&mp);
 
 	if(ret < 0) {
@@ -264,7 +260,7 @@ XS(xs_unpack) {
 
 STATIC_INLINE void _reset(SV* self) {
     dTHX;
-	unpack_user u = {0, &PL_sv_undef, 0};
+	unpack_user u = {false, false};
 
 	UNPACKER(self, mp);
 	template_init(mp);
@@ -302,17 +298,15 @@ STATIC_INLINE SV* _execute_impl(SV* self, SV* data, UV off, I32 limit) {
         Perl_croak(aTHX_ "offset is bigger than data buffer size.");
 	}
 
-	mp->user.source = data;
 	ret = template_execute(mp, dptr, (size_t)dlen, &from);
-	mp->user.source = &PL_sv_undef;
 
 	if(ret < 0) {
 		Perl_croak(aTHX_ "parse error.");
 	} else if(ret > 0) {
-		mp->user.finished = 1;
+		mp->user.finished = true;
 		return sv_2mortal(newSVuv(from));
 	} else {
-		mp->user.finished = 0;
+		mp->user.finished = false;
 		return sv_2mortal(newSVuv(from));
 	}
 }
@@ -335,7 +329,7 @@ XS(xs_unpacker_execute) {
             SV * d2 = template_data(mp);
             if (!mp->user.incremented && d2) {
                 SvREFCNT_inc(d2);
-                mp->user.incremented = 1;
+                mp->user.incremented = true;
             }
         }
     }
@@ -366,7 +360,7 @@ XS(xs_unpacker_is_finished) {
     }
 
 	UNPACKER(ST(0), mp);
-    ST(0) = (mp->user.finished) ? &PL_sv_yes : &PL_sv_no;
+    ST(0) = boolSV(mp->user.finished);
 
     XSRETURN(1);
 }
