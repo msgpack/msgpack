@@ -149,7 +149,7 @@ static void _msgpack_pack_rv(enc_t *enc, SV* sv, int depth);
 STATIC_INLINE void _msgpack_pack_sv(enc_t* const enc, SV* const sv, int const depth) {
     dTHX;
     assert(sv);
-    if (depth <= 0) Perl_croak(aTHX_ ERR_NESTING_EXCEEDED);
+    if (UNLIKELY(depth <= 0)) Perl_croak(aTHX_ ERR_NESTING_EXCEEDED);
     SvGETMAGIC(sv);
 
     if (SvPOKp(sv)) {
@@ -188,7 +188,6 @@ STATIC_INLINE void _msgpack_pack_sv(enc_t* const enc, SV* const sv, int const de
 STATIC_INLINE void _msgpack_pack_rv(enc_t *enc, SV* sv, int depth) {
     svtype svt;
     dTHX;
-    if (depth <= 0) Perl_croak(aTHX_ ERR_NESTING_EXCEEDED);
     SvGETMAGIC(sv);
     svt = SvTYPE(sv);
 
