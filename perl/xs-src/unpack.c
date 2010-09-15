@@ -310,7 +310,7 @@ STATIC_INLINE SV* _execute_impl(SV* self, SV* data, UV off, size_t limit) {
 XS(xs_unpacker_execute) {
     dXSARGS;
     if (items != 3) {
-        Perl_croak(aTHX_ "Usage: $unpacker->execute_limit(data, off)");
+        Perl_croak(aTHX_ "Usage: $unpacker->execute(data, off)");
     }
 
 	UNPACKER(ST(0), mp);
