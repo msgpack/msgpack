@@ -5,7 +5,8 @@ use Test::More;
 
 use Data::MessagePack;
 
-my $data = {
+my $simple_data  = "xyz";
+my $complex_data = {
     a => 'foo',
     b => 42,
     c => undef,
@@ -13,8 +14,10 @@ my $data = {
     e => 3.14,
 };
 
+note 'pack';
+
 no_leaks_ok {
-    my $s = Data::MessagePack->pack($data);
+    my $s = Data::MessagePack->pack($complex_data);
 };
 
 no_leaks_ok {
@@ -23,16 +26,23 @@ no_leaks_ok {
     $@ or die "it must die";
 };
 
-my $s = Data::MessagePack->pack($data);
+note 'unpack';
+
+my $s = Data::MessagePack->pack($simple_data);
+my $c = Data::MessagePack->pack($complex_data);
 
 no_leaks_ok {
     my $data = Data::MessagePack->unpack($s);
 };
 
 no_leaks_ok {
-    my $ss = $s;
-    chop $ss;
-    eval { Data::MessagePack->unpack($ss) };
+    my $data = Data::MessagePack->unpack($c);
+};
+
+no_leaks_ok {
+    my $broken = $s;
+    chop $broken;
+    eval { Data::MessagePack->unpack($broken) };
     #note $@;
     $@ or die "it must die";
 };

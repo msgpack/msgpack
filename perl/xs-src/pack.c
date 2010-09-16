@@ -145,7 +145,7 @@ STATIC_INLINE int try_int(enc_t* enc, const char *p, size_t len) {
 }
 
 
-static void _msgpack_pack_rv(enc_t *enc, SV* sv, int depth);
+STATIC_INLINE void _msgpack_pack_rv(enc_t *enc, SV* sv, int depth);
 
 STATIC_INLINE void _msgpack_pack_sv(enc_t* const enc, SV* const sv, int const depth) {
     dTHX;

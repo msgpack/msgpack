@@ -14,6 +14,7 @@ void boot_Data__MessagePack_pack(void);
 
 XS(boot_Data__MessagePack) {
     dXSARGS;
+    PERL_UNUSED_VAR(items);
 
     boot_Data__MessagePack_pack();
 

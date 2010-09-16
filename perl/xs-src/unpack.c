@@ -26,14 +26,9 @@ typedef struct {
 /* utility functions                                                      */
 
 STATIC_INLINE SV *
-get_bool (const char *name) {
+get_bool (const char* const name) {
     dTHX;
-    SV * sv = sv_mortalcopy(get_sv( name, 1 ));
-
-    SvREADONLY_on(sv);
-    SvREADONLY_on( SvRV(sv) );
-
-    return sv;
+    return newSVsv(get_sv( name, GV_ADD ));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -49,85 +44,76 @@ static int template_execute(msgpack_unpack_t* u PERL_UNUSED_DECL,
 
 STATIC_INLINE SV* template_callback_root(unpack_user* u PERL_UNUSED_DECL)
 {
-    dTHX;
-    return &PL_sv_undef;
+    return NULL;
 }
 
-STATIC_INLINE int template_callback_uint8(unpack_user* u PERL_UNUSED_DECL, uint8_t d, SV** o)
+#if IVSIZE == 4
+
+STATIC_INLINE int template_callback_UV(unpack_user* u PERL_UNUSED_DECL, UV const d, SV** o)
 {
     dTHX;
-    *o = sv_2mortal(newSVuv(d));
+    *o = newSVuv(d);
     return 0;
 }
 
-STATIC_INLINE int template_callback_uint16(unpack_user* u PERL_UNUSED_DECL, uint16_t d, SV** o)
+STATIC_INLINE int template_callback_uint64(unpack_user* u PERL_UNUSED_DECL, uint64_t const d, SV** o)
 {
     dTHX;
-    *o = sv_2mortal(newSVuv(d));
+    *o = newSVnv((NV)d);
     return 0;
 }
 
-STATIC_INLINE int template_callback_uint32(unpack_user* u PERL_UNUSED_DECL, uint32_t d, SV** o)
+STATIC_INLINE int template_callback_IV(unpack_user* u PERL_UNUSED_DECL, IV const d, SV** o)
 {
     dTHX;
-    *o = sv_2mortal(newSVuv(d));
+    *o = newSViv(d);
     return 0;
 }
 
-STATIC_INLINE int template_callback_uint64(unpack_user* u PERL_UNUSED_DECL, uint64_t d, SV** o)
+STATIC_INLINE int template_callback_int64(unpack_user* u PERL_UNUSED_DECL, int64_t const d, SV** o)
 {
     dTHX;
-#if IVSIZE==4
-    *o = sv_2mortal(newSVnv(d));
-#else
-    *o = sv_2mortal(newSVuv(d));
-#endif
+    *o = newSVnv((NV)d);
     return 0;
 }
 
-STATIC_INLINE int template_callback_int8(unpack_user* u PERL_UNUSED_DECL, int8_t d, SV** o)
+#else /* IVSIZE == 8 */
+
+
+STATIC_INLINE int template_callback_UV(unpack_user* u PERL_UNUSED_DECL, UV const d, SV** o)
 {
     dTHX;
-    *o = sv_2mortal(newSViv(d));
+    *o = newSVuv(d);
     return 0;
 }
 
-STATIC_INLINE int template_callback_int16(unpack_user* u PERL_UNUSED_DECL, int16_t d, SV** o)
+#define template_callback_uint64 template_callback_UV
+
+STATIC_INLINE int template_callback_IV(unpack_user* u PERL_UNUSED_DECL, IV const d, SV** o)
 {
     dTHX;
-    *o = sv_2mortal(newSViv(d));
+    *o = newSViv(d);
     return 0;
 }
 
-STATIC_INLINE int template_callback_int32(unpack_user* u PERL_UNUSED_DECL, int32_t d, SV** o)
-{
-    dTHX;
-    *o = sv_2mortal(newSViv(d));
-    return 0;
-}
+#define template_callback_uint64 template_callback_IV
 
-STATIC_INLINE int template_callback_int64(unpack_user* u PERL_UNUSED_DECL, int64_t d, SV** o)
-{
-    dTHX;
-#if IVSIZE==4
-    *o = sv_2mortal(newSVnv(d));
-#else
-    *o = sv_2mortal(newSViv(d));
-#endif
-    return 0;
-}
+#endif /* IVSIZE */
 
-STATIC_INLINE int template_callback_float(unpack_user* u PERL_UNUSED_DECL, float d, SV** o)
-{
-    dTHX;
-    *o = sv_2mortal(newSVnv(d));
-    return 0;
-}
+#define template_callback_uint8  template_callback_UV
+#define template_callback_uint16 template_callback_UV
+#define template_callback_uint32 template_callback_UV
+
+#define template_callback_int8  template_callback_IV
+#define template_callback_int16 template_callback_IV
+#define template_callback_int32 template_callback_IV
+
+#define template_callback_float template_callback_double
 
 STATIC_INLINE int template_callback_double(unpack_user* u PERL_UNUSED_DECL, double d, SV** o)
 {
     dTHX;
-    *o = sv_2mortal(newSVnv(d));
+    *o = newSVnv(d);
     return 0;
 }
 
@@ -135,7 +121,7 @@ STATIC_INLINE int template_callback_double(unpack_user* u PERL_UNUSED_DECL, doub
 STATIC_INLINE int template_callback_nil(unpack_user* u PERL_UNUSED_DECL, SV** o)
 {
     dTHX;
-    *o = sv_newmortal();
+    *o = newSV(0);
     return 0;
 }
 
@@ -148,7 +134,8 @@ STATIC_INLINE int template_callback_true(unpack_user* u PERL_UNUSED_DECL, SV** o
 
 STATIC_INLINE int template_callback_false(unpack_user* u PERL_UNUSED_DECL, SV** o)
 {
-    dTHX; *o = get_bool("Data::MessagePack::false");
+    dTHX;
+    *o = get_bool("Data::MessagePack::false");
     return 0;
 }
 
@@ -156,7 +143,7 @@ STATIC_INLINE int template_callback_array(unpack_user* u PERL_UNUSED_DECL, unsig
 {
     dTHX;
     AV* const a = newAV();
-    *o = sv_2mortal(newRV_noinc((SV*)a));
+    *o = newRV_noinc((SV*)a);
     av_extend(a, n + 1);
     return 0;
 }
@@ -167,7 +154,6 @@ STATIC_INLINE int template_callback_array_item(unpack_user* u PERL_UNUSED_DECL, 
     AV* const a = (AV*)SvRV(*c);
     assert(SvTYPE(a) == SVt_PVAV);
     (void)av_store(a, AvFILLp(a) + 1, o); // the same as av_push(a, o)
-    SvREFCNT_inc_simple_void_NN(o);
     return 0;
 }
 
@@ -175,7 +161,7 @@ STATIC_INLINE int template_callback_map(unpack_user* u PERL_UNUSED_DECL, unsigne
 {
     dTHX;
     HV* const h = newHV();
-    *o = sv_2mortal(newRV_noinc((SV*)h));
+    *o = newRV_noinc((SV*)h);
     return 0;
 }
 
@@ -185,7 +171,7 @@ STATIC_INLINE int template_callback_map_item(unpack_user* u PERL_UNUSED_DECL, SV
     HV* const h = (HV*)SvRV(*c);
     assert(SvTYPE(h) == SVt_PVHV);
     (void)hv_store_ent(h, k, v, 0);
-    SvREFCNT_inc_simple_void_NN(v);
+    SvREFCNT_dec(k);
     return 0;
 }
 
@@ -193,9 +179,11 @@ STATIC_INLINE int template_callback_raw(unpack_user* u PERL_UNUSED_DECL, const c
 {
     dTHX;
     /*  newSVpvn_flags(p, l, SVs_TEMP) returns an undef if l == 0 */
-    *o = ((l==0) ? newSVpvs_flags("", SVs_TEMP) : newSVpvn_flags(p, l, SVs_TEMP));
+    *o = ((l==0) ? newSVpvs("") : newSVpvn(p, l));
     return 0;
 }
+
+#include "msgpack/unpack_template.h"
 
 #define UNPACKER(from, name)                                              \
     msgpack_unpack_t *name;                                               \
@@ -206,36 +194,6 @@ STATIC_INLINE int template_callback_raw(unpack_user* u PERL_UNUSED_DECL, const c
     if(name == NULL) {                                                    \
         Perl_croak(aTHX_ "NULL found for " # name " when shouldn't be."); \
     }
-
-#include "msgpack/unpack_template.h"
-
-STATIC_INLINE SV* _msgpack_unpack(SV* data, size_t limit PERL_UNUSED_DECL) {
-    msgpack_unpack_t mp;
-    dTHX;
-    unpack_user u = {false, false};
-	int ret;
-	size_t from = 0;
-    STRLEN dlen;
-    const char * dptr = SvPV_const(data, dlen);
-    SV* obj;
-
-	template_init(&mp);
-    mp.user = u;
-
-	ret = template_execute(&mp, dptr, (size_t)dlen, &from);
-	obj = template_data(&mp);
-
-	if(ret < 0) {
-        Perl_croak(aTHX_ "parse error.");
-	} else if(ret == 0) {
-        Perl_croak(aTHX_ "insufficient bytes.");
-	} else {
-		if(from < dlen) {
-            Perl_croak(aTHX_ "extra bytes.");
-		}
-        return obj;
-	}
-}
 
 XS(xs_unpack) {
     dXSARGS;
@@ -252,17 +210,40 @@ XS(xs_unpack) {
         Perl_croak(aTHX_ "Usage: Data::MessagePack->unpack('data' [, $limit])");
     }
 
-    ST(0) = _msgpack_unpack(data, limit);
+    STRLEN dlen;
+    const char* const dptr = SvPV_const(data, dlen);
 
+    msgpack_unpack_t mp;
+    template_init(&mp);
+
+    unpack_user const u = {false, false};
+    mp.user = u;
+
+    size_t from = 0;
+    int const ret = template_execute(&mp, dptr, (size_t)dlen, &from);
+    SV* const obj = template_data(&mp);
+    sv_2mortal(obj);
+
+    if(ret < 0) {
+        Perl_croak(aTHX_ "Data::MessagePack->unpack: parse error");
+    } else if(ret == 0) {
+        Perl_croak(aTHX_ "Data::MessagePack->unpack: insufficient bytes");
+    } else {
+        if(from < dlen) {
+            Perl_croak(aTHX_ "Data::MessagePack->unpack: extra bytes");
+        }
+    }
+
+    ST(0) = obj;
     XSRETURN(1);
 }
 
 /* ------------------------------ stream -- */
 /* http://twitter.com/frsyuki/status/13249304748 */
 
-STATIC_INLINE void _reset(SV* self) {
+STATIC_INLINE void _reset(SV* const self) {
     dTHX;
-	unpack_user u = {false, false};
+	unpack_user const u = {false, false};
 
 	UNPACKER(self, mp);
 	template_init(mp);
@@ -275,10 +256,10 @@ XS(xs_unpacker_new) {
         Perl_croak(aTHX_ "Usage: Data::MessagePack::Unpacker->new()");
     }
 
-    SV* self = sv_newmortal();
-	msgpack_unpack_t *mp;
+    SV* const self = sv_newmortal();
+    msgpack_unpack_t *mp;
 
-    Newx(mp, 1, msgpack_unpack_t);
+    Newxz(mp, 1, msgpack_unpack_t);
 
     sv_setref_pv(self, "Data::MessagePack::Unpacker", mp);
     _reset(self);
@@ -287,65 +268,64 @@ XS(xs_unpacker_new) {
     XSRETURN(1);
 }
 
-STATIC_INLINE SV* _execute_impl(SV* self, SV* data, UV off, size_t limit) {
+STATIC_INLINE SV*
+_execute_impl(SV* const self, SV* const data, UV const offset, UV const limit) {
     dTHX;
+
+    if(offset >= limit) {
+        Perl_croak(aTHX_ "offset (%"UVuf") is bigger than data buffer size (%"UVuf")",
+            offset, limit);
+    }
+
     UNPACKER(self, mp);
 
-    size_t from = off;
-	const char* dptr = SvPV_nolen_const(data);
-	int ret;
+    size_t from = offset;
+    const char* const dptr = SvPV_nolen_const(data);
 
-	if(from >= limit) {
-        Perl_croak(aTHX_ "offset (%lu) is bigger than data buffer size (%lu)", (unsigned long)off, (unsigned long)limit);
-	}
+    int const ret = template_execute(mp, dptr, limit, &from);
 
-	ret = template_execute(mp, dptr, limit, &from);
-
-	if(ret < 0) {
-		Perl_croak(aTHX_ "parse error.");
-	} else {
-		mp->user.finished = (ret > 0) ? true : false;
-		return sv_2mortal(newSVuv(from));
-	}
+    if(ret < 0) {
+        Perl_croak(aTHX_ "Data::MessagePack::Unpacker: parse error while executing");
+    } else {
+        mp->user.finished = (ret > 0) ? true : false;
+        return sv_2mortal(newSVuv(from));
+    }
 }
 
 XS(xs_unpacker_execute) {
     dXSARGS;
-    if (items != 3) {
-        Perl_croak(aTHX_ "Usage: $unpacker->execute(data, off)");
+    SV* const self = ST(0);
+    SV* const data = ST(1);
+    UV offset;
+
+    if (items == 2) {
+        offset = 0;
+    }
+    else if (items == 3) {
+        offset = SvUVx(ST(2));
+    }
+    else {
+        Perl_croak(aTHX_ "Usage: $unpacker->execute(data, offset = 0)");
     }
 
-	UNPACKER(ST(0), mp);
-    {
-        SV* self = ST(0);
-        SV* data = ST(1);
-        IV  off  = SvIV(ST(2)); /* offset of $data. normaly, 0. */
+    UNPACKER(self, mp);
 
-        ST(0) = _execute_impl(self, data, off, (size_t)sv_len(data));
-
-        if (!mp->user.incremented) {
-            SV* tmp_obj = template_data(mp);
-            SvREFCNT_inc_simple_void_NN(tmp_obj);
-            mp->user.incremented = true;
-        }
-    }
-
+    ST(0) = _execute_impl(self, data, offset, sv_len(data));
     XSRETURN(1);
 }
 
 XS(xs_unpacker_execute_limit) {
     dXSARGS;
     if (items != 4) {
-        Perl_croak(aTHX_ "Usage: $unpacker->execute_limit(data, off, limit)");
+        Perl_croak(aTHX_ "Usage: $unpacker->execute_limit(data, offset, limit)");
     }
 
-    SV* self = ST(0);
-    SV* data = ST(1);
-    IV off   = SvIV(ST(2));
-    IV limit = SvIV(ST(3));
+    SV* const self   = ST(0);
+    SV* const data   = ST(1);
+    UV  const offset = SvUVx(ST(2));
+    UV  const limit  = SvUVx(ST(3));
 
-    ST(0) = _execute_impl(self, data, off, (size_t)limit);
-
+    ST(0) = _execute_impl(self, data, offset, limit);
     XSRETURN(1);
 }
 
@@ -355,9 +335,8 @@ XS(xs_unpacker_is_finished) {
         Perl_croak(aTHX_ "Usage: $unpacker->is_finished()");
     }
 
-	UNPACKER(ST(0), mp);
+    UNPACKER(ST(0), mp);
     ST(0) = boolSV(mp->user.finished);
-
     XSRETURN(1);
 }
 
@@ -367,9 +346,8 @@ XS(xs_unpacker_data) {
         Perl_croak(aTHX_ "Usage: $unpacker->data()");
     }
 
-	UNPACKER(ST(0), mp);
-	ST(0) = template_data(mp);
-
+    UNPACKER(ST(0), mp);
+    ST(0) = template_data(mp);
     XSRETURN(1);
 }
 
@@ -379,10 +357,10 @@ XS(xs_unpacker_reset) {
         Perl_croak(aTHX_ "Usage: $unpacker->reset()");
     }
 
-	UNPACKER(ST(0), mp);
+    UNPACKER(ST(0), mp);
 
     SV* const data = template_data(mp);
-    SvREFCNT_dec(data);
+    sv_2mortal(data);
     _reset(ST(0));
 
     XSRETURN(0);
@@ -394,10 +372,10 @@ XS(xs_unpacker_destroy) {
         Perl_croak(aTHX_ "Usage: $unpacker->DESTROY()");
     }
 
-	UNPACKER(ST(0), mp);
+    UNPACKER(ST(0), mp);
 
     SV* const data = template_data(mp);
-    SvREFCNT_dec(data);
+    sv_2mortal(data);
     Safefree(mp);
 
     XSRETURN(0);
