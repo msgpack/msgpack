@@ -157,10 +157,11 @@ STATIC_INLINE int template_callback_array_item(unpack_user* u PERL_UNUSED_DECL, 
     return 0;
 }
 
-STATIC_INLINE int template_callback_map(unpack_user* u PERL_UNUSED_DECL, unsigned int n PERL_UNUSED_DECL, SV** o)
+STATIC_INLINE int template_callback_map(unpack_user* u PERL_UNUSED_DECL, unsigned int n, SV** o)
 {
     dTHX;
     HV* const h = newHV();
+    hv_ksplit(h, n);
     *o = newRV_noinc((SV*)h);
     return 0;
 }
