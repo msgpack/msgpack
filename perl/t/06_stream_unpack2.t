@@ -30,6 +30,7 @@ is_deeply(Data::MessagePack->unpack($packed), $input);
 
     note "packed size: ", length($packed);
     open my $stream, '<:bytes :scalar', \$packed;
+    binmode $stream;
     my $buff;
     while( read($stream, $buff, $size) ) {
         note "buff: ", join " ", map { unpack 'H2', $_ } split //, $buff;
