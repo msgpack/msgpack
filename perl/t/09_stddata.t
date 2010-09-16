@@ -1,3 +1,6 @@
+#!perl -w
+# Testing standard dataset in msgpack/test/*.{json,mpac}.
+# Don't edit msgpack/perl/t/std/*, which are just copies.
 use strict;
 use Test::More;
 use Test::Requires qw(JSON);
