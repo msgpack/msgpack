@@ -35,7 +35,7 @@ is_deeply(Data::MessagePack->unpack($packed), $input);
     while( read($stream, $buff, $size) ) {
         note "buff: ", join " ", map { unpack 'H2', $_ } split //, $buff;
 
-        $up->execute($buff);
+        $up->execute($buff, 0);
     }
     ok $up->is_finished, 'is_finished';
     my $data = $up->data;
