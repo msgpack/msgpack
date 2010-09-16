@@ -1,6 +1,6 @@
 #!perl -w
 use strict;
-use Test::Requires 'Test::LeakTrace';
+use Test::Requires { 'Test::LeakTrace' => 0.13 };
 use Test::More;
 
 use Data::MessagePack;
@@ -22,8 +22,8 @@ no_leaks_ok {
 
 no_leaks_ok {
     eval { Data::MessagePack->pack([\*STDIN]) };
-    #note $@;
-    $@ or die "it must die";
+    note $@;
+    $@ or warn "# it must die";
 };
 
 note 'unpack';
@@ -43,8 +43,16 @@ no_leaks_ok {
     my $broken = $s;
     chop $broken;
     eval { Data::MessagePack->unpack($broken) };
-    #note $@;
-    $@ or die "it must die";
+    note $@;
+    $@ or warn "# it must die";
+};
+
+note 'stream';
+
+no_leaks_ok {
+    my $up = Data::MessagePack::Unpacker->new();
+    $up->execute($c);
+    my $data = $up->data();
 };
 
 done_testing;
