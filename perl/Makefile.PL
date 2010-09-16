@@ -54,6 +54,11 @@ if ($Module::Install::AUTHOR && -d File::Spec->catfile('..', 'msgpack')) {
     for my $src (<../msgpack/*.h>) {
         File::Copy::copy($src, 'msgpack/') or die "copy failed: $!";
     }
+
+    mkdir 't/std';
+    for my $data(<../test/*.{json,mpac}>) {
+        File::Copy::copy($data, 't/std') or die "copy failed: $!";
+    }
 }
 
 requires 'Test::More' => 0.94; # done_testing
