@@ -28,7 +28,7 @@ for my $mpac($mpac1, $mpac2) {
     my $offset = 0;
     my $i = 0;
     while($offset < length($mpac)) {
-        $offset += $mps->execute($mpac, $offset);
+        $offset = $mps->execute($mpac, $offset);
         is_deeply $mps->data, $data[$i], "data[$i]";
         $mps->reset;
         $i++;
