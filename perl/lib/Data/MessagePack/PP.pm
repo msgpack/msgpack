@@ -121,9 +121,7 @@ sub _pack {
 
     return CORE::pack( 'C', 0xc0 ) if ( not defined $value );
 
-    my $b_obj = B::svref_2object( ref $value ? $value : \$value );
-
-    if ( $b_obj->isa('B::AV') ) {
+    if ( ref($value) eq 'ARRAY' ) {
         my $num = @$value;
         my $header = 
               $num < 16          ? CORE::pack( 'C',  0x90 + $num )
@@ -137,7 +135,7 @@ sub _pack {
         return join( '', $header, map { _pack( $_ ) } @$value );
     }
 
-    elsif ( $b_obj->isa('B::HV') ) {
+    elsif ( ref($value) eq 'HASH' ) {
         my $num = keys %$value;
         my $header = 
               $num < 16          ? CORE::pack( 'C',  0x80 + $num )
@@ -151,10 +149,12 @@ sub _pack {
         return join( '', $header, map { _pack( $_ ) } %$value );
     }
 
-    elsif ( blessed( $value ) and blessed( $value ) eq 'Data::MessagePack::Boolean' ) {
-        return  CORE::pack( 'C', $$value ? 0xc3 : 0xc2 );
+    elsif ( ref( $value ) eq 'Data::MessagePack::Boolean' ) {
+        return  CORE::pack( 'C', ${$value} ? 0xc3 : 0xc2 );
     }
 
+
+    my $b_obj = B::svref_2object( \$value );
     my $flags = $b_obj->FLAGS;
 
     if ( $flags & ( B::SVf_IOK | B::SVp_IOK ) ) {
@@ -175,7 +175,6 @@ sub _pack {
         }
 
     }
-
     elsif ( $flags & B::SVf_POK ) { # raw / check needs before dboule
 
         if ( $Data::MessagePack::PreferInteger ) {
@@ -204,11 +203,9 @@ sub _pack {
         return $header . $value;
 
     }
-
     elsif ( $flags & ( B::SVf_NOK | B::SVp_NOK ) ) { # double only
         return pack_double( $value );
     }
-
     else {
         die "???";
     }
