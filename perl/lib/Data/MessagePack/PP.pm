@@ -1,10 +1,7 @@
 package Data::MessagePack::PP;
-
-use 5.008000;
+use 5.008001;
 use strict;
 use Carp ();
-
-our $VERSION = '0.15';
 
 # See also
 # http://redmine.msgpack.org/projects/msgpack/wiki/FormatSpec
@@ -25,60 +22,80 @@ BEGIN {
         # require $Config{byteorder}; my $bo_is_le = ( $Config{byteorder} =~ /^1234/ );
         # which better?
         my $bo_is_le = unpack ( 'd', "\x00\x00\x00\x00\x00\x00\xf0\x3f") == 1; # 1.0LE
-        # In really, since 5.9.2 '>' is introduced. but 'n!' and 'N!'?
-        *pack_uint64 = $bo_is_le ? sub {
-            my @v = unpack( 'V2', pack( 'Q', $_[0] ) );
-            return pack 'CN2', 0xcf, @v[1,0];
-        } : sub { pack 'CQ', 0xcf, $_[0]; };
-        *pack_int64 = $bo_is_le ? sub {
-            my @v = unpack( 'V2', pack( 'q', $_[0] ) );
-            return pack 'CN2', 0xd3, @v[1,0];
-        } : sub { pack 'Cq', 0xd3, $_[0]; };
-        *pack_double = $bo_is_le ? sub {
-            my @v = unpack( 'V2', pack( 'd', $_[0] ) );
-            return pack 'CN2', 0xcb, @v[1,0];
-        } : sub { pack 'Cd', 0xcb, $_[0]; };
-        *unpack_float = $bo_is_le ? sub {
-            my @v = unpack( 'v2', substr( $_[0], $_[1], 4 ) );
-            return unpack( 'f', pack( 'n2', @v[1,0] ) );
-        } : sub { return unpack( 'f', substr( $_[0], $_[1], 4 ) ); };
-        *unpack_double = $bo_is_le ? sub {
-            my @v = unpack( 'V2', substr( $_[0], $_[1], 8 ) );
-            return unpack( 'd', pack( 'N2', @v[1,0] ) );
-        } : sub { return unpack( 'd', substr( $_[0], $_[1], 8 ) ); };
-        *unpack_int16  = sub {
-            my $v = unpack 'n', substr( $_[0], $_[1], 2 );
-            return $v ? $v - 0x10000 : 0;
-        };
-        *unpack_int32  = sub {
-            no warnings; # avoid for warning about Hexadecimal number
-            my $v = unpack 'N', substr( $_[0], $_[1], 4 );
-            return $v ? $v - 0x100000000 : 0;
-        };
-        *unpack_int64 = $bo_is_le ? sub {
-            my @v = unpack( 'V*', substr( $_[0], $_[1], 8 ) );
-            return unpack( 'q', pack( 'N2', @v[1,0] ) );
-        } : sub { pack 'q', substr( $_[0], $_[1], 8 ); };
-        *unpack_uint64 = $bo_is_le ? sub {
-            my @v = unpack( 'V*', substr( $_[0], $_[1], 8 ) );
-            return unpack( 'Q', pack( 'N2', @v[1,0] ) );
-        } : sub { pack 'Q', substr( $_[0], $_[1], 8 ); };
+
+        # In reality, since 5.9.2 '>' is introduced. but 'n!' and 'N!'?
+        if($bo_is_le) {
+            *pack_uint64 = sub {
+                my @v = unpack( 'V2', pack( 'Q', $_[0] ) );
+                return pack 'CN2', 0xcf, @v[1,0];
+            };
+            *pack_int64 = sub {
+                my @v = unpack( 'V2', pack( 'q', $_[0] ) );
+                return pack 'CN2', 0xd3, @v[1,0];
+            };
+            *pack_double = sub {
+                my @v = unpack( 'V2', pack( 'd', $_[0] ) );
+                return pack 'CN2', 0xcb, @v[1,0];
+            };
+
+            *unpack_float = sub {
+                my @v = unpack( 'v2', substr( $_[0], $_[1], 4 ) );
+                return unpack( 'f', pack( 'n2', @v[1,0] ) );
+            };
+            *unpack_double = sub {
+                my @v = unpack( 'V2', substr( $_[0], $_[1], 8 ) );
+                return unpack( 'd', pack( 'N2', @v[1,0] ) );
+            };
+
+            *unpack_int16  = sub {
+                my $v = unpack 'n', substr( $_[0], $_[1], 2 );
+                return $v ? $v - 0x10000 : 0;
+            };
+            *unpack_int32  = sub {
+                no warnings; # avoid for warning about Hexadecimal number
+                my $v = unpack 'N', substr( $_[0], $_[1], 4 );
+                return $v ? $v - 0x100000000 : 0;
+            };
+            *unpack_int64 = sub {
+                my @v = unpack( 'V*', substr( $_[0], $_[1], 8 ) );
+                return unpack( 'q', pack( 'N2', @v[1,0] ) );
+            };
+            *unpack_uint64 = sub {
+                my @v = unpack( 'V*', substr( $_[0], $_[1], 8 ) );
+                return unpack( 'Q', pack( 'N2', @v[1,0] ) );
+            };
+        }
+        else { # big endian
+            *pack_uint64   = sub { return pack 'CQ', 0xcf, $_[0]; };
+            *pack_int64    = sub { return pack 'Cq', 0xd3, $_[0]; };
+            *pack_double   = sub { return pack 'Cd', 0xcb, $_[0]; };
+
+            *unpack_float  = sub { return unpack( 'f', substr( $_[0], $_[1], 4 ) ); };
+            *unpack_double = sub { return unpack( 'd', substr( $_[0], $_[1], 8 ) ); };
+            *unpack_int16  = sub {
+                my $v = unpack 'n', substr( $_[0], $_[1], 2 );
+                return $v ? $v - 0x10000 : 0;
+            };
+            *unpack_int32  = sub {
+                no warnings; # avoid for warning about Hexadecimal number
+                my $v = unpack 'N', substr( $_[0], $_[1], 4 );
+                return $v ? $v - 0x100000000 : 0;
+            };
+            *unpack_int64  = sub { pack 'q', substr( $_[0], $_[1], 8 ); };
+            *unpack_uint64 = sub { pack 'Q', substr( $_[0], $_[1], 8 ); };
+        }
     }
     else {
         *pack_uint64   = sub { return pack 'CQ>', 0xcf, $_[0]; };
         *pack_int64    = sub { return pack 'Cq>', 0xd3, $_[0]; };
         *pack_double   = sub { return pack 'Cd>', 0xcb, $_[0]; };
+
         *unpack_float  = sub { return unpack( 'f>', substr( $_[0], $_[1], 4 ) ); };
         *unpack_double = sub { return unpack( 'd>', substr( $_[0], $_[1], 8 ) ); };
         *unpack_int16  = sub { return unpack( 'n!', substr( $_[0], $_[1], 2 ) ); };
         *unpack_int32  = sub { return unpack( 'N!', substr( $_[0], $_[1], 4 ) ); };
         *unpack_int64  = sub { return unpack( 'q>', substr( $_[0], $_[1], 8 ) ); };
         *unpack_uint64 = sub { return unpack( 'Q>', substr( $_[0], $_[1], 8 ) ); };
-    }
-    # for 5.8 etc.
-    unless ( defined &utf8::is_utf8 ) {
-       require Encode;
-       *utf8::is_utf8 = *Encode::is_utf8;
     }
 }
 
@@ -92,7 +109,7 @@ BEGIN {
 
     my $max_depth;
 
-sub pack {
+sub pack :method {
     Carp::croak('Usage: Data::MessagePack->pack($dat [,$max_depth])') if @_ < 2;
     $max_depth = defined $_[2] ? $_[2] : 512; # init
     return _pack( $_[1] );
@@ -209,7 +226,7 @@ sub _pack {
 
     my $p; # position variables for speed.
 
-sub unpack {
+sub unpack :method {
     $p = 0; # init
     _unpack( $_[1] );
 }
@@ -370,7 +387,7 @@ sub execute_limit {
 
 sub execute {
     my ( $self, $data, $offset, $limit ) = @_;
-    my $value = substr( $data, $offset, $limit ? $limit : length $data );
+    my $value = substr( $data, $offset || 0, $limit ? $limit : length $data );
     my $len   = length $value;
 
     $p = 0;
@@ -509,7 +526,7 @@ sub is_finished {
 }
 
 
-sub reset {
+sub reset :method {
     $_[0]->{ stack }  = [];
     $_[0]->{ data }   = undef;
     $_[0]->{ remain } = undef;
