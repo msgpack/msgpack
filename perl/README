@@ -2,7 +2,7 @@ NAME
     Data::MessagePack - MessagePack serialising/deserialising
 
 SYNOPSIS
-        my $packed = Data::MessagePack->pack($dat);
+        my $packed   = Data::MessagePack->pack($dat);
         my $unpacked = Data::MessagePack->unpack($dat);
 
 DESCRIPTION
@@ -14,10 +14,10 @@ ABOUT MESSAGEPACK FORMAT
     But unlike JSON, it is very fast and small.
 
   ADVANTAGES
-    PORTABILITY
-        Messagepack is language independent binary serialize format.
+    PORTABLE
+        The MessagePack format does not depend on language nor byte order.
 
-    SMALL SIZE
+    SMALL IN SIZE
             say length(JSON::XS::encode_json({a=>1, b=>2}));   # => 13
             say length(Storable::nfreeze({a=>1, b=>2}));       # => 21
             say length(Data::MessagePack->pack({a=>1, b=>2})); # => 7
@@ -26,7 +26,7 @@ ABOUT MESSAGEPACK FORMAT
 
     STREAMING DESERIALIZER
         MessagePack supports streaming deserializer. It is useful for
-        networking such as RPC.
+        networking such as RPC. See Data::MessagePack::Unpacker for details.
 
     If you want to get more information about the MessagePack format, please
     visit to <http://msgpack.org/>.
@@ -47,12 +47,11 @@ METHODS
 
 Configuration Variables
     $Data::MessagePack::PreferInteger
-        Pack the string as int when the value looks like int(EXPERIMENTAL).
+        Packs a string as an integer, when it looks like an integer.
 
 SPEED
-    This is the result of benchmark/serialize.pl and
-    benchmark/deserialize.pl on my SC440(Linux 2.6.32-23-server #37-Ubuntu
-    SMP).
+    This is a result of benchmark/serialize.pl and benchmark/deserialize.pl
+    on my SC440(Linux 2.6.32-23-server #37-Ubuntu SMP).
 
         -- serialize
         JSON::XS: 2.3
@@ -80,10 +79,26 @@ SPEED
         json     179443/s      56%       --     -16%
         mp       212910/s      85%      19%       --
 
+TODO
+    Error handling
+        MessagePack cannot deal with complex scalars such as object
+        references, filehandles, and code references. We should report the
+        errors more kindly.
+
+    Streaming deserializer
+        The current implementation of the streaming deserializer does not
+        have internal buffers while some other bindings (such as Ruby
+        binding) does. This limitation will astonish those who try to unpack
+        byte streams with an arbitrary buffer size (e.g.
+        "while(read($socket, $buffer, $arbitrary_buffer_size)) { ... }"). We
+        should implement the internal buffer for the unpacker.
+
 AUTHORS
     Tokuhiro Matsuno
 
     Makamaka Hannyaharamitu
+
+    gfx
 
 THANKS TO
     Jun Kuriyama
@@ -99,5 +114,6 @@ LICENSE
     under the same terms as Perl itself.
 
 SEE ALSO
-    <http://msgpack.org/> is official web site for MessagePack format.
+    <http://msgpack.org/> is the official web site for the MessagePack
+    format.
 
