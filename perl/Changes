@@ -1,3 +1,8 @@
+
+0.24
+    - Fixed a possible SEGV on streaming unpacking (gfx)
+    - Improve performance, esp. in unpacking (gfx)
+
 0.23
 
     (NO FEATURE CHANGES)
