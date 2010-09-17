@@ -3,7 +3,6 @@
 # Don't edit msgpack/perl/t/std/*, which are just copies.
 use strict;
 use Test::More;
-use Test::Requires qw(JSON);
 use t::Util;
 
 use Data::MessagePack;
@@ -14,7 +13,11 @@ sub slurp {
     return scalar <$fh>;
 }
 
-my @data = @{ JSON::decode_json(slurp("t/std/cases.json")) };
+my @data = do {
+    my $json = slurp("t/std/cases.json");
+    $json =~ s/:/=>/g;
+    @{ eval $json };
+};
 
 my $mpac1  = slurp("t/std/cases.mpac");
 my $mpac2  = slurp("t/std/cases_compact.mpac");
