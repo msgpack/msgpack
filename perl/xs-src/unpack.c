@@ -2,6 +2,13 @@
 #define NEED_sv_2pv_flags
 #include "xshelper.h"
 
+#define MY_CXT_KEY "Data::MessagePack::_unpack_guts" XS_VERSION
+typedef struct {
+    SV* msgpack_true;
+    SV* msgpack_false;
+} my_cxt_t;
+START_MY_CXT
+
 typedef struct {
     bool finished;
     bool incremented;
@@ -22,13 +29,52 @@ typedef struct {
 
 #define msgpack_unpack_user unpack_user
 
+void init_Data__MessagePack_unpack(pTHX_ bool const cloning) {
+    if(!cloning) {
+        MY_CXT_INIT;
+        MY_CXT.msgpack_true  = NULL;
+        MY_CXT.msgpack_false = NULL;
+    }
+    else {
+        MY_CXT_CLONE;
+        MY_CXT.msgpack_true  = NULL;
+        MY_CXT.msgpack_false = NULL;
+    }
+}
+
+
+
 /* ---------------------------------------------------------------------- */
 /* utility functions                                                      */
 
-STATIC_INLINE SV *
-get_bool (const char* const name) {
+static SV*
+load_bool(pTHX_ const char* const name) {
+    CV* const cv = get_cv(name, GV_ADD);
+    dSP;
+    PUSHMARK(SP);
+    call_sv((SV*)cv, G_SCALAR);
+    SPAGAIN;
+    SV* const sv = newSVsv(POPs);
+    PUTBACK;
+    return sv;
+}
+
+static SV*
+get_bool(bool const value) {
     dTHX;
-    return newSVsv(get_sv( name, GV_ADD ));
+    dMY_CXT;
+    if(value) {
+        if(!MY_CXT.msgpack_true) {
+            MY_CXT.msgpack_true = load_bool(aTHX_ "Data::MessagePack::true");
+        }
+        return newSVsv(MY_CXT.msgpack_true);
+    }
+    else {
+        if(!MY_CXT.msgpack_false) {
+            MY_CXT.msgpack_false = load_bool(aTHX_ "Data::MessagePack::false");
+        }
+        return newSVsv(MY_CXT.msgpack_false);
+    }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -127,15 +173,13 @@ STATIC_INLINE int template_callback_nil(unpack_user* u PERL_UNUSED_DECL, SV** o)
 
 STATIC_INLINE int template_callback_true(unpack_user* u PERL_UNUSED_DECL, SV** o)
 {
-    dTHX;
-    *o = get_bool("Data::MessagePack::true");
+    *o = get_bool(true);
     return 0;
 }
 
 STATIC_INLINE int template_callback_false(unpack_user* u PERL_UNUSED_DECL, SV** o)
 {
-    dTHX;
-    *o = get_bool("Data::MessagePack::false");
+    *o = get_bool(false);
     return 0;
 }
 

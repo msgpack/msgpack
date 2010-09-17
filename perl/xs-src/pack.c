@@ -83,8 +83,7 @@ MGVTBL pref_int_vtbl = {
 #endif
 };
 
-void boot_Data__MessagePack_pack(void) {
-    dTHX;
+void init_Data__MessagePack_pack(pTHX_ bool const cloning) {
     SV* var = get_sv("Data::MessagePack::PreferInteger", 0);
     sv_magicext(var, NULL, PERL_MAGIC_ext, &pref_int_vtbl, NULL, 0);
     SvSETMAGIC(var);

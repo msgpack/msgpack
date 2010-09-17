@@ -1,5 +1,9 @@
 #include "xshelper.h"
 
+#ifndef __cplusplus
+#include <stdbool.h>
+#endif
+
 XS(xs_pack);
 XS(xs_unpack);
 XS(xs_unpacker_new);
@@ -10,13 +14,15 @@ XS(xs_unpacker_data);
 XS(xs_unpacker_reset);
 XS(xs_unpacker_destroy);
 
-void boot_Data__MessagePack_pack(void);
+void init_Data__MessagePack_pack(pTHX_ bool const cloning);
+void init_Data__MessagePack_unpack(pTHX_ bool const cloning);
 
 XS(boot_Data__MessagePack) {
     dXSARGS;
     PERL_UNUSED_VAR(items);
 
-    boot_Data__MessagePack_pack();
+    init_Data__MessagePack_pack(aTHX_   false);
+    init_Data__MessagePack_unpack(aTHX_ false);
 
     newXS("Data::MessagePack::pack", xs_pack, __FILE__);
     newXS("Data::MessagePack::unpack", xs_unpack, __FILE__);

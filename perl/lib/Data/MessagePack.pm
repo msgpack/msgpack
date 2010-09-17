@@ -6,22 +6,21 @@ use 5.008001;
 our $VERSION = '0.23';
 our $PreferInteger = 0;
 
-{
-    package
-        Data::MessagePack::Boolean;
-    use overload
-        'bool' => sub { ${ $_[0] } },
-        '0+'   => sub { ${ $_[0] } },
-        '""'   => sub { ${ $_[0] } ? 'true' : 'false' },
-
-        fallback => 1,
-    ;
+sub true () {
+    require Data::MessagePack::Boolean;
+    no warnings 'once', 'redefine';
+    my $t = $Data::MessagePack::Boolean::true;
+    *true = sub (){ $t };
+    return $t;
 }
 
-our $true  = do { bless \(my $dummy = 1), "Data::MessagePack::Boolean" };
-our $false = do { bless \(my $dummy = 0), "Data::MessagePack::Boolean" };
-sub true  () { $true  }
-sub false () { $false }
+sub false () {
+    require Data::MessagePack::Boolean;
+    no warnings 'once', 'redefine';
+    my $f = $Data::MessagePack::Boolean::false;
+    *false = sub (){ $f };
+    return $f;
+}
 
 if ( !__PACKAGE__->can('pack') ) { # this idea comes from Text::Xslate
     my $backend = $ENV{ PERL_DATA_MESSAGEPACK } || '';
