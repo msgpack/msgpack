@@ -126,7 +126,7 @@ This is the result of benchmark/serialize.pl and benchmark/deserialize.pl on my 
     storable  38399/s       --     -73%     -89%
     json     141940/s     270%       --     -60%
     mp       355501/s     826%     150%       --
-    
+
     -- deserialize
     JSON::XS: 2.3
     Data::MessagePack: 0.24

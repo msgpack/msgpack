@@ -56,21 +56,29 @@ SPEED
 
         -- serialize
         JSON::XS: 2.3
-        Data::MessagePack: 0.20
+        Data::MessagePack: 0.24
         Storable: 2.21
-        Benchmark: timing 1000000 iterations of json, mp, storable...
-              json:  5 wallclock secs ( 3.95 usr +  0.00 sys =  3.95 CPU) @ 253164.56/s (n=1000000)
-                mp:  3 wallclock secs ( 2.69 usr +  0.00 sys =  2.69 CPU) @ 371747.21/s (n=1000000)
-          storable: 26 wallclock secs (27.21 usr +  0.00 sys = 27.21 CPU) @ 36751.19/s (n=1000000)
+        Benchmark: running json, mp, storable for at least 1 CPU seconds...
+              json:  1 wallclock secs ( 1.00 usr +  0.01 sys =  1.01 CPU) @ 141939.60/s (n=143359)
+                mp:  1 wallclock secs ( 1.06 usr +  0.00 sys =  1.06 CPU) @ 355500.94/s (n=376831)
+          storable:  1 wallclock secs ( 1.12 usr +  0.00 sys =  1.12 CPU) @ 38399.11/s (n=43007)
+                     Rate storable     json       mp
+        storable  38399/s       --     -73%     -89%
+        json     141940/s     270%       --     -60%
+        mp       355501/s     826%     150%       --
 
         -- deserialize
         JSON::XS: 2.3
-        Data::MessagePack: 0.20
+        Data::MessagePack: 0.24
         Storable: 2.21
-        Benchmark: timing 1000000 iterations of json, mp, storable...
-              json:  4 wallclock secs ( 4.45 usr +  0.00 sys =  4.45 CPU) @ 224719.10/s (n=1000000)
-                mp:  6 wallclock secs ( 5.45 usr +  0.00 sys =  5.45 CPU) @ 183486.24/s (n=1000000)
-          storable:  7 wallclock secs ( 7.77 usr +  0.00 sys =  7.77 CPU) @ 128700.13/s (n=1000000)
+        Benchmark: running json, mp, storable for at least 1 CPU seconds...
+              json:  0 wallclock secs ( 1.05 usr +  0.00 sys =  1.05 CPU) @ 179442.86/s (n=188415)
+                mp:  0 wallclock secs ( 1.01 usr +  0.00 sys =  1.01 CPU) @ 212909.90/s (n=215039)
+          storable:  2 wallclock secs ( 1.14 usr +  0.00 sys =  1.14 CPU) @ 114974.56/s (n=131071)
+                     Rate storable     json       mp
+        storable 114975/s       --     -36%     -46%
+        json     179443/s      56%       --     -16%
+        mp       212910/s      85%      19%       --
 
 AUTHORS
     Tokuhiro Matsuno
