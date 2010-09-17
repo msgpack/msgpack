@@ -45,7 +45,7 @@ Data::MessagePack - MessagePack serialising/deserialising
 
 =head1 SYNOPSIS
 
-    my $packed = Data::MessagePack->pack($dat);
+    my $packed   = Data::MessagePack->pack($dat);
     my $unpacked = Data::MessagePack->unpack($dat);
 
 =head1 DESCRIPTION
@@ -61,11 +61,11 @@ It enables to exchange structured objects between many languages like JSON. But 
 
 =over 4
 
-=item PORTABILITY
+=item PORTABLE
 
-Messagepack is language independent binary serialize format.
+The MessagePack format does not depend on language nor byte order.
 
-=item SMALL SIZE
+=item SMALL IN SIZE
 
     say length(JSON::XS::encode_json({a=>1, b=>2}));   # => 13
     say length(Storable::nfreeze({a=>1, b=>2}));       # => 21
@@ -76,6 +76,7 @@ The MessagePack format saves memory than JSON and Storable format.
 =item STREAMING DESERIALIZER
 
 MessagePack supports streaming deserializer. It is useful for networking such as RPC.
+See L<Data::MessagePack::Unpacker> for details.
 
 =back
 
@@ -105,13 +106,13 @@ unpack the $msgpackstr to a MessagePack format string.
 
 =item $Data::MessagePack::PreferInteger
 
-Pack the string as int when the value looks like int(EXPERIMENTAL).
+Packs a string as an integer, when it looks like an integer.
 
 =back
 
 =head1 SPEED
 
-This is the result of benchmark/serialize.pl and benchmark/deserialize.pl on my SC440(Linux 2.6.32-23-server #37-Ubuntu SMP).
+This is a result of benchmark/serialize.pl and benchmark/deserialize.pl on my SC440(Linux 2.6.32-23-server #37-Ubuntu SMP).
 
 
     -- serialize
@@ -156,13 +157,15 @@ FURUHASHI Sadayuki
 
 hanekomu
 
+gfx
+
 =head1 LICENSE
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
 
-
 =head1 SEE ALSO
 
-L<http://msgpack.org/> is official web site for MessagePack format.
+L<http://msgpack.org/> is the official web site for the  MessagePack format.
 
+=cut
