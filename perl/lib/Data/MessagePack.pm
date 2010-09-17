@@ -166,6 +166,8 @@ Tokuhiro Matsuno
 
 Makamaka Hannyaharamitu
 
+gfx
+
 =head1 THANKS TO
 
 Jun Kuriyama
@@ -175,8 +177,6 @@ Dan Kogai
 FURUHASHI Sadayuki
 
 hanekomu
-
-gfx
 
 =head1 LICENSE
 
