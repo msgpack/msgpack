@@ -142,7 +142,7 @@ STATIC_INLINE int template_callback_IV(unpack_user* u PERL_UNUSED_DECL, IV const
     return 0;
 }
 
-#define template_callback_uint64 template_callback_IV
+#define template_callback_int64 template_callback_IV
 
 #endif /* IVSIZE */
 
