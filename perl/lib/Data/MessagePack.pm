@@ -141,6 +141,25 @@ This is a result of benchmark/serialize.pl and benchmark/deserialize.pl on my SC
     json     179443/s      56%       --     -16%
     mp       212910/s      85%      19%       --
 
+=head1 TODO
+
+=over
+
+=item Error handling
+
+MessagePack cannot deal with complex scalars such as object references,
+filehandles, and code references. We should report the errors more kindly.
+
+=item Streaming deserializer
+
+The current implementation of the streaming deserializer does not have internal
+buffers while some other bindings (such as Ruby binding) does. This limitation
+will astonish those who try to unpack byte streams with an arbitrary buffer size
+(e.g. C<< while(read($socket, $buffer, $arbitrary_buffer_size)) { ... } >>).
+We should implement the internal buffer for the unpacker.
+
+=back
+
 =head1 AUTHORS
 
 Tokuhiro Matsuno
