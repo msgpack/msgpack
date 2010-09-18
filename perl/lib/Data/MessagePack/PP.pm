@@ -12,7 +12,6 @@ use Carp ();
 package
     Data::MessagePack;
 
-use Scalar::Util qw( blessed );
 use strict;
 use B ();
 
