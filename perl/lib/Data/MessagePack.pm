@@ -23,8 +23,8 @@ sub false () {
 }
 
 if ( !__PACKAGE__->can('pack') ) { # this idea comes from Text::Xslate
-    my $backend = $ENV{ PERL_DATA_MESSAGEPACK } || '';
-    if ( $backend !~ /\b pp \b/xms  or $ENV{PERL_ONLY} ) {
+    my $backend = $ENV{PERL_DATA_MESSAGEPACK} || ($ENV{PERL_ONLY} ? 'pp' : '');
+    if ( $backend !~ /\b pp \b/xms ) {
         eval {
             require XSLoader;
             XSLoader::load(__PACKAGE__, $VERSION);
