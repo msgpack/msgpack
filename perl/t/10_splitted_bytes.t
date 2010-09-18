@@ -27,12 +27,14 @@ foreach my $size(1 .. 16) {
     open my $stream, '<:bytes :scalar', \$packed;
     binmode $stream;
     my $buff;
+    my $done = 0;
     while( read($stream, $buff, $size) ) {
         #note "buff: ", join " ", map { unpack 'H2', $_ } split //, $buff;
 
-        $up->execute($buff);
+        $done = $up->execute($buff);
     }
-    ok $up->is_finished, 'is_finished';
+    is $done, length($packed);
+    ok $up->is_finished, "is_finished: $size";
     my $data = $up->data;
     is_deeply $data, $input;
 }

@@ -370,7 +370,7 @@ package
 use strict;
 
 sub new {
-    bless { stack => [] }, shift;
+    bless { pos => 0 }, shift;
 }
 
 
@@ -384,25 +384,30 @@ sub execute_limit {
 
 sub execute {
     my ( $self, $data, $offset, $limit ) = @_;
-    my $value = substr( $data, $offset || 0, $limit ? $limit : length $data );
+    $offset ||= 0;
+    my $value = substr( $data, $offset, $limit ? $limit : length $data );
     my $len   = length $value;
+
+    $self->{data} .= $value;
+    local $self->{stack} = [];
 
     $p = 0;
 
-    while ( $len > $p ) {
-        _count( $self, $value ) or last;
+    LOOP: while ( length($self->{data}) > $p ) {
+        _count( $self, $self->{data} ) or last;
 
-        if ( @{ $self->{stack} } > 0 ) {
-            pop @{ $self->{stack} } if --$self->{stack}->[-1] == 0;
+        while ( @{ $self->{stack} } > 0 && --$self->{stack}->[-1] == 0) {
+            pop @{ $self->{stack} };
+        }
+
+        if (@{$self->{stack}} == 0) {
+            $self->{is_finished}++;
+            last LOOP;
         }
     }
+    $self->{pos} = $p;
 
-    if ( $len == $p ) {
-        $self->{ data } .= substr( $value, 0, $p );
-        $self->{ remain } = undef;
-    }
-
-    return $p;
+    return $p + $offset;
 }
 
 
@@ -424,7 +429,9 @@ sub _count {
             $num = $byte & ~0x90;
         }
 
-        push @{ $self->{stack} }, $num + 1;
+        if (defined($num) && $num > 0) {
+            push @{ $self->{stack} }, $num + 1;
+        }
 
         return 1;
     }
@@ -443,7 +450,9 @@ sub _count {
             $num = $byte & ~0x80;
         }
 
-        push @{ $self->{stack} }, $num * 2 + 1; # a pair
+        if ($num > 0) {
+            push @{ $self->{stack} }, $num * 2 + 1; # a pair
+        }
 
         return 1;
     }
@@ -511,22 +520,19 @@ sub _count {
 
 
 sub data {
-    my $data = Data::MessagePack->unpack( $_[0]->{ data } );
-    $_[0]->reset;
-    return $data;
+    return Data::MessagePack->unpack( substr($_[0]->{ data }, 0, $_[0]->{pos}) );
 }
 
 
 sub is_finished {
     my ( $self ) = @_;
-    ( scalar( @{ $self->{stack} } ) or defined $self->{ remain } ) ? 0 : 1;
+    return $self->{is_finished};
 }
 
-
 sub reset :method {
-    $_[0]->{ stack }  = [];
     $_[0]->{ data }   = undef;
-    $_[0]->{ remain } = undef;
+    $_[0]->{ pos }    = 0;
+    $_[0]->{ is_finished } = 0;
 }
 
 1;
