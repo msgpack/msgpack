@@ -113,6 +113,9 @@ BEGIN {
     }
 }
 
+sub _unexpected {
+    Carp::confess("Unexpected " . sprintf(shift, @_) . " found");
+}
 
 #
 # PACK
@@ -141,7 +144,7 @@ sub _pack {
               $num < 16          ? CORE::pack( 'C',  0x90 + $num )
             : $num < 2 ** 16 - 1 ? CORE::pack( 'Cn', 0xdc,  $num )
             : $num < 2 ** 32 - 1 ? CORE::pack( 'CN', 0xdd,  $num )
-            : die "" # don't arrivie here
+            : _unexpected("number %d", $num)
         ;
         if ( --$max_depth <= 0 ) {
             Carp::croak("perl structure exceeds maximum nesting level (max_depth set too low?)");
@@ -155,7 +158,7 @@ sub _pack {
               $num < 16          ? CORE::pack( 'C',  0x80 + $num )
             : $num < 2 ** 16 - 1 ? CORE::pack( 'Cn', 0xde,  $num )
             : $num < 2 ** 32 - 1 ? CORE::pack( 'CN', 0xdf,  $num )
-            : die "" # don't arrivie here
+            : _unexpected("number %d", $num)
         ;
         if ( --$max_depth <= 0 ) {
             Carp::croak("perl structure exceeds maximum nesting level (max_depth set too low?)");
@@ -211,7 +214,7 @@ sub _pack {
               $num < 32          ? CORE::pack( 'C',  0xa0 + $num )
             : $num < 2 ** 16 - 1 ? CORE::pack( 'Cn', 0xda, $num )
             : $num < 2 ** 32 - 1 ? CORE::pack( 'CN', 0xdb, $num )
-            : die "" # don't arrivie here
+            : _unexpected_number($num)
         ;
 
         return $header . $value;
@@ -221,7 +224,7 @@ sub _pack {
         return pack_double( $value );
     }
     else {
-        die "???";
+        _unexpected("data type %s", $b_obj);
     }
 
 }
@@ -365,7 +368,7 @@ sub _unpack {
     }
 
     else {
-        die "???";
+        _unexpected("byte 0x%02x", $byte);
     }
 
 }
@@ -484,7 +487,7 @@ sub _count {
             : $byte == 0xcd ? 2
             : $byte == 0xce ? 4
             : $byte == 0xcf ? 8
-            : die;
+            : _unexpected("byte 0x%02x", $byte);
         return 1;
     }
 
@@ -493,7 +496,7 @@ sub _count {
             : $byte == 0xd1 ? 2
             : $byte == 0xd2 ? 4
             : $byte == 0xd3 ? 8
-            : die;
+            : _unexpected("byte 0x%02x", $byte);
         return 1;
     }
 
@@ -524,7 +527,7 @@ sub _count {
     }
 
     else {
-        die "???";
+        _unexpected("byte 0x%02x", $byte);
     }
 
     return 0;
