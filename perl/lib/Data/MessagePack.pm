@@ -45,6 +45,8 @@ Data::MessagePack - MessagePack serialising/deserialising
 
 =head1 SYNOPSIS
 
+    use Data::MessagePack;
+
     my $packed   = Data::MessagePack->pack($dat);
     my $unpacked = Data::MessagePack->unpack($dat);
 
@@ -55,7 +57,8 @@ This module converts Perl data structures to MessagePack and vice versa.
 =head1 ABOUT MESSAGEPACK FORMAT
 
 MessagePack is a binary-based efficient object serialization format.
-It enables to exchange structured objects between many languages like JSON. But unlike JSON, it is very fast and small.
+It enables to exchange structured objects between many languages like JSON.
+But unlike JSON, it is very fast and small.
 
 =head2 ADVANTAGES
 
@@ -113,7 +116,7 @@ Packs a string as an integer, when it looks like an integer.
 =head1 SPEED
 
 This is a result of benchmark/serialize.pl and benchmark/deserialize.pl on my SC440(Linux 2.6.32-23-server #37-Ubuntu SMP).
-
+(You should benchmark them with B<your> data if the speed matters, of course.)
 
     -- serialize
     JSON::XS: 2.3
@@ -194,5 +197,9 @@ it under the same terms as Perl itself.
 =head1 SEE ALSO
 
 L<http://msgpack.org/> is the official web site for the  MessagePack format.
+
+L<Data::MessagePack::Unpacker>
+
+L<AnyEvent::MPRPC>
 
 =cut
