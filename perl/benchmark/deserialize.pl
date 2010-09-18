@@ -7,12 +7,8 @@ use Storable;
 
 #$Data::MessagePack::PreferInteger = 1;
 
-my $a = {
-    "method" => "handleMessage",
-    "params" => [ "user1", "we were just talking" ],
-    "id"     => undef,
-    "array"  => [ 1, 1024, 70000, -5, 1e5, 1e7, 1, 0, 3.14, sqrt(2) ],
-};
+my $a = do 'benchmark/data.pl';
+
 my $j = JSON::XS::encode_json($a);
 my $m = Data::MessagePack->pack($a);
 my $s = Storable::freeze($a);
