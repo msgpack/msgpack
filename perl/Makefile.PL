@@ -37,6 +37,7 @@ NOT_SUPPORT_C99
 }
 else {
     print "configure PP version\n\n";
+    requires 'Math::BigInt' => 1.95; # old versions of BigInt were broken
 }
 
 clean_files qw{
