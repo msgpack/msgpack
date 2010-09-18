@@ -13,17 +13,18 @@
     static inline void msgpack_pack ## name
 
 typedef struct {
-    char *cur; /* SvPVX (sv) + current output position */
-    char *end; /* SvEND (sv) */
-    SV *sv;    /* result scalar */
+    char *cur;       /* SvPVX (sv) + current output position */
+    const char *end; /* SvEND (sv) */
+    SV *sv;          /* result scalar */
 } enc_t;
-static void need(enc_t *enc, STRLEN len);
+
+STATIC_INLINE void need(enc_t* const enc, STRLEN const len);
 
 #define msgpack_pack_user enc_t*
 
 #define msgpack_pack_append_buffer(enc, buf, len) \
-    need(enc, len); \
-    memcpy(enc->cur, buf, len); \
+    need(enc, len);                               \
+    memcpy(enc->cur, buf, len);                   \
     enc->cur += len;
 
 #include "msgpack/pack_template.h"
@@ -32,10 +33,13 @@ static void need(enc_t *enc, STRLEN len);
 
 #if   IVSIZE == 8
 #  define PACK_IV msgpack_pack_int64
+#  define PACK_UV msgpack_pack_uint64
 #elif IVSIZE == 4
 #  define PACK_IV msgpack_pack_int32
+#  define PACK_UV msgpack_pack_uint32
 #elif IVSIZE == 2
 #  define PACK_IV msgpack_pack_int16
+#  define PACK_UV msgpack_pack_uint16
 #else
 #  error  "msgpack only supports IVSIZE = 8,4,2 environment."
 #endif
@@ -43,21 +47,21 @@ static void need(enc_t *enc, STRLEN len);
 #define ERR_NESTING_EXCEEDED "perl structure exceeds maximum nesting level (max_depth set too low?)"
 
 
-STATIC_INLINE void need(enc_t *enc, STRLEN len)
+STATIC_INLINE void need(enc_t* const enc, STRLEN const len)
 {
-    dTHX;
     if (enc->cur + len >= enc->end) {
-        STRLEN cur = enc->cur - (char *)SvPVX (enc->sv);
-        SvGROW (enc->sv, cur + (len < (cur >> 2) ? cur >> 2 : len) + 1);
-        enc->cur = SvPVX (enc->sv) + cur;
-        enc->end = SvPVX (enc->sv) + SvLEN (enc->sv) - 1;
+        dTHX;
+        STRLEN const cur = enc->cur - SvPVX_const(enc->sv);
+        sv_grow (enc->sv, cur + (len < (cur >> 2) ? cur >> 2 : len) + 1);
+        enc->cur = SvPVX_mutable(enc->sv) + cur;
+        enc->end = SvPVX_const(enc->sv) + SvLEN (enc->sv) - 1;
     }
 }
 
 
 static int s_pref_int = 0;
 
-STATIC_INLINE int pref_int_set(pTHX_ SV* sv, MAGIC* mg) {
+STATIC_INLINE int pref_int_set(pTHX_ SV* sv, MAGIC* mg PERL_UNUSED_DECL) {
     if (SvTRUE(sv)) {
         s_pref_int = 1;
     } else {
@@ -79,8 +83,7 @@ MGVTBL pref_int_vtbl = {
 #endif
 };
 
-void boot_Data__MessagePack_pack(void) {
-    dTHX;
+void init_Data__MessagePack_pack(pTHX_ bool const cloning) {
     SV* var = get_sv("Data::MessagePack::PreferInteger", 0);
     sv_magicext(var, NULL, PERL_MAGIC_ext, &pref_int_vtbl, NULL, 0);
     SvSETMAGIC(var);
@@ -141,32 +144,35 @@ STATIC_INLINE int try_int(enc_t* enc, const char *p, size_t len) {
 }
 
 
-static void _msgpack_pack_rv(enc_t *enc, SV* sv, int depth);
+STATIC_INLINE void _msgpack_pack_rv(enc_t *enc, SV* sv, int depth);
 
-STATIC_INLINE void _msgpack_pack_sv(enc_t *enc, SV* sv, int depth) {
+STATIC_INLINE void _msgpack_pack_sv(enc_t* const enc, SV* const sv, int const depth) {
     dTHX;
-    if (depth <= 0) Perl_croak(aTHX_ ERR_NESTING_EXCEEDED);
+    assert(sv);
+    if (UNLIKELY(depth <= 0)) Perl_croak(aTHX_ ERR_NESTING_EXCEEDED);
     SvGETMAGIC(sv);
 
-    if (sv==NULL) {
-        msgpack_pack_nil(enc);
-    } else if (SvPOKp(sv)) {
-        STRLEN len;
-        char * csv = SvPV(sv, len);
+    if (SvPOKp(sv)) {
+        STRLEN const len     = SvCUR(sv);
+        const char* const pv = SvPVX_const(sv);
 
-        if (s_pref_int && try_int(enc, csv, len)) {
+        if (s_pref_int && try_int(enc, pv, len)) {
             return;
         } else {
             msgpack_pack_raw(enc, len);
-            msgpack_pack_raw_body(enc, csv, len);
+            msgpack_pack_raw_body(enc, pv, len);
         }
-    } else if (SvNOKp(sv)) {
-        /* XXX long double is not supported yet. */
-        msgpack_pack_double(enc, (double)SvNVX(sv));
-    } else if (SvIOK_UV(sv)) {
-        msgpack_pack_uint32(enc, SvUV(sv));
-    } else if (SvIOKp(sv)) {
-        PACK_IV(enc, SvIV(sv));
+    } else if (SvNIOKp(sv)) {
+        if(SvUOK(sv)) {
+            PACK_UV(enc, SvUVX(sv));
+        }
+        else if(SvIOKp(sv)) {
+            PACK_IV(enc, SvIVX(sv));
+        }
+        else {
+            /* XXX long double is not supported yet. */
+            msgpack_pack_double(enc, (double)SvNVX(sv));
+        }
     } else if (SvROK(sv)) {
         _msgpack_pack_rv(enc, SvRV(sv), depth-1);
     } else if (!SvOK(sv)) {
@@ -182,7 +188,7 @@ STATIC_INLINE void _msgpack_pack_sv(enc_t *enc, SV* sv, int depth) {
 STATIC_INLINE void _msgpack_pack_rv(enc_t *enc, SV* sv, int depth) {
     svtype svt;
     dTHX;
-    if (depth <= 0) Perl_croak(aTHX_ ERR_NESTING_EXCEEDED);
+    assert(sv);
     SvGETMAGIC(sv);
     svt = SvTYPE(sv);
 
@@ -205,7 +211,7 @@ STATIC_INLINE void _msgpack_pack_rv(enc_t *enc, SV* sv, int depth) {
 
         msgpack_pack_map(enc, count);
 
-        while (he = hv_iternext(hval)) {
+        while ((he = hv_iternext(hval))) {
             _msgpack_pack_sv(enc, hv_iterkeysv(he), depth);
             _msgpack_pack_sv(enc, HeVAL(he), depth);
         }
@@ -231,7 +237,7 @@ STATIC_INLINE void _msgpack_pack_rv(enc_t *enc, SV* sv, int depth) {
         else if (len == 1 && *pv == '0')
             msgpack_pack_false(enc); 
         else {
-            sv_dump(sv);
+            //sv_dump(sv);
             croak("cannot encode reference to scalar '%s' unless the scalar is 0 or 1",
                     SvPV_nolen (sv_2mortal (newRV_inc (sv))));
         }
@@ -252,7 +258,7 @@ XS(xs_pack) {
     if (items >= 3) depth = SvIV(ST(2));
 
     enc_t enc;
-    enc.sv        = sv_2mortal(NEWSV(0, INIT_SIZE));
+    enc.sv        = sv_2mortal(newSV(INIT_SIZE));
     enc.cur       = SvPVX(enc.sv);
     enc.end       = SvEND(enc.sv);
     SvPOK_only(enc.sv);

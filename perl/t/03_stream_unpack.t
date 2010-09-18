@@ -37,7 +37,7 @@ for (my $i=0; $i<scalar(@dat); ) {
     for (1..5) {
         $up->execute("\xc0", 0); # nil
     }
-    ok $up->is_finished;
-    is_deeply $up->data, [undef, undef, undef, undef, undef];
+    ok $up->is_finished, 'finished';
+    is_deeply $up->data, [undef, undef, undef, undef, undef], 'array, is_deeply';
 }
 

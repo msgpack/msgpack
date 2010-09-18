@@ -5,11 +5,13 @@ use JSON::XS;
 use Benchmark ':all';
 use Storable;
 
+#$Data::MessagePack::PreferInteger = 1;
+
 my $a = {
     "method" => "handleMessage",
     "params" => [ "user1", "we were just talking" ],
     "id"     => undef,
-    "array"  => [ 1, 11, 234, -5, 1e5, 1e7, 1, 0 ]
+    "array"  => [ 1, 1024, 70000, -5, 1e5, 1e7, 1, 0, 3.14, sqrt(2) ],
 };
 my $j = JSON::XS::encode_json($a);
 my $m = Data::MessagePack->pack($a);
@@ -19,8 +21,8 @@ print "-- deserialize\n";
 print "JSON::XS: $JSON::XS::VERSION\n";
 print "Data::MessagePack: $Data::MessagePack::VERSION\n";
 print "Storable: $Storable::VERSION\n";
-timethese(
-    1000000 => {
+cmpthese timethese(
+    -1 => {
         json     => sub { JSON::XS::decode_json($j)     },
         mp       => sub { Data::MessagePack->unpack($m) },
         storable => sub { Storable::thaw($s) },

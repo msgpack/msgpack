@@ -239,7 +239,7 @@ class MessagePackTestPackUnpack < Test::Unit::TestCase
 	end
 
 	it "gc mark" do
-		obj = [{["a","b"]=>["c","d"]}, ["e","f"], "d"]
+		obj = [1024, {["a","b"]=>["c","d"]}, ["e","f"], "d", 70000, 4.12, 1.5, 1.5, 1.5]
 		num = 4
 		raw = obj.to_msgpack * num
 		pac = MessagePack::Unpacker.new
@@ -257,7 +257,7 @@ class MessagePackTestPackUnpack < Test::Unit::TestCase
 	end
 
 	it "streaming backward compatibility" do
-		obj = [{["a","b"]=>["c","d"]}, ["e","f"], "d"]
+		obj = [1024, {["a","b"]=>["c","d"]}, ["e","f"], "d", 70000, 4.12, 1.5, 1.5, 1.5]
 		num = 4
 		raw = obj.to_msgpack * num
 		pac = MessagePack::Unpacker.new

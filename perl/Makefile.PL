@@ -1,4 +1,5 @@
 use inc::Module::Install;
+use Module::Install::XSUtil 0.32;
 use Config;
 
 name 'Data-MessagePack';
@@ -52,6 +53,11 @@ if ($Module::Install::AUTHOR && -d File::Spec->catfile('..', 'msgpack')) {
     require File::Copy;
     for my $src (<../msgpack/*.h>) {
         File::Copy::copy($src, 'msgpack/') or die "copy failed: $!";
+    }
+
+    mkdir 't/std';
+    for my $data(<../test/*.{json,mpac}>) {
+        File::Copy::copy($data, 't/std') or die "copy failed: $!";
     }
 }
 

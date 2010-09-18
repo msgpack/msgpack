@@ -6,6 +6,7 @@ MessagePack.o
 blib/
 inc/
 msgpack/
+t/std/
 pack.o
 pm_to_blib
 unpack.o
