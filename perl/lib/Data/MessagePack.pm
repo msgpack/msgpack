@@ -141,6 +141,14 @@ This is a result of benchmark/serialize.pl and benchmark/deserialize.pl on my SC
     json     179443/s      56%       --     -16%
     mp       212910/s      85%      19%       --
 
+=head1 CAVEAT
+
+=head2 Unpacking 64 bit integers
+
+This module can unpack 64 bit integers even if your perl does not support them
+(i.e. where C<< perl -V:ivsize >> is 4), but you cannot calculate these values
+unless you use C<Math::BigInt>.
+
 =head1 TODO
 
 =over

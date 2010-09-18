@@ -79,6 +79,12 @@ SPEED
         json     179443/s      56%       --     -16%
         mp       212910/s      85%      19%       --
 
+CAVEAT
+  Unpacking 64 bit integers
+    This module can unpack 64 bit integers even if your perl does not
+    support them (i.e. where "perl -V:ivsize" is 4), but you cannot
+    calculate these values unless you use "Math::BigInt".
+
 TODO
     Error handling
         MessagePack cannot deal with complex scalars such as object
