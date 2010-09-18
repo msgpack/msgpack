@@ -124,17 +124,23 @@ sub _unexpected {
 {
     no warnings 'recursion';
 
-    my $max_depth;
+    our $_max_depth;
 
 sub pack :method {
     Carp::croak('Usage: Data::MessagePack->pack($dat [,$max_depth])') if @_ < 2;
-    $max_depth = defined $_[2] ? $_[2] : 512; # init
+    $_max_depth = defined $_[2] ? $_[2] : 512; # init
     return _pack( $_[1] );
 }
 
 
 sub _pack {
     my ( $value ) = @_;
+
+    local $_max_depth = $_max_depth - 1;
+
+    if ( $_max_depth < 0 ) {
+        Carp::croak("perl structure exceeds maximum nesting level (max_depth set too low?)");
+    }
 
     return CORE::pack( 'C', 0xc0 ) if ( not defined $value );
 
@@ -146,9 +152,6 @@ sub _pack {
             : $num < 2 ** 32 - 1 ? CORE::pack( 'CN', 0xdd,  $num )
             : _unexpected("number %d", $num)
         ;
-        if ( --$max_depth <= 0 ) {
-            Carp::croak("perl structure exceeds maximum nesting level (max_depth set too low?)");
-        }
         return join( '', $header, map { _pack( $_ ) } @$value );
     }
 
@@ -160,9 +163,6 @@ sub _pack {
             : $num < 2 ** 32 - 1 ? CORE::pack( 'CN', 0xdf,  $num )
             : _unexpected("number %d", $num)
         ;
-        if ( --$max_depth <= 0 ) {
-            Carp::croak("perl structure exceeds maximum nesting level (max_depth set too low?)");
-        }
         return join( '', $header, map { _pack( $_ ) } %$value );
     }
 
