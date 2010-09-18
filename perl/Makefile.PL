@@ -1,3 +1,5 @@
+# Usage: Makefile.PL --pp # disable XS
+#        Makefile.PL -g   # add -g to the compiler and disable optimization flags
 use inc::Module::Install;
 use Module::Install::XSUtil 0.32;
 use Config;
@@ -21,8 +23,9 @@ if ( $] >= 5.008005 and want_xs() ) {
     if ( $has_c99 ) {
         use_xshelper();
         cc_src_paths('xs-src');
-        if ($ENV{DEBUG}) {
-            cc_append_to_ccflags '-g';
+
+        if($Module::Install::AUTHOR) {
+            postamble qq{test :: test_pp\n\n};
         }
     }
     else {
@@ -66,10 +69,6 @@ requires 'Test::More' => 0.94; # done_testing
 test_requires('Test::Requires');
 
 test_with_env( test_pp => PERL_DATA_MESSAGEPACK => 'pp' );
-
-if($Module::Install::AUTHOR) {
-    postamble qq{test :: test_pp\n\n};
-}
 
 repository('http://github.com/msgpack/msgpack');
 auto_include;
