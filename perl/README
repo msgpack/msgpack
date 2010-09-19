@@ -2,6 +2,8 @@ NAME
     Data::MessagePack - MessagePack serialising/deserialising
 
 SYNOPSIS
+        use Data::MessagePack;
+
         my $packed   = Data::MessagePack->pack($dat);
         my $unpacked = Data::MessagePack->unpack($dat);
 
@@ -51,7 +53,8 @@ Configuration Variables
 
 SPEED
     This is a result of benchmark/serialize.pl and benchmark/deserialize.pl
-    on my SC440(Linux 2.6.32-23-server #37-Ubuntu SMP).
+    on my SC440(Linux 2.6.32-23-server #37-Ubuntu SMP). (You should
+    benchmark them with your data if the speed matters, of course.)
 
         -- serialize
         JSON::XS: 2.3
@@ -78,6 +81,12 @@ SPEED
         storable 114975/s       --     -36%     -46%
         json     179443/s      56%       --     -16%
         mp       212910/s      85%      19%       --
+
+CAVEAT
+  Unpacking 64 bit integers
+    This module can unpack 64 bit integers even if your perl does not
+    support them (i.e. where "perl -V:ivsize" is 4), but you cannot
+    calculate these values unless you use "Math::BigInt".
 
 TODO
     Error handling
@@ -116,4 +125,8 @@ LICENSE
 SEE ALSO
     <http://msgpack.org/> is the official web site for the MessagePack
     format.
+
+    Data::MessagePack::Unpacker
+
+    AnyEvent::MPRPC
 
