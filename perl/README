@@ -2,6 +2,8 @@ NAME
     Data::MessagePack - MessagePack serialising/deserialising
 
 SYNOPSIS
+        use Data::MessagePack;
+
         my $packed   = Data::MessagePack->pack($dat);
         my $unpacked = Data::MessagePack->unpack($dat);
 
@@ -51,7 +53,8 @@ Configuration Variables
 
 SPEED
     This is a result of benchmark/serialize.pl and benchmark/deserialize.pl
-    on my SC440(Linux 2.6.32-23-server #37-Ubuntu SMP).
+    on my SC440(Linux 2.6.32-23-server #37-Ubuntu SMP). (You should
+    benchmark them with your data if the speed matters, of course.)
 
         -- serialize
         JSON::XS: 2.3
@@ -122,4 +125,8 @@ LICENSE
 SEE ALSO
     <http://msgpack.org/> is the official web site for the MessagePack
     format.
+
+    Data::MessagePack::Unpacker
+
+    AnyEvent::MPRPC
 
