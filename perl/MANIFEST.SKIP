@@ -2,6 +2,7 @@
 \bCVS\b
 ^MANIFEST\.
 ^Makefile$
+^MYMETA\.yml$
 ~$
 ^#
 \.old$
