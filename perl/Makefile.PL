@@ -16,12 +16,12 @@ recursive_author_tests('xt');
 
 
 if ( $] >= 5.008005 and want_xs() ) {
-    can_cc or die "This module requires a C compiler. Please retry with --pp";
-
     my $has_c99 = c99_available(); # msgpack C library requires C99.
 
     if ( $has_c99 ) {
+        requires_c99();
         use_xshelper();
+        cc_warnings;
         cc_src_paths('xs-src');
 
         if($Module::Install::AUTHOR) {
@@ -40,7 +40,7 @@ NOT_SUPPORT_C99
 }
 else {
     print "configure PP version\n\n";
-    requires 'Math::BigInt' => 1.95; # old versions of BigInt were broken
+    requires 'Math::BigInt' => 1.89; # old versions of BigInt were broken
 }
 
 clean_files qw{
