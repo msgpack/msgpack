@@ -22,10 +22,19 @@ BEGIN {
     if(!eval { pack 'Q', 1 }) { # don't have quad types
         $unpack_int64_slow = sub {
             require Math::BigInt;
-            my $high = Math::BigInt->new( unpack_int32(  $_[0], $_[1]) );
-            my $low  = Math::BigInt->new( unpack_uint32( $_[0], $_[1] + 4) );
+            my $high = unpack_uint32( $_[0], $_[1] );
+            my $low  = unpack_uint32( $_[0], $_[1] + 4);
 
-            return +($high << 32 | $low)->bstr;
+            if($high < 0xF0000000) { # positive
+                $high = Math::BigInt->new( $high );
+                $low  = Math::BigInt->new( $low  );
+                return +($high << 32 | $low)->bstr;
+            }
+            else { # negative
+                $high = Math::BigInt->new( ~$high );
+                $low  = Math::BigInt->new( ~$low  );
+                return +( -($high << 32 | $low + 1) )->bstr;
+            }
         };
         $unpack_uint64_slow = sub {
             require Math::BigInt;
