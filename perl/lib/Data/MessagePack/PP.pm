@@ -87,7 +87,7 @@ BEGIN {
                 return unpack( 'd', pack( 'N2', @v[1,0] ) );
             };
 
-            *unpack_int64 = $unpack_int64_slow ||_sub {
+            *unpack_int64 = $unpack_int64_slow || sub {
                 my @v = unpack( 'V*', substr( $_[0], $_[1], 8 ) );
                 return unpack( 'q', pack( 'N2', @v[1,0] ) );
             };
