@@ -1,5 +1,5 @@
 Name:               msgpack
-Version:            0.3.1.1
+Version:            0.4.0
 Synopsis:           A Haskell binding to MessagePack
 Description:
   A Haskell binding to MessagePack <http://msgpack.org/>
@@ -25,17 +25,19 @@ Library
                     attoparsec >= 0.8.1 && < 0.8.2,
                     binary >= 0.5.0 && < 0.5.1,
                     data-binary-ieee754 >= 0.4 && < 0.5,
-                    deepseq >= 1.1 && <1.2
+                    deepseq >= 1.1 && <1.2,
+                    template-haskell >= 2.4 && < 2.5
 
   Ghc-options:      -Wall
   Hs-source-dirs:   src
 
   Exposed-modules:
     Data.MessagePack
+    Data.MessagePack.Pack
+    Data.MessagePack.Unpack
     Data.MessagePack.Object
-    Data.MessagePack.Put
-    Data.MessagePack.Parser
     Data.MessagePack.Iteratee
+    Data.MessagePack.Derive
 
 Source-repository head
   Type:     git
