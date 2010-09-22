@@ -103,8 +103,8 @@ BEGIN {
 
             *unpack_float  = sub { return unpack( 'f', substr( $_[0], $_[1], 4 ) ); };
             *unpack_double = sub { return unpack( 'd', substr( $_[0], $_[1], 8 ) ); };
-            *unpack_int64  = $unpack_int64_slow  || sub { pack 'q', substr( $_[0], $_[1], 8 ); };
-            *unpack_uint64 = $unpack_uint64_slow || sub { pack 'Q', substr( $_[0], $_[1], 8 ); };
+            *unpack_int64  = $unpack_int64_slow  || sub { unpack 'q', substr( $_[0], $_[1], 8 ); };
+            *unpack_uint64 = $unpack_uint64_slow || sub { unpack 'Q', substr( $_[0], $_[1], 8 ); };
         }
     }
     else {
