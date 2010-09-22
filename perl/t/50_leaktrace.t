@@ -2,8 +2,12 @@
 use strict;
 use Test::Requires { 'Test::LeakTrace' => 0.13 };
 use Test::More;
-
 use Data::MessagePack;
+BEGIN {
+    if($INC{'Data/MessagePack/PP.pm'}) {
+        plan skip_all => 'disabled in PP';
+     }
+}
 
 my $simple_data  = "xyz";
 my $complex_data = {

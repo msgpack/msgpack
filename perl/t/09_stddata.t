@@ -32,6 +32,7 @@ for my $mpac($mpac1, $mpac2) {
     my $i = 0;
     while($offset < length($mpac)) {
         $offset = $mps->execute($mpac, $offset);
+        ok $mps->is_finished, "data[$i] : is_finished";
         is_deeply $mps->data, $data[$i], "data[$i]";
         $mps->reset;
         $i++;

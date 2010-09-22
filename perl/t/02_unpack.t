@@ -5,13 +5,14 @@ no warnings 'uninitialized'; # i need this. i need this.
 
 sub unpackit {
     my $v = $_[0];
-    $v =~ s/ //g;
+    $v =~ s/ +//g;
     $v = pack 'H*', $v;
     return Data::MessagePack->unpack($v);
 }
 
 sub pis ($$) {
-    is_deeply unpackit($_[0]), $_[1], 'dump ' . $_[0];
+    is_deeply unpackit($_[0]), $_[1], 'dump ' . $_[0]
+        or diag( explain(unpackit($_[0])) );
 }
 
 my @dat = do 't/data.pl';

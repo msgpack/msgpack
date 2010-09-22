@@ -1,29 +1,25 @@
 use strict;
 use warnings;
 use Data::MessagePack;
-use JSON::XS;
-use Benchmark ':all';
+use JSON;
 use Storable;
+use Benchmark ':all';
 
 #$Data::MessagePack::PreferInteger = 1;
 
-my $a = {
-    "method" => "handleMessage",
-    "params" => [ "user1", "we were just talking" ],
-    "id"     => undef,
-    "array"  => [ 1, 1024, 70000, -5, 1e5, 1e7, 1, 0, 3.14, sqrt(2) ],
-};
-my $j = JSON::XS::encode_json($a);
+my $a = do 'benchmark/data.pl';
+
+my $j = JSON::encode_json($a);
 my $m = Data::MessagePack->pack($a);
 my $s = Storable::freeze($a);
 
 print "-- deserialize\n";
-print "JSON::XS: $JSON::XS::VERSION\n";
+print "$JSON::Backend: ", $JSON::Backend->VERSION, "\n";
 print "Data::MessagePack: $Data::MessagePack::VERSION\n";
 print "Storable: $Storable::VERSION\n";
 cmpthese timethese(
     -1 => {
-        json     => sub { JSON::XS::decode_json($j)     },
+        json     => sub { JSON::decode_json($j)     },
         mp       => sub { Data::MessagePack->unpack($m) },
         storable => sub { Storable::thaw($s) },
     }

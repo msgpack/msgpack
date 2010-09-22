@@ -1,3 +1,5 @@
+# Usage: Makefile.PL --pp # disable XS
+#        Makefile.PL -g   # add -g to the compiler and disable optimization flags
 use inc::Module::Install;
 use Module::Install::XSUtil 0.32;
 use Config;
@@ -14,15 +16,16 @@ recursive_author_tests('xt');
 
 
 if ( $] >= 5.008005 and want_xs() ) {
-    can_cc or die "This module requires a C compiler. Please retry with --pp";
-
     my $has_c99 = c99_available(); # msgpack C library requires C99.
 
     if ( $has_c99 ) {
+        requires_c99();
         use_xshelper();
+        cc_warnings;
         cc_src_paths('xs-src');
-        if ($ENV{DEBUG}) {
-            cc_append_to_ccflags '-g';
+
+        if($Module::Install::AUTHOR) {
+            postamble qq{test :: test_pp\n\n};
         }
     }
     else {
@@ -37,6 +40,7 @@ NOT_SUPPORT_C99
 }
 else {
     print "configure PP version\n\n";
+    requires 'Math::BigInt' => 1.89; # old versions of BigInt were broken
 }
 
 clean_files qw{
@@ -65,10 +69,6 @@ requires 'Test::More' => 0.94; # done_testing
 test_requires('Test::Requires');
 
 test_with_env( test_pp => PERL_DATA_MESSAGEPACK => 'pp' );
-
-if($Module::Install::AUTHOR) {
-    postamble qq{test :: test_pp\n\n};
-}
 
 repository('http://github.com/msgpack/msgpack');
 auto_include;

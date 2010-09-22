@@ -1,5 +1,6 @@
 #define NEED_newRV_noinc
 #define NEED_sv_2pv_flags
+#define NEED_my_snprintf
 #include "xshelper.h"
 
 #define MY_CXT_KEY "Data::MessagePack::_unpack_guts" XS_VERSION
@@ -30,6 +31,7 @@ typedef struct {
 #define msgpack_unpack_user unpack_user
 
 void init_Data__MessagePack_unpack(pTHX_ bool const cloning) {
+    // booleans are load on demand (lazy load).
     if(!cloning) {
         MY_CXT_INIT;
         MY_CXT.msgpack_true  = NULL;
@@ -51,11 +53,17 @@ static SV*
 load_bool(pTHX_ const char* const name) {
     CV* const cv = get_cv(name, GV_ADD);
     dSP;
+    ENTER;
+    SAVETMPS;
     PUSHMARK(SP);
     call_sv((SV*)cv, G_SCALAR);
     SPAGAIN;
     SV* const sv = newSVsv(POPs);
     PUTBACK;
+    FREETMPS;
+    LEAVE;
+    assert(sv);
+    assert(sv_isobject(sv));
     return sv;
 }
 
@@ -102,13 +110,6 @@ STATIC_INLINE int template_callback_UV(unpack_user* u PERL_UNUSED_DECL, UV const
     return 0;
 }
 
-STATIC_INLINE int template_callback_uint64(unpack_user* u PERL_UNUSED_DECL, uint64_t const d, SV** o)
-{
-    dTHX;
-    *o = newSVnv((NV)d);
-    return 0;
-}
-
 STATIC_INLINE int template_callback_IV(unpack_user* u PERL_UNUSED_DECL, IV const d, SV** o)
 {
     dTHX;
@@ -116,10 +117,21 @@ STATIC_INLINE int template_callback_IV(unpack_user* u PERL_UNUSED_DECL, IV const
     return 0;
 }
 
-STATIC_INLINE int template_callback_int64(unpack_user* u PERL_UNUSED_DECL, int64_t const d, SV** o)
+static int template_callback_uint64(unpack_user* u PERL_UNUSED_DECL, uint64_t const d, SV** o)
 {
     dTHX;
-    *o = newSVnv((NV)d);
+    char tbuf[64];
+    STRLEN const len = my_snprintf(tbuf, sizeof(tbuf), "%llu", d);
+    *o = newSVpvn(tbuf, len);
+    return 0;
+}
+
+static int template_callback_int64(unpack_user* u PERL_UNUSED_DECL, int64_t const d, SV** o)
+{
+    dTHX;
+    char tbuf[64];
+    STRLEN const len = my_snprintf(tbuf, sizeof(tbuf), "%lld", d);
+    *o = newSVpvn(tbuf, len);
     return 0;
 }
 
@@ -142,7 +154,7 @@ STATIC_INLINE int template_callback_IV(unpack_user* u PERL_UNUSED_DECL, IV const
     return 0;
 }
 
-#define template_callback_uint64 template_callback_IV
+#define template_callback_int64 template_callback_IV
 
 #endif /* IVSIZE */
 

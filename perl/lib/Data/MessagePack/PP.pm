@@ -1,27 +1,64 @@
 package Data::MessagePack::PP;
 use 5.008001;
 use strict;
+use warnings;
+no warnings 'recursion';
+
 use Carp ();
+use B ();
 
 # See also
 # http://redmine.msgpack.org/projects/msgpack/wiki/FormatSpec
 # http://cpansearch.perl.org/src/YAPPO/Data-Model-0.00006/lib/Data/Model/Driver/Memcached.pm
 # http://frox25.no-ip.org/~mtve/wiki/MessagePack.html : reference to using CORE::pack, CORE::unpack
 
-
-package
-    Data::MessagePack;
-
-use Scalar::Util qw( blessed );
-use strict;
-use B ();
-
 BEGIN {
+    my $unpack_int64_slow;
+    my $unpack_uint64_slow;
+
+    if(!eval { pack 'Q', 1 }) { # don't have quad types
+        $unpack_int64_slow = sub {
+            require Math::BigInt;
+            my $high = unpack_uint32( $_[0], $_[1] );
+            my $low  = unpack_uint32( $_[0], $_[1] + 4);
+
+            if($high < 0xF0000000) { # positive
+                $high = Math::BigInt->new( $high );
+                $low  = Math::BigInt->new( $low  );
+                return +($high << 32 | $low)->bstr;
+            }
+            else { # negative
+                $high = Math::BigInt->new( ~$high );
+                $low  = Math::BigInt->new( ~$low  );
+                return +( -($high << 32 | $low + 1) )->bstr;
+            }
+        };
+        $unpack_uint64_slow = sub {
+            require Math::BigInt;
+            my $high = Math::BigInt->new( unpack_uint32(  $_[0], $_[1]) );
+            my $low  = Math::BigInt->new( unpack_uint32( $_[0], $_[1] + 4) );
+            return +($high << 32 | $low)->bstr;
+        };
+    }
+
+    *unpack_uint16 = sub { return unpack 'n', substr( $_[0], $_[1], 2 ) };
+    *unpack_uint32 = sub { return unpack 'N', substr( $_[0], $_[1], 4 ) };
+
     # for pack and unpack compatibility
     if ( $] < 5.010 ) {
         # require $Config{byteorder}; my $bo_is_le = ( $Config{byteorder} =~ /^1234/ );
         # which better?
         my $bo_is_le = unpack ( 'd', "\x00\x00\x00\x00\x00\x00\xf0\x3f") == 1; # 1.0LE
+
+        *unpack_int16  = sub {
+            my $v = unpack 'n', substr( $_[0], $_[1], 2 );
+            return $v ? $v - 0x10000 : 0;
+        };
+        *unpack_int32  = sub {
+            no warnings; # avoid for warning about Hexadecimal number
+            my $v = unpack 'N', substr( $_[0], $_[1], 4 );
+            return $v ? $v - 0x100000000 : 0;
+        };
 
         # In reality, since 5.9.2 '>' is introduced. but 'n!' and 'N!'?
         if($bo_is_le) {
@@ -47,20 +84,11 @@ BEGIN {
                 return unpack( 'd', pack( 'N2', @v[1,0] ) );
             };
 
-            *unpack_int16  = sub {
-                my $v = unpack 'n', substr( $_[0], $_[1], 2 );
-                return $v ? $v - 0x10000 : 0;
-            };
-            *unpack_int32  = sub {
-                no warnings; # avoid for warning about Hexadecimal number
-                my $v = unpack 'N', substr( $_[0], $_[1], 4 );
-                return $v ? $v - 0x100000000 : 0;
-            };
-            *unpack_int64 = sub {
+            *unpack_int64 = $unpack_int64_slow || sub {
                 my @v = unpack( 'V*', substr( $_[0], $_[1], 8 ) );
                 return unpack( 'q', pack( 'N2', @v[1,0] ) );
             };
-            *unpack_uint64 = sub {
+            *unpack_uint64 = $unpack_uint64_slow || sub {
                 my @v = unpack( 'V*', substr( $_[0], $_[1], 8 ) );
                 return unpack( 'Q', pack( 'N2', @v[1,0] ) );
             };
@@ -72,17 +100,8 @@ BEGIN {
 
             *unpack_float  = sub { return unpack( 'f', substr( $_[0], $_[1], 4 ) ); };
             *unpack_double = sub { return unpack( 'd', substr( $_[0], $_[1], 8 ) ); };
-            *unpack_int16  = sub {
-                my $v = unpack 'n', substr( $_[0], $_[1], 2 );
-                return $v ? $v - 0x10000 : 0;
-            };
-            *unpack_int32  = sub {
-                no warnings; # avoid for warning about Hexadecimal number
-                my $v = unpack 'N', substr( $_[0], $_[1], 4 );
-                return $v ? $v - 0x100000000 : 0;
-            };
-            *unpack_int64  = sub { pack 'q', substr( $_[0], $_[1], 8 ); };
-            *unpack_uint64 = sub { pack 'Q', substr( $_[0], $_[1], 8 ); };
+            *unpack_int64  = $unpack_int64_slow  || sub { unpack 'q', substr( $_[0], $_[1], 8 ); };
+            *unpack_uint64 = $unpack_uint64_slow || sub { unpack 'Q', substr( $_[0], $_[1], 8 ); };
         }
     }
     else {
@@ -94,30 +113,49 @@ BEGIN {
         *unpack_double = sub { return unpack( 'd>', substr( $_[0], $_[1], 8 ) ); };
         *unpack_int16  = sub { return unpack( 'n!', substr( $_[0], $_[1], 2 ) ); };
         *unpack_int32  = sub { return unpack( 'N!', substr( $_[0], $_[1], 4 ) ); };
-        *unpack_int64  = sub { return unpack( 'q>', substr( $_[0], $_[1], 8 ) ); };
-        *unpack_uint64 = sub { return unpack( 'Q>', substr( $_[0], $_[1], 8 ) ); };
+
+        *unpack_int64  = $unpack_int64_slow  || sub { return unpack( 'q>', substr( $_[0], $_[1], 8 ) ); };
+        *unpack_uint64 = $unpack_uint64_slow || sub { return unpack( 'Q>', substr( $_[0], $_[1], 8 ) ); };
     }
+
+    # fixin package symbols
+    no warnings 'once';
+    sub pack   :method;
+    sub unpack :method;
+    *Data::MessagePack::pack   = \&pack;
+    *Data::MessagePack::unpack = \&unpack;
+
+    @Data::MessagePack::Unpacker::ISA = qw(Data::MessagePack::PP::Unpacker);
+
+    *true  = \&Data::MessagePack::true;
+    *false = \&Data::MessagePack::false;
 }
 
+sub _unexpected {
+    Carp::confess("Unexpected " . sprintf(shift, @_) . " found");
+}
 
 #
 # PACK
 #
 
-{
-    no warnings 'recursion';
-
-    my $max_depth;
+our $_max_depth;
 
 sub pack :method {
     Carp::croak('Usage: Data::MessagePack->pack($dat [,$max_depth])') if @_ < 2;
-    $max_depth = defined $_[2] ? $_[2] : 512; # init
+    $_max_depth = defined $_[2] ? $_[2] : 512; # init
     return _pack( $_[1] );
 }
 
 
 sub _pack {
     my ( $value ) = @_;
+
+    local $_max_depth = $_max_depth - 1;
+
+    if ( $_max_depth < 0 ) {
+        Carp::croak("perl structure exceeds maximum nesting level (max_depth set too low?)");
+    }
 
     return CORE::pack( 'C', 0xc0 ) if ( not defined $value );
 
@@ -127,11 +165,8 @@ sub _pack {
               $num < 16          ? CORE::pack( 'C',  0x90 + $num )
             : $num < 2 ** 16 - 1 ? CORE::pack( 'Cn', 0xdc,  $num )
             : $num < 2 ** 32 - 1 ? CORE::pack( 'CN', 0xdd,  $num )
-            : die "" # don't arrivie here
+            : _unexpected("number %d", $num)
         ;
-        if ( --$max_depth <= 0 ) {
-            Carp::croak("perl structure exceeds maximum nesting level (max_depth set too low?)");
-        }
         return join( '', $header, map { _pack( $_ ) } @$value );
     }
 
@@ -141,11 +176,8 @@ sub _pack {
               $num < 16          ? CORE::pack( 'C',  0x80 + $num )
             : $num < 2 ** 16 - 1 ? CORE::pack( 'Cn', 0xde,  $num )
             : $num < 2 ** 32 - 1 ? CORE::pack( 'CN', 0xdf,  $num )
-            : die "" # don't arrivie here
+            : _unexpected("number %d", $num)
         ;
-        if ( --$max_depth <= 0 ) {
-            Carp::croak("perl structure exceeds maximum nesting level (max_depth set too low?)");
-        }
         return join( '', $header, map { _pack( $_ ) } %$value );
     }
 
@@ -197,7 +229,7 @@ sub _pack {
               $num < 32          ? CORE::pack( 'C',  0xa0 + $num )
             : $num < 2 ** 16 - 1 ? CORE::pack( 'Cn', 0xda, $num )
             : $num < 2 ** 32 - 1 ? CORE::pack( 'CN', 0xdb, $num )
-            : die "" # don't arrivie here
+            : _unexpected_number($num)
         ;
 
         return $header . $value;
@@ -207,25 +239,24 @@ sub _pack {
         return pack_double( $value );
     }
     else {
-        die "???";
+        _unexpected("data type %s", $b_obj);
     }
 
 }
-
-} # PACK
-
 
 #
 # UNPACK
 #
 
-{
-
-    my $p; # position variables for speed.
+my $p; # position variables for speed.
 
 sub unpack :method {
     $p = 0; # init
-    _unpack( $_[1] );
+    my $data = _unpack( $_[1] );
+    if($p < length($_[1])) {
+        Carp::croak("Data::MessagePack->unpack: extra bytes");
+    }
+    return $data;
 }
 
 
@@ -284,11 +315,11 @@ sub _unpack {
     }
     elsif ( $byte == 0xcd ) { # uint16
         $p += 2;
-        return CORE::unpack 'n', substr( $value, $p - 2, 2 );
+        return unpack_uint16( $value, $p - 2 );
     }
     elsif ( $byte == 0xce ) { # unit32
         $p += 4;
-        return CORE::unpack 'N', substr( $value, $p - 4, 4 );
+        return unpack_uint32( $value, $p - 4 );
     }
     elsif ( $byte == 0xcf ) { # unit64
         $p += 8;
@@ -351,13 +382,10 @@ sub _unpack {
     }
 
     else {
-        die "???";
+        _unexpected("byte 0x%02x", $byte);
     }
 
 }
-
-
-} # UNPACK
 
 
 #
@@ -365,12 +393,10 @@ sub _unpack {
 #
 
 package
-    Data::MessagePack::Unpacker;
-
-use strict;
+    Data::MessagePack::PP::Unpacker;
 
 sub new {
-    bless { stack => [] }, shift;
+    bless { pos => 0 }, shift;
 }
 
 
@@ -378,31 +404,32 @@ sub execute_limit {
     execute( @_ );
 }
 
-
-{
-    my $p;
-
 sub execute {
     my ( $self, $data, $offset, $limit ) = @_;
-    my $value = substr( $data, $offset || 0, $limit ? $limit : length $data );
+    $offset ||= 0;
+    my $value = substr( $data, $offset, $limit ? $limit : length $data );
     my $len   = length $value;
+
+    $self->{data} .= $value;
+    local $self->{stack} = [];
 
     $p = 0;
 
-    while ( $len > $p ) {
-        _count( $self, $value ) or last;
+    while ( length($self->{data}) > $p ) {
+        _count( $self, $self->{data} ) or last;
 
-        if ( @{ $self->{stack} } > 0 ) {
-            pop @{ $self->{stack} } if --$self->{stack}->[-1] == 0;
+        while ( @{ $self->{stack} } > 0 && --$self->{stack}->[-1] == 0) {
+            pop @{ $self->{stack} };
+        }
+
+        if (@{$self->{stack}} == 0) {
+            $self->{is_finished}++;
+            last;
         }
     }
+    $self->{pos} = $p;
 
-    if ( $len == $p ) {
-        $self->{ data } .= substr( $value, 0, $p );
-        $self->{ remain } = undef;
-    }
-
-    return $p;
+    return $p + $offset;
 }
 
 
@@ -424,7 +451,9 @@ sub _count {
             $num = $byte & ~0x90;
         }
 
-        push @{ $self->{stack} }, $num + 1;
+        if ( $num ) {
+            push @{ $self->{stack} }, $num + 1;
+        }
 
         return 1;
     }
@@ -443,7 +472,9 @@ sub _count {
             $num = $byte & ~0x80;
         }
 
-        push @{ $self->{stack} }, $num * 2 + 1; # a pair
+        if ( $num ) {
+            push @{ $self->{stack} }, $num * 2 + 1; # a pair
+        }
 
         return 1;
     }
@@ -461,7 +492,7 @@ sub _count {
             : $byte == 0xcd ? 2
             : $byte == 0xce ? 4
             : $byte == 0xcf ? 8
-            : die;
+            : _unexpected("byte 0x%02x", $byte);
         return 1;
     }
 
@@ -470,7 +501,7 @@ sub _count {
             : $byte == 0xd1 ? 2
             : $byte == 0xd2 ? 4
             : $byte == 0xd3 ? 8
-            : die;
+            : _unexpected("byte 0x%02x", $byte);
         return 1;
     }
 
@@ -501,32 +532,27 @@ sub _count {
     }
 
     else {
-        die "???";
+        _unexpected("byte 0x%02x", $byte);
     }
 
     return 0;
 }
 
-} # execute
-
 
 sub data {
-    my $data = Data::MessagePack->unpack( $_[0]->{ data } );
-    $_[0]->reset;
-    return $data;
+    return Data::MessagePack->unpack( substr($_[0]->{ data }, 0, $_[0]->{pos}) );
 }
 
 
 sub is_finished {
     my ( $self ) = @_;
-    ( scalar( @{ $self->{stack} } ) or defined $self->{ remain } ) ? 0 : 1;
+    return $self->{is_finished};
 }
 
-
 sub reset :method {
-    $_[0]->{ stack }  = [];
     $_[0]->{ data }   = undef;
-    $_[0]->{ remain } = undef;
+    $_[0]->{ pos }    = 0;
+    $_[0]->{ is_finished } = 0;
 }
 
 1;

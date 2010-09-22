@@ -1,7 +1,16 @@
+0.26
+
+    - fixed a serious code typo in PP(makamaka)
+
+0.25
+
+    (NO FEATURE CHANGES)
+    - oops. I failed releng.
 
 0.24
-    - Fixed a possible SEGV on streaming unpacking (gfx)
-    - Improve performance, esp. in unpacking (gfx)
+    - Fixed a lot of streaming unpacking issues (tokuhirom, gfx)
+    - Fixed unpacking issues for 64 bit integers on 32 bit perls (gfx)
+    - Improved performance, esp. in unpacking (gfx)
 
 0.23
 
