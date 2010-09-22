@@ -31,6 +31,7 @@ typedef struct {
 #define msgpack_unpack_user unpack_user
 
 void init_Data__MessagePack_unpack(pTHX_ bool const cloning) {
+    // booleans are load on demand (lazy load).
     if(!cloning) {
         MY_CXT_INIT;
         MY_CXT.msgpack_true  = NULL;
@@ -52,11 +53,17 @@ static SV*
 load_bool(pTHX_ const char* const name) {
     CV* const cv = get_cv(name, GV_ADD);
     dSP;
+    ENTER;
+    SAVETMPS;
     PUSHMARK(SP);
     call_sv((SV*)cv, G_SCALAR);
     SPAGAIN;
     SV* const sv = newSVsv(POPs);
     PUTBACK;
+    FREETMPS;
+    LEAVE;
+    assert(sv);
+    assert(sv_isobject(sv));
     return sv;
 }
 
