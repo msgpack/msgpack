@@ -419,7 +419,7 @@ sub execute {
 
     $p = 0;
 
-    LOOP: while ( length($self->{data}) > $p ) {
+    while ( length($self->{data}) > $p ) {
         _count( $self, $self->{data} ) or last;
 
         while ( @{ $self->{stack} } > 0 && --$self->{stack}->[-1] == 0) {
@@ -428,7 +428,7 @@ sub execute {
 
         if (@{$self->{stack}} == 0) {
             $self->{is_finished}++;
-            last LOOP;
+            last;
         }
     }
     $self->{pos} = $p;
@@ -455,7 +455,7 @@ sub _count {
             $num = $byte & ~0x90;
         }
 
-        if (defined($num) && $num > 0) {
+        if ( $num ) {
             push @{ $self->{stack} }, $num + 1;
         }
 
@@ -476,7 +476,7 @@ sub _count {
             $num = $byte & ~0x80;
         }
 
-        if ($num > 0) {
+        if ( $num ) {
             push @{ $self->{stack} }, $num * 2 + 1; # a pair
         }
 
