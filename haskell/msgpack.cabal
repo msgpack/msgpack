@@ -15,6 +15,10 @@ Stability:          Experimental
 Cabal-Version:      >= 1.6
 Build-Type:         Simple
 
+Extra-source-files:
+  test/Test.hs
+  test/UserData.hs
+
 Library
   Build-depends:    base >=4 && <5,
                     transformers >= 0.2.1 && < 0.2.2,
