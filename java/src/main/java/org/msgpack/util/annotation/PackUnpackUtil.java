@@ -193,12 +193,12 @@ public class PackUnpackUtil {
 			classCache.putIfAbsent(origName, enhClass);
 		}
 
-		protected Class<?> generate(Class<?> origClass)
+		protected Class<?> generate(Class<?> origClass, boolean packUnpackable)
 				throws NotFoundException, CannotCompileException {
 			String origName = origClass.getName();
 			String enhName = origName + Constants.POSTFIX_TYPE_NAME_ENHANCER;
 			CtClass origCtClass = pool.get(origName);
-			checkClassValidation(origClass);
+			checkClassValidation(origClass, packUnpackable);
 			checkDefaultConstructorValidation(origClass);
 			CtClass enhCtClass = pool.makeClass(enhName);
 			setSuperclass(enhCtClass, origCtClass);
@@ -211,7 +211,7 @@ public class PackUnpackUtil {
 			return createClass(enhCtClass);
 		}
 
-		private void checkClassValidation(Class<?> origClass) {
+		private void checkClassValidation(Class<?> origClass, boolean packUnpackable) {
 			// not public, abstract, final
 			int mod = origClass.getModifiers();
 			if ((!(Modifier.isPublic(mod) || Modifier.isProtected(mod)))
@@ -223,7 +223,9 @@ public class PackUnpackUtil {
 				throwClassValidationException(origClass);
 			}
 			// annotation
-			checkPackUnpackAnnotation(origClass);
+			if (!packUnpackable) {
+				checkPackUnpackAnnotation(origClass);
+			}
 		}
 
 		private static void throwClassValidationException(Class<?> origClass) {
@@ -1251,18 +1253,17 @@ public class PackUnpackUtil {
 	}
 
 	private static Enhancer enhancer;
-
-	public static Class<?> getEnhancedClass(Class<?> origClass) {
+	
+	public static void registerEnhancedClass(Class<?> origClass, boolean packUnpackable) {
 		if (enhancer == null) {
 			enhancer = new Enhancer();
 		}
-
 		String origName = origClass.getName();
 		Class<?> enhClass = enhancer.getCache(origName);
 		if (enhClass == null) {
 			// generate a class object related to the original class
 			try {
-				enhClass = enhancer.generate(origClass);
+				enhClass = enhancer.generate(origClass, packUnpackable);
 			} catch (NotFoundException e) {
 				throw new PackUnpackUtilException(e.getMessage(), e);
 			} catch (CannotCompileException e) {
@@ -1270,33 +1271,57 @@ public class PackUnpackUtil {
 			}
 			// set the generated class to the cache
 			enhancer.setCache(origName, enhClass);
+		}			
+	}
+	
+	public static void registerEnhancedClass(Class<?> origClass) {
+		registerEnhancedClass(origClass, false);
+	}
+	
+	public static boolean isRegistered(Class<?> origClass) {
+		if (enhancer == null) {
+			enhancer = new Enhancer();
 		}
-		return enhClass;
+		return enhancer.getCache(origClass.getName()) != null;
 	}
 
-	public static Object newEnhancedInstance(Class<?> origClass) {
+	public static Class<?> getEnhancedClass(Class<?> origClass, boolean packUnpackable) {
+		if (!isRegistered(origClass)) {
+			registerEnhancedClass(origClass, packUnpackable);
+		}
+		return enhancer.getCache(origClass.getName());
+	}
+	
+	public static Class<?> getEnhancedClass(Class<?> origClass) {
+		return getEnhancedClass(origClass, false);
+	}
+
+	public static Object newEnhancedInstance(Class<?> origClass, boolean packUnpackable) {
 		try {
-			Class<?> enhClass = getEnhancedClass(origClass);
+			Class<?> enhClass = getEnhancedClass(origClass, packUnpackable);
 			// create a new object of the generated class
 			return enhClass.newInstance();
 		} catch (InstantiationException e) {
 			throw new PackUnpackUtilException(e.getMessage(), e);
 		} catch (IllegalAccessException e) {
 			throw new PackUnpackUtilException(e.getMessage(), e);
-		}
+		}		
 	}
-
+	
+	public static Object newEnhancedInstance(Class<?> origClass) {
+		return newEnhancedInstance(origClass, false);
+	}
+	
 	public static Object initEnhancedInstance(MessagePackObject obj,
-			Class<?> origClass) {
-		Object ret = newEnhancedInstance(origClass);
+			Class<?> origClass, boolean packUnpackable) {
+		Object ret = newEnhancedInstance(origClass, packUnpackable);
 		((MessageConvertable) ret).messageConvert(obj);
 		return ret;
 	}
 
 	public static Object initEnhancedInstance(MessagePackObject obj,
-			Object origObj) {
-		((MessageConvertable) origObj).messageConvert(obj);
-		return origObj;
+			Class<?> origClass) {
+		return initEnhancedInstance(obj, origClass, false);
 	}
 
 	@MessagePackUnpackable
@@ -1326,7 +1351,6 @@ public class PackUnpackUtil {
 	}
 
 	public static void main(final String[] args) throws Exception {
-		PackUnpackUtil.getEnhancedClass(Image.class);
 		Image src = (Image) PackUnpackUtil.newEnhancedInstance(Image.class);
 		src.title = "msgpack";
 		src.uri = "http://msgpack.org/";
