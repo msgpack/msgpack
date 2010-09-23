@@ -12,6 +12,7 @@ import java.util.Map;
 import junit.framework.TestCase;
 
 import org.junit.Test;
+import org.msgpack.MessagePackObject;
 import org.msgpack.MessageUnpackable;
 import org.msgpack.Packer;
 import org.msgpack.Unpacker;
@@ -19,7 +20,7 @@ import org.msgpack.Unpacker;
 public class TestMessagePackUnpackable extends TestCase {
 
 	@Test
-	public void testPrimitiveTypeFields() throws Exception {
+	public void testPrimitiveTypeFields01() throws Exception {
 		PrimitiveTypeFieldsClass src = (PrimitiveTypeFieldsClass) PackUnpackUtil
 				.newEnhancedInstance(PrimitiveTypeFieldsClass.class);
 		src.f0 = (byte) 0;
@@ -45,6 +46,36 @@ public class TestMessagePackUnpackable extends TestCase {
 		assertEquals(src.f6, dst.f6);
 	}
 
+	@Test
+	public void testPrimitiveTypeFields02() throws Exception {
+		PrimitiveTypeFieldsClass src = (PrimitiveTypeFieldsClass) PackUnpackUtil
+				.newEnhancedInstance(PrimitiveTypeFieldsClass.class);
+		src.f0 = (byte) 0;
+		src.f1 = 1;
+		src.f2 = 2;
+		src.f3 = 3;
+		src.f4 = 4;
+		src.f5 = 5;
+		src.f6 = false;
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		new Packer(out).pack(src);
+		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+		Unpacker pac = new Unpacker(in);
+		Iterator<MessagePackObject> it = pac.iterator();
+		assertTrue(it.hasNext());
+		MessagePackObject mpo = it.next();
+		PrimitiveTypeFieldsClass dst = (PrimitiveTypeFieldsClass) PackUnpackUtil
+				.initEnhancedInstance(mpo, PrimitiveTypeFieldsClass.class);
+		assertEquals(src.f0, dst.f0);
+		assertEquals(src.f1, dst.f1);
+		assertEquals(src.f2, dst.f2);
+		assertEquals(src.f3, dst.f3);
+		assertEquals(src.f4, dst.f4);
+		assertEquals(src.f5, dst.f5);
+		assertEquals(src.f6, dst.f6);
+		assertFalse(it.hasNext());
+	}
+
 	@MessagePackUnpackable
 	public static class PrimitiveTypeFieldsClass {
 		public byte f0;
@@ -60,7 +91,7 @@ public class TestMessagePackUnpackable extends TestCase {
 	}
 
 	@Test
-	public void testGeneralReferenceTypeFieldsClass() throws Exception {
+	public void testGeneralReferenceTypeFieldsClass01() throws Exception {
 		GeneralReferenceTypeFieldsClass src = (GeneralReferenceTypeFieldsClass) PackUnpackUtil
 				.newEnhancedInstance(GeneralReferenceTypeFieldsClass.class);
 		src.f0 = 0;
@@ -93,6 +124,44 @@ public class TestMessagePackUnpackable extends TestCase {
 		assertEquals(src.f9[1], dst.f9[1]);
 	}
 
+	@Test
+	public void testGeneralReferenceTypeFieldsClass02() throws Exception {
+		GeneralReferenceTypeFieldsClass src = (GeneralReferenceTypeFieldsClass) PackUnpackUtil
+				.newEnhancedInstance(GeneralReferenceTypeFieldsClass.class);
+		src.f0 = 0;
+		src.f1 = 1;
+		src.f2 = 2;
+		src.f3 = (long) 3;
+		src.f4 = (float) 4;
+		src.f5 = (double) 5;
+		src.f6 = false;
+		src.f7 = new BigInteger("7");
+		src.f8 = "8";
+		src.f9 = new byte[] { 0x01, 0x02 };
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		new Packer(out).pack(src);
+		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+		Unpacker pac = new Unpacker(in);
+		Iterator<MessagePackObject> it = pac.iterator();
+		assertTrue(it.hasNext());
+		MessagePackObject mpo = it.next();
+		GeneralReferenceTypeFieldsClass dst = (GeneralReferenceTypeFieldsClass) PackUnpackUtil
+				.initEnhancedInstance(mpo,
+						GeneralReferenceTypeFieldsClass.class);
+		assertEquals(src.f0, dst.f0);
+		assertEquals(src.f1, dst.f1);
+		assertEquals(src.f2, dst.f2);
+		assertEquals(src.f3, dst.f3);
+		assertEquals(src.f4, dst.f4);
+		assertEquals(src.f5, dst.f5);
+		assertEquals(src.f6, dst.f6);
+		assertEquals(src.f7, dst.f7);
+		assertEquals(src.f8, dst.f8);
+		assertEquals(src.f9[0], dst.f9[0]);
+		assertEquals(src.f9[1], dst.f9[1]);
+		assertFalse(it.hasNext());
+	}
+
 	@MessagePackUnpackable
 	public static class GeneralReferenceTypeFieldsClass {
 		public Byte f0;
@@ -110,7 +179,7 @@ public class TestMessagePackUnpackable extends TestCase {
 		}
 	}
 
-	public void testListTypes() throws Exception {
+	public void testListTypes01() throws Exception {
 		SampleListTypes src = (SampleListTypes) PackUnpackUtil
 				.newEnhancedInstance(SampleListTypes.class);
 		src.f0 = new ArrayList<Integer>();
@@ -139,6 +208,39 @@ public class TestMessagePackUnpackable extends TestCase {
 			assertEquals(src.f2.get(i), dst.f2.get(i));
 		}
 	}
+	
+	public void testListTypes02() throws Exception {
+		SampleListTypes src = (SampleListTypes) PackUnpackUtil
+				.newEnhancedInstance(SampleListTypes.class);
+		src.f0 = new ArrayList<Integer>();
+		src.f1 = new ArrayList<Integer>();
+		src.f1.add(1);
+		src.f1.add(2);
+		src.f1.add(3);
+		src.f2 = new ArrayList<String>();
+		src.f2.add("e1");
+		src.f2.add("e2");
+		src.f2.add("e3");
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		new Packer(out).pack(src);
+		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+		Unpacker pac = new Unpacker(in);
+		Iterator<MessagePackObject> it = pac.iterator();
+		assertTrue(it.hasNext());
+		MessagePackObject mpo = it.next();
+		SampleListTypes dst = (SampleListTypes) PackUnpackUtil
+				.initEnhancedInstance(mpo, SampleListTypes.class);
+		assertEquals(src.f0.size(), dst.f0.size());
+		assertEquals(src.f1.size(), dst.f1.size());
+		for (int i = 0; i < src.f1.size(); ++i) {
+			assertEquals(src.f1.get(i), dst.f1.get(i));
+		}
+		assertEquals(src.f2.size(), dst.f2.size());
+		for (int i = 0; i < src.f2.size(); ++i) {
+			assertEquals(src.f2.get(i), dst.f2.get(i));
+		}
+		assertFalse(it.hasNext());
+	}
 
 	@MessagePackUnpackable
 	public static class SampleListTypes {
@@ -150,7 +252,7 @@ public class TestMessagePackUnpackable extends TestCase {
 		}
 	}
 
-	public void testMapTypes() throws Exception {
+	public void testMapTypes01() throws Exception {
 		SampleMapTypes src = (SampleMapTypes) PackUnpackUtil
 				.newEnhancedInstance(SampleMapTypes.class);
 		src.f0 = new HashMap<Integer, Integer>();
@@ -188,6 +290,49 @@ public class TestMessagePackUnpackable extends TestCase {
 			assertEquals(s2, d2);
 			assertEquals(src.f2.get(s2), dst.f2.get(d2));
 		}
+	}
+	
+	public void testMapTypes02() throws Exception {
+		SampleMapTypes src = (SampleMapTypes) PackUnpackUtil
+				.newEnhancedInstance(SampleMapTypes.class);
+		src.f0 = new HashMap<Integer, Integer>();
+		src.f1 = new HashMap<Integer, Integer>();
+		src.f1.put(1, 1);
+		src.f1.put(2, 2);
+		src.f1.put(3, 3);
+		src.f2 = new HashMap<String, Integer>();
+		src.f2.put("k1", 1);
+		src.f2.put("k2", 2);
+		src.f2.put("k3", 3);
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		new Packer(out).pack(src);
+		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+		Unpacker pac = new Unpacker(in);
+		Iterator<MessagePackObject> it = pac.iterator();
+		assertTrue(it.hasNext());
+		MessagePackObject mpo = it.next();
+		SampleMapTypes dst = (SampleMapTypes) PackUnpackUtil
+				.initEnhancedInstance(mpo, SampleMapTypes.class);
+		assertEquals(src.f0.size(), dst.f0.size());
+		assertEquals(src.f1.size(), dst.f1.size());
+		Iterator<Integer> srcf1 = src.f1.keySet().iterator();
+		Iterator<Integer> dstf1 = dst.f1.keySet().iterator();
+		while (srcf1.hasNext()) {
+			Integer s1 = srcf1.next();
+			Integer d1 = dstf1.next();
+			assertEquals(s1, d1);
+			assertEquals(src.f1.get(s1), dst.f1.get(d1));
+		}
+		assertEquals(src.f2.size(), dst.f2.size());
+		Iterator<String> srcf2 = src.f2.keySet().iterator();
+		Iterator<String> dstf2 = dst.f2.keySet().iterator();
+		while (srcf2.hasNext()) {
+			String s2 = srcf2.next();
+			String d2 = dstf2.next();
+			assertEquals(s2, d2);
+			assertEquals(src.f2.get(s2), dst.f2.get(d2));
+		}
+		assertFalse(it.hasNext());
 	}
 
 	@MessagePackUnpackable
@@ -351,7 +496,7 @@ public class TestMessagePackUnpackable extends TestCase {
 	}
 
 	@Test
-	public void testFieldModifiers() throws Exception {
+	public void testFieldModifiers01() throws Exception {
 		FieldModifiersClass src = (FieldModifiersClass) PackUnpackUtil
 				.newEnhancedInstance(FieldModifiersClass.class);
 		src.f0 = 0;
@@ -372,6 +517,31 @@ public class TestMessagePackUnpackable extends TestCase {
 		assertTrue(src.f4 != dst.f4);
 	}
 
+	@Test
+	public void testFieldModifiers02() throws Exception {
+		FieldModifiersClass src = (FieldModifiersClass) PackUnpackUtil
+				.newEnhancedInstance(FieldModifiersClass.class);
+		src.f0 = 0;
+		src.f2 = 2;
+		src.f3 = 3;
+		src.f4 = 4;
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		new Packer(out).pack(src);
+		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+		Unpacker pac = new Unpacker(in);
+		Iterator<MessagePackObject> it = pac.iterator();
+		assertTrue(it.hasNext());
+		MessagePackObject mpo = it.next();
+		FieldModifiersClass dst = (FieldModifiersClass) PackUnpackUtil
+				.initEnhancedInstance(mpo, FieldModifiersClass.class);
+		assertTrue(src.f0 == dst.f0);
+		assertTrue(src.f1 == dst.f1);
+		assertTrue(src.f2 != dst.f2);
+		assertTrue(src.f3 == dst.f3);
+		assertTrue(src.f4 != dst.f4);
+		assertFalse(it.hasNext());
+	}
+
 	@MessagePackUnpackable
 	public static class FieldModifiersClass {
 		public int f0;
@@ -385,7 +555,7 @@ public class TestMessagePackUnpackable extends TestCase {
 	}
 
 	@Test
-	public void testNestedAnnotatedFieldClass() throws Exception {
+	public void testNestedAnnotatedFieldClass01() throws Exception {
 		NestedClass src2 = (NestedClass) PackUnpackUtil
 				.newEnhancedInstance(NestedClass.class);
 		BaseClass src = (BaseClass) PackUnpackUtil
@@ -407,6 +577,33 @@ public class TestMessagePackUnpackable extends TestCase {
 		assertTrue(src2.f2 == dst.f1.f2);
 	}
 
+	@Test
+	public void testNestedAnnotatedFieldClass02() throws Exception {
+		NestedClass src2 = (NestedClass) PackUnpackUtil
+				.newEnhancedInstance(NestedClass.class);
+		BaseClass src = (BaseClass) PackUnpackUtil
+				.newEnhancedInstance(BaseClass.class);
+		src.f0 = 0;
+		src2.f2 = 2;
+		src.f1 = src2;
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		new Packer(out).pack(src);
+		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+		Unpacker pac = new Unpacker(in);
+		Iterator<MessagePackObject> it = pac.iterator();
+		assertTrue(it.hasNext());
+		MessagePackObject mpo = it.next();
+		NestedClass dst2 = (NestedClass) PackUnpackUtil
+				.newEnhancedInstance(NestedClass.class);
+		BaseClass dst = (BaseClass) PackUnpackUtil
+				.newEnhancedInstance(BaseClass.class);
+		dst.f1 = dst2;
+		dst = (BaseClass) PackUnpackUtil.initEnhancedInstance(mpo, dst);
+		assertTrue(src.f0 == dst.f0);
+		assertTrue(src2.f2 == dst.f1.f2);
+		assertFalse(it.hasNext());
+	}
+
 	@MessagePackUnpackable
 	public static class BaseClass {
 		public int f0;
@@ -425,7 +622,7 @@ public class TestMessagePackUnpackable extends TestCase {
 	}
 
 	@Test
-	public void testExtendedClass() throws Exception {
+	public void testExtendedClass01() throws Exception {
 		SampleSubClass src = (SampleSubClass) PackUnpackUtil
 				.newEnhancedInstance(SampleSubClass.class);
 		src.f0 = 0;
@@ -451,6 +648,38 @@ public class TestMessagePackUnpackable extends TestCase {
 		assertTrue(src.f6 == dst.f6);
 		assertTrue(src.f8 == dst.f8);
 		assertTrue(src.f9 != dst.f9);
+	}
+	
+	@Test
+	public void testExtendedClass02() throws Exception {
+		SampleSubClass src = (SampleSubClass) PackUnpackUtil
+				.newEnhancedInstance(SampleSubClass.class);
+		src.f0 = 0;
+		src.f2 = 2;
+		src.f3 = 3;
+		src.f4 = 4;
+		src.f5 = 5;
+		src.f8 = 8;
+		src.f9 = 9;
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		new Packer(out).pack(src);
+		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+		Unpacker pac = new Unpacker(in);
+		Iterator<MessagePackObject> it = pac.iterator();
+		assertTrue(it.hasNext());
+		MessagePackObject mpo = it.next();
+		SampleSubClass dst = (SampleSubClass) PackUnpackUtil
+				.initEnhancedInstance(mpo, SampleSubClass.class);
+		assertTrue(src.f0 == dst.f0);
+		assertTrue(src.f1 == dst.f1);
+		assertTrue(src.f2 != dst.f2);
+		assertTrue(src.f3 == dst.f3);
+		assertTrue(src.f4 != dst.f4);
+		assertTrue(src.f5 == dst.f5);
+		assertTrue(src.f6 == dst.f6);
+		assertTrue(src.f8 == dst.f8);
+		assertTrue(src.f9 != dst.f9);
+		assertFalse(it.hasNext());
 	}
 
 	@MessagePackUnpackable

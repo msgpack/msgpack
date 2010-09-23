@@ -11,6 +11,7 @@ import java.lang.reflect.ParameterizedType;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -25,6 +26,7 @@ import javassist.CtNewMethod;
 import javassist.NotFoundException;
 
 import org.msgpack.MessageConvertable;
+import org.msgpack.MessagePackObject;
 import org.msgpack.MessagePackable;
 import org.msgpack.MessageTypeException;
 import org.msgpack.MessageUnpackable;
@@ -42,37 +44,6 @@ public class PackUnpackUtil {
 		static final String KEYWORD_THROWS = "throws";
 
 		static final String KEYWORD_NEW = "new";
-
-		static final String TYPE_NAME_VOID = void.class.getName();
-
-		static final String TYPE_NAME_OBJECT = Object.class.getName();
-
-		static final String TYPE_NAME_IOEXCEPTION = IOException.class.getName();
-
-		static final String TYPE_NAME_PACKER = Packer.class.getName();
-
-		static final String TYPE_NAME_UNPACKER = Unpacker.class.getName();
-
-		static final String TYPE_NAME_MSGPACKABLE = MessagePackable.class
-				.getName();
-
-		static final String TYPE_NAME_MSGUNPACKABLE = MessageUnpackable.class
-				.getName();
-
-		static final String TYPE_NAME_MSGCONVERTABLE = MessageConvertable.class
-				.getName();
-
-		static final String TYPE_NAME_MSGTYPEEXCEPTION = MessageTypeException.class
-				.getName();
-
-		static final String TYPE_NAME_MSGPACKUNPACKABLE = MessagePackUnpackable.class
-				.getName();
-
-		static final String TYPE_NAME_MSGPACKOPTIONAL = MessagePackOptional.class
-				.getName();
-
-		static final String TYPE_NAME_MSGPACKOREQUIRED = MessagePackRequired.class
-				.getName();
 
 		static final String CHAR_NAME_SPACE = " ";
 
@@ -92,15 +63,27 @@ public class PackUnpackUtil {
 
 		static final String CHAR_NAME_LEFT_CURLY_BRACHET = "{";
 
+		static final String CHAR_NAME_RIGHT_SQUARE_BRACKET = "]";
+
+		static final String CHAR_NAME_LEFT_SQUARE_BRACKET = "[";
+
 		static final String CHAR_NAME_DOT = ".";
 
 		static final String CHAR_NAME_SEMICOLON = ";";
 
-		static final String VARIABLE_NAME_PK = "pk";
+		static final String VARIABLE_NAME_PK = "_$$_pk";
 
-		static final String VARIABLE_NAME_OBJ = "obj";
+		static final String VARIABLE_NAME_SIZE = "_$$_len";
 
-		static final String VARIABLE_NAME_SIZE = "len";
+		static final String VARIABLE_NAME_ARRAY = "_$$_ary";
+
+		static final String VARIABLE_NAME_LIST = "_$$_list";
+
+		static final String VARIABLE_NAME_MAP = "_$$_map";
+
+		static final String VARIABLE_NAME_ITER = "_$$_iter";
+
+		static final String VARIABLE_NAME_MPO1 = "_$$_mpo1";
 
 		static final String VARIABLE_NAME_I = "i";
 
@@ -109,6 +92,18 @@ public class PackUnpackUtil {
 		static final String METHOD_NAME_ADD = "add";
 
 		static final String METHOD_NAME_PUT = "put";
+
+		static final String METHOD_NAME_GET = "get";
+
+		static final String METHOD_NAME_SIZE = "size";
+
+		static final String METHOD_NAME_KEYSET = "keySet";
+
+		static final String METHOD_NAME_ITERATOR = "iterator";
+
+		static final String METHOD_NAME_HASNEXT = "hasNext";
+
+		static final String METHOD_NAME_NEXT = "next";
 
 		static final String METHOD_NAME_MSGPACK = "messagePack";
 
@@ -147,6 +142,8 @@ public class PackUnpackUtil {
 		static final String METHOD_NAME_UNPACKARRAY = "unpackArray";
 
 		static final String METHOD_NAME_UNPACKMAP = "unpackMap";
+
+		static final String METHOD_NAME_ASARRAY = "asArray";
 	}
 
 	public static class Enhancer {
@@ -180,9 +177,9 @@ public class PackUnpackUtil {
 			setInterfaces(enhCtClass);
 			addConstructor(enhCtClass);
 			Field[] fields = getDeclaredFields(origClass);
-			addMessagePackMethod(enhCtClass, origCtClass, fields);
-			addMessageUnpackMethod(enhCtClass, origCtClass, fields);
-			addMessageConvertMethod(enhCtClass, origCtClass, fields);
+			addMessagePackMethod(enhCtClass, fields);
+			addMessageUnpackMethod(enhCtClass, fields);
+			addMessageConvertMethod(enhCtClass, fields);
 			return createClass(enhCtClass);
 		}
 
@@ -243,11 +240,11 @@ public class PackUnpackUtil {
 		}
 
 		private void setInterfaces(CtClass enhCtClass) throws NotFoundException {
-			CtClass pacCtClass = pool.get(Constants.TYPE_NAME_MSGPACKABLE);
+			CtClass pacCtClass = pool.get(MessagePackable.class.getName());
 			enhCtClass.addInterface(pacCtClass);
-			CtClass unpacCtClass = pool.get(Constants.TYPE_NAME_MSGUNPACKABLE);
+			CtClass unpacCtClass = pool.get(MessageUnpackable.class.getName());
 			enhCtClass.addInterface(unpacCtClass);
-			CtClass convCtClass = pool.get(Constants.TYPE_NAME_MSGCONVERTABLE);
+			CtClass convCtClass = pool.get(MessageConvertable.class.getName());
 			enhCtClass.addInterface(convCtClass);
 		}
 
@@ -296,24 +293,23 @@ public class PackUnpackUtil {
 					+ field.getName());
 		}
 
-		private void addMessagePackMethod(CtClass enhCtClass,
-				CtClass origCtClass, Field[] fields)
+		private void addMessagePackMethod(CtClass enhCtClass, Field[] fields)
 				throws CannotCompileException, NotFoundException {
 			StringBuilder sb = new StringBuilder();
 			sb.append(Constants.KEYWORD_MODIFIER_PUBLIC);
 			sb.append(Constants.CHAR_NAME_SPACE);
-			sb.append(Constants.TYPE_NAME_VOID);
+			sb.append(void.class.getName());
 			sb.append(Constants.CHAR_NAME_SPACE);
 			sb.append(Constants.METHOD_NAME_MSGPACK);
 			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
-			sb.append(Constants.TYPE_NAME_PACKER);
+			sb.append(Packer.class.getName());
 			sb.append(Constants.CHAR_NAME_SPACE);
 			sb.append(Constants.VARIABLE_NAME_PK);
 			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
 			sb.append(Constants.CHAR_NAME_SPACE);
 			sb.append(Constants.KEYWORD_THROWS);
 			sb.append(Constants.CHAR_NAME_SPACE);
-			sb.append(Constants.TYPE_NAME_IOEXCEPTION);
+			sb.append(IOException.class.getName());
 			sb.append(Constants.CHAR_NAME_SPACE);
 			sb.append(Constants.CHAR_NAME_LEFT_CURLY_BRACHET);
 			sb.append(Constants.CHAR_NAME_SPACE);
@@ -329,7 +325,7 @@ public class PackUnpackUtil {
 				insertCodeOfMessagePack(sb, field);
 			}
 			sb.append(Constants.CHAR_NAME_RIGHT_CURLY_BRACHET);
-			//System.out.println("messagePack method: " + sb.toString());
+			// System.out.println("messagePack method: " + sb.toString());
 			CtMethod newCtMethod = CtNewMethod.make(sb.toString(), enhCtClass);
 			enhCtClass.addMethod(newCtMethod);
 		}
@@ -345,27 +341,26 @@ public class PackUnpackUtil {
 			sb.append(Constants.CHAR_NAME_SPACE);
 		}
 
-		private void addMessageUnpackMethod(CtClass enhCtClass,
-				CtClass origCtClass, Field[] fields)
+		private void addMessageUnpackMethod(CtClass enhCtClass, Field[] fields)
 				throws CannotCompileException, NotFoundException {
 			StringBuilder sb = new StringBuilder();
 			sb.append(Constants.KEYWORD_MODIFIER_PUBLIC);
 			sb.append(Constants.CHAR_NAME_SPACE);
-			sb.append(Constants.TYPE_NAME_VOID);
+			sb.append(void.class.getName());
 			sb.append(Constants.CHAR_NAME_SPACE);
 			sb.append(Constants.METHOD_NAME_MSGUNPACK);
 			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
-			sb.append(Constants.TYPE_NAME_UNPACKER);
+			sb.append(Unpacker.class.getName());
 			sb.append(Constants.CHAR_NAME_SPACE);
 			sb.append(Constants.VARIABLE_NAME_PK);
 			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
 			sb.append(Constants.CHAR_NAME_SPACE);
 			sb.append(Constants.KEYWORD_THROWS);
 			sb.append(Constants.CHAR_NAME_SPACE);
-			sb.append(Constants.TYPE_NAME_MSGTYPEEXCEPTION);
+			sb.append(MessageTypeException.class.getName());
 			sb.append(Constants.CHAR_NAME_COMMA);
 			sb.append(Constants.CHAR_NAME_SPACE);
-			sb.append(Constants.TYPE_NAME_IOEXCEPTION);
+			sb.append(IOException.class.getName());
 			sb.append(Constants.CHAR_NAME_SPACE);
 			sb.append(Constants.CHAR_NAME_LEFT_CURLY_BRACHET);
 			sb.append(Constants.CHAR_NAME_SPACE);
@@ -380,7 +375,7 @@ public class PackUnpackUtil {
 				insertCodeOfMessageUnpack(sb, field, field.getType());
 			}
 			sb.append(Constants.CHAR_NAME_RIGHT_CURLY_BRACHET);
-			//System.out.println("messageUnpack method: " + sb.toString());
+			// System.out.println("messageUnpack method: " + sb.toString());
 			CtMethod newCtMethod = CtNewMethod.make(sb.toString(), enhCtClass);
 			enhCtClass.addMethod(newCtMethod);
 		}
@@ -680,31 +675,759 @@ public class PackUnpackUtil {
 			sb.append(Constants.CHAR_NAME_SPACE);
 		}
 
-		private void addMessageConvertMethod(CtClass enhCtClass,
-				CtClass origCtClass, Field[] fields)
+		private void addMessageConvertMethod(CtClass enhCtClass, Field[] fields)
 				throws CannotCompileException {
+			// messageConvert(MessagePackObject obj) throws MessageTypeException
 			StringBuilder sb = new StringBuilder();
-			sb.append(Constants.KEYWORD_MODIFIER_PUBLIC).append(
-					Constants.CHAR_NAME_SPACE).append(Constants.TYPE_NAME_VOID)
-					.append(Constants.CHAR_NAME_SPACE).append(
-							Constants.METHOD_NAME_MSGCONVERT).append(
-							Constants.CHAR_NAME_LEFT_PARENTHESIS).append(
-							Constants.TYPE_NAME_OBJECT).append(
-							Constants.CHAR_NAME_SPACE).append(
-							Constants.VARIABLE_NAME_OBJ).append(
-							Constants.CHAR_NAME_RIGHT_PARENTHESIS).append(
-							Constants.CHAR_NAME_SPACE).append(
-							Constants.KEYWORD_THROWS).append(
-							Constants.CHAR_NAME_SPACE).append(
-							Constants.TYPE_NAME_MSGTYPEEXCEPTION).append(
-							Constants.CHAR_NAME_SPACE).append(
-							Constants.CHAR_NAME_LEFT_CURLY_BRACHET).append(
-							Constants.CHAR_NAME_SPACE);
-			// TODO
+			sb.append(Constants.KEYWORD_MODIFIER_PUBLIC);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(void.class.getName());
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.METHOD_NAME_MSGCONVERT);
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			sb.append(MessagePackObject.class.getName());
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.VARIABLE_NAME_MPO1);
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.KEYWORD_THROWS);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(MessageTypeException.class.getName());
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_LEFT_CURLY_BRACHET);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			insertCodeOfMessagePackObjectArrayGet(sb);
+			insertCodeOfMesageConvertCalls(sb, fields);
 			sb.append(Constants.CHAR_NAME_RIGHT_CURLY_BRACHET);
 			//System.out.println("messageConvert method: " + sb.toString());
 			CtMethod newCtMethod = CtNewMethod.make(sb.toString(), enhCtClass);
 			enhCtClass.addMethod(newCtMethod);
+		}
+
+		private void insertCodeOfMessagePackObjectArrayGet(StringBuilder sb) {
+			// MessagePackObject[] ary = obj.asArray();
+			sb.append(MessagePackObject.class.getName());
+			sb.append(Constants.CHAR_NAME_LEFT_SQUARE_BRACKET);
+			sb.append(Constants.CHAR_NAME_RIGHT_SQUARE_BRACKET);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.VARIABLE_NAME_ARRAY);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_EQUAL);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.VARIABLE_NAME_MPO1);
+			sb.append(Constants.CHAR_NAME_DOT);
+			sb.append(Constants.METHOD_NAME_ASARRAY);
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_SEMICOLON);
+			sb.append(Constants.CHAR_NAME_SPACE);
+		}
+
+		private void insertCodeOfMesageConvertCalls(StringBuilder sb,
+				Field[] fields) {
+			for (int i = 0; i < fields.length; ++i) {
+				insertCodeOfMessageConvertCall(sb, fields[i], fields[i]
+						.getType(), i, null);
+			}
+		}
+
+		private void insertCodeOfMessageConvertCall(StringBuilder sb, Field f,
+				Class<?> c, int i, String name) {
+			if (c.isPrimitive()) { // primitive type
+				// f0 = objs[0].intValue();
+				if (c.equals(boolean.class)) {
+					if (f != null) {
+						sb.append(f.getName());
+						sb.append(Constants.CHAR_NAME_SPACE);
+						sb.append(Constants.CHAR_NAME_EQUAL);
+						sb.append(Constants.CHAR_NAME_SPACE);
+						sb.append(Constants.VARIABLE_NAME_ARRAY);
+						sb.append(Constants.CHAR_NAME_LEFT_SQUARE_BRACKET);
+						sb.append(i);
+						sb.append(Constants.CHAR_NAME_RIGHT_SQUARE_BRACKET);
+					} else {
+						sb.append(name);
+					}
+					sb.append(Constants.CHAR_NAME_DOT);
+					sb.append("asBoolean");
+					sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+					sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+					if (f != null) {
+						sb.append(Constants.CHAR_NAME_SEMICOLON);
+						sb.append(Constants.CHAR_NAME_SPACE);
+					}
+				} else if (c.equals(byte.class)) {
+					if (f != null) {
+						sb.append(f.getName());
+						sb.append(Constants.CHAR_NAME_SPACE);
+						sb.append(Constants.CHAR_NAME_EQUAL);
+						sb.append(Constants.CHAR_NAME_SPACE);
+						sb.append(Constants.VARIABLE_NAME_ARRAY);
+						sb.append(Constants.CHAR_NAME_LEFT_SQUARE_BRACKET);
+						sb.append(i);
+						sb.append(Constants.CHAR_NAME_RIGHT_SQUARE_BRACKET);
+					} else {
+						sb.append(name);
+					}
+					sb.append(Constants.CHAR_NAME_DOT);
+					sb.append("asByte");
+					sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+					sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+					if (f != null) {
+						sb.append(Constants.CHAR_NAME_SEMICOLON);
+						sb.append(Constants.CHAR_NAME_SPACE);
+					}
+				} else if (c.equals(short.class)) {
+					if (f != null) {
+						sb.append(f.getName());
+						sb.append(Constants.CHAR_NAME_SPACE);
+						sb.append(Constants.CHAR_NAME_EQUAL);
+						sb.append(Constants.CHAR_NAME_SPACE);
+						sb.append(Constants.VARIABLE_NAME_ARRAY);
+						sb.append(Constants.CHAR_NAME_LEFT_SQUARE_BRACKET);
+						sb.append(i);
+						sb.append(Constants.CHAR_NAME_RIGHT_SQUARE_BRACKET);
+					} else {
+						sb.append(name);
+					}
+					sb.append(Constants.CHAR_NAME_DOT);
+					sb.append("asShort");
+					sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+					sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+					if (f != null) {
+						sb.append(Constants.CHAR_NAME_SEMICOLON);
+						sb.append(Constants.CHAR_NAME_SPACE);
+					}
+				} else if (c.equals(int.class)) {
+					if (f != null) {
+						sb.append(f.getName());
+						sb.append(Constants.CHAR_NAME_SPACE);
+						sb.append(Constants.CHAR_NAME_EQUAL);
+						sb.append(Constants.CHAR_NAME_SPACE);
+						sb.append(Constants.VARIABLE_NAME_ARRAY);
+						sb.append(Constants.CHAR_NAME_LEFT_SQUARE_BRACKET);
+						sb.append(i);
+						sb.append(Constants.CHAR_NAME_RIGHT_SQUARE_BRACKET);
+					} else {
+						sb.append(name);
+					}
+					sb.append(Constants.CHAR_NAME_DOT);
+					sb.append("asInt");
+					sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+					sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+					if (f != null) {
+						sb.append(Constants.CHAR_NAME_SEMICOLON);
+						sb.append(Constants.CHAR_NAME_SPACE);
+					}
+				} else if (c.equals(long.class)) {
+					if (f != null) {
+						sb.append(f.getName());
+						sb.append(Constants.CHAR_NAME_SPACE);
+						sb.append(Constants.CHAR_NAME_EQUAL);
+						sb.append(Constants.CHAR_NAME_SPACE);
+						sb.append(Constants.VARIABLE_NAME_ARRAY);
+						sb.append(Constants.CHAR_NAME_LEFT_SQUARE_BRACKET);
+						sb.append(i);
+						sb.append(Constants.CHAR_NAME_RIGHT_SQUARE_BRACKET);
+					} else {
+						sb.append(name);
+					}
+					sb.append(Constants.CHAR_NAME_DOT);
+					sb.append("asLong");
+					sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+					sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+					if (f != null) {
+						sb.append(Constants.CHAR_NAME_SEMICOLON);
+						sb.append(Constants.CHAR_NAME_SPACE);
+					}
+				} else if (c.equals(float.class)) {
+					if (f != null) {
+						sb.append(f.getName());
+						sb.append(Constants.CHAR_NAME_SPACE);
+						sb.append(Constants.CHAR_NAME_EQUAL);
+						sb.append(Constants.CHAR_NAME_SPACE);
+						sb.append(Constants.VARIABLE_NAME_ARRAY);
+						sb.append(Constants.CHAR_NAME_LEFT_SQUARE_BRACKET);
+						sb.append(i);
+						sb.append(Constants.CHAR_NAME_RIGHT_SQUARE_BRACKET);
+					} else {
+						sb.append(name);
+					}
+					sb.append(Constants.CHAR_NAME_DOT);
+					sb.append("asFloat");
+					sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+					sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+					if (f != null) {
+						sb.append(Constants.CHAR_NAME_SEMICOLON);
+						sb.append(Constants.CHAR_NAME_SPACE);
+					}
+				} else if (c.equals(double.class)) {
+					if (f != null) {
+						sb.append(f.getName());
+						sb.append(Constants.CHAR_NAME_SPACE);
+						sb.append(Constants.CHAR_NAME_EQUAL);
+						sb.append(Constants.CHAR_NAME_SPACE);
+						sb.append(Constants.VARIABLE_NAME_ARRAY);
+						sb.append(Constants.CHAR_NAME_LEFT_SQUARE_BRACKET);
+						sb.append(i);
+						sb.append(Constants.CHAR_NAME_RIGHT_SQUARE_BRACKET);
+					} else {
+						sb.append(name);
+					}
+					sb.append(Constants.CHAR_NAME_DOT);
+					sb.append("asDouble");
+					sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+					sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+					if (f != null) {
+						sb.append(Constants.CHAR_NAME_SEMICOLON);
+						sb.append(Constants.CHAR_NAME_SPACE);
+					}
+				} else {
+					throw new PackUnpackUtilException("fatal error: "
+							+ c.getName());
+				}
+			} else { // reference type
+				if (c.equals(Boolean.class)) {
+					if (f != null) {
+						sb.append(f.getName());
+						sb.append(Constants.CHAR_NAME_SPACE);
+						sb.append(Constants.CHAR_NAME_EQUAL);
+						sb.append(Constants.CHAR_NAME_SPACE);
+					}
+					sb.append(Constants.KEYWORD_NEW);
+					sb.append(Constants.CHAR_NAME_SPACE);
+					sb.append(Boolean.class.getName());
+					sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+					if (f != null) {
+						sb.append(Constants.VARIABLE_NAME_ARRAY);
+						sb.append(Constants.CHAR_NAME_LEFT_SQUARE_BRACKET);
+						sb.append(i);
+						sb.append(Constants.CHAR_NAME_RIGHT_SQUARE_BRACKET);
+					} else {
+						sb.append(name);
+					}
+					sb.append(Constants.CHAR_NAME_DOT);
+					sb.append("asBoolean");
+					sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+					sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+					sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+					if (f != null) {
+						sb.append(Constants.CHAR_NAME_SEMICOLON);
+						sb.append(Constants.CHAR_NAME_SPACE);
+					}
+				} else if (c.equals(Byte.class)) {
+					if (f != null) {
+						sb.append(f.getName());
+						sb.append(Constants.CHAR_NAME_SPACE);
+						sb.append(Constants.CHAR_NAME_EQUAL);
+						sb.append(Constants.CHAR_NAME_SPACE);
+					}
+					sb.append(Constants.KEYWORD_NEW);
+					sb.append(Constants.CHAR_NAME_SPACE);
+					sb.append(Byte.class.getName());
+					sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+					if (f != null) {
+						sb.append(Constants.VARIABLE_NAME_ARRAY);
+						sb.append(Constants.CHAR_NAME_LEFT_SQUARE_BRACKET);
+						sb.append(i);
+						sb.append(Constants.CHAR_NAME_RIGHT_SQUARE_BRACKET);
+					} else {
+						sb.append(name);
+					}
+					sb.append(Constants.CHAR_NAME_DOT);
+					sb.append("asByte");
+					sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+					sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+					sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+					if (f != null) {
+						sb.append(Constants.CHAR_NAME_SEMICOLON);
+						sb.append(Constants.CHAR_NAME_SPACE);
+					}
+				} else if (c.equals(Short.class)) {
+					if (f != null) {
+						sb.append(f.getName());
+						sb.append(Constants.CHAR_NAME_SPACE);
+						sb.append(Constants.CHAR_NAME_EQUAL);
+						sb.append(Constants.CHAR_NAME_SPACE);
+					}
+					sb.append(Constants.KEYWORD_NEW);
+					sb.append(Constants.CHAR_NAME_SPACE);
+					sb.append(Short.class.getName());
+					sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+					if (f != null) {
+						sb.append(Constants.VARIABLE_NAME_ARRAY);
+						sb.append(Constants.CHAR_NAME_LEFT_SQUARE_BRACKET);
+						sb.append(i);
+						sb.append(Constants.CHAR_NAME_RIGHT_SQUARE_BRACKET);
+					} else {
+						sb.append(name);
+					}
+					sb.append(Constants.CHAR_NAME_DOT);
+					sb.append("asShort");
+					sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+					sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+					sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+					if (f != null) {
+						sb.append(Constants.CHAR_NAME_SEMICOLON);
+						sb.append(Constants.CHAR_NAME_SPACE);
+					}
+				} else if (c.equals(Integer.class)) {
+					if (f != null) {
+						sb.append(f.getName());
+						sb.append(Constants.CHAR_NAME_SPACE);
+						sb.append(Constants.CHAR_NAME_EQUAL);
+						sb.append(Constants.CHAR_NAME_SPACE);
+					}
+					sb.append(Constants.KEYWORD_NEW);
+					sb.append(Constants.CHAR_NAME_SPACE);
+					sb.append(Integer.class.getName());
+					sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+					if (f != null) {
+						sb.append(Constants.VARIABLE_NAME_ARRAY);
+						sb.append(Constants.CHAR_NAME_LEFT_SQUARE_BRACKET);
+						sb.append(i);
+						sb.append(Constants.CHAR_NAME_RIGHT_SQUARE_BRACKET);
+					} else {
+						sb.append(name);
+					}
+					sb.append(Constants.CHAR_NAME_DOT);
+					sb.append("asInt");
+					sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+					sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+					sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+					if (f != null) {
+						sb.append(Constants.CHAR_NAME_SEMICOLON);
+						sb.append(Constants.CHAR_NAME_SPACE);
+					}
+				} else if (c.equals(Long.class)) {
+					if (f != null) {
+						sb.append(f.getName());
+						sb.append(Constants.CHAR_NAME_SPACE);
+						sb.append(Constants.CHAR_NAME_EQUAL);
+						sb.append(Constants.CHAR_NAME_SPACE);
+					}
+					sb.append(Constants.KEYWORD_NEW);
+					sb.append(Constants.CHAR_NAME_SPACE);
+					sb.append(Long.class.getName());
+					sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+					if (f != null) {
+						sb.append(Constants.VARIABLE_NAME_ARRAY);
+						sb.append(Constants.CHAR_NAME_LEFT_SQUARE_BRACKET);
+						sb.append(i);
+						sb.append(Constants.CHAR_NAME_RIGHT_SQUARE_BRACKET);
+					} else {
+						sb.append(name);
+					}
+					sb.append(Constants.CHAR_NAME_DOT);
+					sb.append("asLong");
+					sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+					sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+					sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+					if (f != null) {
+						sb.append(Constants.CHAR_NAME_SEMICOLON);
+						sb.append(Constants.CHAR_NAME_SPACE);
+					}
+				} else if (c.equals(Float.class)) {
+					if (f != null) {
+						sb.append(f.getName());
+						sb.append(Constants.CHAR_NAME_SPACE);
+						sb.append(Constants.CHAR_NAME_EQUAL);
+						sb.append(Constants.CHAR_NAME_SPACE);
+					}
+					sb.append(Constants.KEYWORD_NEW);
+					sb.append(Constants.CHAR_NAME_SPACE);
+					sb.append(Float.class.getName());
+					sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+					if (f != null) {
+						sb.append(Constants.VARIABLE_NAME_ARRAY);
+						sb.append(Constants.CHAR_NAME_LEFT_SQUARE_BRACKET);
+						sb.append(i);
+						sb.append(Constants.CHAR_NAME_RIGHT_SQUARE_BRACKET);
+					} else {
+						sb.append(name);
+					}
+					sb.append(Constants.CHAR_NAME_DOT);
+					sb.append("asFloat");
+					sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+					sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+					sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+					if (f != null) {
+						sb.append(Constants.CHAR_NAME_SEMICOLON);
+						sb.append(Constants.CHAR_NAME_SPACE);
+					}
+				} else if (c.equals(Double.class)) {
+					if (f != null) {
+						sb.append(f.getName());
+						sb.append(Constants.CHAR_NAME_SPACE);
+						sb.append(Constants.CHAR_NAME_EQUAL);
+						sb.append(Constants.CHAR_NAME_SPACE);
+					}
+					sb.append(Constants.KEYWORD_NEW);
+					sb.append(Constants.CHAR_NAME_SPACE);
+					sb.append(Double.class.getName());
+					sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+					if (f != null) {
+						sb.append(Constants.VARIABLE_NAME_ARRAY);
+						sb.append(Constants.CHAR_NAME_LEFT_SQUARE_BRACKET);
+						sb.append(i);
+						sb.append(Constants.CHAR_NAME_RIGHT_SQUARE_BRACKET);
+					} else {
+						sb.append(name);
+					}
+					sb.append(Constants.CHAR_NAME_DOT);
+					sb.append("asDouble");
+					sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+					sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+					sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+					if (f != null) {
+						sb.append(Constants.CHAR_NAME_SEMICOLON);
+						sb.append(Constants.CHAR_NAME_SPACE);
+					}
+				} else {
+					if (c.equals(String.class)) {
+						if (f != null) {
+							sb.append(f.getName());
+							sb.append(Constants.CHAR_NAME_SPACE);
+							sb.append(Constants.CHAR_NAME_EQUAL);
+							sb.append(Constants.CHAR_NAME_SPACE);
+							sb.append(Constants.VARIABLE_NAME_ARRAY);
+							sb.append(Constants.CHAR_NAME_LEFT_SQUARE_BRACKET);
+							sb.append(i);
+							sb.append(Constants.CHAR_NAME_RIGHT_SQUARE_BRACKET);
+						} else {
+							sb.append(name);
+						}
+						sb.append(Constants.CHAR_NAME_DOT);
+						sb.append("asString");
+						sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+						sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+						if (f != null) {
+							sb.append(Constants.CHAR_NAME_SEMICOLON);
+							sb.append(Constants.CHAR_NAME_SPACE);
+						}
+					} else if (c.equals(byte[].class)) {
+						if (f != null) {
+							sb.append(f.getName());
+							sb.append(Constants.CHAR_NAME_SPACE);
+							sb.append(Constants.CHAR_NAME_EQUAL);
+							sb.append(Constants.CHAR_NAME_SPACE);
+							sb.append(Constants.VARIABLE_NAME_ARRAY);
+							sb.append(Constants.CHAR_NAME_LEFT_SQUARE_BRACKET);
+							sb.append(i);
+							sb.append(Constants.CHAR_NAME_RIGHT_SQUARE_BRACKET);
+						} else {
+							sb.append(name);
+						}
+						sb.append(Constants.CHAR_NAME_DOT);
+						sb.append("asByteArray");
+						sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+						sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+						if (f != null) {
+							sb.append(Constants.CHAR_NAME_SEMICOLON);
+							sb.append(Constants.CHAR_NAME_SPACE);
+						}
+					} else if (c.equals(BigInteger.class)) {
+						if (f != null) {
+							sb.append(f.getName());
+							sb.append(Constants.CHAR_NAME_SPACE);
+							sb.append(Constants.CHAR_NAME_EQUAL);
+							sb.append(Constants.CHAR_NAME_SPACE);
+							sb.append(Constants.VARIABLE_NAME_ARRAY);
+							sb.append(Constants.CHAR_NAME_LEFT_SQUARE_BRACKET);
+							sb.append(i);
+							sb.append(Constants.CHAR_NAME_RIGHT_SQUARE_BRACKET);
+						} else {
+							sb.append(name);
+						}
+						sb.append(Constants.CHAR_NAME_DOT);
+						sb.append("asBigInteger");
+						sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+						sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+						if (f != null) {
+							sb.append(Constants.CHAR_NAME_SEMICOLON);
+							sb.append(Constants.CHAR_NAME_SPACE);
+						}
+					} else if (List.class.isAssignableFrom(c)) {
+						insertCodeOfMessageConvertCallForList(sb, f, c, i);
+					} else if (Map.class.isAssignableFrom(c)) {
+						insertCodeOfMessageConveretCallForMap(sb, f, c, i);
+					} else if (MessageConvertable.class.isAssignableFrom(c)
+							|| (getCache(c.getName()) != null)) {
+						// TODO
+						// TODO
+						// TODO
+						// ((MessageConvertable)f_i).messageConvert(ary[i]);
+						sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+						sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+						sb.append(MessageConvertable.class.getName());
+						sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+						sb.append(f.getName());
+						sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+						sb.append(Constants.CHAR_NAME_DOT);
+						sb.append(Constants.METHOD_NAME_MSGCONVERT);
+						sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+						sb.append(Constants.VARIABLE_NAME_ARRAY);
+						sb.append(Constants.CHAR_NAME_LEFT_SQUARE_BRACKET);
+						sb.append(i);
+						sb.append(Constants.CHAR_NAME_RIGHT_SQUARE_BRACKET);
+						sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+						sb.append(Constants.CHAR_NAME_SEMICOLON);
+						sb.append(Constants.CHAR_NAME_SPACE);
+					} else {
+						throw new MessageTypeException("Type error: "
+								+ c.getName());
+					}
+				}
+			}
+		}
+
+		private void insertCodeOfMessageConvertCallForList(StringBuilder sb,
+				Field field, Class<?> type, int i) {
+			ParameterizedType generic = (ParameterizedType) field
+					.getGenericType();
+			Class<?> genericType = (Class<?>) generic.getActualTypeArguments()[0];
+
+			// List<MessagePackObject> list = ary[i].asList();
+			sb.append(List.class.getName());
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.VARIABLE_NAME_LIST);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_EQUAL);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.VARIABLE_NAME_ARRAY);
+			sb.append(Constants.CHAR_NAME_LEFT_SQUARE_BRACKET);
+			sb.append(i);
+			sb.append(Constants.CHAR_NAME_RIGHT_SQUARE_BRACKET);
+			sb.append(Constants.CHAR_NAME_DOT);
+			sb.append("asList");
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_SEMICOLON);
+			sb.append(Constants.CHAR_NAME_SPACE);
+
+			// int size = list.size();
+			sb.append(int.class.getName());
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.VARIABLE_NAME_SIZE);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_EQUAL);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.VARIABLE_NAME_LIST);
+			sb.append(Constants.CHAR_NAME_DOT);
+			sb.append(Constants.METHOD_NAME_SIZE);
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_SEMICOLON);
+			sb.append(Constants.CHAR_NAME_SPACE);
+
+			// field initializer
+			sb.append(field.getName());
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_EQUAL);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.KEYWORD_NEW);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(ArrayList.class.getName());
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_SEMICOLON);
+			sb.append(Constants.CHAR_NAME_SPACE);
+
+			// for loop
+			sb.append(Constants.KEYWORD_FOR);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			sb.append(int.class.getName());
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.VARIABLE_NAME_I);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_EQUAL);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(0);
+			sb.append(Constants.CHAR_NAME_SEMICOLON);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.VARIABLE_NAME_I);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_LESSTHAN);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.VARIABLE_NAME_SIZE);
+			sb.append(Constants.CHAR_NAME_SEMICOLON);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_PLUS);
+			sb.append(Constants.CHAR_NAME_PLUS);
+			sb.append(Constants.VARIABLE_NAME_I);
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_SPACE);
+
+			// block begin
+			sb.append(Constants.CHAR_NAME_LEFT_CURLY_BRACHET);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(MessagePackObject.class.getName());
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append("_$$_val");
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_EQUAL);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			sb.append(MessagePackObject.class.getName());
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.VARIABLE_NAME_LIST);
+			sb.append(Constants.CHAR_NAME_DOT);
+			sb.append(Constants.METHOD_NAME_GET);
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			sb.append(Constants.VARIABLE_NAME_I);
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_SEMICOLON);
+			sb.append(Constants.CHAR_NAME_SPACE);
+
+			sb.append(field.getName());
+			sb.append(Constants.CHAR_NAME_DOT);
+			sb.append(Constants.METHOD_NAME_ADD);
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			insertCodeOfMessageConvertCall(sb, null, genericType, -1, "_$$_val");
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_SEMICOLON);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			// block end
+			sb.append(Constants.CHAR_NAME_RIGHT_CURLY_BRACHET);
+			sb.append(Constants.CHAR_NAME_SPACE);
+		}
+
+		private void insertCodeOfMessageConveretCallForMap(StringBuilder sb,
+				Field f, Class<?> c, int i) {
+			ParameterizedType generic = (ParameterizedType) f.getGenericType();
+			Class<?> genericType0 = (Class<?>) generic.getActualTypeArguments()[0];
+			Class<?> genericType1 = (Class<?>) generic.getActualTypeArguments()[1];
+
+			// Map<MessagePackObject, MessagePackObject> map = ary[i].asMap();
+			sb.append(Map.class.getName());
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.VARIABLE_NAME_MAP);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_EQUAL);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.VARIABLE_NAME_ARRAY);
+			sb.append(Constants.CHAR_NAME_LEFT_SQUARE_BRACKET);
+			sb.append(i);
+			sb.append(Constants.CHAR_NAME_RIGHT_SQUARE_BRACKET);
+			sb.append(Constants.CHAR_NAME_DOT);
+			sb.append("asMap");
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_SEMICOLON);
+			sb.append(Constants.CHAR_NAME_SPACE);
+
+			// int size = list.size();
+			sb.append(int.class.getName());
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.VARIABLE_NAME_SIZE);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_EQUAL);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.VARIABLE_NAME_MAP);
+			sb.append(Constants.CHAR_NAME_DOT);
+			sb.append(Constants.METHOD_NAME_SIZE);
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_SEMICOLON);
+			sb.append(Constants.CHAR_NAME_SPACE);
+
+			// field initializer
+			sb.append(f.getName());
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_EQUAL);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.KEYWORD_NEW);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(HashMap.class.getName());
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_SEMICOLON);
+			sb.append(Constants.CHAR_NAME_SPACE);
+
+			// for loop
+			sb.append(Constants.KEYWORD_FOR);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			sb.append(Iterator.class.getName());
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.VARIABLE_NAME_ITER);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_EQUAL);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.VARIABLE_NAME_MAP);
+			sb.append(Constants.CHAR_NAME_DOT);
+			sb.append(Constants.METHOD_NAME_KEYSET);
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_DOT);
+			sb.append(Constants.METHOD_NAME_ITERATOR);
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_SEMICOLON);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.VARIABLE_NAME_ITER);
+			sb.append(Constants.CHAR_NAME_DOT);
+			sb.append(Constants.METHOD_NAME_HASNEXT);
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_SEMICOLON);
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_LEFT_CURLY_BRACHET);
+			sb.append(Constants.CHAR_NAME_SPACE);
+
+			// block map.
+			sb.append(MessagePackObject.class.getName());
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append("_$$_key");
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_EQUAL);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			sb.append(MessagePackObject.class.getName());
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.VARIABLE_NAME_ITER);
+			sb.append(Constants.CHAR_NAME_DOT);
+			sb.append(Constants.METHOD_NAME_NEXT);
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_SEMICOLON);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(MessagePackObject.class.getName());
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append("_$$_val");
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_EQUAL);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			sb.append(MessagePackObject.class.getName());
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.VARIABLE_NAME_MAP);
+			sb.append(Constants.CHAR_NAME_DOT);
+			sb.append(Constants.METHOD_NAME_GET);
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			sb.append("_$$_key");
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_SEMICOLON);
+			sb.append(Constants.CHAR_NAME_SPACE);
+
+			sb.append(f.getName());
+			sb.append(Constants.CHAR_NAME_DOT);
+			sb.append(Constants.METHOD_NAME_PUT);
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			insertCodeOfMessageConvertCall(sb, null, genericType0, -1,
+					"_$$_key");
+			sb.append(Constants.CHAR_NAME_COMMA);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			insertCodeOfMessageConvertCall(sb, null, genericType1, -1,
+					"_$$_val");
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_SEMICOLON);
+			sb.append(Constants.CHAR_NAME_SPACE);
+
+			sb.append(Constants.CHAR_NAME_RIGHT_CURLY_BRACHET);
+			sb.append(Constants.CHAR_NAME_SPACE);
 		}
 
 		private Class<?> createClass(CtClass enhCtClass)
@@ -749,6 +1472,19 @@ public class PackUnpackUtil {
 		}
 	}
 
+	public static Object initEnhancedInstance(MessagePackObject obj,
+			Class<?> origClass) {
+		Object ret = newEnhancedInstance(origClass);
+		((MessageConvertable) ret).messageConvert(obj);
+		return ret;
+	}
+
+	public static Object initEnhancedInstance(MessagePackObject obj,
+			Object origObj) {
+		((MessageConvertable) origObj).messageConvert(obj);
+		return origObj;
+	}
+
 	@MessagePackUnpackable
 	public static class Image {
 		public String uri = "";
@@ -789,6 +1525,6 @@ public class PackUnpackUtil {
 		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
 		Unpacker pac = new Unpacker(in);
 		pac.unpack((MessageUnpackable) dst);
-		//System.out.println(src.equals(dst));
+		// System.out.println(src.equals(dst));
 	}
 }
