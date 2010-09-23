@@ -7,6 +7,7 @@ module Data.MessagePack.Derive (
   ) where
 
 import Control.Applicative
+import Control.Monad
 import Language.Haskell.TH
 
 import Data.MessagePack.Pack
@@ -24,9 +25,9 @@ deriveUnpack typName = do
         
   where
     body (NormalC conName elms) =
-      DoE
-      [ BindS (tupOrListP $ map VarP names) (VarE 'get)
-      , NoBindS $ AppE (VarE 'return) $ foldl AppE (ConE conName) $ map VarE names ]
+      DoE $
+      tupOrListP (map VarP names) (VarE 'get) ++
+      [ NoBindS $ AppE (VarE 'return) $ foldl AppE (ConE conName) $ map VarE names ]
         where
           names = zipWith (\ix _ -> mkName $ "a" ++ show (ix :: Int)) [1..] elms
 
@@ -78,9 +79,9 @@ deriveObject typName = do
       toObjectBody (NormalC conName $ map (\(_, b, c) -> (b, c)) elms)
 
     tryFromObjectBody (NormalC conName elms) =
-      DoE
-      [ BindS (tupOrListP $ map VarP names) (AppE (VarE 'tryFromObject) (VarE oname))
-      , NoBindS $ AppE (VarE 'return) $ foldl AppE (ConE conName) $ map VarE names ]
+      DoE $
+      tupOrListP (map VarP names) (AppE (VarE 'tryFromObject) (VarE oname)) ++
+      [ NoBindS $ AppE (VarE 'return) $ foldl AppE (ConE conName) $ map VarE names ]
         where
           names = zipWith (\ix _ -> mkName $ "a" ++ show (ix :: Int)) [1..] elms
     tryFromObjectBody (RecC conName elms) =
@@ -89,12 +90,17 @@ deriveObject typName = do
     oname = mkName "o"
     ch = foldl1 (\e f -> AppE (AppE (VarE '(<|>)) e) f)
 
-tupOrListP :: [Pat] -> Pat
-tupOrListP ls
-  | length ls <= 1 = ListP ls
-  | otherwise = TupP ls
+tupOrListP :: [Pat] -> Exp -> [Stmt]
+tupOrListP ls e
+  | length ls == 0 =
+    let lsname = mkName "ls" in
+    [ BindS (VarP lsname) e
+    , NoBindS $ AppE (VarE 'guard) $ AppE (VarE 'null) $ SigE (VarE lsname) (AppT ListT (ConT ''())) ]
+  | length ls == 1 = [ BindS (ListP ls) e ]
+  | otherwise = [ BindS (TupP ls) e ]
 
 tupOrListE :: [Exp] -> Exp
 tupOrListE ls
-  | length ls <= 1 = ListE ls
+  | length ls == 0 = SigE (ListE []) (AppT ListT (ConT ''()))
+  | length ls == 1 = ListE ls
   | otherwise = TupE ls

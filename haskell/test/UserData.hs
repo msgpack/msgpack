@@ -6,40 +6,38 @@ import Data.MessagePack.Derive
 data T
   = A Int String
   | B Double
-  deriving (Show)
+  deriving (Show, Eq)
 
 $(deriveObject ''T)
 
 data U
   = C { c1 :: Int, c2 :: String }
   | D { d1 :: Double }
-  deriving (Show)
+  deriving (Show, Eq)
 
 $(deriveObject ''U)
 
-main = do
-  let bs = pack $ A 123 "hoge"
-  print bs
-  print (unpack bs :: T)
-  let cs = pack $ B 3.14
-  print cs
-  print (unpack cs :: T)
-  let oa = toObject $ A 123 "hoge"
-  print oa
-  print (fromObject oa :: T)
-  let ob = toObject $ B 3.14
-  print ob
-  print (fromObject ob :: T)
+data V
+  = E String | F
+  deriving (Show, Eq)
 
-  let ds = pack $ C 123 "hoge"
-  print ds
-  print (unpack ds :: U)
-  let es = pack $ D 3.14
-  print es
-  print (unpack es :: U)
-  let oc = toObject $ C 123 "hoge"
-  print oc
-  print (fromObject oc :: U)
-  let od = toObject $ D 3.14
-  print od
-  print (fromObject od :: U)
+$(deriveObject ''V)
+
+test :: (OBJECT a, Show a, Eq a) => a -> IO ()
+test v = do
+  let bs = pack v
+  print bs
+  print (unpack bs == v)
+
+  let oa = toObject v
+  print oa
+  print (fromObject oa == v)
+
+main = do
+  test $ A 123 "hoge"
+  test $ B 3.14
+  test $ C 123 "hoge"
+  test $ D 3.14
+  test $ E "hello"
+  test $ F
+  return ()
