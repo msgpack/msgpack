@@ -41,9 +41,13 @@ public class PackUnpackUtil {
 
 		static final String KEYWORD_FOR = "for";
 
+		static final String KEYWORD_IF = "if";
+
 		static final String KEYWORD_THROWS = "throws";
 
 		static final String KEYWORD_NEW = "new";
+
+		static final String KEYWORD_NULL = "null";
 
 		static final String CHAR_NAME_SPACE = " ";
 
@@ -409,42 +413,43 @@ public class PackUnpackUtil {
 			}
 		}
 
-		private void insertCodeOfMessageUnpackCall(StringBuilder sb,
-				Field field, Class<?> type) throws NotFoundException {
-			if (type.isPrimitive()) {
+		private void insertCodeOfMessageUnpackCall(StringBuilder sb, Field f,
+				Class<?> c) throws NotFoundException {
+			if (c.isPrimitive()) {
 				// primitive type
-				insertCodeOfMessageUnpackCallForPrimitiveTypes(sb, field, type);
-			} else if (type.equals(Boolean.class) || // Boolean
-					type.equals(Byte.class) || // Byte
-					type.equals(Double.class) || // Double
-					type.equals(Float.class) || // Float
-					type.equals(Integer.class) || // Integer
-					type.equals(Long.class) || // Long
-					type.equals(Short.class)) { // Short
+				insertCodeOfMessageUnpackCallForPrimTypes(sb, f, c);
+			} else if (c.equals(Boolean.class) || // Boolean
+					c.equals(Byte.class) || // Byte
+					c.equals(Double.class) || // Double
+					c.equals(Float.class) || // Float
+					c.equals(Integer.class) || // Integer
+					c.equals(Long.class) || // Long
+					c.equals(Short.class)) { // Short
 				// reference type (wrapper type)
-				insertCodeOfMessageUnpackCallForWrapperTypes(sb, field, type);
-			} else if (type.equals(BigInteger.class) || // BigInteger
-					type.equals(String.class) || // String
-					type.equals(byte[].class)) { // byte[]
+				insertCodeOfMessageUnpackCallForWrapTypes(sb, f, c);
+			} else if (c.equals(BigInteger.class) || // BigInteger
+					c.equals(String.class) || // String
+					c.equals(byte[].class)) { // byte[]
 				// reference type (other type)
-				insertCodeOfMessageUnpackCallForPrimitiveTypes(sb, field, type);
-			} else if (List.class.isAssignableFrom(type)) {
+				insertCodeOfMessageUnpackCallForPrimTypes(sb, f, c);
+			} else if (List.class.isAssignableFrom(c)) {
 				// List
-				insertCodeOfMessageUnpackCallForListType(sb, field, type);
-			} else if (Map.class.isAssignableFrom(type)) {
+				insertCodeOfMessageUnpackCallForListType(sb, f, c);
+			} else if (Map.class.isAssignableFrom(c)) {
 				// Map
-				insertCodeOfMessageUnpackCallForMapType(sb, field, type);
-			} else if (MessageUnpackable.class.isAssignableFrom(type)
-					|| (getCache(type.getName()) != null)) {
+				insertCodeOfMessageUnpackCallForMapType(sb, f, c);
+			} else if (getCache(c.getName()) != null) {
+				// cached
+				insertCodeOfMessageUnpackCallForEnhancedType(sb, f, c);
+			} else if (MessageUnpackable.class.isAssignableFrom(c)) {
 				// MessageUnpackable
-				insertCodeOfMessageUnpackCallForMsgUnpackableType(sb, field,
-						type);
+				insertCodeOfMessageUnpackCallForMsgUnpackableType(sb, f, c);
 			} else {
-				throw new NotFoundException("unknown type:  " + type.getName());
+				throw new NotFoundException("unknown type:  " + c.getName());
 			}
 		}
 
-		private void insertCodeOfMessageUnpackCallForPrimitiveTypes(
+		private void insertCodeOfMessageUnpackCallForPrimTypes(
 				StringBuilder sb, Field field, Class<?> type)
 				throws NotFoundException {
 			// insert a right variable
@@ -491,7 +496,7 @@ public class PackUnpackUtil {
 			}
 		}
 
-		private void insertCodeOfMessageUnpackCallForWrapperTypes(
+		private void insertCodeOfMessageUnpackCallForWrapTypes(
 				StringBuilder sb, Field field, Class<?> type)
 				throws NotFoundException {
 			// insert a right variable
@@ -690,8 +695,42 @@ public class PackUnpackUtil {
 			sb.append(Constants.CHAR_NAME_SPACE);
 		}
 
+		private void insertCodeOfMessageUnpackCallForEnhancedType(
+				StringBuilder sb, Field f, Class<?> c) {
+			c = this.getCache(c.getName());
+			insertCodeOfMessageUnpackCallForMsgUnpackableType(sb, f, c);
+		}
+
 		private void insertCodeOfMessageUnpackCallForMsgUnpackableType(
-				StringBuilder sb, Field field, Class<?> type) {
+				StringBuilder sb, Field f, Class<?> c) {
+			// if (fi == null) { fi = new Foo_$$_Enhanced(); }
+			sb.append(Constants.KEYWORD_IF);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			sb.append(f.getName());
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_EQUAL);
+			sb.append(Constants.CHAR_NAME_EQUAL);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.KEYWORD_NULL);
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_LEFT_CURLY_BRACHET);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(f.getName());
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_EQUAL);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.KEYWORD_NEW);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(c.getName());
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_SEMICOLON);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_RIGHT_CURLY_BRACHET);
+			sb.append(Constants.CHAR_NAME_SPACE);
+
 			// insert a right variable // ignore
 			sb.append(Constants.VARIABLE_NAME_PK);
 			sb.append(Constants.CHAR_NAME_DOT);
@@ -700,7 +739,7 @@ public class PackUnpackUtil {
 			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
 			sb.append(MessageUnpackable.class.getName());
 			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
-			sb.append(field.getName());
+			sb.append(f.getName());
 			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
 			sb.append(Constants.CHAR_NAME_SEMICOLON);
 			sb.append(Constants.CHAR_NAME_SPACE);
@@ -779,33 +818,70 @@ public class PackUnpackUtil {
 				} else if (List.class.isAssignableFrom(c)) {
 					insertCodeOfMessageConvertCallForList(sb, f, c, i);
 				} else if (Map.class.isAssignableFrom(c)) {
-					insertCodeOfMessageConveretCallForMap(sb, f, c, i);
-				} else if (MessageConvertable.class.isAssignableFrom(c)
-						|| (getCache(c.getName()) != null)) {
-					// TODO
-					// TODO
-					// TODO
-					// ((MessageConvertable)f_i).messageConvert(ary[i]);
-					sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
-					sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
-					sb.append(MessageConvertable.class.getName());
-					sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
-					sb.append(f.getName());
-					sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
-					sb.append(Constants.CHAR_NAME_DOT);
-					sb.append(Constants.METHOD_NAME_MSGCONVERT);
-					sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
-					sb.append(Constants.VARIABLE_NAME_ARRAY);
-					sb.append(Constants.CHAR_NAME_LEFT_SQUARE_BRACKET);
-					sb.append(i);
-					sb.append(Constants.CHAR_NAME_RIGHT_SQUARE_BRACKET);
-					sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
-					sb.append(Constants.CHAR_NAME_SEMICOLON);
-					sb.append(Constants.CHAR_NAME_SPACE);
+					insertCodeOfMessageConvertCallForMap(sb, f, c, i);
+				} else if ((getCache(c.getName()) != null)) {
+					insertCodeOfMessageConvertCallForEnhancedType(sb, f, c, i);
+				} else if (MessageConvertable.class.isAssignableFrom(c)) {
+					insertCodeOfMessageConvertCallForMsgConvtblType(sb, f, c, i);
 				} else {
 					throw new MessageTypeException("Type error: " + c.getName());
 				}
 			}
+		}
+
+		private void insertCodeOfMessageConvertCallForEnhancedType(
+				StringBuilder sb, Field f, Class<?> c, int i) {
+			c = getCache(c.getName());
+			insertCodeOfMessageConvertCallForMsgConvtblType(sb, f, c, i);
+		}
+
+		private void insertCodeOfMessageConvertCallForMsgConvtblType(
+				StringBuilder sb, Field f, Class<?> c, int i) {
+			// if (fi == null) { fi = new Foo_$$_Enhanced(); }
+			sb.append(Constants.KEYWORD_IF);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			sb.append(f.getName());
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_EQUAL);
+			sb.append(Constants.CHAR_NAME_EQUAL);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.KEYWORD_NULL);
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_LEFT_CURLY_BRACHET);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(f.getName());
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_EQUAL);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.KEYWORD_NEW);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(c.getName());
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_SEMICOLON);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_RIGHT_CURLY_BRACHET);
+			sb.append(Constants.CHAR_NAME_SPACE);
+
+			// ((MessageConvertable)f_i).messageConvert(ary[i]);
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			sb.append(MessageConvertable.class.getName());
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(f.getName());
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_DOT);
+			sb.append(Constants.METHOD_NAME_MSGCONVERT);
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			sb.append(Constants.VARIABLE_NAME_ARRAY);
+			sb.append(Constants.CHAR_NAME_LEFT_SQUARE_BRACKET);
+			sb.append(i);
+			sb.append(Constants.CHAR_NAME_RIGHT_SQUARE_BRACKET);
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_SEMICOLON);
+			sb.append(Constants.CHAR_NAME_SPACE);
 		}
 
 		private void insertCodeOfMessageConvertCallForPrimTypes(
@@ -1031,7 +1107,7 @@ public class PackUnpackUtil {
 			sb.append(Constants.CHAR_NAME_SPACE);
 		}
 
-		private void insertCodeOfMessageConveretCallForMap(StringBuilder sb,
+		private void insertCodeOfMessageConvertCallForMap(StringBuilder sb,
 				Field f, Class<?> c, int i) {
 			ParameterizedType generic = (ParameterizedType) f.getGenericType();
 			Class<?> genericType0 = (Class<?>) generic.getActualTypeArguments()[0];

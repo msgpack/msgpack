@@ -208,7 +208,7 @@ public class TestMessagePackUnpackable extends TestCase {
 			assertEquals(src.f2.get(i), dst.f2.get(i));
 		}
 	}
-	
+
 	public void testListTypes02() throws Exception {
 		SampleListTypes src = (SampleListTypes) PackUnpackUtil
 				.newEnhancedInstance(SampleListTypes.class);
@@ -291,7 +291,7 @@ public class TestMessagePackUnpackable extends TestCase {
 			assertEquals(src.f2.get(s2), dst.f2.get(d2));
 		}
 	}
-	
+
 	public void testMapTypes02() throws Exception {
 		SampleMapTypes src = (SampleMapTypes) PackUnpackUtil
 				.newEnhancedInstance(SampleMapTypes.class);
@@ -565,11 +565,8 @@ public class TestMessagePackUnpackable extends TestCase {
 		src.f1 = src2;
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		new Packer(out).pack(src);
-		NestedClass dst2 = (NestedClass) PackUnpackUtil
-				.newEnhancedInstance(NestedClass.class);
 		BaseClass dst = (BaseClass) PackUnpackUtil
 				.newEnhancedInstance(BaseClass.class);
-		dst.f1 = dst2;
 		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
 		Unpacker pac = new Unpacker(in);
 		pac.unpack((MessageUnpackable) dst);
@@ -593,12 +590,8 @@ public class TestMessagePackUnpackable extends TestCase {
 		Iterator<MessagePackObject> it = pac.iterator();
 		assertTrue(it.hasNext());
 		MessagePackObject mpo = it.next();
-		NestedClass dst2 = (NestedClass) PackUnpackUtil
-				.newEnhancedInstance(NestedClass.class);
-		BaseClass dst = (BaseClass) PackUnpackUtil
-				.newEnhancedInstance(BaseClass.class);
-		dst.f1 = dst2;
-		dst = (BaseClass) PackUnpackUtil.initEnhancedInstance(mpo, dst);
+		BaseClass dst = (BaseClass) PackUnpackUtil.initEnhancedInstance(mpo,
+				BaseClass.class);
 		assertTrue(src.f0 == dst.f0);
 		assertTrue(src2.f2 == dst.f1.f2);
 		assertFalse(it.hasNext());
@@ -649,7 +642,7 @@ public class TestMessagePackUnpackable extends TestCase {
 		assertTrue(src.f8 == dst.f8);
 		assertTrue(src.f9 != dst.f9);
 	}
-	
+
 	@Test
 	public void testExtendedClass02() throws Exception {
 		SampleSubClass src = (SampleSubClass) PackUnpackUtil
