@@ -211,7 +211,8 @@ public class PackUnpackUtil {
 			return createClass(enhCtClass);
 		}
 
-		private void checkClassValidation(Class<?> origClass, boolean packUnpackable) {
+		private void checkClassValidation(Class<?> origClass,
+				boolean packUnpackable) {
 			// not public, abstract, final
 			int mod = origClass.getModifiers();
 			if ((!(Modifier.isPublic(mod) || Modifier.isProtected(mod)))
@@ -1253,8 +1254,9 @@ public class PackUnpackUtil {
 	}
 
 	private static Enhancer enhancer;
-	
-	public static void registerEnhancedClass(Class<?> origClass, boolean packUnpackable) {
+
+	public static void registerEnhancedClass(Class<?> origClass,
+			boolean packUnpackable) {
 		if (enhancer == null) {
 			enhancer = new Enhancer();
 		}
@@ -1271,13 +1273,13 @@ public class PackUnpackUtil {
 			}
 			// set the generated class to the cache
 			enhancer.setCache(origName, enhClass);
-		}			
+		}
 	}
-	
+
 	public static void registerEnhancedClass(Class<?> origClass) {
 		registerEnhancedClass(origClass, false);
 	}
-	
+
 	public static boolean isRegistered(Class<?> origClass) {
 		if (enhancer == null) {
 			enhancer = new Enhancer();
@@ -1285,18 +1287,20 @@ public class PackUnpackUtil {
 		return enhancer.getCache(origClass.getName()) != null;
 	}
 
-	public static Class<?> getEnhancedClass(Class<?> origClass, boolean packUnpackable) {
+	public static Class<?> getEnhancedClass(Class<?> origClass,
+			boolean packUnpackable) {
 		if (!isRegistered(origClass)) {
 			registerEnhancedClass(origClass, packUnpackable);
 		}
 		return enhancer.getCache(origClass.getName());
 	}
-	
+
 	public static Class<?> getEnhancedClass(Class<?> origClass) {
 		return getEnhancedClass(origClass, false);
 	}
 
-	public static Object newEnhancedInstance(Class<?> origClass, boolean packUnpackable) {
+	public static Object newEnhancedInstance(Class<?> origClass,
+			boolean packUnpackable) {
 		try {
 			Class<?> enhClass = getEnhancedClass(origClass, packUnpackable);
 			// create a new object of the generated class
@@ -1305,13 +1309,13 @@ public class PackUnpackUtil {
 			throw new PackUnpackUtilException(e.getMessage(), e);
 		} catch (IllegalAccessException e) {
 			throw new PackUnpackUtilException(e.getMessage(), e);
-		}		
+		}
 	}
-	
+
 	public static Object newEnhancedInstance(Class<?> origClass) {
 		return newEnhancedInstance(origClass, false);
 	}
-	
+
 	public static Object initEnhancedInstance(MessagePackObject obj,
 			Class<?> origClass, boolean packUnpackable) {
 		Object ret = newEnhancedInstance(origClass, packUnpackable);
