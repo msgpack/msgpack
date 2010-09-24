@@ -1,5 +1,5 @@
 Name:               msgpack
-Version:            0.4.0
+Version:            0.4.0.1
 Synopsis:           A Haskell binding to MessagePack
 Description:
   A Haskell binding to MessagePack <http://msgpack.org/>
@@ -14,6 +14,10 @@ Homepage:           http://github.com/msgpack/msgpack
 Stability:          Experimental
 Cabal-Version:      >= 1.6
 Build-Type:         Simple
+
+Extra-source-files:
+  test/Test.hs
+  test/UserData.hs
 
 Library
   Build-depends:    base >=4 && <5,
