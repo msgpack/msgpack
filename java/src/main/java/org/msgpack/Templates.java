@@ -33,15 +33,52 @@ public class Templates {
 	}
 
 
-	public static final Template TString = StringTemplate.getInstance();
+	public static final Template TByte = ByteTemplate.getInstance();
+	public static Template tByte() {
+		return TByte;
+	}
 
+	public static final Template TShort = ShortTemplate.getInstance();
+	public static Template tShort() {
+		return TShort;
+	}
+
+	public static final Template TInteger = IntegerTemplate.getInstance();
+	public static Template tInteger() {
+		return TInteger;
+	}
+
+	public static final Template TLong = LongTemplate.getInstance();
+	public static Template tLong() {
+		return TLong;
+	}
+
+	public static final Template TBigInteger = BigIntegerTemplate.getInstance();
+	public static Template tBigInteger() {
+		return TBigInteger;
+	}
+
+	public static final Template TFloat = FloatTemplate.getInstance();
+	public static Template tFloat() {
+		return TFloat;
+	}
+
+	public static final Template TDouble = DoubleTemplate.getInstance();
+	public static Template tDouble() {
+		return TDouble;
+	}
+
+	public static final Template TBoolean = BooleanTemplate.getInstance();
+	public static Template tBoolean() {
+		return TBoolean;
+	}
+
+	public static final Template TString = StringTemplate.getInstance();
 	public static Template tString() {
 		return TString;
 	}
 
-
 	public static final Template TByteArray = ByteArrayTemplate.getInstance();
-
 	public static Template tByteArray() {
 		return TByteArray;
 	}

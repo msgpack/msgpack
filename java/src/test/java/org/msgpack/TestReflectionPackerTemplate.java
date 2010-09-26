@@ -18,7 +18,7 @@ public class TestReflectionPackerTemplate {
 
 	@Test
 	public void testPackConvert() throws Exception {
-		tString();
+		tString();  // FIXME link StringTemplate
 
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 
