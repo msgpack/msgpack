@@ -69,7 +69,7 @@ do { \
 	} else { \
 		/* unsigned 16 */ \
 		unsigned char buf[3]; \
-		buf[0] = 0xcd; _msgpack_store16(&buf[1], d); \
+		buf[0] = 0xcd; _msgpack_store16(&buf[1], (uint16_t)d); \
 		msgpack_pack_append_buffer(x, buf, 3); \
 	} \
 } while(0)
@@ -89,12 +89,12 @@ do { \
 		if(d < (1<<16)) { \
 			/* unsigned 16 */ \
 			unsigned char buf[3]; \
-			buf[0] = 0xcd; _msgpack_store16(&buf[1], d); \
+			buf[0] = 0xcd; _msgpack_store16(&buf[1], (uint16_t)d); \
 			msgpack_pack_append_buffer(x, buf, 3); \
 		} else { \
 			/* unsigned 32 */ \
 			unsigned char buf[5]; \
-			buf[0] = 0xce; _msgpack_store32(&buf[1], d); \
+			buf[0] = 0xce; _msgpack_store32(&buf[1], (uint32_t)d); \
 			msgpack_pack_append_buffer(x, buf, 5); \
 		} \
 	} \
@@ -103,7 +103,7 @@ do { \
 #define msgpack_pack_real_uint64(x, d) \
 do { \
 	if(d < (1ULL<<8)) { \
-		if(d < (1<<7)) { \
+		if(d < (1ULL<<7)) { \
 			/* fixnum */ \
 			msgpack_pack_append_buffer(x, &TAKE8_64(d), 1); \
 		} else { \
@@ -115,12 +115,12 @@ do { \
 		if(d < (1ULL<<16)) { \
 			/* unsigned 16 */ \
 			unsigned char buf[3]; \
-			buf[0] = 0xcd; _msgpack_store16(&buf[1], d); \
+			buf[0] = 0xcd; _msgpack_store16(&buf[1], (uint16_t)d); \
 			msgpack_pack_append_buffer(x, buf, 3); \
 		} else if(d < (1ULL<<32)) { \
 			/* unsigned 32 */ \
 			unsigned char buf[5]; \
-			buf[0] = 0xce; _msgpack_store32(&buf[1], d); \
+			buf[0] = 0xce; _msgpack_store32(&buf[1], (uint32_t)d); \
 			msgpack_pack_append_buffer(x, buf, 5); \
 		} else { \
 			/* unsigned 64 */ \
@@ -149,7 +149,7 @@ do { \
 		if(d < -(1<<7)) { \
 			/* signed 16 */ \
 			unsigned char buf[3]; \
-			buf[0] = 0xd1; _msgpack_store16(&buf[1], d); \
+			buf[0] = 0xd1; _msgpack_store16(&buf[1], (int16_t)d); \
 			msgpack_pack_append_buffer(x, buf, 3); \
 		} else { \
 			/* signed 8 */ \
@@ -167,7 +167,7 @@ do { \
 		} else { \
 			/* unsigned 16 */ \
 			unsigned char buf[3]; \
-			buf[0] = 0xcd; _msgpack_store16(&buf[1], d); \
+			buf[0] = 0xcd; _msgpack_store16(&buf[1], (uint16_t)d); \
 			msgpack_pack_append_buffer(x, buf, 3); \
 		} \
 	} \
@@ -179,12 +179,12 @@ do { \
 		if(d < -(1<<15)) { \
 			/* signed 32 */ \
 			unsigned char buf[5]; \
-			buf[0] = 0xd2; _msgpack_store32(&buf[1], d); \
+			buf[0] = 0xd2; _msgpack_store32(&buf[1], (int32_t)d); \
 			msgpack_pack_append_buffer(x, buf, 5); \
 		} else if(d < -(1<<7)) { \
 			/* signed 16 */ \
 			unsigned char buf[3]; \
-			buf[0] = 0xd1; _msgpack_store16(&buf[1], d); \
+			buf[0] = 0xd1; _msgpack_store16(&buf[1], (int16_t)d); \
 			msgpack_pack_append_buffer(x, buf, 3); \
 		} else { \
 			/* signed 8 */ \
@@ -202,12 +202,12 @@ do { \
 		} else if(d < (1<<16)) { \
 			/* unsigned 16 */ \
 			unsigned char buf[3]; \
-			buf[0] = 0xcd; _msgpack_store16(&buf[1], d); \
+			buf[0] = 0xcd; _msgpack_store16(&buf[1], (uint16_t)d); \
 			msgpack_pack_append_buffer(x, buf, 3); \
 		} else { \
 			/* unsigned 32 */ \
 			unsigned char buf[5]; \
-			buf[0] = 0xce; _msgpack_store32(&buf[1], d); \
+			buf[0] = 0xce; _msgpack_store32(&buf[1], (uint32_t)d); \
 			msgpack_pack_append_buffer(x, buf, 5); \
 		} \
 	} \
@@ -225,14 +225,14 @@ do { \
 			} else { \
 				/* signed 32 */ \
 				unsigned char buf[5]; \
-				buf[0] = 0xd2; _msgpack_store32(&buf[1], d); \
+				buf[0] = 0xd2; _msgpack_store32(&buf[1], (int32_t)d); \
 				msgpack_pack_append_buffer(x, buf, 5); \
 			} \
 		} else { \
 			if(d < -(1<<7)) { \
 				/* signed 16 */ \
 				unsigned char buf[3]; \
-				buf[0] = 0xd1; _msgpack_store16(&buf[1], d); \
+				buf[0] = 0xd1; _msgpack_store16(&buf[1], (int16_t)d); \
 				msgpack_pack_append_buffer(x, buf, 3); \
 			} else { \
 				/* signed 8 */ \
@@ -252,14 +252,14 @@ do { \
 			} else { \
 				/* unsigned 16 */ \
 				unsigned char buf[3]; \
-				buf[0] = 0xcd; _msgpack_store16(&buf[1], d); \
+				buf[0] = 0xcd; _msgpack_store16(&buf[1], (uint16_t)d); \
 				msgpack_pack_append_buffer(x, buf, 3); \
 			} \
 		} else { \
 			if(d < (1LL<<32)) { \
 				/* unsigned 32 */ \
 				unsigned char buf[5]; \
-				buf[0] = 0xce; _msgpack_store32(&buf[1], d); \
+				buf[0] = 0xce; _msgpack_store32(&buf[1], (uint32_t)d); \
 				msgpack_pack_append_buffer(x, buf, 5); \
 			} else { \
 				/* unsigned 64 */ \
@@ -272,63 +272,63 @@ do { \
 } while(0)
 
 
-#ifdef msgpack_pack_inline_func_fastint
+#ifdef msgpack_pack_inline_func_fixint
 
-msgpack_pack_inline_func_fastint(_uint8)(msgpack_pack_user x, uint8_t d)
+msgpack_pack_inline_func_fixint(_uint8)(msgpack_pack_user x, uint8_t d)
 {
 	unsigned char buf[2] = {0xcc, TAKE8_8(d)};
 	msgpack_pack_append_buffer(x, buf, 2);
 }
 
-msgpack_pack_inline_func_fastint(_uint16)(msgpack_pack_user x, uint16_t d)
+msgpack_pack_inline_func_fixint(_uint16)(msgpack_pack_user x, uint16_t d)
 {
 	unsigned char buf[3];
 	buf[0] = 0xcd; _msgpack_store16(&buf[1], d);
 	msgpack_pack_append_buffer(x, buf, 3);
 }
 
-msgpack_pack_inline_func_fastint(_uint32)(msgpack_pack_user x, uint32_t d)
+msgpack_pack_inline_func_fixint(_uint32)(msgpack_pack_user x, uint32_t d)
 {
 	unsigned char buf[5];
 	buf[0] = 0xce; _msgpack_store32(&buf[1], d);
 	msgpack_pack_append_buffer(x, buf, 5);
 }
 
-msgpack_pack_inline_func_fastint(_uint64)(msgpack_pack_user x, uint64_t d)
+msgpack_pack_inline_func_fixint(_uint64)(msgpack_pack_user x, uint64_t d)
 {
 	unsigned char buf[9];
 	buf[0] = 0xcf; _msgpack_store64(&buf[1], d);
 	msgpack_pack_append_buffer(x, buf, 9);
 }
 
-msgpack_pack_inline_func_fastint(_int8)(msgpack_pack_user x, int8_t d)
+msgpack_pack_inline_func_fixint(_int8)(msgpack_pack_user x, int8_t d)
 {
 	unsigned char buf[2] = {0xd0, TAKE8_8(d)};
 	msgpack_pack_append_buffer(x, buf, 2);
 }
 
-msgpack_pack_inline_func_fastint(_int16)(msgpack_pack_user x, int16_t d)
+msgpack_pack_inline_func_fixint(_int16)(msgpack_pack_user x, int16_t d)
 {
 	unsigned char buf[3];
 	buf[0] = 0xd1; _msgpack_store16(&buf[1], d);
 	msgpack_pack_append_buffer(x, buf, 3);
 }
 
-msgpack_pack_inline_func_fastint(_int32)(msgpack_pack_user x, int32_t d)
+msgpack_pack_inline_func_fixint(_int32)(msgpack_pack_user x, int32_t d)
 {
 	unsigned char buf[5];
 	buf[0] = 0xd2; _msgpack_store32(&buf[1], d);
 	msgpack_pack_append_buffer(x, buf, 5);
 }
 
-msgpack_pack_inline_func_fastint(_int64)(msgpack_pack_user x, int64_t d)
+msgpack_pack_inline_func_fixint(_int64)(msgpack_pack_user x, int64_t d)
 {
 	unsigned char buf[9];
 	buf[0] = 0xd3; _msgpack_store64(&buf[1], d);
 	msgpack_pack_append_buffer(x, buf, 9);
 }
 
-#undef msgpack_pack_inline_func_fastint
+#undef msgpack_pack_inline_func_fixint
 #endif
 
 
@@ -690,11 +690,11 @@ msgpack_pack_inline_func(_array)(msgpack_pack_user x, unsigned int n)
 		msgpack_pack_append_buffer(x, &d, 1);
 	} else if(n < 65536) {
 		unsigned char buf[3];
-		buf[0] = 0xdc; _msgpack_store16(&buf[1], n);
+		buf[0] = 0xdc; _msgpack_store16(&buf[1], (uint16_t)n);
 		msgpack_pack_append_buffer(x, buf, 3);
 	} else {
 		unsigned char buf[5];
-		buf[0] = 0xdd; _msgpack_store32(&buf[1], n);
+		buf[0] = 0xdd; _msgpack_store32(&buf[1], (uint32_t)n);
 		msgpack_pack_append_buffer(x, buf, 5);
 	}
 }
@@ -711,11 +711,11 @@ msgpack_pack_inline_func(_map)(msgpack_pack_user x, unsigned int n)
 		msgpack_pack_append_buffer(x, &TAKE8_8(d), 1);
 	} else if(n < 65536) {
 		unsigned char buf[3];
-		buf[0] = 0xde; _msgpack_store16(&buf[1], n);
+		buf[0] = 0xde; _msgpack_store16(&buf[1], (uint16_t)n);
 		msgpack_pack_append_buffer(x, buf, 3);
 	} else {
 		unsigned char buf[5];
-		buf[0] = 0xdf; _msgpack_store32(&buf[1], n);
+		buf[0] = 0xdf; _msgpack_store32(&buf[1], (uint32_t)n);
 		msgpack_pack_append_buffer(x, buf, 5);
 	}
 }
@@ -732,11 +732,11 @@ msgpack_pack_inline_func(_raw)(msgpack_pack_user x, size_t l)
 		msgpack_pack_append_buffer(x, &TAKE8_8(d), 1);
 	} else if(l < 65536) {
 		unsigned char buf[3];
-		buf[0] = 0xda; _msgpack_store16(&buf[1], l);
+		buf[0] = 0xda; _msgpack_store16(&buf[1], (uint16_t)l);
 		msgpack_pack_append_buffer(x, buf, 3);
 	} else {
 		unsigned char buf[5];
-		buf[0] = 0xdb; _msgpack_store32(&buf[1], l);
+		buf[0] = 0xdb; _msgpack_store32(&buf[1], (uint32_t)l);
 		msgpack_pack_append_buffer(x, buf, 5);
 	}
 }

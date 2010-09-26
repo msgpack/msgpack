@@ -28,7 +28,7 @@
 			<Tool
 				Name="VCCustomBuildTool"
 				Description="Gathering header files"
-				CommandLine="msgpack_vc8.postbuild.bat"
+				CommandLine="msgpack_vc.postbuild.bat"
 				Outputs="include"
 			/>
 			<Tool
@@ -96,7 +96,7 @@
 			<Tool
 				Name="VCCustomBuildTool"
 				Description="Gathering header files"
-				CommandLine="msgpack_vc8.postbuild.bat"
+				CommandLine="msgpack_vc.postbuild.bat"
 				Outputs="include"
 			/>
 			<Tool
@@ -157,7 +157,7 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\objectc.c"
+				RelativePath=".\src\objectc.c"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -177,7 +177,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\unpack.c"
+				RelativePath=".\src\unpack.c"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -197,7 +197,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\vrefbuffer.c"
+				RelativePath=".\src\version.c"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -217,7 +217,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\zone.c"
+				RelativePath=".\src\vrefbuffer.c"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -237,7 +237,27 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\object.cpp"
+				RelativePath=".\src\zone.c"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\src\object.cpp"
 				>
 			</File>
 		</Filter>
@@ -247,23 +267,23 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\msgpack\pack_define.h"
+				RelativePath=".\src\msgpack\pack_define.h"
 				>
 			</File>
 			<File
-				RelativePath=".\msgpack\pack_template.h"
+				RelativePath=".\src\msgpack\pack_template.h"
 				>
 			</File>
 			<File
-				RelativePath=".\msgpack\sysdep.h"
+				RelativePath=".\src\msgpack\sysdep.h"
 				>
 			</File>
 			<File
-				RelativePath=".\msgpack\unpack_define.h"
+				RelativePath=".\src\msgpack\unpack_define.h"
 				>
 			</File>
 			<File
-				RelativePath=".\msgpack\unpack_template.h"
+				RelativePath=".\src\msgpack\unpack_template.h"
 				>
 			</File>
 		</Filter>

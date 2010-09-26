@@ -1,12 +1,23 @@
 use Test::More;
 use Data::MessagePack;
 use t::Util;
-no warnings 'uninitialized'; # i need this. i need this.
 
-plan tests => 1;
+plan tests => 4;
 
-my $d = Data::MessagePack->unpack(Data::MessagePack->pack([{x => undef}]));
-$d->[0]->{x} = 1;
-ok delete $d->[0]->{x};
-$d->[0] = 4;
+my $d = Data::MessagePack->unpack(Data::MessagePack->pack({
+    nil   => undef,
+    true  => true,
+    false => false,
+    foo   => [undef, true, false],
+}));
 
+$d->{nil} = 42;
+is $d->{nil}, 42;
+
+$d->{true} = 43;
+is $d->{true}, 43;
+
+$d->{false} = 44;
+is $d->{false}, 44;
+
+is_deeply $d->{foo}, [undef, true, false];

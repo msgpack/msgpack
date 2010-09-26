@@ -2,6 +2,7 @@
 \bCVS\b
 ^MANIFEST\.
 ^Makefile$
+^MYMETA\.yml$
 ~$
 ^#
 \.old$
@@ -23,3 +24,5 @@
 \.o$
 \.bs$
 ^Data-MessagePack-[0-9.]+/
+^\.testenv/test_pp.pl
+^ppport.h$

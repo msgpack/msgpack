@@ -1,4 +1,5 @@
 META.yml
+MYMETA.yml
 Makefile
 Makefile.old
 MessagePack.bs
@@ -6,8 +7,11 @@ MessagePack.o
 blib/
 inc/
 msgpack/
+t/std/
 pack.o
 pm_to_blib
 unpack.o
 MANIFEST
 ppport.h
+.testenv/
+xshelper.h

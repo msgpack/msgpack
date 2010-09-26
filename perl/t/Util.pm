@@ -1,6 +1,7 @@
 package t::Util;
 use strict;
 use warnings;
+use Data::MessagePack;
 
 sub import {
     my $pkg = caller(0);
@@ -15,6 +16,7 @@ sub import {
     *{"$pkg\::false"} = sub () {
         Data::MessagePack::false()
     };
+    *{"$pkg\::null"} = sub() { undef };
 }
 
 1;

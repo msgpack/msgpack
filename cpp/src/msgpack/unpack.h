@@ -18,8 +18,8 @@
 #ifndef MSGPACK_UNPACKER_H__
 #define MSGPACK_UNPACKER_H__
 
-#include "msgpack/zone.h"
-#include "msgpack/object.h"
+#include "zone.h"
+#include "object.h"
 #include <string.h>
 
 #ifdef __cplusplus

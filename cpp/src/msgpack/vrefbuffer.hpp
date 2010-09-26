@@ -18,7 +18,7 @@
 #ifndef MSGPACK_VREFBUFFER_HPP__
 #define MSGPACK_VREFBUFFER_HPP__
 
-#include "msgpack/vrefbuffer.h"
+#include "vrefbuffer.h"
 #include <stdexcept>
 
 namespace msgpack {

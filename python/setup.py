@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
+version = (0, 1, 6, 'final')
 
 import os
 from glob import glob
@@ -14,7 +15,13 @@ except ImportError:
     from distutils.command.build_ext import build_ext
     have_cython = False
 
-version = '0.1.3'
+# make msgpack/__verison__.py
+f = open('msgpack/__version__.py', 'w')
+f.write("version = %r\n" % (version,))
+f.close()
+version_str = '.'.join(str(x) for x in version[:3])
+if len(version) > 3 and version[3] != 'final':
+    version_str += version[3]
 
 # take care of extension modules.
 if have_cython:
@@ -53,7 +60,7 @@ What's MessagePack? (from http://msgpack.sourceforge.net/)
 setup(name='msgpack-python',
       author='INADA Naoki',
       author_email='songofacandy@gmail.com',
-      version=version,
+      version=version_str,
       cmdclass={'build_ext': build_ext, 'sdist': Sdist},
       ext_modules=[msgpack_mod],
       packages=['msgpack'],
@@ -62,6 +69,7 @@ setup(name='msgpack-python',
       url='http://msgpack.sourceforge.net/',
       download_url='http://pypi.python.org/pypi/msgpack/',
       classifiers=[
+          'Programming Language :: Python :: 3',
           'Development Status :: 4 - Beta',
           'Intended Audience :: Developers',
           'License :: OSI Approved :: Apache Software License',

@@ -7,7 +7,7 @@
   <description>MessagePack for Java</description>
 
   <name>MessagePack for Java</name>
-  <url>http://msgpack.sourceforge.net/</url>
+  <url>http://msgpack.org/</url>
 
   <licenses>
     <license>
@@ -28,6 +28,12 @@
       <artifactId>junit</artifactId>
       <version>4.8.1</version>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>javassist</groupId>
+      <artifactId>javassist</artifactId>
+      <version>3.12.1.GA</version>
+      <scope>compile</scope>
     </dependency>
   </dependencies>
 
@@ -97,29 +103,31 @@
 
   <repositories>
     <repository>
-      <id>msgpack.sourceforge.net</id>
+      <id>msgpack.org</id>
       <name>MessagePack Maven2 Repository</name>
-      <url>http://msgpack.sourceforge.net/maven2</url>
+      <url>http://msgpack.org/maven2</url>
     </repository>
     <repository>
-      <id>msgpack.sourceforge.net</id>
-      <name>MessagePack Maven2 Snapshot Repository</name>
-      <url>http://msgpack.sourceforge.net/maven2-snapshot</url>
+      <id>repository.jboss.org</id>
+      <url>https://repository.jboss.org/nexus/content/groups/public/</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
     </repository>
   </repositories>
 
   <distributionManagement>
     <repository>
       <uniqueVersion>false</uniqueVersion>
-      <id>shell.sourceforge.net</id>
-      <name>Repository at sourceforge.net</name>
-      <url>scp://shell.sourceforge.net/home/groups/m/ms/msgpack/htdocs/maven2/</url>
+      <id>msgpack.org</id>
+      <name>Repository at msgpack.org</name>
+	  <url>file://${project.build.directory}/website/maven2/</url>
     </repository>
     <snapshotRepository>
        <uniqueVersion>true</uniqueVersion>
-       <id>shell.sourceforge.net</id>
-       <name>Repository Name</name>
-       <url>scp://shell.sourceforge.net/home/groups/m/ms/msgpack/htdocs/maven2-snapshot/</url>
+       <id>msgpack.org</id>
+       <name>Repository at msgpack.org</name>
+	   <url>file://${project.build.directory}/website/maven2/</url>
     </snapshotRepository>
   </distributionManagement>
 

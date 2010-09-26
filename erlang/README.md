@@ -2,18 +2,8 @@ MessagePack for Erlang
 ======================
 Binary-based efficient object serialization library.
 
-## Status 
+see wiki ( http://redmine.msgpack.org/projects/msgpack/wiki/QuickStartErlang ) for details
 
-still in development.
+# Status
 
-TODOs:
- - decide string specification.
-
-## Installation
-
-## Example
-
-## License
-
-
- - 
+0.1.0 released.

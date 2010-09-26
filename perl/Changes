@@ -1,3 +1,71 @@
+0.26
+
+    - fixed a serious code typo in PP(makamaka)
+
+0.25
+
+    (NO FEATURE CHANGES)
+    - oops. I failed releng.
+
+0.24
+    - Fixed a lot of streaming unpacking issues (tokuhirom, gfx)
+    - Fixed unpacking issues for 64 bit integers on 32 bit perls (gfx)
+    - Improved performance, esp. in unpacking (gfx)
+
+0.23
+
+    (NO FEATURE CHANGES)
+    - fixed english docs(hanekomu++)
+
+0.22
+
+    - fixed issue on ithreads(broken from 0.21)
+
+0.21
+
+    - doc enhancments
+    - micro performance tuning.
+
+0.20
+
+    - first production ready release with PP driver.
+
+0.16_04
+
+    - no feature changes
+
+0.16_02
+
+    - document enhancement(tokuhirom)
+    - M::I::XSUtil 0.26 is broken. use 0.27.
+
+0.16_01
+
+    - added PP version (used in cases PERL_DATA_MESSAGEPACK=pp or fail to load XS).
+    - made Makefile.PL PP configurable.
+    - test_pp in author's test
+    - modified t/05_preferred_int.t for Win32
+      (makamaka)
+
+0.16
+
+    - tests on 64bit machines with -Duselongdouble
+      (reported by andk)
+
+0.15
+
+    - better argument validation.
+      (Dan Kogai)
+
+0.14
+
+    - fixed segv on serializing cyclic reference
+      (Dan Kogai)
+
+0.13
+
+    - clearly specify requires_c99(), because msgpack C header requires C99.
+
 0.12
 
     - PERL_NO_GET_CONTEXT makes horrible dTHXs. remove it.

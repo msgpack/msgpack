@@ -26,3 +26,5 @@
 #include "msgpack/unpack.h"
 #include "msgpack/sbuffer.h"
 #include "msgpack/vrefbuffer.h"
+#include "msgpack/version.h"
+

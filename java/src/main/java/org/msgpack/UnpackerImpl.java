@@ -18,11 +18,8 @@
 package org.msgpack;
 
 import java.nio.ByteBuffer;
-//import java.math.BigInteger;
-import org.msgpack.*;
-import org.msgpack.schema.GenericSchema;
-import org.msgpack.schema.IMapSchema;
-import org.msgpack.schema.IArraySchema;
+import java.math.BigInteger;
+import org.msgpack.object.*;
 
 public class UnpackerImpl {
 	static final int CS_HEADER      = 0x00;
@@ -55,30 +52,19 @@ public class UnpackerImpl {
 	private int[]    stack_ct       = new int[MAX_STACK_SIZE];
 	private int[]    stack_count    = new int[MAX_STACK_SIZE];
 	private Object[] stack_obj      = new Object[MAX_STACK_SIZE];
-	private Schema[] stack_schema   = new Schema[MAX_STACK_SIZE];
 	private int top_ct;
 	private int top_count;
 	private Object top_obj;
-	private Schema top_schema;
 	private ByteBuffer castBuffer   = ByteBuffer.allocate(8);
 	private boolean finished = false;
-	private Object data = null;
-
-	private static final Schema GENERIC_SCHEMA = new GenericSchema();
-	private Schema rootSchema;
+	private MessagePackObject data = null;
 
 	public UnpackerImpl()
 	{
-		setSchema(GENERIC_SCHEMA);
-	}
-
-	public void setSchema(Schema schema)
-	{
-		this.rootSchema = schema;
 		reset();
 	}
 
-	public final Object getData()
+	public final MessagePackObject getData()
 	{
 		return data;
 	}
@@ -94,7 +80,6 @@ public class UnpackerImpl {
 		top_ct = 0;
 		top_count = 0;
 		top_obj = null;
-		top_schema = rootSchema;
 	}
 
 	public final void reset()
@@ -127,20 +112,20 @@ public class UnpackerImpl {
 	
 					if((b & 0x80) == 0) {  // Positive Fixnum
 						//System.out.println("positive fixnum "+b);
-						obj = top_schema.createFromByte((byte)b);
+						obj = IntegerType.create((byte)b);
 						break _push;
 					}
 	
 					if((b & 0xe0) == 0xe0) {  // Negative Fixnum
 						//System.out.println("negative fixnum "+b);
-						obj = top_schema.createFromByte((byte)b);
+						obj = IntegerType.create((byte)b);
 						break _push;
 					}
 	
 					if((b & 0xe0) == 0xa0) {  // FixRaw
 						trail = b & 0x1f;
 						if(trail == 0) {
-							obj = top_schema.createFromRaw(new byte[0], 0, 0);
+							obj = RawType.create(new byte[0]);
 							break _push;
 						}
 						cs = ACS_RAW_VALUE;
@@ -151,25 +136,20 @@ public class UnpackerImpl {
 						if(top >= MAX_STACK_SIZE) {
 							throw new UnpackException("parse error");
 						}
-						if(!(top_schema instanceof IArraySchema)) {
-							throw new RuntimeException("type error");
-						}
 						count = b & 0x0f;
 						//System.out.println("fixarray count:"+count);
-						obj = new Object[count];
+						obj = new MessagePackObject[count];
 						if(count == 0) {
-							obj = ((IArraySchema)top_schema).createFromArray((Object[])obj);
+							obj = ArrayType.create((MessagePackObject[])obj);
 							break _push;
 						}
 						++top;
 						stack_obj[top]    = top_obj;
 						stack_ct[top]     = top_ct;
 						stack_count[top]  = top_count;
-						stack_schema[top] = top_schema;
 						top_obj    = obj;
 						top_ct     = CT_ARRAY_ITEM;
 						top_count  = count;
-						top_schema = ((IArraySchema)top_schema).getElementSchema(0);
 						break _header_again;
 					}
 	
@@ -177,13 +157,10 @@ public class UnpackerImpl {
 						if(top >= MAX_STACK_SIZE) {
 							throw new UnpackException("parse error");
 						}
-						if(!(top_schema instanceof IMapSchema)) {
-							throw new RuntimeException("type error");
-						}
 						count = b & 0x0f;
-						obj = new Object[count*2];
+						obj = new MessagePackObject[count*2];
 						if(count == 0) {
-							obj = ((IMapSchema)top_schema).createFromMap((Object[])obj);
+							obj = MapType.create((MessagePackObject[])obj);
 							break _push;
 						}
 						//System.out.println("fixmap count:"+count);
@@ -191,23 +168,21 @@ public class UnpackerImpl {
 						stack_obj[top]    = top_obj;
 						stack_ct[top]     = top_ct;
 						stack_count[top]  = top_count;
-						stack_schema[top] = top_schema;
 						top_obj    = obj;
 						top_ct     = CT_MAP_KEY;
 						top_count  = count;
-						top_schema = ((IMapSchema)top_schema).getKeySchema();
 						break _header_again;
 					}
 	
 					switch(b & 0xff) {    // FIXME
 					case 0xc0:  // nil
-						obj = top_schema.createFromNil();
+						obj = NilType.create();
 						break _push;
 					case 0xc2:  // false
-						obj = top_schema.createFromBoolean(false);
+						obj = BooleanType.create(false);
 						break _push;
 					case 0xc3:  // true
-						obj = top_schema.createFromBoolean(true);
+						obj = BooleanType.create(true);
 						break _push;
 					case 0xca:  // float
 					case 0xcb:  // double
@@ -251,13 +226,13 @@ public class UnpackerImpl {
 					case CS_FLOAT:
 						castBuffer.rewind();
 						castBuffer.put(src, n, 4);
-						obj = top_schema.createFromFloat( castBuffer.getFloat(0) );
+						obj = FloatType.create( castBuffer.getFloat(0) );
 						//System.out.println("float "+obj);
 						break _push;
 					case CS_DOUBLE:
 						castBuffer.rewind();
 						castBuffer.put(src, n, 8);
-						obj = top_schema.createFromDouble( castBuffer.getDouble(0) );
+						obj = FloatType.create( castBuffer.getDouble(0) );
 						//System.out.println("double "+obj);
 						break _push;
 					case CS_UINT_8:
@@ -265,7 +240,7 @@ public class UnpackerImpl {
 						//System.out.println(src[n]);
 						//System.out.println(src[n+1]);
 						//System.out.println(src[n-1]);
-						obj = top_schema.createFromShort( (short)((src[n]) & 0xff) );
+						obj = IntegerType.create( (short)((src[n]) & 0xff) );
 						//System.out.println("uint8 "+obj);
 						break _push;
 					case CS_UINT_16:
@@ -273,13 +248,13 @@ public class UnpackerImpl {
 						//System.out.println(src[n+1]);
 						castBuffer.rewind();
 						castBuffer.put(src, n, 2);
-						obj = top_schema.createFromInt( ((int)castBuffer.getShort(0)) & 0xffff );
+						obj = IntegerType.create( ((int)castBuffer.getShort(0)) & 0xffff );
 						//System.out.println("uint 16 "+obj);
 						break _push;
 					case CS_UINT_32:
 						castBuffer.rewind();
 						castBuffer.put(src, n, 4);
-						obj = top_schema.createFromLong( ((long)castBuffer.getInt(0)) & 0xffffffffL );
+						obj = IntegerType.create( ((long)castBuffer.getInt(0)) & 0xffffffffL );
 						//System.out.println("uint 32 "+obj);
 						break _push;
 					case CS_UINT_64:
@@ -288,38 +263,36 @@ public class UnpackerImpl {
 						{
 							long o = castBuffer.getLong(0);
 							if(o < 0) {
-								// FIXME
-								//obj = GenericBigInteger.valueOf(o & 0x7fffffffL).setBit(31);
-								throw new UnpackException("uint 64 bigger than 0x7fffffff is not supported");
+								obj = IntegerType.create(new BigInteger(1, castBuffer.array()));
 							} else {
-								obj = top_schema.createFromLong( o );
+								obj = IntegerType.create(o);
 							}
 						}
 						break _push;
 					case CS_INT_8:
-						obj = top_schema.createFromByte(  src[n] );
+						obj = IntegerType.create( src[n] );
 						break _push;
 					case CS_INT_16:
 						castBuffer.rewind();
 						castBuffer.put(src, n, 2);
-						obj = top_schema.createFromShort( castBuffer.getShort(0) );
+						obj = IntegerType.create( castBuffer.getShort(0) );
 						break _push;
 					case CS_INT_32:
 						castBuffer.rewind();
 						castBuffer.put(src, n, 4);
-						obj = top_schema.createFromInt( castBuffer.getInt(0) );
+						obj = IntegerType.create( castBuffer.getInt(0) );
 						break _push;
 					case CS_INT_64:
 						castBuffer.rewind();
 						castBuffer.put(src, n, 8);
-						obj = top_schema.createFromLong( castBuffer.getLong(0) );
+						obj = IntegerType.create( castBuffer.getLong(0) );
 						break _push;
 					case CS_RAW_16:
 						castBuffer.rewind();
 						castBuffer.put(src, n, 2);
 						trail = ((int)castBuffer.getShort(0)) & 0xffff;
 						if(trail == 0) {
-							obj = top_schema.createFromRaw(new byte[0], 0, 0);
+							obj = RawType.create(new byte[0]);
 							break _push;
 						}
 						cs = ACS_RAW_VALUE;
@@ -330,77 +303,68 @@ public class UnpackerImpl {
 						// FIXME overflow check
 						trail = castBuffer.getInt(0) & 0x7fffffff;
 						if(trail == 0) {
-							obj = top_schema.createFromRaw(new byte[0], 0, 0);
+							obj = RawType.create(new byte[0]);
 							break _push;
 						}
 						cs = ACS_RAW_VALUE;
-					case ACS_RAW_VALUE:
-						obj = top_schema.createFromRaw(src, n, trail);
+						break _fixed_trail_again;
+					case ACS_RAW_VALUE: {
+							byte[] raw = new byte[trail];
+							System.arraycopy(src, n, raw, 0, trail);
+							obj = RawType.create(raw);
+						}
 						break _push;
 					case CS_ARRAY_16:
 						if(top >= MAX_STACK_SIZE) {
 							throw new UnpackException("parse error");
 						}
-						if(!(top_schema instanceof IArraySchema)) {
-							throw new RuntimeException("type error");
-						}
 						castBuffer.rewind();
 						castBuffer.put(src, n, 2);
 						count = ((int)castBuffer.getShort(0)) & 0xffff;
-						obj = new Object[count];
+						obj = new MessagePackObject[count];
 						if(count == 0) {
-							obj = ((IArraySchema)top_schema).createFromArray((Object[])obj);
+							obj = ArrayType.create((MessagePackObject[])obj);
 							break _push;
 						}
 						++top;
 						stack_obj[top]    = top_obj;
 						stack_ct[top]     = top_ct;
 						stack_count[top]  = top_count;
-						stack_schema[top] = top_schema;
 						top_obj    = obj;
 						top_ct     = CT_ARRAY_ITEM;
 						top_count  = count;
-						top_schema = ((IArraySchema)top_schema).getElementSchema(0);
 						break _header_again;
 					case CS_ARRAY_32:
 						if(top >= MAX_STACK_SIZE) {
 							throw new UnpackException("parse error");
 						}
-						if(!(top_schema instanceof IArraySchema)) {
-							throw new RuntimeException("type error");
-						}
 						castBuffer.rewind();
 						castBuffer.put(src, n, 4);
 						// FIXME overflow check
 						count = castBuffer.getInt(0) & 0x7fffffff;
-						obj = new Object[count];
+						obj = new MessagePackObject[count];
 						if(count == 0) {
-							obj = ((IArraySchema)top_schema).createFromArray((Object[])obj);
+							obj = ArrayType.create((MessagePackObject[])obj);
 							break _push;
 						}
 						++top;
 						stack_obj[top]    = top_obj;
 						stack_ct[top]     = top_ct;
 						stack_count[top]  = top_count;
-						stack_schema[top] = top_schema;
 						top_obj    = obj;
 						top_ct     = CT_ARRAY_ITEM;
 						top_count  = count;
-						top_schema = ((IArraySchema)top_schema).getElementSchema(0);
 						break _header_again;
 					case CS_MAP_16:
 						if(top >= MAX_STACK_SIZE) {
 							throw new UnpackException("parse error");
 						}
-						if(!(top_schema instanceof IMapSchema)) {
-							throw new RuntimeException("type error");
-						}
 						castBuffer.rewind();
 						castBuffer.put(src, n, 2);
 						count = ((int)castBuffer.getShort(0)) & 0xffff;
-						obj = new Object[count*2];
+						obj = new MessagePackObject[count*2];
 						if(count == 0) {
-							obj = ((IMapSchema)top_schema).createFromMap((Object[])obj);
+							obj = MapType.create((MessagePackObject[])obj);
 							break _push;
 						}
 						//System.out.println("fixmap count:"+count);
@@ -408,26 +372,21 @@ public class UnpackerImpl {
 						stack_obj[top]    = top_obj;
 						stack_ct[top]     = top_ct;
 						stack_count[top]  = top_count;
-						stack_schema[top] = top_schema;
 						top_obj    = obj;
 						top_ct     = CT_MAP_KEY;
 						top_count  = count;
-						top_schema = ((IMapSchema)top_schema).getKeySchema();
 						break _header_again;
 					case CS_MAP_32:
 						if(top >= MAX_STACK_SIZE) {
 							throw new UnpackException("parse error");
 						}
-						if(!(top_schema instanceof IMapSchema)) {
-							throw new RuntimeException("type error");
-						}
 						castBuffer.rewind();
 						castBuffer.put(src, n, 4);
 						// FIXME overflow check
 						count = castBuffer.getInt(0) & 0x7fffffff;
-						obj = new Object[count*2];
+						obj = new MessagePackObject[count*2];
 						if(count == 0) {
-							obj = ((IMapSchema)top_schema).createFromMap((Object[])obj);
+							obj = MapType.create((MessagePackObject[])obj);
 							break _push;
 						}
 						//System.out.println("fixmap count:"+count);
@@ -435,11 +394,9 @@ public class UnpackerImpl {
 						stack_obj[top]    = top_obj;
 						stack_ct[top]     = top_ct;
 						stack_count[top]  = top_count;
-						stack_schema[top] = top_schema;
 						top_obj    = obj;
 						top_ct     = CT_MAP_KEY;
 						top_count  = count;
-						top_schema = ((IMapSchema)top_schema).getKeySchema();
 						break _header_again;
 					default:
 						throw new UnpackException("parse error");
@@ -454,7 +411,7 @@ public class UnpackerImpl {
 				//System.out.println("push top:"+top);
 				if(top == -1) {
 					++i;
-					data = obj;
+					data = (MessagePackObject)obj;
 					finished = true;
 					break _out;
 				}
@@ -468,14 +425,10 @@ public class UnpackerImpl {
 							top_obj    = stack_obj[top];
 							top_ct     = stack_ct[top];
 							top_count  = stack_count[top];
-							top_schema = stack_schema[top];
-							obj = ((IArraySchema)top_schema).createFromArray(ar);
+							obj = ArrayType.create((MessagePackObject[])ar);
 							stack_obj[top] = null;
-							stack_schema[top] = null;
 							--top;
 							break _push;
-						} else {
-							top_schema = ((IArraySchema)stack_schema[top]).getElementSchema(ar.length - top_count);
 						}
 						break _header_again;
 					}
@@ -484,7 +437,6 @@ public class UnpackerImpl {
 						Object[] mp = (Object[])top_obj;
 						mp[mp.length - top_count*2] = obj;
 						top_ct = CT_MAP_VALUE;
-						top_schema = ((IMapSchema)stack_schema[top]).getValueSchema();
 						break _header_again;
 					}
 				case CT_MAP_VALUE: {
@@ -495,10 +447,8 @@ public class UnpackerImpl {
 							top_obj    = stack_obj[top];
 							top_ct     = stack_ct[top];
 							top_count  = stack_count[top];
-							top_schema = stack_schema[top];
-							obj = ((IMapSchema)top_schema).createFromMap(mp);
+							obj = MapType.create((MessagePackObject[])mp);
 							stack_obj[top] = null;
-							stack_schema[top] = null;
 							--top;
 							break _push;
 						}

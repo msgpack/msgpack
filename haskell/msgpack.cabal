@@ -1,32 +1,48 @@
-Name:                msgpack
-Version:             0.2.2
-License:             BSD3
-License-File:        LICENSE
-Author:              Hideyuki Tanaka
-Maintainer:          Hideyuki Tanaka <tanaka.hideyuki@gmail.com>
-Category:            Data
-Synopsis:            A Haskell binding to MessagePack
+Name:               msgpack
+Version:            0.4.0.1
+Synopsis:           A Haskell binding to MessagePack
 Description:
-  A Haskell binding to MessagePack <http://msgpack.sourceforge.jp/>
-Homepage:	     http://github.com/tanakh/hsmsgpack
-Stability:	     Experimental
-Tested-with:	     GHC==6.10.4
-Cabal-Version:	     >=1.2
-Build-Type:          Simple
+  A Haskell binding to MessagePack <http://msgpack.org/>
 
-library
-  build-depends:	base>=4 && <5, mtl, bytestring
-  ghc-options:		-O2 -Wall
-  hs-source-dirs:	src
-  extra-libraries:	msgpackc
+License:            BSD3
+License-File:       LICENSE
+Copyright:          Copyright (c) 2009-2010, Hideyuki Tanaka
+Category:           Data
+Author:             Hideyuki Tanaka
+Maintainer:         Hideyuki Tanaka <tanaka.hideyuki@gmail.com>
+Homepage:           http://github.com/msgpack/msgpack
+Stability:          Experimental
+Cabal-Version:      >= 1.6
+Build-Type:         Simple
+
+Extra-source-files:
+  test/Test.hs
+  test/UserData.hs
+
+Library
+  Build-depends:    base >=4 && <5,
+                    transformers >= 0.2.1 && < 0.2.2,
+                    MonadCatchIO-transformers >= 0.2.2 && < 0.2.3,
+                    bytestring >= 0.9 && < 0.10,
+                    vector >= 0.6.0 && < 0.6.1,
+                    iteratee >= 0.4 && < 0.5,
+                    attoparsec >= 0.8.1 && < 0.8.2,
+                    binary >= 0.5.0 && < 0.5.1,
+                    data-binary-ieee754 >= 0.4 && < 0.5,
+                    deepseq >= 1.1 && <1.2,
+                    template-haskell >= 2.4 && < 2.5
+
+  Ghc-options:      -Wall
+  Hs-source-dirs:   src
 
   Exposed-modules:
     Data.MessagePack
-    Data.MessagePack.Base
-    Data.MessagePack.Class
-    Data.MessagePack.Feed
-    Data.MessagePack.Monad
-    Data.MessagePack.Stream
+    Data.MessagePack.Pack
+    Data.MessagePack.Unpack
+    Data.MessagePack.Object
+    Data.MessagePack.Iteratee
+    Data.MessagePack.Derive
 
-  C-Sources:
-    cbits/msgpack.c
+Source-repository head
+  Type:     git
+  Location: git://github.com/msgpack/msgpack.git

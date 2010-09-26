@@ -16,16 +16,12 @@
  *    limitations under the License.
  */
 #include "ruby.h"
+#include "compat.h"
 
 #include "msgpack/unpack_define.h"
 
 static ID s_sysread;
 static ID s_readpartial;
-
-#ifdef HAVE_RUBY_ENCODING_H
-#include "ruby/encoding.h"
-int s_ascii_8bit;
-#endif
 
 struct unpack_buffer {
 	size_t size;
@@ -136,6 +132,9 @@ static inline int template_callback_raw(unpack_user* u, const char* b, const cha
 	} else {
 		*o = rb_str_substr(u->source, p - b, l);
 	}
+#ifdef COMPAT_HAVE_ENCODING
+	ENCODING_SET(*o, s_enc_utf8);
+#endif
 	return 0;
 }
 
@@ -156,27 +155,11 @@ static inline int template_callback_raw(unpack_user* u, const char* b, const cha
 		rb_raise(rb_eTypeError, "instance of String needed"); \
 	}
 
-#ifdef RUBY_VM
-#define RERAISE rb_exc_raise(rb_errinfo())
-#else
-#define RERAISE rb_exc_raise(ruby_errinfo)
-#endif
-
-
-#ifdef HAVE_RUBY_ENCODING_H
-static VALUE template_execute_rescue_enc(VALUE data)
-{
-	rb_gc_enable();
-	VALUE* resc = (VALUE*)data;
-	rb_enc_set_index(resc[0], (int)resc[1]);
-	RERAISE;
-}
-#endif
 
 static VALUE template_execute_rescue(VALUE nouse)
 {
 	rb_gc_enable();
-	RERAISE;
+	COMPAT_RERAISE;
 }
 
 static VALUE template_execute_do(VALUE argv)
@@ -203,30 +186,15 @@ static int template_execute_wrap(msgpack_unpack_t* mp,
 		(VALUE)from,
 	};
 
-#ifdef HAVE_RUBY_ENCODING_H
-	int enc_orig = rb_enc_get_index(str);
-	rb_enc_set_index(str, s_ascii_8bit);
-#endif
-
 	// FIXME execute実行中はmp->topが更新されないのでGC markが機能しない
 	rb_gc_disable();
 
 	mp->user.source = str;
 
-#ifdef HAVE_RUBY_ENCODING_H
-	VALUE resc[2] = {str, enc_orig};
-	int ret = (int)rb_rescue(template_execute_do, (VALUE)args,
-			template_execute_rescue_enc, (VALUE)resc);
-#else
 	int ret = (int)rb_rescue(template_execute_do, (VALUE)args,
 			template_execute_rescue, Qnil);
-#endif
 
 	rb_gc_enable();
-
-#ifdef HAVE_RUBY_ENCODING_H
-	rb_enc_set_index(str, enc_orig);
-#endif
 
 	return ret;
 }
@@ -287,6 +255,7 @@ static void MessagePack_Unpacker_mark(msgpack_unpack_t *mp)
 	unsigned int i;
 	rb_gc_mark(mp->user.stream);
 	rb_gc_mark(mp->user.streambuf);
+	rb_gc_mark_maybe(template_data(mp));
 	for(i=0; i < mp->top; ++i) {
 		rb_gc_mark(mp->stack[i].obj);
 		rb_gc_mark_maybe(mp->stack[i].map_key);
@@ -297,6 +266,17 @@ static VALUE MessagePack_Unpacker_alloc(VALUE klass)
 {
 	VALUE obj;
 	msgpack_unpack_t* mp = ALLOC_N(msgpack_unpack_t, 1);
+
+	// rb_gc_mark (not _maybe) is used for following member objects.
+	mp->user.stream = Qnil;
+	mp->user.streambuf = Qnil;
+
+	mp->user.finished = 0;
+	mp->user.offset = 0;
+	mp->user.buffer.size = 0;
+	mp->user.buffer.free = 0;
+	mp->user.buffer.ptr = NULL;
+
 	obj = Data_Wrap_Struct(klass, MessagePack_Unpacker_mark,
 			MessagePack_Unpacker_free, mp);
 	return obj;
@@ -343,14 +323,10 @@ static VALUE MessagePack_Unpacker_initialize(int argc, VALUE *argv, VALUE self)
 
 	UNPACKER(self, mp);
 	template_init(mp);
-	mp->user.finished = 0;
-	mp->user.offset = 0;
-	mp->user.buffer.size = 0;
-	mp->user.buffer.free = 0;
-	mp->user.buffer.ptr = NULL;
 	mp->user.stream = stream;
 	mp->user.streambuf = rb_str_buf_new(MSGPACK_UNPACKER_BUFFER_RESERVE_SIZE);
 	mp->user.stream_append_method = append_method_of(stream);
+
 	return self;
 }
 
@@ -638,7 +614,7 @@ static VALUE MessagePack_Unpacker_execute_impl(VALUE self, VALUE data,
  * Document-method: MessagePack::Unpacker#execute_limit
  *
  * call-seq:
- *   unpacker.unpack_limit(data, offset, limit) -> next offset
+ *   unpacker.execute_limit(data, offset, limit) -> next offset
  *
  * Deserializes one object over the specified buffer from _offset_ bytes upto _limit_ bytes.
  *
@@ -660,7 +636,7 @@ static VALUE MessagePack_Unpacker_execute_limit(VALUE self, VALUE data,
  * Document-method: MessagePack::Unpacker#execute
  *
  * call-seq:
- *   unpacker.unpack(data, offset) -> next offset
+ *   unpacker.execute(data, offset) -> next offset
  *
  * Deserializes one object over the specified buffer from _offset_ bytes.
  *
@@ -737,10 +713,6 @@ void Init_msgpack_unpack(VALUE mMessagePack)
 {
 	s_sysread = rb_intern("sysread");
 	s_readpartial = rb_intern("readpartial");
-
-#ifdef HAVE_RUBY_ENCODING_H
-	s_ascii_8bit = rb_enc_find_index("ASCII-8BIT");
-#endif
 
 	eUnpackError = rb_define_class_under(mMessagePack, "UnpackError", rb_eStandardError);
 	cUnpacker = rb_define_class_under(mMessagePack, "Unpacker", rb_cObject);

@@ -1,18 +1,21 @@
 use strict;
 use warnings;
 use Data::MessagePack;
-use JSON::XS;
+use JSON;
+use Storable;
 use Benchmark ':all';
 
-my $a = [0..2**24];
+my $a = do 'benchmark/data.pl';
 
 print "-- serialize\n";
-print "JSON::XS: $JSON::XS::VERSION\n";
+print "$JSON::Backend: ", $JSON::Backend->VERSION, "\n";
 print "Data::MessagePack: $Data::MessagePack::VERSION\n";
-cmpthese(
+print "Storable: $Storable::VERSION\n";
+cmpthese timethese(
     -1 => {
-        json => sub { JSON::XS::encode_json($a)   },
-        mp   => sub { Data::MessagePack->pack($a) },
+        json     => sub { JSON::encode_json($a) },
+        storable => sub { Storable::freeze($a) },
+        mp       => sub { Data::MessagePack->pack($a) },
     }
 );
 

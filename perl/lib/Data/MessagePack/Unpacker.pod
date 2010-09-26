@@ -14,7 +14,7 @@ Data::MessagePack::Unpacker - messagepack streaming deserializer
 
 =head1 DESCRIPTION
 
-This is an streaming deserializer for messagepack.
+This is a streaming deserializer for messagepack.
 
 =head1 METHODS
 
@@ -22,7 +22,7 @@ This is an streaming deserializer for messagepack.
 
 =item my $up = Data::MessagePack::Unpacker->new()
 
-create new instance of stream deserializer.
+creates a new instance of stream deserializer.
 
 =item my $ret = $up->execute($data, $offset);
 
@@ -39,11 +39,11 @@ is this deserializer finished?
 
 =item my $data = $up->data();
 
-returns deserialized object.
+returns the deserialized object.
 
 =item $up->reset();
 
-reset the stream deserializer, without memory zone.
+resets the stream deserializer, without memory zone.
 
 =back
 

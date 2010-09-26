@@ -19,7 +19,7 @@ package org.msgpack;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-//import java.math.BigInteger;
+import java.math.BigInteger;
 
 abstract class BufferedUnpackerImpl extends UnpackerImpl {
 	int offset = 0;
@@ -47,7 +47,7 @@ abstract class BufferedUnpackerImpl extends UnpackerImpl {
 			offset = noffset;
 		} while(!super.isFinished());
 
-		Object obj = super.getData();
+		MessagePackObject obj = super.getData();
 		super.reset();
 		result.done(obj);
 
@@ -103,7 +103,7 @@ abstract class BufferedUnpackerImpl extends UnpackerImpl {
 		case 0xcc:  // unsigned int  8
 			more(2);
 			advance(2);
-			return (int)((short)buffer[offset+1] & 0xff);
+			return (int)((short)(buffer[offset-1]) & 0xff);
 		case 0xcd:  // unsigned int 16
 			more(3);
 			castBuffer.rewind();
@@ -137,7 +137,7 @@ abstract class BufferedUnpackerImpl extends UnpackerImpl {
 		case 0xd0:  // signed int  8
 			more(2);
 			advance(2);
-			return (int)buffer[offset+1];
+			return (int)buffer[offset-1];
 		case 0xd1:  // signed int 16
 			more(3);
 			castBuffer.rewind();
@@ -178,7 +178,7 @@ abstract class BufferedUnpackerImpl extends UnpackerImpl {
 		case 0xcc:  // unsigned int  8
 			more(2);
 			advance(2);
-			return (long)((short)buffer[offset+1] & 0xff);
+			return (long)((short)(buffer[offset-1]) & 0xff);
 		case 0xcd:  // unsigned int 16
 			more(3);
 			castBuffer.rewind();
@@ -198,8 +198,7 @@ abstract class BufferedUnpackerImpl extends UnpackerImpl {
 			{
 				long o = castBuffer.getLong(0);
 				if(o < 0) {
-					// FIXME
-					throw new MessageTypeException("uint 64 bigger than 0x7fffffff is not supported");
+					throw new MessageTypeException();
 				}
 				advance(9);
 				return o;
@@ -207,7 +206,7 @@ abstract class BufferedUnpackerImpl extends UnpackerImpl {
 		case 0xd0:  // signed int  8
 			more(2);
 			advance(2);
-			return (long)buffer[offset+1];
+			return (long)buffer[offset-1];
 		case 0xd1:  // signed int 16
 			more(3);
 			castBuffer.rewind();
@@ -228,6 +227,26 @@ abstract class BufferedUnpackerImpl extends UnpackerImpl {
 			return (long)castBuffer.getLong(0);
 		default:
 			throw new MessageTypeException();
+		}
+	}
+
+	final BigInteger unpackBigInteger() throws IOException, MessageTypeException {
+		more(1);
+		int b = buffer[offset];
+		if((b & 0xff) != 0xcf) {
+			return BigInteger.valueOf(unpackLong());
+		}
+
+		// unsigned int 64
+		more(9);
+		castBuffer.rewind();
+		castBuffer.put(buffer, offset+1, 8);
+		advance(9);
+		long o = castBuffer.getLong(0);
+		if(o < 0) {
+			return new BigInteger(1, castBuffer.array());
+		} else {
+			return BigInteger.valueOf(o);
 		}
 	}
 
@@ -414,7 +433,7 @@ abstract class BufferedUnpackerImpl extends UnpackerImpl {
 		return s;
 	}
 
-	final Object unpackObject() throws IOException {
+	final MessagePackObject unpackObject() throws IOException {
 		UnpackResult result = new UnpackResult();
 		if(!next(result)) {
 			super.reset();

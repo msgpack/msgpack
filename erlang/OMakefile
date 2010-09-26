@@ -22,7 +22,7 @@
 # Phony targets are scoped, so you probably want to declare them first.
 #
 
-.PHONY: all clean test #install
+.PHONY: all clean test edoc dialyzer #install
 
 ########################################################################
 # Subdirectories.
@@ -33,10 +33,19 @@
 .DEFAULT: msgpack.beam
 
 msgpack.beam: msgpack.erl
-	erlc $<
+	erlc -Wall +debug_info $<
+
+msgpack.html: msgpack.erl
+	erl -noshell -run edoc_run file $<
 
 test: msgpack.beam
-	erl -s msgpack test -s init stop
+	erl -noshell -s msgpack test -s init stop
+
+edoc: msgpack.erl
+	erl -noshell -eval 'ok=edoc:files(["msgpack.erl"], [{dir, "edoc"}]).' -s init stop
+
+dialyzer: msgpack.erl
+	dialyzer --src $<
 
 clean:
-	-rm *.beam
+	-rm -f *.beam *.html

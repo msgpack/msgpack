@@ -17,8 +17,16 @@
  */
 #include "pack.h"
 #include "unpack.h"
+#include "compat.h"
 
 static VALUE mMessagePack;
+
+#ifdef COMPAT_HAVE_ENCODING
+int s_enc_utf8;
+int s_enc_ascii8bit;
+int s_enc_usascii;
+VALUE s_enc_utf8_value;
+#endif
 
 /**
  * Document-module: MessagePack
@@ -43,7 +51,16 @@ static VALUE mMessagePack;
 void Init_msgpack(void)
 {
 	mMessagePack = rb_define_module("MessagePack");
+
+	rb_define_const(mMessagePack, "VERSION", rb_str_new2(MESSAGEPACK_VERSION));
+
+#ifdef COMPAT_HAVE_ENCODING
+	s_enc_ascii8bit = rb_ascii8bit_encindex();
+	s_enc_utf8 = rb_utf8_encindex();
+	s_enc_usascii = rb_usascii_encindex();
+	s_enc_utf8_value = rb_enc_from_encoding(rb_utf8_encoding());
+#endif
+
 	Init_msgpack_unpack(mMessagePack);
 	Init_msgpack_pack(mMessagePack);
 }
-

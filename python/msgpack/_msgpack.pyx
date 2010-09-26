@@ -1,26 +1,24 @@
 # coding: utf-8
 
-import cStringIO
-
 cdef extern from "Python.h":
     ctypedef char* const_char_ptr "const char*"
     ctypedef struct PyObject
 
-    cdef object PyString_FromStringAndSize(const_char_ptr b, Py_ssize_t len)
+    cdef object PyBytes_FromStringAndSize(const_char_ptr b, Py_ssize_t len)
     cdef PyObject* Py_True
     cdef PyObject* Py_False
 
-    cdef char* PyString_AsString(object o)
     cdef long long PyLong_AsLongLong(object o)
     cdef unsigned long long PyLong_AsUnsignedLongLong(object o)
 
-    cdef int PyMapping_Check(object o)
-    cdef int PySequence_Check(object o)
-    cdef int PyLong_Check(object o)
-    cdef int PyInt_Check(object o)
-    cdef int PyFloat_Check(object o)
-    cdef int PyString_Check(object o)
-    cdef int PyUnicode_Check(object o)
+    cdef bint PyBool_Check(object o)
+    cdef bint PyDict_Check(object o)
+    cdef bint PySequence_Check(object o)
+    cdef bint PyLong_Check(object o)
+    cdef bint PyInt_Check(object o)
+    cdef bint PyFloat_Check(object o)
+    cdef bint PyBytes_Check(object o)
+    cdef bint PyUnicode_Check(object o)
 
 cdef extern from "stdlib.h":
     void* malloc(size_t)
@@ -71,20 +69,23 @@ cdef class Packer(object):
     def __dealloc__(self):
         free(self.pk.buf);
 
-    cdef int __pack(self, object o) except -1:
+    cdef int _pack(self, object o) except -1:
         cdef long long llval
         cdef unsigned long long ullval
         cdef long longval
         cdef double fval
         cdef char* rawval 
         cdef int ret
+        cdef dict d
 
         if o is None:
             ret = msgpack_pack_nil(&self.pk)
-        elif <PyObject*>o == Py_True:
-            ret = msgpack_pack_true(&self.pk)
-        elif <PyObject*>o == Py_False:
-            ret = msgpack_pack_false(&self.pk)
+            #elif PyBool_Check(o):
+        elif isinstance(o, bool):
+            if o:
+                ret = msgpack_pack_true(&self.pk)
+            else:
+                ret = msgpack_pack_false(&self.pk)
         elif PyLong_Check(o):
             if o > 0:
                 ullval = PyLong_AsUnsignedLongLong(o)
@@ -98,7 +99,7 @@ cdef class Packer(object):
         elif PyFloat_Check(o):
             fval = o
             ret = msgpack_pack_double(&self.pk, fval)
-        elif PyString_Check(o):
+        elif PyBytes_Check(o):
             rawval = o
             ret = msgpack_pack_raw(&self.pk, len(o))
             if ret == 0:
@@ -109,19 +110,20 @@ cdef class Packer(object):
             ret = msgpack_pack_raw(&self.pk, len(o))
             if ret == 0:
                 ret = msgpack_pack_raw_body(&self.pk, rawval, len(o))
-        elif PyMapping_Check(o):
-            ret = msgpack_pack_map(&self.pk, len(o))
+        elif PyDict_Check(o):
+            d = o
+            ret = msgpack_pack_map(&self.pk, len(d))
             if ret == 0:
-                for k,v in o.iteritems():
-                    ret = self.__pack(k)
+                for k,v in d.items():
+                    ret = self._pack(k)
                     if ret != 0: break
-                    ret = self.__pack(v)
+                    ret = self._pack(v)
                     if ret != 0: break
         elif PySequence_Check(o):
             ret = msgpack_pack_array(&self.pk, len(o))
             if ret == 0:
                 for v in o:
-                    ret = self.__pack(v)
+                    ret = self._pack(v)
                     if ret != 0: break
         else:
             # TODO: Serialize with defalt() like simplejson.
@@ -130,10 +132,10 @@ cdef class Packer(object):
 
     def pack(self, object obj):
         cdef int ret
-        ret = self.__pack(obj)
+        ret = self._pack(obj)
         if ret:
             raise TypeError
-        buf = PyString_FromStringAndSize(self.pk.buf, self.pk.length)
+        buf = PyBytes_FromStringAndSize(self.pk.buf, self.pk.length)
         self.pk.length = 0
         return buf
 
@@ -253,19 +255,18 @@ cdef class Unpacker(object):
         template_init(&self.ctx)
         self.ctx.user.use_list = use_list
 
-    def feed(self, next_bytes):
-        if not isinstance(next_bytes, str):
-           raise ValueError, "Argument must be bytes object"
+    def feed(self, bytes next_bytes):
         self.waiting_bytes.append(next_bytes)
 
     cdef append_buffer(self):
         cdef char* buf = self.buf
         cdef Py_ssize_t tail = self.buf_tail
         cdef Py_ssize_t l
+        cdef bytes b
 
         for b in self.waiting_bytes:
             l = len(b)
-            memcpy(buf + tail, PyString_AsString(b), l)
+            memcpy(buf + tail, <char*>(b), l)
             tail += l
         self.buf_tail = tail
         del self.waiting_bytes[:]

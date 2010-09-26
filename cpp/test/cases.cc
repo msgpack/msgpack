@@ -32,5 +32,7 @@ TEST(cases, format)
 		EXPECT_TRUE( pac_compact.next(&result_compact) );
 		EXPECT_EQ(result_compact.get(), result.get());
 	}
+
+	EXPECT_FALSE( pac_compact.next(&result) );
 }
 
