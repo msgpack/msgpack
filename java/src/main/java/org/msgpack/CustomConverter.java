@@ -20,8 +20,8 @@ package org.msgpack;
 import java.util.Map;
 import java.util.HashMap;
 
-// FIXME public?
-class CustomConverter {
+// FIXME package private?
+public class CustomConverter {
 	public static void register(Class target, MessageConverter converter) {
 		map.put(target, converter);
 	}

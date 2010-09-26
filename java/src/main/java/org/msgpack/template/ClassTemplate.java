@@ -28,16 +28,35 @@ public class ClassTemplate implements Template {
 	}
 
 	public Object unpack(Unpacker pac) throws IOException, MessageTypeException {
-		return pac.unpack(klass);
+		try {
+			return pac.unpack(klass);
+		} catch (IllegalAccessException e) {
+			throw new MessageTypeException(e.getMessage());  // FIXME
+		} catch (InstantiationException e) {
+			throw new MessageTypeException(e.getMessage());  // FIXME
+		}
 	}
 
 	public Object convert(MessagePackObject from) throws MessageTypeException {
+		if(MessageConvertable.class.isAssignableFrom(klass)) {
+			Object obj;
+			try {
+				obj = klass.newInstance();
+			} catch (IllegalAccessException e) {
+				throw new MessageTypeException(e.getMessage());  // FIXME
+			} catch (InstantiationException e) {
+				throw new MessageTypeException(e.getMessage());  // FIXME
+			}
+			((MessageConvertable)obj).messageConvert(from);
+			return obj;
+		}
+
 		MessageConverter converter = CustomConverter.get(klass);
 		if(converter != null) {
 			return converter.convert(from);
 		}
 
-		// FIXME check annotations
+		// FIXME check annotations -> code generation -> CustomMessage.registerTemplate
 
 		throw new MessageTypeException();
 	}

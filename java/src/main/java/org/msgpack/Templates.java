@@ -28,6 +28,10 @@ public class Templates {
 		return new MapTemplate(keyTemplate, valueTemplate);
 	}
 
+	public static Template tClass(Class target) {
+		return new ClassTemplate(target);
+	}
+
 
 	public static final Template TString = StringTemplate.getInstance();
 

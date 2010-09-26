@@ -573,10 +573,25 @@ public class Unpacker implements Iterable<MessagePackObject> {
 		obj.messageUnpack(this);
 	}
 
-	final public Object unpack(Class klass) throws MessageTypeException {
-		// FIXME check MessageUnpackable
-		// FIXME check CustomPacker
-		// FIXME check annotations
+	final public Object unpack(Class klass) throws IOException, MessageTypeException, InstantiationException, IllegalAccessException {
+		if(MessageUnpackable.class.isAssignableFrom(klass)) {
+			Object obj = klass.newInstance();
+			((MessageUnpackable)obj).messageUnpack(this);
+			return obj;
+		}
+
+		MessageUnpacker unpacker = CustomUnpacker.get(klass);
+		if(unpacker != null) {
+			return unpacker.unpack(this);
+		}
+
+		// FIXME check annotations -> code generation -> CustomMessage.registerTemplate
+
+		MessageConverter converter = CustomConverter.get(klass);
+		if(converter != null) {
+			return converter.convert(unpackObject());
+		}
+
 		throw new MessageTypeException();
 	}
 }

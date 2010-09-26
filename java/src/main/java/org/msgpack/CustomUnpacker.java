@@ -20,8 +20,8 @@ package org.msgpack;
 import java.util.Map;
 import java.util.HashMap;
 
-// FIXME public?
-class CustomUnpacker {
+// FIXME package private?
+public class CustomUnpacker {
 	public static void register(Class target, MessageUnpacker converter) {
 		map.put(target, converter);
 	}
