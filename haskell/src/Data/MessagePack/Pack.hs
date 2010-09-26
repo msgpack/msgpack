@@ -5,7 +5,7 @@
 
 --------------------------------------------------------------------
 -- |
--- Module    : Data.MessagePack.Put
+-- Module    : Data.MessagePack.Pack
 -- Copyright : (c) Hideyuki Tanaka, 2009-2010
 -- License   : BSD3
 --
@@ -13,13 +13,15 @@
 -- Stability :  experimental
 -- Portability: portable
 --
--- MessagePack Serializer using @Data.Binary.Put@
+-- MessagePack Serializer using @Data.Binary.Pack@
 --
 --------------------------------------------------------------------
 
-module Data.MessagePack.Put(
+module Data.MessagePack.Pack (
   -- * Serializable class
-  ObjectPut(..),
+  Packable(..),
+  -- * Simple function to pack a Haskell value
+  pack,
   ) where
 
 import Data.Binary.Put
@@ -30,32 +32,16 @@ import qualified Data.ByteString.Char8 as B8
 import qualified Data.ByteString.Lazy as L
 import qualified Data.Vector as V
 
-import Data.MessagePack.Object
-
 -- | Serializable class
-class ObjectPut a where
+class Packable a where
   -- | Serialize a value
   put :: a -> Put
 
-instance ObjectPut Object where
-  put obj =
-    case obj of
-      ObjectInteger n ->
-        put n
-      ObjectNil ->
-        put ()
-      ObjectBool b ->
-        put b
-      ObjectDouble d ->
-        put d
-      ObjectRAW raw ->
-        put raw
-      ObjectArray arr ->
-        put arr
-      ObjectMap m ->
-        put m
+-- | Pack Haskell data to MessagePack string.
+pack :: Packable a => a -> L.ByteString
+pack = runPut . put
 
-instance ObjectPut Int where
+instance Packable Int where
   put n =
     case n of
       _ | n >= 0 && n <= 127 ->
@@ -87,26 +73,26 @@ instance ObjectPut Int where
         putWord8 0xD3
         putWord64be $ fromIntegral n
 
-instance ObjectPut () where
+instance Packable () where
   put _ = 
     putWord8 0xC0
 
-instance ObjectPut Bool where
+instance Packable Bool where
   put True = putWord8 0xC3
   put False = putWord8 0xC2
 
-instance ObjectPut Double where
+instance Packable Double where
   put d = do
     putWord8 0xCB
     putFloat64be d
 
-instance ObjectPut String where
+instance Packable String where
   put = putString length (putByteString . B8.pack)
 
-instance ObjectPut B.ByteString where
+instance Packable B.ByteString where
   put = putString B.length putByteString
 
-instance ObjectPut L.ByteString where
+instance Packable L.ByteString where
   put = putString (fromIntegral . L.length) putLazyByteString
 
 putString :: (s -> Int) -> (s -> Put) -> s -> Put
@@ -122,41 +108,41 @@ putString lf pf str = do
       putWord32be $ fromIntegral len
   pf str
 
-instance ObjectPut a => ObjectPut [a] where
+instance Packable a => Packable [a] where
   put = putArray length (mapM_ put)
 
-instance ObjectPut a => ObjectPut (V.Vector a) where
+instance Packable a => Packable (V.Vector a) where
   put = putArray V.length (V.mapM_ put)
 
-instance (ObjectPut a1, ObjectPut a2) => ObjectPut (a1, a2) where
+instance (Packable a1, Packable a2) => Packable (a1, a2) where
   put = putArray (const 2) f where
     f (a1, a2) = put a1 >> put a2
 
-instance (ObjectPut a1, ObjectPut a2, ObjectPut a3) => ObjectPut (a1, a2, a3) where
+instance (Packable a1, Packable a2, Packable a3) => Packable (a1, a2, a3) where
   put = putArray (const 3) f where
     f (a1, a2, a3) = put a1 >> put a2 >> put a3
 
-instance (ObjectPut a1, ObjectPut a2, ObjectPut a3, ObjectPut a4) => ObjectPut (a1, a2, a3, a4) where
+instance (Packable a1, Packable a2, Packable a3, Packable a4) => Packable (a1, a2, a3, a4) where
   put = putArray (const 4) f where
     f (a1, a2, a3, a4) = put a1 >> put a2 >> put a3 >> put a4
 
-instance (ObjectPut a1, ObjectPut a2, ObjectPut a3, ObjectPut a4, ObjectPut a5) => ObjectPut (a1, a2, a3, a4, a5) where
+instance (Packable a1, Packable a2, Packable a3, Packable a4, Packable a5) => Packable (a1, a2, a3, a4, a5) where
   put = putArray (const 5) f where
     f (a1, a2, a3, a4, a5) = put a1 >> put a2 >> put a3 >> put a4 >> put a5
 
-instance (ObjectPut a1, ObjectPut a2, ObjectPut a3, ObjectPut a4, ObjectPut a5, ObjectPut a6) => ObjectPut (a1, a2, a3, a4, a5, a6) where
+instance (Packable a1, Packable a2, Packable a3, Packable a4, Packable a5, Packable a6) => Packable (a1, a2, a3, a4, a5, a6) where
   put = putArray (const 6) f where
     f (a1, a2, a3, a4, a5, a6) = put a1 >> put a2 >> put a3 >> put a4 >> put a5 >> put a6
 
-instance (ObjectPut a1, ObjectPut a2, ObjectPut a3, ObjectPut a4, ObjectPut a5, ObjectPut a6, ObjectPut a7) => ObjectPut (a1, a2, a3, a4, a5, a6, a7) where
+instance (Packable a1, Packable a2, Packable a3, Packable a4, Packable a5, Packable a6, Packable a7) => Packable (a1, a2, a3, a4, a5, a6, a7) where
   put = putArray (const 7) f where
     f (a1, a2, a3, a4, a5, a6, a7) = put a1 >> put a2 >> put a3 >> put a4 >> put a5 >> put a6 >> put a7
 
-instance (ObjectPut a1, ObjectPut a2, ObjectPut a3, ObjectPut a4, ObjectPut a5, ObjectPut a6, ObjectPut a7, ObjectPut a8) => ObjectPut (a1, a2, a3, a4, a5, a6, a7, a8) where
+instance (Packable a1, Packable a2, Packable a3, Packable a4, Packable a5, Packable a6, Packable a7, Packable a8) => Packable (a1, a2, a3, a4, a5, a6, a7, a8) where
   put = putArray (const 8) f where
     f (a1, a2, a3, a4, a5, a6, a7, a8) = put a1 >> put a2 >> put a3 >> put a4 >> put a5 >> put a6 >> put a7 >> put a8
 
-instance (ObjectPut a1, ObjectPut a2, ObjectPut a3, ObjectPut a4, ObjectPut a5, ObjectPut a6, ObjectPut a7, ObjectPut a8, ObjectPut a9) => ObjectPut (a1, a2, a3, a4, a5, a6, a7, a8, a9) where
+instance (Packable a1, Packable a2, Packable a3, Packable a4, Packable a5, Packable a6, Packable a7, Packable a8, Packable a9) => Packable (a1, a2, a3, a4, a5, a6, a7, a8, a9) where
   put = putArray (const 9) f where
     f (a1, a2, a3, a4, a5, a6, a7, a8, a9) = put a1 >> put a2 >> put a3 >> put a4 >> put a5 >> put a6 >> put a7 >> put a8 >> put a9
 
@@ -173,13 +159,13 @@ putArray lf pf arr = do
       putWord32be $ fromIntegral len
   pf arr
 
-instance (ObjectPut k, ObjectPut v) => ObjectPut [(k, v)] where
+instance (Packable k, Packable v) => Packable [(k, v)] where
   put = putMap length (mapM_ putPair)
 
-instance (ObjectPut k, ObjectPut v) => ObjectPut (V.Vector (k, v)) where
+instance (Packable k, Packable v) => Packable (V.Vector (k, v)) where
   put = putMap V.length (V.mapM_ putPair)
 
-putPair :: (ObjectPut a, ObjectPut b) => (a, b) -> Put
+putPair :: (Packable a, Packable b) => (a, b) -> Put
 putPair (a, b) = put a >> put b
 
 putMap :: (a -> Int) -> (a -> Put) -> a -> Put
@@ -194,3 +180,7 @@ putMap lf pf m = do
       putWord8 0xDF
       putWord32be $ fromIntegral len
   pf m
+
+instance Packable a => Packable (Maybe a) where
+  put Nothing = put ()
+  put (Just a) = put a

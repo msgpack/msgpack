@@ -2,10 +2,11 @@
 {-# Language IncoherentInstances #-}
 {-# Language OverlappingInstances #-}
 {-# Language TypeSynonymInstances #-}
+{-# Language DeriveDataTypeable #-}
 
 --------------------------------------------------------------------
 -- |
--- Module    : Data.MessagePack.Parser
+-- Module    : Data.MessagePack.Unpack
 -- Copyright : (c) Hideyuki Tanaka, 2009-2010
 -- License   : BSD3
 --
@@ -17,11 +18,19 @@
 --
 --------------------------------------------------------------------
 
-module Data.MessagePack.Parser(
+module Data.MessagePack.Unpack(
   -- * MessagePack deserializer
-  ObjectGet(..),
+  Unpackable(..),
+  -- * Simple function to unpack a Haskell value
+  unpack,
+  tryUnpack,
+  -- * Unpack exception
+  UnpackError(..),
+  -- * ByteString utils
+  IsByteString(..),
   ) where
 
+import Control.Exception
 import Control.Monad
 import qualified Data.Attoparsec as A
 import Data.Binary.Get
@@ -31,30 +40,53 @@ import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as B8
 import qualified Data.ByteString.Lazy as L
 import Data.Int
+import Data.Typeable
 import qualified Data.Vector as V
 import Data.Word
 import Text.Printf
 
-import Data.MessagePack.Object
-
 -- | Deserializable class
-class ObjectGet a where
+class Unpackable a where
   -- | Deserialize a value
   get :: A.Parser a
 
-instance ObjectGet Object where
-  get =
-    A.choice
-    [ liftM ObjectInteger get
-    , liftM (\() -> ObjectNil) get
-    , liftM ObjectBool get
-    , liftM ObjectDouble get
-    , liftM ObjectRAW get
-    , liftM ObjectArray get
-    , liftM ObjectMap get
-    ]
+class IsByteString s where
+  toBS :: s -> B.ByteString
 
-instance ObjectGet Int where
+instance IsByteString B.ByteString where
+  toBS = id
+
+instance IsByteString L.ByteString where
+  toBS = B.concat . L.toChunks
+
+-- | The exception of unpack
+data UnpackError =
+  UnpackError String
+  deriving (Show, Typeable)
+
+instance Exception UnpackError
+
+-- | Unpack MessagePack string to Haskell data.
+unpack :: (Unpackable a, IsByteString s) => s -> a
+unpack bs =
+  case tryUnpack bs of
+    Left err ->
+      throw $ UnpackError err
+    Right ret ->
+      ret
+
+-- | Unpack MessagePack string to Haskell data.
+tryUnpack :: (Unpackable a, IsByteString s) => s -> Either String a
+tryUnpack bs =
+  case A.parse get (toBS bs) of
+    A.Fail _ _ err ->
+      Left err
+    A.Partial _ ->
+      Left "not enough input"
+    A.Done _ ret ->
+      Right ret
+
+instance Unpackable Int where
   get = do
     c <- A.anyWord8
     case c of
@@ -81,7 +113,7 @@ instance ObjectGet Int where
       _ ->
         fail $ printf "invlid integer tag: 0x%02X" c
 
-instance ObjectGet () where
+instance Unpackable () where
   get = do
     c <- A.anyWord8
     case c of
@@ -90,7 +122,7 @@ instance ObjectGet () where
       _ ->
         fail $ printf "invlid nil tag: 0x%02X" c
 
-instance ObjectGet Bool where
+instance Unpackable Bool where
   get = do
     c <- A.anyWord8
     case c of
@@ -101,7 +133,7 @@ instance ObjectGet Bool where
       _ ->
         fail $ printf "invlid bool tag: 0x%02X" c
 
-instance ObjectGet Double where
+instance Unpackable Double where
   get = do
     c <- A.anyWord8
     case c of
@@ -112,13 +144,13 @@ instance ObjectGet Double where
       _ ->
         fail $ printf "invlid double tag: 0x%02X" c
 
-instance ObjectGet String where
+instance Unpackable String where
   get = parseString (\n -> return . B8.unpack =<< A.take n)
 
-instance ObjectGet B.ByteString where
+instance Unpackable B.ByteString where
   get = parseString A.take
 
-instance ObjectGet L.ByteString where
+instance Unpackable L.ByteString where
   get = parseString (\n -> do bs <- A.take n; return $ L.fromChunks [bs])
 
 parseString :: (Int -> A.Parser a) -> A.Parser a
@@ -134,48 +166,48 @@ parseString aget = do
     _ ->
       fail $ printf "invlid raw tag: 0x%02X" c
 
-instance ObjectGet a => ObjectGet [a] where
+instance Unpackable a => Unpackable [a] where
   get = parseArray (flip replicateM get)
 
-instance ObjectGet a => ObjectGet (V.Vector a) where
+instance Unpackable a => Unpackable (V.Vector a) where
   get = parseArray (flip V.replicateM get)
 
-instance (ObjectGet a1, ObjectGet a2) => ObjectGet (a1, a2) where
+instance (Unpackable a1, Unpackable a2) => Unpackable (a1, a2) where
   get = parseArray f where
     f 2 = get >>= \a1 -> get >>= \a2 -> return (a1, a2)
     f n = fail $ printf "wrong tupple size: expected 2 but got " n
 
-instance (ObjectGet a1, ObjectGet a2, ObjectGet a3) => ObjectGet (a1, a2, a3) where
+instance (Unpackable a1, Unpackable a2, Unpackable a3) => Unpackable (a1, a2, a3) where
   get = parseArray f where
     f 3 = get >>= \a1 -> get >>= \a2 -> get >>= \a3 -> return (a1, a2, a3)
     f n = fail $ printf "wrong tupple size: expected 3 but got " n
 
-instance (ObjectGet a1, ObjectGet a2, ObjectGet a3, ObjectGet a4) => ObjectGet (a1, a2, a3, a4) where
+instance (Unpackable a1, Unpackable a2, Unpackable a3, Unpackable a4) => Unpackable (a1, a2, a3, a4) where
   get = parseArray f where
     f 4 = get >>= \a1 -> get >>= \a2 -> get >>= \a3 -> get >>= \a4 -> return (a1, a2, a3, a4)
     f n = fail $ printf "wrong tupple size: expected 4 but got " n
 
-instance (ObjectGet a1, ObjectGet a2, ObjectGet a3, ObjectGet a4, ObjectGet a5) => ObjectGet (a1, a2, a3, a4, a5) where
+instance (Unpackable a1, Unpackable a2, Unpackable a3, Unpackable a4, Unpackable a5) => Unpackable (a1, a2, a3, a4, a5) where
   get = parseArray f where
     f 5 = get >>= \a1 -> get >>= \a2 -> get >>= \a3 -> get >>= \a4 -> get >>= \a5 -> return (a1, a2, a3, a4, a5)
     f n = fail $ printf "wrong tupple size: expected 5 but got " n
 
-instance (ObjectGet a1, ObjectGet a2, ObjectGet a3, ObjectGet a4, ObjectGet a5, ObjectGet a6) => ObjectGet (a1, a2, a3, a4, a5, a6) where
+instance (Unpackable a1, Unpackable a2, Unpackable a3, Unpackable a4, Unpackable a5, Unpackable a6) => Unpackable (a1, a2, a3, a4, a5, a6) where
   get = parseArray f where
     f 6 = get >>= \a1 -> get >>= \a2 -> get >>= \a3 -> get >>= \a4 -> get >>= \a5 -> get >>= \a6 -> return (a1, a2, a3, a4, a5, a6)
     f n = fail $ printf "wrong tupple size: expected 6 but got " n
 
-instance (ObjectGet a1, ObjectGet a2, ObjectGet a3, ObjectGet a4, ObjectGet a5, ObjectGet a6, ObjectGet a7) => ObjectGet (a1, a2, a3, a4, a5, a6, a7) where
+instance (Unpackable a1, Unpackable a2, Unpackable a3, Unpackable a4, Unpackable a5, Unpackable a6, Unpackable a7) => Unpackable (a1, a2, a3, a4, a5, a6, a7) where
   get = parseArray f where
     f 7 = get >>= \a1 -> get >>= \a2 -> get >>= \a3 -> get >>= \a4 -> get >>= \a5 -> get >>= \a6 -> get >>= \a7 -> return (a1, a2, a3, a4, a5, a6, a7)
     f n = fail $ printf "wrong tupple size: expected 7 but got " n
 
-instance (ObjectGet a1, ObjectGet a2, ObjectGet a3, ObjectGet a4, ObjectGet a5, ObjectGet a6, ObjectGet a7, ObjectGet a8) => ObjectGet (a1, a2, a3, a4, a5, a6, a7, a8) where
+instance (Unpackable a1, Unpackable a2, Unpackable a3, Unpackable a4, Unpackable a5, Unpackable a6, Unpackable a7, Unpackable a8) => Unpackable (a1, a2, a3, a4, a5, a6, a7, a8) where
   get = parseArray f where
     f 8 = get >>= \a1 -> get >>= \a2 -> get >>= \a3 -> get >>= \a4 -> get >>= \a5 -> get >>= \a6 -> get >>= \a7 -> get >>= \a8 -> return (a1, a2, a3, a4, a5, a6, a7, a8)
     f n = fail $ printf "wrong tupple size: expected 8 but got " n
 
-instance (ObjectGet a1, ObjectGet a2, ObjectGet a3, ObjectGet a4, ObjectGet a5, ObjectGet a6, ObjectGet a7, ObjectGet a8, ObjectGet a9) => ObjectGet (a1, a2, a3, a4, a5, a6, a7, a8, a9) where
+instance (Unpackable a1, Unpackable a2, Unpackable a3, Unpackable a4, Unpackable a5, Unpackable a6, Unpackable a7, Unpackable a8, Unpackable a9) => Unpackable (a1, a2, a3, a4, a5, a6, a7, a8, a9) where
   get = parseArray f where
     f 9 = get >>= \a1 -> get >>= \a2 -> get >>= \a3 -> get >>= \a4 -> get >>= \a5 -> get >>= \a6 -> get >>= \a7 -> get >>= \a8 -> get >>= \a9 -> return (a1, a2, a3, a4, a5, a6, a7, a8, a9)
     f n = fail $ printf "wrong tupple size: expected 9 but got " n
@@ -193,13 +225,13 @@ parseArray aget = do
     _ ->
       fail $ printf "invlid array tag: 0x%02X" c
 
-instance (ObjectGet k, ObjectGet v) => ObjectGet [(k, v)] where
+instance (Unpackable k, Unpackable v) => Unpackable [(k, v)] where
   get = parseMap (flip replicateM parsePair)
 
-instance (ObjectGet k, ObjectGet v) => ObjectGet (V.Vector (k, v)) where
+instance (Unpackable k, Unpackable v) => Unpackable (V.Vector (k, v)) where
   get = parseMap (flip V.replicateM parsePair)
 
-parsePair :: (ObjectGet k, ObjectGet v) => A.Parser (k, v)
+parsePair :: (Unpackable k, Unpackable v) => A.Parser (k, v)
 parsePair = do
   a <- get
   b <- get
@@ -217,6 +249,12 @@ parseMap aget = do
       aget . fromIntegral =<< parseUint32
     _ ->
       fail $ printf "invlid map tag: 0x%02X" c
+
+instance Unpackable a => Unpackable (Maybe a) where
+  get = 
+    A.choice
+    [ liftM Just get
+    , liftM (\() -> Nothing) get ]
 
 parseUint16 :: A.Parser Word16
 parseUint16 = do

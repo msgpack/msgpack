@@ -7,7 +7,7 @@ import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy.Char8 as L
 import Data.MessagePack
 
-mid :: (ObjectGet a, ObjectPut a) => a -> a
+mid :: (Packable a, Unpackable a) => a -> a
 mid = unpack . pack
 
 prop_mid_int a = a == mid a

@@ -13,14 +13,11 @@
 --------------------------------------------------------------------
 
 module Data.MessagePack(
+  module Data.MessagePack.Pack,
+  module Data.MessagePack.Unpack,
   module Data.MessagePack.Object,
-  module Data.MessagePack.Put,
-  module Data.MessagePack.Parser,
   module Data.MessagePack.Iteratee,
-  
-  -- * Simple functions of Pack and Unpack
-  pack,
-  unpack,
+  module Data.MessagePack.Derive,
   
   -- * Pack functions
   packToString,
@@ -44,37 +41,17 @@ import qualified Data.Attoparsec as A
 import Data.Binary.Put
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as L
-import Data.Functor.Identity
 import qualified Data.Iteratee as I
 import System.IO
 
+import Data.MessagePack.Pack
+import Data.MessagePack.Unpack
 import Data.MessagePack.Object
-import Data.MessagePack.Put
-import Data.MessagePack.Parser
 import Data.MessagePack.Iteratee
+import Data.MessagePack.Derive
 
 bufferSize :: Int
 bufferSize = 4 * 1024
-
-class IsByteString s where
-  toBS :: s -> B.ByteString
-
-instance IsByteString B.ByteString where
-  toBS = id
-
-instance IsByteString L.ByteString where
-  toBS = B.concat . L.toChunks
-
--- | Pack Haskell data to MessagePack string.
-pack :: ObjectPut a => a -> L.ByteString
-pack = packToString . put
-
--- | Unpack MessagePack string to Haskell data.
-unpack :: (ObjectGet a, IsByteString s) => s -> a
-unpack bs =
-  runIdentity $ I.run $ I.joinIM $ I.enumPure1Chunk (toBS bs) getI
-
--- TODO: tryUnpack
 
 -- | Pack to ByteString.
 packToString :: Put -> L.ByteString

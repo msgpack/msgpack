@@ -11,6 +11,7 @@ import java.lang.reflect.ParameterizedType;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -25,6 +26,7 @@ import javassist.CtNewMethod;
 import javassist.NotFoundException;
 
 import org.msgpack.MessageConvertable;
+import org.msgpack.MessagePackObject;
 import org.msgpack.MessagePackable;
 import org.msgpack.MessageTypeException;
 import org.msgpack.MessageUnpackable;
@@ -39,40 +41,13 @@ public class PackUnpackUtil {
 
 		static final String KEYWORD_FOR = "for";
 
+		static final String KEYWORD_IF = "if";
+
 		static final String KEYWORD_THROWS = "throws";
 
 		static final String KEYWORD_NEW = "new";
 
-		static final String TYPE_NAME_VOID = void.class.getName();
-
-		static final String TYPE_NAME_OBJECT = Object.class.getName();
-
-		static final String TYPE_NAME_IOEXCEPTION = IOException.class.getName();
-
-		static final String TYPE_NAME_PACKER = Packer.class.getName();
-
-		static final String TYPE_NAME_UNPACKER = Unpacker.class.getName();
-
-		static final String TYPE_NAME_MSGPACKABLE = MessagePackable.class
-				.getName();
-
-		static final String TYPE_NAME_MSGUNPACKABLE = MessageUnpackable.class
-				.getName();
-
-		static final String TYPE_NAME_MSGCONVERTABLE = MessageConvertable.class
-				.getName();
-
-		static final String TYPE_NAME_MSGTYPEEXCEPTION = MessageTypeException.class
-				.getName();
-
-		static final String TYPE_NAME_MSGPACKUNPACKABLE = MessagePackUnpackable.class
-				.getName();
-
-		static final String TYPE_NAME_MSGPACKOPTIONAL = MessagePackOptional.class
-				.getName();
-
-		static final String TYPE_NAME_MSGPACKOREQUIRED = MessagePackRequired.class
-				.getName();
+		static final String KEYWORD_NULL = "null";
 
 		static final String CHAR_NAME_SPACE = " ";
 
@@ -92,15 +67,31 @@ public class PackUnpackUtil {
 
 		static final String CHAR_NAME_LEFT_CURLY_BRACHET = "{";
 
+		static final String CHAR_NAME_RIGHT_SQUARE_BRACKET = "]";
+
+		static final String CHAR_NAME_LEFT_SQUARE_BRACKET = "[";
+
 		static final String CHAR_NAME_DOT = ".";
 
 		static final String CHAR_NAME_SEMICOLON = ";";
 
-		static final String VARIABLE_NAME_PK = "pk";
+		static final String VARIABLE_NAME_PK = "_$$_pk";
 
-		static final String VARIABLE_NAME_OBJ = "obj";
+		static final String VARIABLE_NAME_SIZE = "_$$_len";
 
-		static final String VARIABLE_NAME_SIZE = "len";
+		static final String VARIABLE_NAME_ARRAY = "_$$_ary";
+
+		static final String VARIABLE_NAME_LIST = "_$$_list";
+
+		static final String VARIABLE_NAME_MAP = "_$$_map";
+
+		static final String VARIABLE_NAME_KEY = "_$$_key";
+
+		static final String VARIABLE_NAME_VAL = "_$$_val";
+
+		static final String VARIABLE_NAME_ITER = "_$$_iter";
+
+		static final String VARIABLE_NAME_MPO = "_$$_mpo";
 
 		static final String VARIABLE_NAME_I = "i";
 
@@ -109,6 +100,18 @@ public class PackUnpackUtil {
 		static final String METHOD_NAME_ADD = "add";
 
 		static final String METHOD_NAME_PUT = "put";
+
+		static final String METHOD_NAME_GET = "get";
+
+		static final String METHOD_NAME_SIZE = "size";
+
+		static final String METHOD_NAME_KEYSET = "keySet";
+
+		static final String METHOD_NAME_ITERATOR = "iterator";
+
+		static final String METHOD_NAME_HASNEXT = "hasNext";
+
+		static final String METHOD_NAME_NEXT = "next";
 
 		static final String METHOD_NAME_MSGPACK = "messagePack";
 
@@ -147,6 +150,28 @@ public class PackUnpackUtil {
 		static final String METHOD_NAME_UNPACKARRAY = "unpackArray";
 
 		static final String METHOD_NAME_UNPACKMAP = "unpackMap";
+
+		static final String METHOD_NAME_ASARRAY = "asArray";
+
+		static final String METHOD_NAME_ASBOOLEAN = "asBoolean";
+
+		static final String METHOD_NAME_ASBYTE = "asByte";
+
+		static final String METHOD_NAME_ASSHORT = "asShort";
+
+		static final String METHOD_NAME_ASINT = "asInt";
+
+		static final String METHOD_NAME_ASFLOAT = "asFloat";
+
+		static final String METHOD_NAME_ASLONG = "asLong";
+
+		static final String METHOD_NAME_ASDOUBLE = "asDouble";
+
+		static final String METHOD_NAME_ASSTRING = "asString";
+
+		static final String METHOD_NAME_ASBYTEARRAY = "asByteArray";
+
+		static final String METHOD_NAME_ASBIGINTEGER = "asBigInteger";
 	}
 
 	public static class Enhancer {
@@ -168,25 +193,26 @@ public class PackUnpackUtil {
 			classCache.putIfAbsent(origName, enhClass);
 		}
 
-		protected Class<?> generate(Class<?> origClass)
+		protected Class<?> generate(Class<?> origClass, boolean packUnpackable)
 				throws NotFoundException, CannotCompileException {
 			String origName = origClass.getName();
 			String enhName = origName + Constants.POSTFIX_TYPE_NAME_ENHANCER;
 			CtClass origCtClass = pool.get(origName);
-			checkClassValidation(origClass);
+			checkClassValidation(origClass, packUnpackable);
 			checkDefaultConstructorValidation(origClass);
 			CtClass enhCtClass = pool.makeClass(enhName);
 			setSuperclass(enhCtClass, origCtClass);
 			setInterfaces(enhCtClass);
 			addConstructor(enhCtClass);
 			Field[] fields = getDeclaredFields(origClass);
-			addMessagePackMethod(enhCtClass, origCtClass, fields);
-			addMessageUnpackMethod(enhCtClass, origCtClass, fields);
-			addMessageConvertMethod(enhCtClass, origCtClass, fields);
+			addMessagePackMethod(enhCtClass, fields);
+			addMessageUnpackMethod(enhCtClass, fields);
+			addMessageConvertMethod(enhCtClass, fields);
 			return createClass(enhCtClass);
 		}
 
-		private void checkClassValidation(Class<?> origClass) {
+		private void checkClassValidation(Class<?> origClass,
+				boolean packUnpackable) {
 			// not public, abstract, final
 			int mod = origClass.getModifiers();
 			if ((!(Modifier.isPublic(mod) || Modifier.isProtected(mod)))
@@ -198,7 +224,9 @@ public class PackUnpackUtil {
 				throwClassValidationException(origClass);
 			}
 			// annotation
-			checkPackUnpackAnnotation(origClass);
+			if (!packUnpackable) {
+				checkPackUnpackAnnotation(origClass);
+			}
 		}
 
 		private static void throwClassValidationException(Class<?> origClass) {
@@ -243,11 +271,11 @@ public class PackUnpackUtil {
 		}
 
 		private void setInterfaces(CtClass enhCtClass) throws NotFoundException {
-			CtClass pacCtClass = pool.get(Constants.TYPE_NAME_MSGPACKABLE);
+			CtClass pacCtClass = pool.get(MessagePackable.class.getName());
 			enhCtClass.addInterface(pacCtClass);
-			CtClass unpacCtClass = pool.get(Constants.TYPE_NAME_MSGUNPACKABLE);
+			CtClass unpacCtClass = pool.get(MessageUnpackable.class.getName());
 			enhCtClass.addInterface(unpacCtClass);
-			CtClass convCtClass = pool.get(Constants.TYPE_NAME_MSGCONVERTABLE);
+			CtClass convCtClass = pool.get(MessageConvertable.class.getName());
 			enhCtClass.addInterface(convCtClass);
 		}
 
@@ -296,24 +324,23 @@ public class PackUnpackUtil {
 					+ field.getName());
 		}
 
-		private void addMessagePackMethod(CtClass enhCtClass,
-				CtClass origCtClass, Field[] fields)
+		private void addMessagePackMethod(CtClass enhCtClass, Field[] fields)
 				throws CannotCompileException, NotFoundException {
 			StringBuilder sb = new StringBuilder();
 			sb.append(Constants.KEYWORD_MODIFIER_PUBLIC);
 			sb.append(Constants.CHAR_NAME_SPACE);
-			sb.append(Constants.TYPE_NAME_VOID);
+			sb.append(void.class.getName());
 			sb.append(Constants.CHAR_NAME_SPACE);
 			sb.append(Constants.METHOD_NAME_MSGPACK);
 			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
-			sb.append(Constants.TYPE_NAME_PACKER);
+			sb.append(Packer.class.getName());
 			sb.append(Constants.CHAR_NAME_SPACE);
 			sb.append(Constants.VARIABLE_NAME_PK);
 			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
 			sb.append(Constants.CHAR_NAME_SPACE);
 			sb.append(Constants.KEYWORD_THROWS);
 			sb.append(Constants.CHAR_NAME_SPACE);
-			sb.append(Constants.TYPE_NAME_IOEXCEPTION);
+			sb.append(IOException.class.getName());
 			sb.append(Constants.CHAR_NAME_SPACE);
 			sb.append(Constants.CHAR_NAME_LEFT_CURLY_BRACHET);
 			sb.append(Constants.CHAR_NAME_SPACE);
@@ -326,15 +353,15 @@ public class PackUnpackUtil {
 			sb.append(Constants.CHAR_NAME_SEMICOLON);
 			sb.append(Constants.CHAR_NAME_SPACE);
 			for (Field field : fields) {
-				insertCodeOfMessagePack(sb, field);
+				insertCodeOfMessagePackCall(sb, field);
 			}
 			sb.append(Constants.CHAR_NAME_RIGHT_CURLY_BRACHET);
-			//System.out.println("messagePack method: " + sb.toString());
+			// System.out.println("messagePack method: " + sb.toString());
 			CtMethod newCtMethod = CtNewMethod.make(sb.toString(), enhCtClass);
 			enhCtClass.addMethod(newCtMethod);
 		}
 
-		private void insertCodeOfMessagePack(StringBuilder sb, Field field) {
+		private void insertCodeOfMessagePackCall(StringBuilder sb, Field field) {
 			sb.append(Constants.VARIABLE_NAME_PK);
 			sb.append(Constants.CHAR_NAME_DOT);
 			sb.append(Constants.METHOD_NAME_PACK);
@@ -345,27 +372,26 @@ public class PackUnpackUtil {
 			sb.append(Constants.CHAR_NAME_SPACE);
 		}
 
-		private void addMessageUnpackMethod(CtClass enhCtClass,
-				CtClass origCtClass, Field[] fields)
+		private void addMessageUnpackMethod(CtClass enhCtClass, Field[] fields)
 				throws CannotCompileException, NotFoundException {
 			StringBuilder sb = new StringBuilder();
 			sb.append(Constants.KEYWORD_MODIFIER_PUBLIC);
 			sb.append(Constants.CHAR_NAME_SPACE);
-			sb.append(Constants.TYPE_NAME_VOID);
+			sb.append(void.class.getName());
 			sb.append(Constants.CHAR_NAME_SPACE);
 			sb.append(Constants.METHOD_NAME_MSGUNPACK);
 			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
-			sb.append(Constants.TYPE_NAME_UNPACKER);
+			sb.append(Unpacker.class.getName());
 			sb.append(Constants.CHAR_NAME_SPACE);
 			sb.append(Constants.VARIABLE_NAME_PK);
 			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
 			sb.append(Constants.CHAR_NAME_SPACE);
 			sb.append(Constants.KEYWORD_THROWS);
 			sb.append(Constants.CHAR_NAME_SPACE);
-			sb.append(Constants.TYPE_NAME_MSGTYPEEXCEPTION);
+			sb.append(MessageTypeException.class.getName());
 			sb.append(Constants.CHAR_NAME_COMMA);
 			sb.append(Constants.CHAR_NAME_SPACE);
-			sb.append(Constants.TYPE_NAME_IOEXCEPTION);
+			sb.append(IOException.class.getName());
 			sb.append(Constants.CHAR_NAME_SPACE);
 			sb.append(Constants.CHAR_NAME_LEFT_CURLY_BRACHET);
 			sb.append(Constants.CHAR_NAME_SPACE);
@@ -376,50 +402,57 @@ public class PackUnpackUtil {
 			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
 			sb.append(Constants.CHAR_NAME_SEMICOLON);
 			sb.append(Constants.CHAR_NAME_SPACE);
-			for (Field field : fields) {
-				insertCodeOfMessageUnpack(sb, field, field.getType());
-			}
+			insertCodeOfMessageUnpackCalls(sb, fields);
 			sb.append(Constants.CHAR_NAME_RIGHT_CURLY_BRACHET);
-			//System.out.println("messageUnpack method: " + sb.toString());
+			// System.out.println("messageUnpack method: " + sb.toString());
 			CtMethod newCtMethod = CtNewMethod.make(sb.toString(), enhCtClass);
 			enhCtClass.addMethod(newCtMethod);
 		}
 
-		private void insertCodeOfMessageUnpack(StringBuilder sb, Field field,
-				Class<?> type) throws NotFoundException {
-			if (type.isPrimitive()) {
-				// primitive type
-				insertCodeOfMessageUnpackForPrimitiveTypes(sb, field, type);
-			} else if (type.equals(Boolean.class) || // Boolean
-					type.equals(Byte.class) || // Byte
-					type.equals(Double.class) || // Double
-					type.equals(Float.class) || // Float
-					type.equals(Integer.class) || // Integer
-					type.equals(Long.class) || // Long
-					type.equals(Short.class)) { // Short
-				// reference type (wrapper type)
-				insertCodeOfMessageUnpackForWrapperTypes(sb, field, type);
-			} else if (type.equals(BigInteger.class) || // BigInteger
-					type.equals(String.class) || // String
-					type.equals(byte[].class)) { // byte[]
-				// reference type (other type)
-				insertCodeOfMessageUnpackForPrimitiveTypes(sb, field, type);
-			} else if (List.class.isAssignableFrom(type)) {
-				// List
-				insertCodeOfMessageUnpackForListType(sb, field, type);
-			} else if (Map.class.isAssignableFrom(type)) {
-				// Map
-				insertCodeOfMessageUnpackForMapType(sb, field, type);
-			} else if (MessageUnpackable.class.isAssignableFrom(type)
-					|| (getCache(type.getName()) != null)) {
-				// MessageUnpackable
-				insertCodeOfMessageUnpackForMsgUnpackableType(sb, field, type);
-			} else {
-				throw new NotFoundException("unknown type:  " + type.getName());
+		private void insertCodeOfMessageUnpackCalls(StringBuilder sb,
+				Field[] fields) throws NotFoundException {
+			for (Field field : fields) {
+				insertCodeOfMessageUnpackCall(sb, field, field.getType());
 			}
 		}
 
-		private void insertCodeOfMessageUnpackForPrimitiveTypes(
+		private void insertCodeOfMessageUnpackCall(StringBuilder sb, Field f,
+				Class<?> c) throws NotFoundException {
+			if (c.isPrimitive()) {
+				// primitive type
+				insertCodeOfMessageUnpackCallForPrimTypes(sb, f, c);
+			} else if (c.equals(Boolean.class) || // Boolean
+					c.equals(Byte.class) || // Byte
+					c.equals(Double.class) || // Double
+					c.equals(Float.class) || // Float
+					c.equals(Integer.class) || // Integer
+					c.equals(Long.class) || // Long
+					c.equals(Short.class)) { // Short
+				// reference type (wrapper type)
+				insertCodeOfMessageUnpackCallForWrapTypes(sb, f, c);
+			} else if (c.equals(BigInteger.class) || // BigInteger
+					c.equals(String.class) || // String
+					c.equals(byte[].class)) { // byte[]
+				// reference type (other type)
+				insertCodeOfMessageUnpackCallForPrimTypes(sb, f, c);
+			} else if (List.class.isAssignableFrom(c)) {
+				// List
+				insertCodeOfMessageUnpackCallForListType(sb, f, c);
+			} else if (Map.class.isAssignableFrom(c)) {
+				// Map
+				insertCodeOfMessageUnpackCallForMapType(sb, f, c);
+			} else if (getCache(c.getName()) != null) {
+				// cached
+				insertCodeOfMessageUnpackCallForEnhancedType(sb, f, c);
+			} else if (MessageUnpackable.class.isAssignableFrom(c)) {
+				// MessageUnpackable
+				insertCodeOfMessageUnpackCallForMsgUnpackableType(sb, f, c);
+			} else {
+				throw new NotFoundException("unknown type:  " + c.getName());
+			}
+		}
+
+		private void insertCodeOfMessageUnpackCallForPrimTypes(
 				StringBuilder sb, Field field, Class<?> type)
 				throws NotFoundException {
 			// insert a right variable
@@ -466,8 +499,9 @@ public class PackUnpackUtil {
 			}
 		}
 
-		private void insertCodeOfMessageUnpackForWrapperTypes(StringBuilder sb,
-				Field field, Class<?> type) throws NotFoundException {
+		private void insertCodeOfMessageUnpackCallForWrapTypes(
+				StringBuilder sb, Field field, Class<?> type)
+				throws NotFoundException {
 			// insert a right variable
 			if (field != null) {
 				sb.append(field.getName());
@@ -508,7 +542,7 @@ public class PackUnpackUtil {
 			}
 		}
 
-		private void insertCodeOfMessageUnpackForListType(StringBuilder sb,
+		private void insertCodeOfMessageUnpackCallForListType(StringBuilder sb,
 				Field field, Class<?> type) throws NotFoundException {
 			ParameterizedType generic = (ParameterizedType) field
 					.getGenericType();
@@ -575,7 +609,7 @@ public class PackUnpackUtil {
 			sb.append(Constants.CHAR_NAME_DOT);
 			sb.append(Constants.METHOD_NAME_ADD);
 			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
-			insertCodeOfMessageUnpack(sb, null, genericType);
+			insertCodeOfMessageUnpackCall(sb, null, genericType);
 			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
 			sb.append(Constants.CHAR_NAME_SEMICOLON);
 			sb.append(Constants.CHAR_NAME_SPACE);
@@ -584,7 +618,7 @@ public class PackUnpackUtil {
 			sb.append(Constants.CHAR_NAME_SPACE);
 		}
 
-		private void insertCodeOfMessageUnpackForMapType(StringBuilder sb,
+		private void insertCodeOfMessageUnpackCallForMapType(StringBuilder sb,
 				Field field, Class<?> type) throws NotFoundException {
 			ParameterizedType generic = (ParameterizedType) field
 					.getGenericType();
@@ -652,10 +686,10 @@ public class PackUnpackUtil {
 			sb.append(Constants.CHAR_NAME_DOT);
 			sb.append(Constants.METHOD_NAME_PUT);
 			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
-			insertCodeOfMessageUnpack(sb, null, genericType0);
+			insertCodeOfMessageUnpackCall(sb, null, genericType0);
 			sb.append(Constants.CHAR_NAME_COMMA);
 			sb.append(Constants.CHAR_NAME_SPACE);
-			insertCodeOfMessageUnpack(sb, null, genericType1);
+			insertCodeOfMessageUnpackCall(sb, null, genericType1);
 			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
 			sb.append(Constants.CHAR_NAME_SEMICOLON);
 			sb.append(Constants.CHAR_NAME_SPACE);
@@ -664,8 +698,42 @@ public class PackUnpackUtil {
 			sb.append(Constants.CHAR_NAME_SPACE);
 		}
 
-		private void insertCodeOfMessageUnpackForMsgUnpackableType(
-				StringBuilder sb, Field field, Class<?> type) {
+		private void insertCodeOfMessageUnpackCallForEnhancedType(
+				StringBuilder sb, Field f, Class<?> c) {
+			c = this.getCache(c.getName());
+			insertCodeOfMessageUnpackCallForMsgUnpackableType(sb, f, c);
+		}
+
+		private void insertCodeOfMessageUnpackCallForMsgUnpackableType(
+				StringBuilder sb, Field f, Class<?> c) {
+			// if (fi == null) { fi = new Foo_$$_Enhanced(); }
+			sb.append(Constants.KEYWORD_IF);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			sb.append(f.getName());
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_EQUAL);
+			sb.append(Constants.CHAR_NAME_EQUAL);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.KEYWORD_NULL);
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_LEFT_CURLY_BRACHET);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(f.getName());
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_EQUAL);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.KEYWORD_NEW);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(c.getName());
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_SEMICOLON);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_RIGHT_CURLY_BRACHET);
+			sb.append(Constants.CHAR_NAME_SPACE);
+
 			// insert a right variable // ignore
 			sb.append(Constants.VARIABLE_NAME_PK);
 			sb.append(Constants.CHAR_NAME_DOT);
@@ -674,37 +742,509 @@ public class PackUnpackUtil {
 			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
 			sb.append(MessageUnpackable.class.getName());
 			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
-			sb.append(field.getName());
+			sb.append(f.getName());
 			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
 			sb.append(Constants.CHAR_NAME_SEMICOLON);
 			sb.append(Constants.CHAR_NAME_SPACE);
 		}
 
-		private void addMessageConvertMethod(CtClass enhCtClass,
-				CtClass origCtClass, Field[] fields)
+		private void addMessageConvertMethod(CtClass enhCtClass, Field[] fields)
 				throws CannotCompileException {
+			// messageConvert(MessagePackObject obj) throws MessageTypeException
 			StringBuilder sb = new StringBuilder();
-			sb.append(Constants.KEYWORD_MODIFIER_PUBLIC).append(
-					Constants.CHAR_NAME_SPACE).append(Constants.TYPE_NAME_VOID)
-					.append(Constants.CHAR_NAME_SPACE).append(
-							Constants.METHOD_NAME_MSGCONVERT).append(
-							Constants.CHAR_NAME_LEFT_PARENTHESIS).append(
-							Constants.TYPE_NAME_OBJECT).append(
-							Constants.CHAR_NAME_SPACE).append(
-							Constants.VARIABLE_NAME_OBJ).append(
-							Constants.CHAR_NAME_RIGHT_PARENTHESIS).append(
-							Constants.CHAR_NAME_SPACE).append(
-							Constants.KEYWORD_THROWS).append(
-							Constants.CHAR_NAME_SPACE).append(
-							Constants.TYPE_NAME_MSGTYPEEXCEPTION).append(
-							Constants.CHAR_NAME_SPACE).append(
-							Constants.CHAR_NAME_LEFT_CURLY_BRACHET).append(
-							Constants.CHAR_NAME_SPACE);
-			// TODO
+			sb.append(Constants.KEYWORD_MODIFIER_PUBLIC);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(void.class.getName());
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.METHOD_NAME_MSGCONVERT);
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			sb.append(MessagePackObject.class.getName());
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.VARIABLE_NAME_MPO);
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.KEYWORD_THROWS);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(MessageTypeException.class.getName());
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_LEFT_CURLY_BRACHET);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			insertCodeOfMessagePackObjectArrayGet(sb);
+			insertCodeOfMesageConvertCalls(sb, fields);
 			sb.append(Constants.CHAR_NAME_RIGHT_CURLY_BRACHET);
-			//System.out.println("messageConvert method: " + sb.toString());
+			// System.out.println("messageConvert method: " + sb.toString());
 			CtMethod newCtMethod = CtNewMethod.make(sb.toString(), enhCtClass);
 			enhCtClass.addMethod(newCtMethod);
+		}
+
+		private void insertCodeOfMessagePackObjectArrayGet(StringBuilder sb) {
+			// MessagePackObject[] ary = obj.asArray();
+			sb.append(MessagePackObject.class.getName());
+			sb.append(Constants.CHAR_NAME_LEFT_SQUARE_BRACKET);
+			sb.append(Constants.CHAR_NAME_RIGHT_SQUARE_BRACKET);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.VARIABLE_NAME_ARRAY);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_EQUAL);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.VARIABLE_NAME_MPO);
+			sb.append(Constants.CHAR_NAME_DOT);
+			sb.append(Constants.METHOD_NAME_ASARRAY);
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_SEMICOLON);
+			sb.append(Constants.CHAR_NAME_SPACE);
+		}
+
+		private void insertCodeOfMesageConvertCalls(StringBuilder sb,
+				Field[] fields) {
+			for (int i = 0; i < fields.length; ++i) {
+				insertCodeOfMessageConvertCall(sb, fields[i], fields[i]
+						.getType(), i, null);
+			}
+		}
+
+		private void insertCodeOfMessageConvertCall(StringBuilder sb, Field f,
+				Class<?> c, int i, String v) {
+			if (c.isPrimitive()) { // primitive type
+				insertCodeOfMessageConvertCallForPrimTypes(sb, f, c, i, v);
+			} else { // reference type
+				if (c.equals(Boolean.class) || c.equals(Byte.class)
+						|| c.equals(Short.class) || c.equals(Integer.class)
+						|| c.equals(Float.class) || c.equals(Long.class)
+						|| c.equals(Double.class)) {
+					// wrapper type
+					insertCodeOfMessageConvertCallForWrapTypes(sb, f, c, i, v);
+				} else if (c.equals(String.class) || c.equals(byte[].class)
+						|| c.equals(BigInteger.class)) {
+					insertCodeOfMessageConvertCallForPrimTypes(sb, f, c, i, v);
+				} else if (List.class.isAssignableFrom(c)) {
+					insertCodeOfMessageConvertCallForList(sb, f, c, i);
+				} else if (Map.class.isAssignableFrom(c)) {
+					insertCodeOfMessageConvertCallForMap(sb, f, c, i);
+				} else if ((getCache(c.getName()) != null)) {
+					insertCodeOfMessageConvertCallForEnhancedType(sb, f, c, i);
+				} else if (MessageConvertable.class.isAssignableFrom(c)) {
+					insertCodeOfMessageConvertCallForMsgConvtblType(sb, f, c, i);
+				} else {
+					throw new MessageTypeException("Type error: " + c.getName());
+				}
+			}
+		}
+
+		private void insertCodeOfMessageConvertCallForEnhancedType(
+				StringBuilder sb, Field f, Class<?> c, int i) {
+			c = getCache(c.getName());
+			insertCodeOfMessageConvertCallForMsgConvtblType(sb, f, c, i);
+		}
+
+		private void insertCodeOfMessageConvertCallForMsgConvtblType(
+				StringBuilder sb, Field f, Class<?> c, int i) {
+			// if (fi == null) { fi = new Foo_$$_Enhanced(); }
+			sb.append(Constants.KEYWORD_IF);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			sb.append(f.getName());
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_EQUAL);
+			sb.append(Constants.CHAR_NAME_EQUAL);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.KEYWORD_NULL);
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_LEFT_CURLY_BRACHET);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(f.getName());
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_EQUAL);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.KEYWORD_NEW);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(c.getName());
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_SEMICOLON);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_RIGHT_CURLY_BRACHET);
+			sb.append(Constants.CHAR_NAME_SPACE);
+
+			// ((MessageConvertable)f_i).messageConvert(ary[i]);
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			sb.append(MessageConvertable.class.getName());
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(f.getName());
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_DOT);
+			sb.append(Constants.METHOD_NAME_MSGCONVERT);
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			sb.append(Constants.VARIABLE_NAME_ARRAY);
+			sb.append(Constants.CHAR_NAME_LEFT_SQUARE_BRACKET);
+			sb.append(i);
+			sb.append(Constants.CHAR_NAME_RIGHT_SQUARE_BRACKET);
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_SEMICOLON);
+			sb.append(Constants.CHAR_NAME_SPACE);
+		}
+
+		private void insertCodeOfMessageConvertCallForPrimTypes(
+				StringBuilder sb, Field f, Class<?> c, int i, String name) {
+			// f0 = objs[0].intValue();
+			if (f != null) {
+				sb.append(f.getName());
+				sb.append(Constants.CHAR_NAME_SPACE);
+				sb.append(Constants.CHAR_NAME_EQUAL);
+				sb.append(Constants.CHAR_NAME_SPACE);
+				sb.append(Constants.VARIABLE_NAME_ARRAY);
+				sb.append(Constants.CHAR_NAME_LEFT_SQUARE_BRACKET);
+				sb.append(i);
+				sb.append(Constants.CHAR_NAME_RIGHT_SQUARE_BRACKET);
+			} else {
+				sb.append(name);
+			}
+			sb.append(Constants.CHAR_NAME_DOT);
+			if (c.equals(boolean.class)) {
+				sb.append(Constants.METHOD_NAME_ASBOOLEAN);
+			} else if (c.equals(byte.class)) {
+				sb.append(Constants.METHOD_NAME_ASBYTE);
+			} else if (c.equals(short.class)) {
+				sb.append(Constants.METHOD_NAME_ASSHORT);
+			} else if (c.equals(int.class)) {
+				sb.append(Constants.METHOD_NAME_ASINT);
+			} else if (c.equals(float.class)) {
+				sb.append(Constants.METHOD_NAME_ASFLOAT);
+			} else if (c.equals(long.class)) {
+				sb.append(Constants.METHOD_NAME_ASLONG);
+			} else if (c.equals(double.class)) {
+				sb.append(Constants.METHOD_NAME_ASDOUBLE);
+			} else if (c.equals(String.class)) {
+				sb.append(Constants.METHOD_NAME_ASSTRING);
+			} else if (c.equals(byte[].class)) {
+				sb.append(Constants.METHOD_NAME_ASBYTEARRAY);
+			} else if (c.equals(BigInteger.class)) {
+				sb.append(Constants.METHOD_NAME_ASBIGINTEGER);
+			} else {
+				throw new MessageTypeException("Type error: " + c.getName());
+			}
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			if (f != null) {
+				sb.append(Constants.CHAR_NAME_SEMICOLON);
+				sb.append(Constants.CHAR_NAME_SPACE);
+			}
+		}
+
+		private void insertCodeOfMessageConvertCallForWrapTypes(
+				StringBuilder sb, Field f, Class<?> c, int i, String v) {
+			if (f != null) {
+				sb.append(f.getName());
+				sb.append(Constants.CHAR_NAME_SPACE);
+				sb.append(Constants.CHAR_NAME_EQUAL);
+				sb.append(Constants.CHAR_NAME_SPACE);
+			}
+			sb.append(Constants.KEYWORD_NEW);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			if (c.equals(Boolean.class)) {
+				sb.append(Boolean.class.getName());
+			} else if (c.equals(Byte.class)) {
+				sb.append(Byte.class.getName());
+			} else if (c.equals(Short.class)) {
+				sb.append(Short.class.getName());
+			} else if (c.equals(Integer.class)) {
+				sb.append(Integer.class.getName());
+			} else if (c.equals(Float.class)) {
+				sb.append(Float.class.getName());
+			} else if (c.equals(Long.class)) {
+				sb.append(Long.class.getName());
+			} else if (c.equals(Double.class)) {
+				sb.append(Double.class.getName());
+			} else {
+				throw new MessageTypeException("Type error: " + c.getName());
+			}
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			if (f != null) {
+				sb.append(Constants.VARIABLE_NAME_ARRAY);
+				sb.append(Constants.CHAR_NAME_LEFT_SQUARE_BRACKET);
+				sb.append(i);
+				sb.append(Constants.CHAR_NAME_RIGHT_SQUARE_BRACKET);
+			} else {
+				sb.append(v);
+			}
+			sb.append(Constants.CHAR_NAME_DOT);
+			if (c.equals(Boolean.class)) {
+				sb.append(Constants.METHOD_NAME_ASBOOLEAN);
+			} else if (c.equals(Byte.class)) {
+				sb.append(Constants.METHOD_NAME_ASBYTE);
+			} else if (c.equals(Short.class)) {
+				sb.append(Constants.METHOD_NAME_ASSHORT);
+			} else if (c.equals(Integer.class)) {
+				sb.append(Constants.METHOD_NAME_ASINT);
+			} else if (c.equals(Float.class)) {
+				sb.append(Constants.METHOD_NAME_ASFLOAT);
+			} else if (c.equals(Long.class)) {
+				sb.append(Constants.METHOD_NAME_ASLONG);
+			} else if (c.equals(Double.class)) {
+				sb.append(Constants.METHOD_NAME_ASDOUBLE);
+			} else {
+				throw new MessageTypeException("Type error: " + c.getName());
+			}
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			if (f != null) {
+				sb.append(Constants.CHAR_NAME_SEMICOLON);
+				sb.append(Constants.CHAR_NAME_SPACE);
+			}
+		}
+
+		private void insertCodeOfMessageConvertCallForList(StringBuilder sb,
+				Field field, Class<?> type, int i) {
+			ParameterizedType generic = (ParameterizedType) field
+					.getGenericType();
+			Class<?> genericType = (Class<?>) generic.getActualTypeArguments()[0];
+
+			// List<MessagePackObject> list = ary[i].asList();
+			sb.append(List.class.getName());
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.VARIABLE_NAME_LIST);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_EQUAL);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.VARIABLE_NAME_ARRAY);
+			sb.append(Constants.CHAR_NAME_LEFT_SQUARE_BRACKET);
+			sb.append(i);
+			sb.append(Constants.CHAR_NAME_RIGHT_SQUARE_BRACKET);
+			sb.append(Constants.CHAR_NAME_DOT);
+			sb.append("asList");
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_SEMICOLON);
+			sb.append(Constants.CHAR_NAME_SPACE);
+
+			// int size = list.size();
+			sb.append(int.class.getName());
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.VARIABLE_NAME_SIZE);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_EQUAL);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.VARIABLE_NAME_LIST);
+			sb.append(Constants.CHAR_NAME_DOT);
+			sb.append(Constants.METHOD_NAME_SIZE);
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_SEMICOLON);
+			sb.append(Constants.CHAR_NAME_SPACE);
+
+			// field initializer
+			sb.append(field.getName());
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_EQUAL);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.KEYWORD_NEW);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(ArrayList.class.getName());
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_SEMICOLON);
+			sb.append(Constants.CHAR_NAME_SPACE);
+
+			// for loop
+			sb.append(Constants.KEYWORD_FOR);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			sb.append(int.class.getName());
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.VARIABLE_NAME_I);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_EQUAL);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(0);
+			sb.append(Constants.CHAR_NAME_SEMICOLON);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.VARIABLE_NAME_I);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_LESSTHAN);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.VARIABLE_NAME_SIZE);
+			sb.append(Constants.CHAR_NAME_SEMICOLON);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_PLUS);
+			sb.append(Constants.CHAR_NAME_PLUS);
+			sb.append(Constants.VARIABLE_NAME_I);
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_SPACE);
+
+			// block begin
+			sb.append(Constants.CHAR_NAME_LEFT_CURLY_BRACHET);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(MessagePackObject.class.getName());
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.VARIABLE_NAME_VAL);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_EQUAL);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			sb.append(MessagePackObject.class.getName());
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.VARIABLE_NAME_LIST);
+			sb.append(Constants.CHAR_NAME_DOT);
+			sb.append(Constants.METHOD_NAME_GET);
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			sb.append(Constants.VARIABLE_NAME_I);
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_SEMICOLON);
+			sb.append(Constants.CHAR_NAME_SPACE);
+
+			sb.append(field.getName());
+			sb.append(Constants.CHAR_NAME_DOT);
+			sb.append(Constants.METHOD_NAME_ADD);
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			insertCodeOfMessageConvertCall(sb, null, genericType, -1,
+					Constants.VARIABLE_NAME_VAL);
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_SEMICOLON);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			// block end
+			sb.append(Constants.CHAR_NAME_RIGHT_CURLY_BRACHET);
+			sb.append(Constants.CHAR_NAME_SPACE);
+		}
+
+		private void insertCodeOfMessageConvertCallForMap(StringBuilder sb,
+				Field f, Class<?> c, int i) {
+			ParameterizedType generic = (ParameterizedType) f.getGenericType();
+			Class<?> genericType0 = (Class<?>) generic.getActualTypeArguments()[0];
+			Class<?> genericType1 = (Class<?>) generic.getActualTypeArguments()[1];
+
+			// Map<MessagePackObject, MessagePackObject> map = ary[i].asMap();
+			sb.append(Map.class.getName());
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.VARIABLE_NAME_MAP);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_EQUAL);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.VARIABLE_NAME_ARRAY);
+			sb.append(Constants.CHAR_NAME_LEFT_SQUARE_BRACKET);
+			sb.append(i);
+			sb.append(Constants.CHAR_NAME_RIGHT_SQUARE_BRACKET);
+			sb.append(Constants.CHAR_NAME_DOT);
+			sb.append("asMap");
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_SEMICOLON);
+			sb.append(Constants.CHAR_NAME_SPACE);
+
+			// int size = list.size();
+			sb.append(int.class.getName());
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.VARIABLE_NAME_SIZE);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_EQUAL);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.VARIABLE_NAME_MAP);
+			sb.append(Constants.CHAR_NAME_DOT);
+			sb.append(Constants.METHOD_NAME_SIZE);
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_SEMICOLON);
+			sb.append(Constants.CHAR_NAME_SPACE);
+
+			// field initializer
+			sb.append(f.getName());
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_EQUAL);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.KEYWORD_NEW);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(HashMap.class.getName());
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_SEMICOLON);
+			sb.append(Constants.CHAR_NAME_SPACE);
+
+			// for loop
+			sb.append(Constants.KEYWORD_FOR);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			sb.append(Iterator.class.getName());
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.VARIABLE_NAME_ITER);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_EQUAL);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.VARIABLE_NAME_MAP);
+			sb.append(Constants.CHAR_NAME_DOT);
+			sb.append(Constants.METHOD_NAME_KEYSET);
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_DOT);
+			sb.append(Constants.METHOD_NAME_ITERATOR);
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_SEMICOLON);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.VARIABLE_NAME_ITER);
+			sb.append(Constants.CHAR_NAME_DOT);
+			sb.append(Constants.METHOD_NAME_HASNEXT);
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_SEMICOLON);
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_LEFT_CURLY_BRACHET);
+			sb.append(Constants.CHAR_NAME_SPACE);
+
+			// block map.
+			sb.append(MessagePackObject.class.getName());
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.VARIABLE_NAME_KEY);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_EQUAL);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			sb.append(MessagePackObject.class.getName());
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.VARIABLE_NAME_ITER);
+			sb.append(Constants.CHAR_NAME_DOT);
+			sb.append(Constants.METHOD_NAME_NEXT);
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_SEMICOLON);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(MessagePackObject.class.getName());
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.VARIABLE_NAME_VAL);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_EQUAL);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			sb.append(MessagePackObject.class.getName());
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.VARIABLE_NAME_MAP);
+			sb.append(Constants.CHAR_NAME_DOT);
+			sb.append(Constants.METHOD_NAME_GET);
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			sb.append(Constants.VARIABLE_NAME_KEY);
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_SEMICOLON);
+			sb.append(Constants.CHAR_NAME_SPACE);
+
+			sb.append(f.getName());
+			sb.append(Constants.CHAR_NAME_DOT);
+			sb.append(Constants.METHOD_NAME_PUT);
+			sb.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			insertCodeOfMessageConvertCall(sb, null, genericType0, -1,
+					Constants.VARIABLE_NAME_KEY);
+			sb.append(Constants.CHAR_NAME_COMMA);
+			sb.append(Constants.CHAR_NAME_SPACE);
+			insertCodeOfMessageConvertCall(sb, null, genericType1, -1,
+					Constants.VARIABLE_NAME_VAL);
+			sb.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			sb.append(Constants.CHAR_NAME_SEMICOLON);
+			sb.append(Constants.CHAR_NAME_SPACE);
+
+			sb.append(Constants.CHAR_NAME_RIGHT_CURLY_BRACHET);
+			sb.append(Constants.CHAR_NAME_SPACE);
 		}
 
 		private Class<?> createClass(CtClass enhCtClass)
@@ -715,17 +1255,17 @@ public class PackUnpackUtil {
 
 	private static Enhancer enhancer;
 
-	public static Class<?> getEnhancedClass(Class<?> origClass) {
+	public static void registerEnhancedClass(Class<?> origClass,
+			boolean packUnpackable) {
 		if (enhancer == null) {
 			enhancer = new Enhancer();
 		}
-
 		String origName = origClass.getName();
 		Class<?> enhClass = enhancer.getCache(origName);
 		if (enhClass == null) {
 			// generate a class object related to the original class
 			try {
-				enhClass = enhancer.generate(origClass);
+				enhClass = enhancer.generate(origClass, packUnpackable);
 			} catch (NotFoundException e) {
 				throw new PackUnpackUtilException(e.getMessage(), e);
 			} catch (CannotCompileException e) {
@@ -734,12 +1274,35 @@ public class PackUnpackUtil {
 			// set the generated class to the cache
 			enhancer.setCache(origName, enhClass);
 		}
-		return enhClass;
 	}
 
-	public static Object newEnhancedInstance(Class<?> origClass) {
+	public static void registerEnhancedClass(Class<?> origClass) {
+		registerEnhancedClass(origClass, false);
+	}
+
+	public static boolean isRegistered(Class<?> origClass) {
+		if (enhancer == null) {
+			enhancer = new Enhancer();
+		}
+		return enhancer.getCache(origClass.getName()) != null;
+	}
+
+	public static Class<?> getEnhancedClass(Class<?> origClass,
+			boolean packUnpackable) {
+		if (!isRegistered(origClass)) {
+			registerEnhancedClass(origClass, packUnpackable);
+		}
+		return enhancer.getCache(origClass.getName());
+	}
+
+	public static Class<?> getEnhancedClass(Class<?> origClass) {
+		return getEnhancedClass(origClass, false);
+	}
+
+	public static Object newEnhancedInstance(Class<?> origClass,
+			boolean packUnpackable) {
 		try {
-			Class<?> enhClass = getEnhancedClass(origClass);
+			Class<?> enhClass = getEnhancedClass(origClass, packUnpackable);
 			// create a new object of the generated class
 			return enhClass.newInstance();
 		} catch (InstantiationException e) {
@@ -747,6 +1310,22 @@ public class PackUnpackUtil {
 		} catch (IllegalAccessException e) {
 			throw new PackUnpackUtilException(e.getMessage(), e);
 		}
+	}
+
+	public static Object newEnhancedInstance(Class<?> origClass) {
+		return newEnhancedInstance(origClass, false);
+	}
+
+	public static Object initEnhancedInstance(MessagePackObject obj,
+			Class<?> origClass, boolean packUnpackable) {
+		Object ret = newEnhancedInstance(origClass, packUnpackable);
+		((MessageConvertable) ret).messageConvert(obj);
+		return ret;
+	}
+
+	public static Object initEnhancedInstance(MessagePackObject obj,
+			Class<?> origClass) {
+		return initEnhancedInstance(obj, origClass, false);
 	}
 
 	@MessagePackUnpackable
@@ -776,7 +1355,6 @@ public class PackUnpackUtil {
 	}
 
 	public static void main(final String[] args) throws Exception {
-		PackUnpackUtil.getEnhancedClass(Image.class);
 		Image src = (Image) PackUnpackUtil.newEnhancedInstance(Image.class);
 		src.title = "msgpack";
 		src.uri = "http://msgpack.org/";
@@ -789,6 +1367,6 @@ public class PackUnpackUtil {
 		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
 		Unpacker pac = new Unpacker(in);
 		pac.unpack((MessageUnpackable) dst);
-		//System.out.println(src.equals(dst));
+		// System.out.println(src.equals(dst));
 	}
 }

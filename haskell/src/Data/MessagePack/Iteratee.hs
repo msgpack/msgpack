@@ -28,10 +28,10 @@ import qualified Data.ByteString as B
 import qualified Data.Iteratee as I
 import System.IO
 
-import Data.MessagePack.Parser
+import Data.MessagePack.Unpack
 
 -- | Deserialize a value
-getI :: (Monad m, ObjectGet a) => I.Iteratee B.ByteString m a
+getI :: (Monad m, Unpackable a) => I.Iteratee B.ByteString m a
 getI = parserToIteratee get
 
 -- | Enumerator

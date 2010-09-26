@@ -473,9 +473,19 @@ public class Packer {
 			return packDouble((Double)o);
 		} else if(o instanceof BigInteger) {
 			return packBigInteger((BigInteger)o);
-		} else {
-			throw new MessageTypeException("unknown object "+o+" ("+o.getClass()+")");
 		}
+
+		Class klass = o.getClass();
+
+		MessagePacker packer = CustomPacker.get(klass);
+		if(packer != null) {
+			packer.pack(this, o);
+			return this;
+		}
+
+		// FIXME check annotations -> code generation -> CustomMessage.registerPacker
+
+		throw new MessageTypeException("unknown object "+o+" ("+o.getClass()+")");
 	}
 }
 

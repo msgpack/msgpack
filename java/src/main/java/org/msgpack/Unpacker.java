@@ -561,12 +561,38 @@ public class Unpacker implements Iterable<MessagePackObject> {
 		return impl.unpackObject();
 	}
 
+	final public boolean tryUnpackNull() throws IOException {
+		return impl.tryUnpackNull();
+	}
+
+	final public Object unpack(MessageUnpacker unpacker) throws IOException, MessageTypeException {
+		return unpacker.unpack(this);
+	}
+
 	final public void unpack(MessageUnpackable obj) throws IOException, MessageTypeException {
 		obj.messageUnpack(this);
 	}
 
-	final public boolean tryUnpackNull() throws IOException {
-		return impl.tryUnpackNull();
+	final public Object unpack(Class klass) throws IOException, MessageTypeException, InstantiationException, IllegalAccessException {
+		if(MessageUnpackable.class.isAssignableFrom(klass)) {
+			Object obj = klass.newInstance();
+			((MessageUnpackable)obj).messageUnpack(this);
+			return obj;
+		}
+
+		MessageUnpacker unpacker = CustomUnpacker.get(klass);
+		if(unpacker != null) {
+			return unpacker.unpack(this);
+		}
+
+		// FIXME check annotations -> code generation -> CustomMessage.registerTemplate
+
+		MessageConverter converter = CustomConverter.get(klass);
+		if(converter != null) {
+			return converter.convert(unpackObject());
+		}
+
+		throw new MessageTypeException();
 	}
 }
 

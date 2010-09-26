@@ -38,7 +38,7 @@ test -f ChangeLog || touch ChangeLog
 test -f NEWS      || touch NEWS
 test -f README    || cp -f README.md README
 
-if ! ./preprocess; then
+if test ! ./preprocess; then
 	exit 1
 fi
 

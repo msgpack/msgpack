@@ -1,19 +1,16 @@
 package Data::MessagePack::PP;
 use 5.008001;
 use strict;
+use warnings;
+no warnings 'recursion';
+
 use Carp ();
+use B ();
 
 # See also
 # http://redmine.msgpack.org/projects/msgpack/wiki/FormatSpec
 # http://cpansearch.perl.org/src/YAPPO/Data-Model-0.00006/lib/Data/Model/Driver/Memcached.pm
 # http://frox25.no-ip.org/~mtve/wiki/MessagePack.html : reference to using CORE::pack, CORE::unpack
-
-
-package
-    Data::MessagePack;
-
-use strict;
-use B ();
 
 BEGIN {
     my $unpack_int64_slow;
@@ -120,6 +117,18 @@ BEGIN {
         *unpack_int64  = $unpack_int64_slow  || sub { return unpack( 'q>', substr( $_[0], $_[1], 8 ) ); };
         *unpack_uint64 = $unpack_uint64_slow || sub { return unpack( 'Q>', substr( $_[0], $_[1], 8 ) ); };
     }
+
+    # fixin package symbols
+    no warnings 'once';
+    sub pack   :method;
+    sub unpack :method;
+    *Data::MessagePack::pack   = \&pack;
+    *Data::MessagePack::unpack = \&unpack;
+
+    @Data::MessagePack::Unpacker::ISA = qw(Data::MessagePack::PP::Unpacker);
+
+    *true  = \&Data::MessagePack::true;
+    *false = \&Data::MessagePack::false;
 }
 
 sub _unexpected {
@@ -130,10 +139,7 @@ sub _unexpected {
 # PACK
 #
 
-{
-    no warnings 'recursion';
-
-    our $_max_depth;
+our $_max_depth;
 
 sub pack :method {
     Carp::croak('Usage: Data::MessagePack->pack($dat [,$max_depth])') if @_ < 2;
@@ -238,20 +244,19 @@ sub _pack {
 
 }
 
-} # PACK
-
-
 #
 # UNPACK
 #
 
-{
-
-    my $p; # position variables for speed.
+my $p; # position variables for speed.
 
 sub unpack :method {
     $p = 0; # init
-    _unpack( $_[1] );
+    my $data = _unpack( $_[1] );
+    if($p < length($_[1])) {
+        Carp::croak("Data::MessagePack->unpack: extra bytes");
+    }
+    return $data;
 }
 
 
@@ -383,17 +388,12 @@ sub _unpack {
 }
 
 
-} # UNPACK
-
-
 #
 # Data::MessagePack::Unpacker
 #
 
 package
-    Data::MessagePack::Unpacker;
-
-use strict;
+    Data::MessagePack::PP::Unpacker;
 
 sub new {
     bless { pos => 0 }, shift;
@@ -403,10 +403,6 @@ sub new {
 sub execute_limit {
     execute( @_ );
 }
-
-
-{
-    my $p;
 
 sub execute {
     my ( $self, $data, $offset, $limit ) = @_;
@@ -541,8 +537,6 @@ sub _count {
 
     return 0;
 }
-
-} # execute
 
 
 sub data {
