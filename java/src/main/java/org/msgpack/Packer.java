@@ -474,6 +474,8 @@ public class Packer {
 		} else if(o instanceof BigInteger) {
 			return packBigInteger((BigInteger)o);
 		} else {
+			// FIXME check CustomPacker.get(o.getClass());
+			// FIXME check annotations
 			throw new MessageTypeException("unknown object "+o+" ("+o.getClass()+")");
 		}
 	}

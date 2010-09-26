@@ -561,12 +561,23 @@ public class Unpacker implements Iterable<MessagePackObject> {
 		return impl.unpackObject();
 	}
 
+	final public boolean tryUnpackNull() throws IOException {
+		return impl.tryUnpackNull();
+	}
+
+	final public Object unpack(MessageUnpacker unpacker) throws IOException, MessageTypeException {
+		return unpacker.unpack(this);
+	}
+
 	final public void unpack(MessageUnpackable obj) throws IOException, MessageTypeException {
 		obj.messageUnpack(this);
 	}
 
-	final public boolean tryUnpackNull() throws IOException {
-		return impl.tryUnpackNull();
+	final public Object unpack(Class klass) throws MessageTypeException {
+		// FIXME check MessageUnpackable
+		// FIXME check CustomPacker
+		// FIXME check annotations
+		throw new MessageTypeException();
 	}
 }
 

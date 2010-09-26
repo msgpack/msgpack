@@ -132,5 +132,9 @@ public abstract class MessagePackObject implements Cloneable, MessagePackable {
 	}
 
 	abstract public Object clone();
+
+	public Object convert(Template tmpl) throws MessageTypeException {
+		return tmpl.convert(this);
+	}
 }
 
