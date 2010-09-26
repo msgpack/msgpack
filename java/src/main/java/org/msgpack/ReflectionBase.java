@@ -18,8 +18,9 @@
 package org.msgpack;
 
 import java.io.IOException;
+import java.lang.reflect.*;
 
-public interface MessageConverter {
-	public Object convert(MessagePackObject from) throws MessageTypeException;
+// FIXME mock-up
+abstract class ReflectionBase {
 }
 
