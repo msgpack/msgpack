@@ -1,3 +1,8 @@
+0.27
+
+    - * 6d9a629 perl: modified trivial codes in PP::Unpacker(makamaka)
+    - * ead8edc modified be unpack_(u)int64 in PP(makamaka)
+
 0.26
 
     - fixed a serious code typo in PP(makamaka)
