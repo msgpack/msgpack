@@ -481,12 +481,12 @@ public class Packer {
 		} 
 
 		Class<?> klass = o.getClass();
-		if (CustomPacker.isRegistered(klass)) {
-			MessagePacker packer = CustomPacker.get(klass);
+		MessagePacker packer = CustomPacker.get(klass);
+		if(packer != null) {
 			packer.pack(this, o);
 			return this;
 		} else if (isAnnotated(klass, MessagePackMessage.class)) {
-			MessagePacker packer = ReflectionPacker.create(klass);
+			ReflectionPacker.create(klass);
 			CustomPacker.register(klass, packer);
 			packer.pack(this, o);
 			return this;
@@ -495,14 +495,8 @@ public class Packer {
 		} else if (isAnnotated(klass, MessagePackOrdinalEnum.class)) {
 			throw new UnsupportedOperationException("not supported yet. : " + klass.getName());
 		}
-//      Class<?> klass = o.getClass();
-//		MessagePacker packer = CustomPacker.get(klass);
-//		if(packer != null) {
-//			packer.pack(this, o);
-//			return this;
-//		}
-//
-//		// FIXME check annotations -> code generation -> CustomMessage.registerPacker
+
+		// FIXME check annotations -> code generation -> CustomMessage.registerPacker
 
 		throw new MessageTypeException("unknown object "+o+" ("+o.getClass()+")");
 	}
