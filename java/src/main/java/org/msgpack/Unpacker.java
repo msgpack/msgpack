@@ -108,6 +108,9 @@ import org.msgpack.annotation.MessagePackOrdinalEnum;
  * </pre>
  */
 public class Unpacker implements Iterable<MessagePackObject> {
+	static {
+		Templates.load();
+	}
 
 	// buffer:
 	// +---------------------------------------------+
