@@ -103,6 +103,9 @@ import java.math.BigInteger;
  * </pre>
  */
 public class Unpacker implements Iterable<MessagePackObject> {
+	static {
+		Templates.load();
+	}
 
 	// buffer:
 	// +---------------------------------------------+

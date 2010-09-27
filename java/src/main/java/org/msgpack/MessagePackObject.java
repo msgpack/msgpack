@@ -23,6 +23,10 @@ import java.util.Map;
 import java.math.BigInteger;
 
 public abstract class MessagePackObject implements Cloneable, MessagePackable {
+	static {
+		Templates.load();
+	}
+
 	public boolean isNil() {
 		return false;
 	}

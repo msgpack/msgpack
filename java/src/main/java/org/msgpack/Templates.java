@@ -20,6 +20,8 @@ package org.msgpack;
 import org.msgpack.template.*;
 
 public class Templates {
+	public static void load() { }
+
 	public static Template tList(Template elementTemplate) {
 		return new ListTemplate(elementTemplate);
 	}

@@ -18,8 +18,6 @@ public class TestReflectionPackerTemplate {
 
 	@Test
 	public void testPackConvert() throws Exception {
-		tString();  // FIXME link StringTemplate
-
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 
 		MessagePacker packer = ReflectionPacker.create(StringFieldClass.class);
@@ -45,8 +43,6 @@ public class TestReflectionPackerTemplate {
 
 	@Test
 	public void testPackConvert02() throws Exception {
-		tString();  // FIXME link StringTemplate
-
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 
 		CustomPacker.register(StringFieldClass.class, ReflectionPacker.create(StringFieldClass.class));
