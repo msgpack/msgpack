@@ -22,7 +22,12 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
+import java.lang.annotation.Annotation;
 import java.math.BigInteger;
+
+import org.msgpack.annotation.MessagePackDelegate;
+import org.msgpack.annotation.MessagePackMessage;
+import org.msgpack.annotation.MessagePackOrdinalEnum;
 
 /**
  * Packer enables you to serialize objects into OutputStream.
@@ -473,19 +478,36 @@ public class Packer {
 			return packDouble((Double)o);
 		} else if(o instanceof BigInteger) {
 			return packBigInteger((BigInteger)o);
-		}
+		} 
 
-		Class klass = o.getClass();
-
-		MessagePacker packer = CustomPacker.get(klass);
-		if(packer != null) {
+		Class<?> klass = o.getClass();
+		if (CustomPacker.isRegistered(klass)) {
+			MessagePacker packer = CustomPacker.get(klass);
 			packer.pack(this, o);
 			return this;
+		} else if (isAnnotated(klass, MessagePackMessage.class)) {
+			MessagePacker packer = ReflectionPacker.create(klass);
+			CustomPacker.register(klass, packer);
+			packer.pack(this, o);
+			return this;
+		} else if (isAnnotated(klass, MessagePackDelegate.class)) {
+			throw new UnsupportedOperationException("not supported yet. : " + klass.getName());
+		} else if (isAnnotated(klass, MessagePackOrdinalEnum.class)) {
+			throw new UnsupportedOperationException("not supported yet. : " + klass.getName());
 		}
-
-		// FIXME check annotations -> code generation -> CustomMessage.registerPacker
+//      Class<?> klass = o.getClass();
+//		MessagePacker packer = CustomPacker.get(klass);
+//		if(packer != null) {
+//			packer.pack(this, o);
+//			return this;
+//		}
+//
+//		// FIXME check annotations -> code generation -> CustomMessage.registerPacker
 
 		throw new MessageTypeException("unknown object "+o+" ("+o.getClass()+")");
 	}
+	
+	static boolean isAnnotated(Class<?> target, Class<? extends Annotation> with) {
+		return target.getAnnotation(with) != null;
+	}
 }
-

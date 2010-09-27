@@ -42,5 +42,33 @@ public class TestReflectionPackerTemplate {
 		assertEquals(src.s1, dst.s1);
 		assertEquals(src.s2, dst.s2);
 	}
+
+	@Test
+	public void testPackConvert02() throws Exception {
+		tString();  // FIXME link StringTemplate
+
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+		CustomPacker.register(StringFieldClass.class, ReflectionPacker.create(StringFieldClass.class));
+				
+
+		StringFieldClass src = new StringFieldClass();
+
+		src.s1 = "kumofs";
+		src.s2 = "frsyuki";
+
+		new Packer(out).pack(src);
+
+		Template tmpl = ReflectionTemplate.create(StringFieldClass.class);
+
+		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+
+		Object obj = tmpl.unpack(new Unpacker(in));
+		assertEquals(obj.getClass(), StringFieldClass.class);
+
+		StringFieldClass dst = (StringFieldClass)obj;
+		assertEquals(src.s1, dst.s1);
+		assertEquals(src.s2, dst.s2);
+	}
 }
 
