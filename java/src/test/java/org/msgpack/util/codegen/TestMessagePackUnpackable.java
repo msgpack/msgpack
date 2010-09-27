@@ -1,4 +1,4 @@
-package org.msgpack.util.annotation;
+package org.msgpack.util.codegen;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -16,6 +16,9 @@ import org.msgpack.MessagePackObject;
 import org.msgpack.MessageUnpackable;
 import org.msgpack.Packer;
 import org.msgpack.Unpacker;
+import org.msgpack.util.codegen.MessagePackUnpackable;
+import org.msgpack.util.codegen.PackUnpackUtil;
+import org.msgpack.util.codegen.DynamicCodeGenException;
 
 public class TestMessagePackUnpackable extends TestCase {
 
@@ -350,7 +353,7 @@ public class TestMessagePackUnpackable extends TestCase {
 		try {
 			PackUnpackUtil.newEnhancedInstance(NoDefaultConstructorClass.class);
 			fail();
-		} catch (PackUnpackUtilException e) {
+		} catch (DynamicCodeGenException e) {
 			assertTrue(true);
 		}
 		assertTrue(true);
@@ -358,7 +361,7 @@ public class TestMessagePackUnpackable extends TestCase {
 			PackUnpackUtil
 					.newEnhancedInstance(PrivateDefaultConstructorClass.class);
 			fail();
-		} catch (PackUnpackUtilException e) {
+		} catch (DynamicCodeGenException e) {
 			assertTrue(true);
 		}
 		assertTrue(true);
@@ -366,7 +369,7 @@ public class TestMessagePackUnpackable extends TestCase {
 			PackUnpackUtil
 					.newEnhancedInstance(ProtectedDefaultConstructorClass.class);
 			assertTrue(true);
-		} catch (PackUnpackUtilException e) {
+		} catch (DynamicCodeGenException e) {
 			fail();
 		}
 		assertTrue(true);
@@ -374,7 +377,7 @@ public class TestMessagePackUnpackable extends TestCase {
 			PackUnpackUtil
 					.newEnhancedInstance(PackageDefaultConstructorClass.class);
 			fail();
-		} catch (PackUnpackUtilException e) {
+		} catch (DynamicCodeGenException e) {
 			assertTrue(true);
 		}
 		assertTrue(true);
@@ -409,21 +412,21 @@ public class TestMessagePackUnpackable extends TestCase {
 		try {
 			PackUnpackUtil.newEnhancedInstance(PrivateModifierClass.class);
 			fail();
-		} catch (PackUnpackUtilException e) {
+		} catch (DynamicCodeGenException e) {
 			assertTrue(true);
 		}
 		assertTrue(true);
 		try {
 			PackUnpackUtil.newEnhancedInstance(ProtectedModifierClass.class);
 			assertTrue(true);
-		} catch (PackUnpackUtilException e) {
+		} catch (DynamicCodeGenException e) {
 			fail();
 		}
 		assertTrue(true);
 		try {
 			PackUnpackUtil.newEnhancedInstance(PackageModifierClass.class);
 			fail();
-		} catch (PackUnpackUtilException e) {
+		} catch (DynamicCodeGenException e) {
 			assertTrue(true);
 		}
 		assertTrue(true);
@@ -448,14 +451,14 @@ public class TestMessagePackUnpackable extends TestCase {
 		try {
 			PackUnpackUtil.newEnhancedInstance(FinalModifierClass.class);
 			fail();
-		} catch (PackUnpackUtilException e) {
+		} catch (DynamicCodeGenException e) {
 			assertTrue(true);
 		}
 		assertTrue(true);
 		try {
 			PackUnpackUtil.newEnhancedInstance(AbstractModifierClass.class);
 			fail();
-		} catch (PackUnpackUtilException e) {
+		} catch (DynamicCodeGenException e) {
 			assertTrue(true);
 		}
 		assertTrue(true);
@@ -474,14 +477,14 @@ public class TestMessagePackUnpackable extends TestCase {
 		try {
 			PackUnpackUtil.newEnhancedInstance(SampleInterface.class);
 			fail();
-		} catch (PackUnpackUtilException e) {
+		} catch (DynamicCodeGenException e) {
 			assertTrue(true);
 		}
 		assertTrue(true);
 		try {
 			PackUnpackUtil.newEnhancedInstance(SampleEnum.class);
 			fail();
-		} catch (PackUnpackUtilException e) {
+		} catch (DynamicCodeGenException e) {
 			assertTrue(true);
 		}
 		assertTrue(true);

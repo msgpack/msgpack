@@ -17,9 +17,7 @@
 //
 package org.msgpack;
 
-import java.io.IOException;
-
 public interface MessageConverter {
-	public Object convert(MessagePackObject from) throws MessageTypeException;
+	Object convert(MessagePackObject from) throws MessageTypeException;
 }
 

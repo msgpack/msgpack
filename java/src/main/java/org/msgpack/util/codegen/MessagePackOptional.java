@@ -1,4 +1,4 @@
-package org.msgpack.util.annotation;
+package org.msgpack.util.codegen;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -7,6 +7,6 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.CLASS)
-public @interface MessagePackRequired {
+public @interface MessagePackOptional {
 	int value() default -1;
 }

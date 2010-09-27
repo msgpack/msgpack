@@ -1,4 +1,4 @@
-package org.msgpack.util.annotation;
+package org.msgpack.util.codegen;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -230,7 +230,7 @@ public class PackUnpackUtil {
 		}
 
 		private static void throwClassValidationException(Class<?> origClass) {
-			throw new PackUnpackUtilException(
+			throw new DynamicCodeGenException(
 					"it must be a public class and have @"
 							+ MessagePackUnpackable.class.getName() + ": "
 							+ origClass.getName());
@@ -260,7 +260,7 @@ public class PackUnpackUtil {
 
 		private static void throwConstructoValidationException(
 				Class<?> origClass) {
-			throw new PackUnpackUtilException(
+			throw new DynamicCodeGenException(
 					"it must have a public zero-argument constructor: "
 							+ origClass.getName());
 		}
@@ -295,7 +295,7 @@ public class PackUnpackUtil {
 					try {
 						checkFieldValidation(field, allFields);
 						allFields.add(field);
-					} catch (PackUnpackUtilException e) { // ignore
+					} catch (DynamicCodeGenException e) { // ignore
 					}
 				}
 				nextClass = nextClass.getSuperclass();
@@ -320,7 +320,7 @@ public class PackUnpackUtil {
 		}
 
 		private static void throwFieldValidationException(Field field) {
-			throw new PackUnpackUtilException("it must be a public field: "
+			throw new DynamicCodeGenException("it must be a public field: "
 					+ field.getName());
 		}
 
@@ -1267,9 +1267,9 @@ public class PackUnpackUtil {
 			try {
 				enhClass = enhancer.generate(origClass, packUnpackable);
 			} catch (NotFoundException e) {
-				throw new PackUnpackUtilException(e.getMessage(), e);
+				throw new DynamicCodeGenException(e.getMessage(), e);
 			} catch (CannotCompileException e) {
-				throw new PackUnpackUtilException(e.getMessage(), e);
+				throw new DynamicCodeGenException(e.getMessage(), e);
 			}
 			// set the generated class to the cache
 			enhancer.setCache(origName, enhClass);
@@ -1306,9 +1306,9 @@ public class PackUnpackUtil {
 			// create a new object of the generated class
 			return enhClass.newInstance();
 		} catch (InstantiationException e) {
-			throw new PackUnpackUtilException(e.getMessage(), e);
+			throw new DynamicCodeGenException(e.getMessage(), e);
 		} catch (IllegalAccessException e) {
-			throw new PackUnpackUtilException(e.getMessage(), e);
+			throw new DynamicCodeGenException(e.getMessage(), e);
 		}
 	}
 

@@ -485,22 +485,21 @@ public class Packer {
 		if(packer != null) {
 			packer.pack(this, o);
 			return this;
-		} else if (isAnnotated(klass, MessagePackMessage.class)) {
+		} else if (CustomMessage.isAnnotated(klass, MessagePackMessage.class)) {
 			packer = ReflectionPacker.create(klass);
 			packer.pack(this, o);
 			return this;
-		} else if (isAnnotated(klass, MessagePackDelegate.class)) {
+		} else if (CustomMessage.isAnnotated(klass, MessagePackDelegate.class)) {
+			// FIXME DelegatePacker
 			throw new UnsupportedOperationException("not supported yet. : " + klass.getName());
-		} else if (isAnnotated(klass, MessagePackOrdinalEnum.class)) {
+		} else if (CustomMessage.isAnnotated(klass, MessagePackOrdinalEnum.class)) {
+			// FIXME OrdinalEnumPacker
 			throw new UnsupportedOperationException("not supported yet. : " + klass.getName());
 		}
-		CustomPacker.register(klass, packer);
-		// FIXME check annotations -> code generation -> CustomMessage.registerPacker
-
+		if (packer != null) {
+			CustomMessage.registerPacker(klass, packer);
+		}
 		throw new MessageTypeException("unknown object "+o+" ("+o.getClass()+")");
 	}
-	
-	static boolean isAnnotated(Class<?> target, Class<? extends Annotation> with) {
-		return target.getAnnotation(with) != null;
-	}
+
 }
