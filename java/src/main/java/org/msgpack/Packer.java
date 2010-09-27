@@ -486,8 +486,7 @@ public class Packer {
 			packer.pack(this, o);
 			return this;
 		} else if (isAnnotated(klass, MessagePackMessage.class)) {
-			ReflectionPacker.create(klass);
-			CustomPacker.register(klass, packer);
+			packer = ReflectionPacker.create(klass);
 			packer.pack(this, o);
 			return this;
 		} else if (isAnnotated(klass, MessagePackDelegate.class)) {
@@ -495,7 +494,7 @@ public class Packer {
 		} else if (isAnnotated(klass, MessagePackOrdinalEnum.class)) {
 			throw new UnsupportedOperationException("not supported yet. : " + klass.getName());
 		}
-
+		CustomPacker.register(klass, packer);
 		// FIXME check annotations -> code generation -> CustomMessage.registerPacker
 
 		throw new MessageTypeException("unknown object "+o+" ("+o.getClass()+")");
