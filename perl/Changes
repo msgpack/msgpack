@@ -1,3 +1,8 @@
+0.28
+
+    - added more tests(gfx)
+    - refactor the PP code(gfx)
+
 0.27
 
     - * 6d9a629 perl: modified trivial codes in PP::Unpacker(makamaka)
