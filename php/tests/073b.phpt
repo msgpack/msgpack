@@ -1,9 +1,9 @@
 --TEST--
-Check for class methods
+Check for class unpacker
 --SKIPIF--
 <?php
-if (version_compare(PHP_VERSION, '5.3.3') >= 0) {
-    echo "skip tests in PHP 5.3.2 and lower";
+if (version_compare(PHP_VERSION, '5.3.2') <= 0) {
+    echo "skip tests in PHP 5.3.3";
 }
 --FILE--
 <?php
@@ -15,9 +15,50 @@ function test($type, $variable, $test = null) {
     $msgpack = new MessagePack();
 
     $serialized = $msgpack->pack($variable);
-    $unserialized = $msgpack->unpack($serialized);
 
-    var_dump($unserialized);
+    $unpacker = new MessagePackUnpacker();
+
+    $length = strlen($serialized);
+
+    if (rand(0, 1))
+    {
+        for ($i = 0; $i < $length;) {
+            $len = rand(1, 10);
+            $str = substr($serialized, $i, $len);
+
+            $unpacker->feed($str);
+            if ($unpacker->execute())
+            {
+                $unserialized = $unpacker->data();
+                var_dump($unserialized);
+                $unpacker->reset();
+            }
+
+            $i += $len;
+        }
+    }
+    else
+    {
+        $str = "";
+        $offset = 0;
+
+        for ($i = 0; $i < $length;) {
+            $len = rand(1, 10);
+            $str .= substr($serialized, $i, $len);
+
+            if ($unpacker->execute($str, $offset))
+            {
+                $unserialized = $unpacker->data();
+                var_dump($unserialized);
+
+                $unpacker->reset();
+                $str = "";
+                $offset = 0;
+            }
+
+            $i += $len;
+        }
+    }
 
     if (!is_bool($test))
     {
@@ -226,13 +267,7 @@ array(1) {
     [0]=>
     &array(1) {
       [0]=>
-      &array(1) {
-        [0]=>
-        &array(1) {
-          [0]=>
-          *RECURSION*
-        }
-      }
+      *RECURSION*
     }
   }
 }

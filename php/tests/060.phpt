@@ -1,6 +1,10 @@
 --TEST--
 Check for buffered streaming unserialization
 --SKIPIF--
+<?php
+if (version_compare(PHP_VERSION, '5.3.3') >= 0) {
+    echo "skip tests in PHP 5.3.2 and lower";
+}
 --FILE--
 <?php
 if(!extension_loaded('msgpack')) {
@@ -41,8 +45,8 @@ function test($type, $variable, $test = null) {
 
 test('null', null);
 
-test('boo:l true', true);
-test('bool: true', false);
+test('bool: true', true);
+test('bool: false', false);
 
 test('zero: 0', 0);
 test('small: 1', 1);
@@ -57,9 +61,9 @@ test('double: 123.456', 123.456);
 test('empty: ""', "");
 test('string: "foobar"', "foobar");
 
-test('empty: array', array(), false);
-test('empty: array(1, 2, 3)', array(1, 2, 3), false);
-test('empty: array(array(1, 2, 3), arr...', array(array(1, 2, 3), array(4, 5, 6), array(7, 8, 9)), false);
+test('array', array(), false);
+test('array(1, 2, 3)', array(1, 2, 3), false);
+test('array(array(1, 2, 3), arr...', array(array(1, 2, 3), array(4, 5, 6), array(7, 8, 9)), false);
 
 test('array("foo", "foo", "foo")', array("foo", "foo", "foo"), false);
 test('array("one" => 1, "two" => 2))', array("one" => 1, "two" => 2), false);
@@ -234,11 +238,11 @@ array(1) {
   [0]=>
   &array(1) {
     [0]=>
-    array(1) {
+    &array(1) {
       [0]=>
       &array(1) {
         [0]=>
-        array(1) {
+        &array(1) {
           [0]=>
           *RECURSION*
         }

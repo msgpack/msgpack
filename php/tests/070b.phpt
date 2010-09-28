@@ -1,9 +1,9 @@
 --TEST--
-Check for class methods
+Check for alias functions
 --SKIPIF--
 <?php
-if (version_compare(PHP_VERSION, '5.3.3') >= 0) {
-    echo "skip tests in PHP 5.3.2 and lower";
+if (version_compare(PHP_VERSION, '5.3.2') <= 0) {
+    echo "skip tests in PHP 5.3.3";
 }
 --FILE--
 <?php
@@ -12,10 +12,8 @@ if(!extension_loaded('msgpack')) {
 }
 
 function test($type, $variable, $test = null) {
-    $msgpack = new MessagePack();
-
-    $serialized = $msgpack->pack($variable);
-    $unserialized = $msgpack->unpack($serialized);
+    $serialized = msgpack_pack($variable);
+    $unserialized = msgpack_unpack($serialized);
 
     var_dump($unserialized);
 
@@ -226,13 +224,7 @@ array(1) {
     [0]=>
     &array(1) {
       [0]=>
-      &array(1) {
-        [0]=>
-        &array(1) {
-          [0]=>
-          *RECURSION*
-        }
-      }
+      *RECURSION*
     }
   }
 }

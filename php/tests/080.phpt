@@ -1,21 +1,17 @@
 --TEST--
-Check for class methods
+disabled php only (ini_set)
 --SKIPIF--
-<?php
-if (version_compare(PHP_VERSION, '5.3.3') >= 0) {
-    echo "skip tests in PHP 5.3.2 and lower";
-}
 --FILE--
 <?php
 if(!extension_loaded('msgpack')) {
     dl('msgpack.' . PHP_SHLIB_SUFFIX);
 }
 
-function test($type, $variable, $test = null) {
-    $msgpack = new MessagePack();
+ini_set('msgpack.php_only', 0);
 
-    $serialized = $msgpack->pack($variable);
-    $unserialized = $msgpack->unpack($serialized);
+function test($type, $variable, $test = null) {
+    $serialized = msgpack_pack($variable);
+    $unserialized = msgpack_unpack($serialized);
 
     var_dump($unserialized);
 
@@ -90,13 +86,13 @@ class Obj {
     }
 }
 
-test('object', new Obj(1, 2, 3), false);
+test('object', new Obj(1, 2, 3), true);
 
-test('object', array(new Obj(1, 2, 3), new Obj(4, 5, 6)), false);
+test('object', array(new Obj(1, 2, 3), new Obj(4, 5, 6)), true);
 
 $o = new Obj(1, 2, 3);
 
-test('object', array(&$o, &$o), false);
+test('object', array(&$o, &$o), true);
 --EXPECTF--
 NULL
 OK
@@ -209,12 +205,12 @@ array(2) {
 OK
 array(2) {
   [0]=>
-  &array(1) {
+  array(1) {
     [0]=>
     string(3) "foo"
   }
   [1]=>
-  &array(1) {
+  array(1) {
     [0]=>
     string(3) "foo"
   }
@@ -222,15 +218,15 @@ array(2) {
 OK
 array(1) {
   [0]=>
-  &array(1) {
+  array(1) {
     [0]=>
-    &array(1) {
+    array(1) {
       [0]=>
-      &array(1) {
+      array(1) {
         [0]=>
-        &array(1) {
+        array(1) {
           [0]=>
-          *RECURSION*
+          NULL
         }
       }
     }
@@ -252,53 +248,53 @@ array(2) {
   }
 }
 OK
-object(Obj)#%d (3) {
-  ["a"]=>
+array(3) {
+  [0]=>
   int(1)
-  [%r"?b"?:protected"?%r]=>
+  [1]=>
   int(2)
-  [%r"?c"?:("Obj":)?private"?%r]=>
+  [2]=>
   int(3)
 }
 OK
 array(2) {
   [0]=>
-  object(Obj)#%d (3) {
-    ["a"]=>
+  array(3) {
+    [0]=>
     int(1)
-    [%r"?b"?:protected"?%r]=>
+    [1]=>
     int(2)
-    [%r"?c"?:("Obj":)?private"?%r]=>
+    [2]=>
     int(3)
   }
   [1]=>
-  object(Obj)#%d (3) {
-    ["a"]=>
+  array(3) {
+    [0]=>
     int(4)
-    [%r"?b"?:protected"?%r]=>
+    [1]=>
     int(5)
-    [%r"?c"?:("Obj":)?private"?%r]=>
+    [2]=>
     int(6)
   }
 }
 OK
 array(2) {
   [0]=>
-  &object(Obj)#%d (3) {
-    ["a"]=>
+  array(3) {
+    [0]=>
     int(1)
-    [%r"?b"?:protected"?%r]=>
+    [1]=>
     int(2)
-    [%r"?c"?:("Obj":)?private"?%r]=>
+    [2]=>
     int(3)
   }
   [1]=>
-  &object(Obj)#%d (3) {
-    ["a"]=>
+  array(3) {
+    [0]=>
     int(1)
-    [%r"?b"?:protected"?%r]=>
+    [1]=>
     int(2)
-    [%r"?c"?:("Obj":)?private"?%r]=>
+    [2]=>
     int(3)
   }
 }

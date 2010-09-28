@@ -3,7 +3,7 @@
 
 Summary: PHP extension for interfacing with MessagePack
 Name: php-msgpack
-Version: 0.2.1
+Version: 0.3.0
 Release: 1%{?dist}
 Source: php-msgpack-%{version}.tar.gz
 License: New BSD License
@@ -11,7 +11,7 @@ Group: Development/Libraries
 Packager: advect <advect@gmail.com>
 Provides: php-pecl-msgpack
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
-BuildRequires: php-devel, msgpack-devel
+BuildRequires: php-devel
 Requires: msgpack
 %if 0%{?php_zend_api}
 Requires: php(zend-abi) = %{php_zend_api}

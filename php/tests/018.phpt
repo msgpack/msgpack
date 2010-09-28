@@ -74,7 +74,7 @@ object(Obj)#%d (3) {
 }
 OK
 wrong
-82c0a34f706ac0
+82c0a34f706a
 object(Opj)#%d (2) {
   ["a"]=>
   NULL

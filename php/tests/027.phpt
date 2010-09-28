@@ -64,7 +64,7 @@ var_dump($_SESSION);
 --EXPECT--
 bool(true)
 read
-wrote: 82a3666f6f01a474657374a6666f6f626172
+wrote: 83c001a3666f6f01a474657374a6666f6f626172
 array(2) {
   ["foo"]=>
   int(1)

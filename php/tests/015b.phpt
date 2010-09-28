@@ -51,7 +51,7 @@ var_dump($_SESSION);
 ?>
 --EXPECT--
 2
-81a3666f6f02
+82c001a3666f6f02
 array(1) {
   ["foo"]=>
   int(2)

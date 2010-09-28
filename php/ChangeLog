@@ -1,14 +1,21 @@
 msgpack extension changelog
 
+Version 0.3.0
+-------------
+	* Change msgpack_unpack.c (used template)
+	* Add php_only ini option (true / false)
+	* Change class MessagePack and MessagePackUnpacker __construct option.
+	* Add class MessagePack and MessagePackUnpacker setOption method.
+
 Version 0.2.1
 -------------
-	* Fix stream deserializer
+	* Fix stream deserializer.
 
 Version 0.2.0
 -------------
-	* Add stream deserializer / class MessagePackUnpacker interface
-	* Add alias functions
-	* Add class MessagePack interface
+	* Add stream deserializer / class MessagePackUnpacker interface.
+	* Add alias functions.
+	* Add class MessagePack interface.
 
 Version 0.1.5
 -------------

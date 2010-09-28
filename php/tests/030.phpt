@@ -56,9 +56,6 @@ foreach ($datas as $data) {
 }
 ?>
 --EXPECTF--
-output at 2:
-array(0) {
-}
 output at 3:
 array(1) {
   [0]=>
