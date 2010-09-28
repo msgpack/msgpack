@@ -1,4 +1,4 @@
-package org.msgpack.util;
+package org.msgpack.util.codegen;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
