@@ -2,29 +2,31 @@ package org.msgpack.util.codegen;
 
 public interface BasicConstants {
 
-    String KEYWORD_MODIFIER_PUBLIC = "public";
+	String KEYWORD_MODIFIER_PUBLIC = "public";
 
-    String KEYWORD_CATCH = "catch";
+	String KEYWORD_CATCH = "catch";
 
-    String KEYWORD_ELSE = "else";
+	String KEYWORD_ELSE = "else";
 
-    String KEYWORD_ELSEIF = "else if";
+	String KEYWORD_ELSEIF = "else if";
 
-    String KEYWORD_FOR = "for";
+	String KEYWORD_FOR = "for";
 
-    String KEYWORD_IF = "if";
+	String KEYWORD_IF = "if";
 
-    String KEYWORD_INSTANCEOF = "instanceof";
+	String KEYWORD_INSTANCEOF = "instanceof";
 
-    String KEYWORD_NEW = "new";
+	String KEYWORD_NEW = "new";
 
-    String KEYWORD_NULL = "null";
+	String KEYWORD_NULL = "null";
+	
+	String KEYWORD_RETURN = "return";
 
-    String KEYWORD_THROW = "throw";
+	String KEYWORD_THROW = "throw";
 
-    String KEYWORD_THROWS = "throws";
+	String KEYWORD_THROWS = "throws";
 
-    String KEYWORD_TRY = "try";
+	String KEYWORD_TRY = "try";
 
 	String CHAR_NAME_SPACE = " ";
 
@@ -34,28 +36,30 @@ public interface BasicConstants {
 
 	String CHAR_NAME_PLUS = "+";
 
+	String CHAR_NAME_MINUS = "-";
+
 	String CHAR_NAME_LESSTHAN = "<";
 
-    String CHAR_NAME_RIGHT_PARENTHESIS = ")";
+	String CHAR_NAME_RIGHT_PARENTHESIS = ")";
 
-    String CHAR_NAME_LEFT_PARENTHESIS = "(";
+	String CHAR_NAME_LEFT_PARENTHESIS = "(";
 
-    String CHAR_NAME_RIGHT_CURLY_BRACKET = "}";
+	String CHAR_NAME_RIGHT_CURLY_BRACKET = "}";
 
-    String CHAR_NAME_LEFT_CURLY_BRACKET = "{";
+	String CHAR_NAME_LEFT_CURLY_BRACKET = "{";
 
-    String CHAR_NAME_RIGHT_SQUARE_BRACKET = "]";
+	String CHAR_NAME_RIGHT_SQUARE_BRACKET = "]";
 
-    String CHAR_NAME_LEFT_SQUARE_BRACKET = "[";
+	String CHAR_NAME_LEFT_SQUARE_BRACKET = "[";
 
 	String CHAR_NAME_DOT = ".";
 
 	String CHAR_NAME_SEMICOLON = ";";
 
 	String VARIABLE_NAME_PK = "_$$_pk";
-	
-	String VARIABLE_NAME_OBJ = "_$$_obj";
-	
+
+	String VARIABLE_NAME_OBJECT = "_$$_obj";
+
 	String VARIABLE_NAME_TARGET = "_$$_target";
 
 	String VARIABLE_NAME_SIZE = "_$$_len";
@@ -153,8 +157,8 @@ public interface BasicConstants {
 	String METHOD_NAME_ASBYTEARRAY = "asByteArray";
 
 	String METHOD_NAME_ASBIGINTEGER = "asBigInteger";
-	
+
 	String METHOD_NAME_ASLIST = "asList";
-	
+
 	String METHOD_NAME_ASMAP = "asMap";
 }

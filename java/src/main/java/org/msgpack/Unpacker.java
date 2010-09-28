@@ -18,7 +18,6 @@
 package org.msgpack;
 
 import java.lang.Iterable;
-import java.lang.annotation.Annotation;
 import java.io.InputStream;
 import java.io.IOException;
 import java.util.Iterator;

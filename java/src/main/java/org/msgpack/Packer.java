@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
-import java.lang.annotation.Annotation;
 import java.math.BigInteger;
 
 import org.msgpack.annotation.MessagePackDelegate;
