@@ -15,8 +15,8 @@ public class DynamicCodeGenBase implements BasicConstants {
 		sb.append(CHAR_NAME_SPACE);
 		sb.append(name);
 	}
-	
-	public void addPublicMethodDecl(StringBuilder sb, String mname, 
+
+	public void addPublicMethodDecl(StringBuilder sb, String mname,
 			Class<?> returnType, Class<?>[] paramTypes, String[] anames,
 			Class<?>[] exceptTypes, String methodBody) {
 		sb.append(KEYWORD_MODIFIER_PUBLIC);
@@ -54,12 +54,14 @@ public class DynamicCodeGenBase implements BasicConstants {
 	}
 
 	public void insertSemicolon(StringBuilder sb) {
+		// ;
 		sb.append(CHAR_NAME_SEMICOLON);
 		sb.append(CHAR_NAME_SPACE);
 	}
 
 	public void insertLocalVariableDecl(StringBuilder sb, Class<?> type,
 			String name) {
+		// int lv
 		sb.append(type.getName());
 		sb.append(CHAR_NAME_SPACE);
 		sb.append(name);
@@ -71,6 +73,13 @@ public class DynamicCodeGenBase implements BasicConstants {
 		sb.append(CHAR_NAME_EQUAL);
 		sb.append(CHAR_NAME_SPACE);
 		sb.append(expr);
+	}
+
+	public void insertFieldAccess(StringBuilder sb, String target, String field) {
+		// target.field
+		sb.append(target);
+		sb.append(CHAR_NAME_DOT);
+		sb.append(field);
 	}
 
 	public void insertDefaultConsCall(StringBuilder sb, Class<?> type) {

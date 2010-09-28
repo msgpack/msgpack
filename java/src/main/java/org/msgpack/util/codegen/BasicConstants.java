@@ -98,10 +98,8 @@ public interface BasicConstants {
 
 	String METHOD_NAME_NEXT = "next";
 
-	String METHOD_NAME_MSGPACK = "messagePack";
-
-	String METHOD_NAME_MSGUNPACK = "messageUnpack";
-
+	String METHOD_NAME_CONVERT = "convert";
+	
 	String METHOD_NAME_MSGCONVERT = "messageConvert";
 
 	String METHOD_NAME_PACK = "pack";
