@@ -17,14 +17,19 @@
 //
 package org.msgpack;
 
+import java.lang.annotation.Annotation;
+
 public class CustomMessage {
-	public static void registerPacker(Class target, MessagePacker packer) {
+	public static void registerPacker(Class<?> target, MessagePacker packer) {
 		CustomPacker.register(target, packer);
 	}
 
-	public static void registerTemplate(Class target, Template tmpl) {
+	public static void registerTemplate(Class<?> target, Template tmpl) {
 		CustomUnpacker.register(target, tmpl);
 		CustomConverter.register(target, tmpl);
 	}
-}
 
+	static boolean isAnnotated(Class<?> target, Class<? extends Annotation> with) {
+		return target.getAnnotation(with) != null;
+	}
+}

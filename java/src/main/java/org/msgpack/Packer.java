@@ -24,6 +24,10 @@ import java.util.List;
 import java.util.Map;
 import java.math.BigInteger;
 
+import org.msgpack.annotation.MessagePackDelegate;
+import org.msgpack.annotation.MessagePackMessage;
+import org.msgpack.annotation.MessagePackOrdinalEnum;
+
 /**
  * Packer enables you to serialize objects into OutputStream.
  *
@@ -473,19 +477,28 @@ public class Packer {
 			return packDouble((Double)o);
 		} else if(o instanceof BigInteger) {
 			return packBigInteger((BigInteger)o);
-		}
+		} 
 
-		Class klass = o.getClass();
-
+		Class<?> klass = o.getClass();
 		MessagePacker packer = CustomPacker.get(klass);
 		if(packer != null) {
 			packer.pack(this, o);
 			return this;
+		} else if (CustomMessage.isAnnotated(klass, MessagePackMessage.class)) {
+			packer = ReflectionPacker.create(klass);
+			packer.pack(this, o);
+			return this;
+		} else if (CustomMessage.isAnnotated(klass, MessagePackDelegate.class)) {
+			// FIXME DelegatePacker
+			throw new UnsupportedOperationException("not supported yet. : " + klass.getName());
+		} else if (CustomMessage.isAnnotated(klass, MessagePackOrdinalEnum.class)) {
+			// FIXME OrdinalEnumPacker
+			throw new UnsupportedOperationException("not supported yet. : " + klass.getName());
 		}
-
-		// FIXME check annotations -> code generation -> CustomMessage.registerPacker
-
+		if (packer != null) {
+			CustomMessage.registerPacker(klass, packer);
+		}
 		throw new MessageTypeException("unknown object "+o+" ("+o.getClass()+")");
 	}
-}
 
+}

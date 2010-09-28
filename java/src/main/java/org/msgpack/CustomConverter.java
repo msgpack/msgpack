@@ -17,23 +17,22 @@
 //
 package org.msgpack;
 
-import java.util.Map;
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 // FIXME package private?
 public class CustomConverter {
-	public static void register(Class target, MessageConverter converter) {
-		map.put(target, converter);
+	private static ConcurrentHashMap<Class<?>, MessageConverter> map = new ConcurrentHashMap<Class<?>, MessageConverter>();
+	
+	public static void register(Class<?> target, MessageConverter converter) {
+		map.putIfAbsent(target, converter);
 	}
 
-	public static MessageConverter get(Class target) {
+	public static MessageConverter get(Class<?> target) {
 		return map.get(target);
 	}
 
-	public static boolean isRegistered(Class target) {
+	public static boolean isRegistered(Class<?> target) {
 		return map.containsKey(target);
 	}
-
-	private static Map<Class, MessageConverter> map = new HashMap<Class, MessageConverter>();
 }
 

@@ -1,14 +1,21 @@
-package org.msgpack;
+package org.msgpack.util;
 
-import static org.msgpack.Templates.*;
-
-import java.util.*;
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 
 import org.junit.Test;
+import org.msgpack.CustomPacker;
+import org.msgpack.MessagePacker;
+import org.msgpack.Packer;
+import org.msgpack.ReflectionTemplate;
+import org.msgpack.Template;
+import org.msgpack.Unpacker;
+import org.msgpack.util.codegen.DynamicCodeGenPacker;
+import org.msgpack.util.codegen.DynamicCodeGenTemplate;
+
 import static org.junit.Assert.*;
 
-public class TestReflectionPackerTemplate {
+public class TestDynamicCodeGenPackerTemplate {
 
 	public static class StringFieldClass {
 		public String s1;
@@ -20,7 +27,7 @@ public class TestReflectionPackerTemplate {
 	public void testPackConvert() throws Exception {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-		MessagePacker packer = ReflectionPacker.create(StringFieldClass.class);
+		MessagePacker packer = DynamicCodeGenPacker.create(StringFieldClass.class);
 
 		StringFieldClass src = new StringFieldClass();
 
@@ -29,7 +36,7 @@ public class TestReflectionPackerTemplate {
 
 		packer.pack(new Packer(out), src);
 
-		Template tmpl = ReflectionTemplate.create(StringFieldClass.class);
+		Template tmpl = DynamicCodeGenTemplate.create(StringFieldClass.class);
 
 		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
 
@@ -45,7 +52,7 @@ public class TestReflectionPackerTemplate {
 	public void testPackConvert02() throws Exception {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-		CustomPacker.register(StringFieldClass.class, ReflectionPacker.create(StringFieldClass.class));
+		CustomPacker.register(StringFieldClass.class, DynamicCodeGenPacker.create(StringFieldClass.class));
 				
 
 		StringFieldClass src = new StringFieldClass();

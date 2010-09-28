@@ -24,6 +24,10 @@ import java.util.Iterator;
 import java.nio.ByteBuffer;
 import java.math.BigInteger;
 
+import org.msgpack.annotation.MessagePackDelegate;
+import org.msgpack.annotation.MessagePackMessage;
+import org.msgpack.annotation.MessagePackOrdinalEnum;
+
 /**
  * Unpacker enables you to deserialize objects from stream.
  *
@@ -103,6 +107,9 @@ import java.math.BigInteger;
  * </pre>
  */
 public class Unpacker implements Iterable<MessagePackObject> {
+	static {
+		Templates.load();
+	}
 
 	// buffer:
 	// +---------------------------------------------+
@@ -573,7 +580,7 @@ public class Unpacker implements Iterable<MessagePackObject> {
 		obj.messageUnpack(this);
 	}
 
-	final public Object unpack(Class klass) throws IOException, MessageTypeException, InstantiationException, IllegalAccessException {
+	final public Object unpack(Class<?> klass) throws IOException, MessageTypeException, InstantiationException, IllegalAccessException {
 		if(MessageUnpackable.class.isAssignableFrom(klass)) {
 			Object obj = klass.newInstance();
 			((MessageUnpackable)obj).messageUnpack(this);
@@ -584,14 +591,25 @@ public class Unpacker implements Iterable<MessagePackObject> {
 		if(unpacker != null) {
 			return unpacker.unpack(this);
 		}
-
-		// FIXME check annotations -> code generation -> CustomMessage.registerTemplate
-
+		
+		Template tmpl = null;
+		if (CustomMessage.isAnnotated(klass, MessagePackMessage.class)) {
+			tmpl = ReflectionTemplate.create(klass);
+			return tmpl.unpack(this);
+		} else if (CustomMessage.isAnnotated(klass, MessagePackDelegate.class)) {
+			// FIXME DelegateTemplate
+			throw new UnsupportedOperationException("not supported yet. : " + klass.getName());
+		} else if (CustomMessage.isAnnotated(klass, MessagePackOrdinalEnum.class)) {
+			// FIXME OrdinalEnumTemplate
+			throw new UnsupportedOperationException("not supported yet. : " + klass.getName());
+		}
+		if (tmpl != null) {
+			CustomMessage.registerTemplate(klass, tmpl);
+		}
 		MessageConverter converter = CustomConverter.get(klass);
 		if(converter != null) {
 			return converter.convert(unpackObject());
 		}
-
 		throw new MessageTypeException();
 	}
 }

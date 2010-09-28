@@ -20,6 +20,6 @@ package org.msgpack;
 import java.io.IOException;
 
 public interface MessagePacker {
-	public void pack(Packer pk, Object target) throws IOException;
+	void pack(Packer pk, Object target) throws IOException;
 }
 

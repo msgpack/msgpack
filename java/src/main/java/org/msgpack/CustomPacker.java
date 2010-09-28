@@ -17,23 +17,20 @@
 //
 package org.msgpack;
 
-import java.util.Map;
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
-// FIXME package private?
 public class CustomPacker {
-	public static void register(Class target, MessagePacker converter) {
-		map.put(target, converter);
+	private static ConcurrentHashMap<Class<?>, MessagePacker> map = new ConcurrentHashMap<Class<?>, MessagePacker>();
+
+	public static void register(Class<?> target, MessagePacker packer) {
+		map.putIfAbsent(target, packer);
 	}
 
-	public static MessagePacker get(Class target) {
+	public static MessagePacker get(Class<?> target) {
 		return map.get(target);
 	}
 
-	public static boolean isRegistered(Class target) {
+	public static boolean isRegistered(Class<?> target) {
 		return map.containsKey(target);
 	}
-
-	private static Map<Class, MessagePacker> map = new HashMap<Class, MessagePacker>();
 }
-
