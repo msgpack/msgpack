@@ -20,6 +20,7 @@ import org.msgpack.MessagePacker;
 import org.msgpack.Packer;
 import org.msgpack.Template;
 import org.msgpack.Unpacker;
+import org.msgpack.annotation.MessagePackMessage;
 
 public class TestDynamicCodeGenPackerConverter extends TestCase {
 
@@ -535,6 +536,44 @@ public class TestDynamicCodeGenPackerConverter extends TestCase {
 	}
 
 	@Test
+	public void testMessagePackMessageFieldClass() throws Exception {
+		BaseClass2 src = new BaseClass2();
+		MessagePackMessageClass2 src2 = new MessagePackMessageClass2();
+		src.f0 = 0;
+		src2.f2 = 2;
+		src.f1 = src2;
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		MessagePacker packer = DynamicCodeGenPacker.create(BaseClass2.class);
+		packer.pack(new Packer(out), src);
+		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+		Unpacker pac = new Unpacker(in);
+		Iterator<MessagePackObject> it = pac.iterator();
+		assertTrue(it.hasNext());
+		MessagePackObject mpo = it.next();
+		Template tmpl = DynamicCodeGenTemplate.create(BaseClass2.class);
+		BaseClass2 dst = (BaseClass2) tmpl.convert(mpo);
+		assertTrue(src.f0 == dst.f0);
+		assertTrue(src.f1.f2 == dst.f1.f2);
+		assertFalse(it.hasNext());
+	}
+
+	public static class BaseClass2 {
+		public int f0;
+		public MessagePackMessageClass2 f1;
+
+		public BaseClass2() {
+		}
+	}
+
+	@MessagePackMessage
+	public static class MessagePackMessageClass2 {
+		public int f2;
+
+		public MessagePackMessageClass2() {
+		}
+	}
+
+	@Test
 	public void testExtendedClass() throws Exception {
 		SampleSubClass src = new SampleSubClass();
 		src.f0 = 0;
@@ -581,6 +620,7 @@ public class TestDynamicCodeGenPackerConverter extends TestCase {
 	public static class SampleSuperClass {
 		public int f5;
 		public final int f6 = 2;
+		@SuppressWarnings("unused")
 		private int f7;
 		protected int f8;
 		int f9;

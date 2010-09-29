@@ -23,9 +23,11 @@ import javassist.CtNewMethod;
 import javassist.NotFoundException;
 
 import org.msgpack.CustomConverter;
+import org.msgpack.CustomMessage;
 import org.msgpack.CustomUnpacker;
 import org.msgpack.MessageConvertable;
 import org.msgpack.MessagePackObject;
+import org.msgpack.MessagePackable;
 import org.msgpack.MessagePacker;
 import org.msgpack.MessageTypeException;
 import org.msgpack.MessageUnpackable;
@@ -33,6 +35,9 @@ import org.msgpack.MessageUnpacker;
 import org.msgpack.Packer;
 import org.msgpack.Template;
 import org.msgpack.Unpacker;
+import org.msgpack.annotation.MessagePackDelegate;
+import org.msgpack.annotation.MessagePackMessage;
+import org.msgpack.annotation.MessagePackOrdinalEnum;
 
 public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 
@@ -98,11 +103,10 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 	public Class<?> generateMessageConverterClass(Class<?> origClass) {
 		try {
 			String origName = origClass.getName();
-			String converterName = origName + POSTFIX_TYPE_NAME_CONVERTER
-					+ inc();
+			String convName = origName + POSTFIX_TYPE_NAME_CONVERTER + inc();
 			checkClassValidation(origClass);
 			checkDefaultConstructorValidation(origClass);
-			CtClass converterCtClass = pool.makeClass(converterName);
+			CtClass converterCtClass = pool.makeClass(convName);
 			setInterface(converterCtClass, MessageUnpacker.class);
 			addDefaultConstructor(converterCtClass);
 			Field[] fields = getDeclaredFields(origClass);
@@ -162,7 +166,6 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 		} catch (Exception e1) {
 			throwConstructoValidationException(origClass);
 		}
-
 		int mod = cons.getModifiers();
 		if (!(Modifier.isPublic(mod) || Modifier.isProtected(mod))) {
 			throwConstructoValidationException(origClass);
@@ -256,6 +259,28 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 	}
 
 	private void insertCodeOfPackMethodCall(StringBuilder sb, Field field) {
+		Class<?> c = field.getType();
+		if (c.isPrimitive() || c.equals(Boolean.class) || c.equals(Byte.class)
+				|| c.equals(Double.class) || c.equals(Float.class)
+				|| c.equals(Integer.class) || c.equals(Long.class)
+				|| c.equals(Short.class) || List.class.isAssignableFrom(c)
+				|| Map.class.isAssignableFrom(c)
+				|| CustomUnpacker.isRegistered(c)
+				|| MessagePackable.class.isAssignableFrom(c)) {
+			;
+		} else if (CustomMessage.isAnnotated(c, MessagePackMessage.class)) {
+			// @MessagePackMessage
+			MessagePacker packer = DynamicCodeGenPacker.create(c);
+			CustomMessage.registerPacker(c, packer);
+		} else if (CustomMessage.isAnnotated(c, MessagePackDelegate.class)) {
+			// FIXME DelegatePacker
+			throw new UnsupportedOperationException("not supported yet. : "
+					+ c.getName());
+		} else if (CustomMessage.isAnnotated(c, MessagePackOrdinalEnum.class)) {
+			// FIXME OrdinalEnumPacker
+			throw new UnsupportedOperationException("not supported yet. : "
+					+ c.getName());
+		}
 		StringBuilder fa = new StringBuilder();
 		insertFieldAccess(fa, VARIABLE_NAME_TARGET, field.getName());
 		insertMethodCall(sb, VARIABLE_NAME_PK, METHOD_NAME_PACK,
@@ -265,6 +290,9 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 
 	private void addUnpackMethod(CtClass unpackerCtClass, Class<?> c, Field[] fs)
 			throws CannotCompileException, NotFoundException {
+		if (CustomMessage.isAnnotated(c, MessagePackMessage.class)) {
+			// TODO
+		}
 		// Object unpack(Unpacker pac) throws IOException, MessageTypeException;
 		StringBuilder sb = new StringBuilder();
 		StringBuilder bsb = new StringBuilder();
@@ -324,7 +352,12 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 			insertCodeOfUnpackMethodCallForRegisteredType(sb, f, c);
 		} else if (MessageUnpackable.class.isAssignableFrom(c)) {
 			// MessageUnpackable
-			insertCodeOfMessageUnpackCallForMsgUnpackableType(sb, f, c);
+			insertCodeOfUnpackMethodCallForMsgUnpackableType(sb, f, c);
+		} else if (CustomMessage.isAnnotated(c, MessagePackMessage.class)) {
+			// @MessagePackMessage
+			Template tmpl = DynamicCodeGenTemplate.create(c);
+			CustomMessage.registerTemplate(c, tmpl);
+			insertCodeOfUnpackMethodCallForRegisteredType(sb, f, c);
 		} else {
 			throw new MessageTypeException("unknown type:  " + c.getName());
 		}
@@ -532,78 +565,26 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 
 	private void insertCodeOfUnpackMethodCallForRegisteredType(
 			StringBuilder sb, Field f, Class<?> c) {
-		// if (t.fi == null) { t.fi = new Foo(); }
-		// sb.append(KEYWORD_IF);
-		// sb.append(CHAR_NAME_SPACE);
-		// sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		// sb.append(VARIABLE_NAME_TARGET);
-		// sb.append(CHAR_NAME_DOT);
-		// sb.append(f.getName());
-		// sb.append(CHAR_NAME_SPACE);
-		// sb.append(CHAR_NAME_EQUAL);
-		// sb.append(CHAR_NAME_EQUAL);
-		// sb.append(CHAR_NAME_SPACE);
-		// sb.append(KEYWORD_NULL);
-		// sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-		// sb.append(CHAR_NAME_SPACE);
-		// sb.append(CHAR_NAME_LEFT_CURLY_BRACKET);
-		// sb.append(CHAR_NAME_SPACE);
-		// sb.append(VARIABLE_NAME_TARGET);
-		// sb.append(CHAR_NAME_DOT);
-		// sb.append(f.getName());
-		// sb.append(CHAR_NAME_SPACE);
-		// sb.append(CHAR_NAME_EQUAL);
-		// sb.append(CHAR_NAME_SPACE);
-		// sb.append(KEYWORD_NEW);
-		// sb.append(CHAR_NAME_SPACE);
-		// sb.append(c.getName());
-		// sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		// sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-		// sb.append(CHAR_NAME_SEMICOLON);
-		// sb.append(CHAR_NAME_SPACE);
-		// sb.append(CHAR_NAME_RIGHT_CURLY_BRACKET);
-		// sb.append(CHAR_NAME_SPACE);
-
-		// tmpl1.unpack(new Unpacker(in));
-		// CustomUnpacker.get(c).pack(new Packer(out), src);
+		// target.field = (Cast) CustomUnpacker.get(C.class).unpack(pk);
+		StringBuilder mc = new StringBuilder();
+		insertTypeCast(mc, c);
+		mc.append(CustomUnpacker.class.getName());
+		String t = mc.toString();
+		mc = new StringBuilder();
+		insertMethodCall(mc, t, METHOD_NAME_GET, new String[] { c.getName()
+				+ ".class" });
+		t = mc.toString();
+		mc = new StringBuilder();
+		insertMethodCall(mc, t, METHOD_NAME_UNPACK,
+				new String[] { VARIABLE_NAME_PK });
 		sb.append(VARIABLE_NAME_TARGET);
 		sb.append(CHAR_NAME_DOT);
 		sb.append(f.getName());
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(CHAR_NAME_EQUAL);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		sb.append(c.getName());
-		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-		sb.append(CustomUnpacker.class.getName());
-		sb.append(CHAR_NAME_DOT);
-		sb.append(METHOD_NAME_GET);
-		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		sb.append(c.getName() + ".class");
-		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-		sb.append(CHAR_NAME_DOT);
-		sb.append(METHOD_NAME_UNPACK);
-		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		sb.append(VARIABLE_NAME_PK);
-		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
+		insertValueInsertion(sb, mc.toString());
 		insertSemicolon(sb);
-		//		
-		// sb.append(VARIABLE_NAME_PK);
-		// sb.append(CHAR_NAME_DOT);
-		// sb.append(METHOD_NAME_UNPACK);
-		// sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		// sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		// sb.append(MessageUnpackable.class.getName());
-		// sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-		// sb.append(VARIABLE_NAME_TARGET);
-		// sb.append(CHAR_NAME_DOT);
-		// sb.append(f.getName());
-		// sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-		// sb.append(CHAR_NAME_SEMICOLON);
-		// sb.append(CHAR_NAME_SPACE);
 	}
 
-	private void insertCodeOfMessageUnpackCallForMsgUnpackableType(
+	private void insertCodeOfUnpackMethodCallForMsgUnpackableType(
 			StringBuilder sb, Field f, Class<?> c) {
 		// if (t.fi == null) { t.fi = new Foo(); }
 		sb.append(KEYWORD_IF);
@@ -663,7 +644,7 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 				new Class<?>[] { MessagePackObject.class },
 				new String[] { VARIABLE_NAME_MPO },
 				new Class<?>[] { MessageTypeException.class }, bsb.toString());
-		//System.out.println("convert method: " + sb.toString());
+		// System.out.println("convert method: " + sb.toString());
 		CtMethod newCtMethod = CtNewMethod.make(sb.toString(), tmplCtClass);
 		tmplCtClass.addMethod(newCtMethod);
 	}

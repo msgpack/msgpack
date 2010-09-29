@@ -29,7 +29,7 @@ public class CustomMessage {
 		CustomConverter.register(target, tmpl);
 	}
 
-	static boolean isAnnotated(Class<?> target, Class<? extends Annotation> with) {
+	public static boolean isAnnotated(Class<?> target, Class<? extends Annotation> with) {
 		return target.getAnnotation(with) != null;
 	}
 }
