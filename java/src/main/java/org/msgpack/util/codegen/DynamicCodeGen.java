@@ -290,9 +290,6 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 
 	private void addUnpackMethod(CtClass unpackerCtClass, Class<?> c, Field[] fs)
 			throws CannotCompileException, NotFoundException {
-		if (CustomMessage.isAnnotated(c, MessagePackMessage.class)) {
-			// TODO
-		}
 		// Object unpack(Unpacker pac) throws IOException, MessageTypeException;
 		StringBuilder sb = new StringBuilder();
 		StringBuilder bsb = new StringBuilder();
@@ -302,7 +299,7 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 				new String[] { VARIABLE_NAME_PK }, new Class<?>[] {
 						MessageTypeException.class, IOException.class }, bsb
 						.toString());
-		//System.out.println("unpack method: " + sb.toString());
+		// System.out.println("unpack method: " + sb.toString());
 		CtMethod newCtMethod = CtNewMethod.make(sb.toString(), unpackerCtClass);
 		unpackerCtClass.addMethod(newCtMethod);
 	}
@@ -358,6 +355,14 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 			Template tmpl = DynamicCodeGenTemplate.create(c);
 			CustomMessage.registerTemplate(c, tmpl);
 			insertCodeOfUnpackMethodCallForRegisteredType(sb, f, c);
+		} else if (CustomMessage.isAnnotated(c, MessagePackDelegate.class)) {
+			// FIXME DelegatePacker
+			throw new UnsupportedOperationException("not supported yet. : "
+					+ c.getName());
+		} else if (CustomMessage.isAnnotated(c, MessagePackOrdinalEnum.class)) {
+			// FIXME OrdinalEnumPacker
+			throw new UnsupportedOperationException("not supported yet. : "
+					+ c.getName());
 		} else {
 			throw new MessageTypeException("unknown type:  " + c.getName());
 		}
@@ -710,6 +715,20 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 				insertCodeOfMessageConvertCallForMsgConvtblType(sb, f, c, i);
 			} else if (CustomConverter.isRegistered(c)) {
 				insertCodeOfMessageConvertCallForRegisteredType(sb, f, c, i);
+			} else if (CustomMessage.isAnnotated(c, MessagePackMessage.class)) {
+				// @MessagePackMessage
+				Template tmpl = DynamicCodeGenTemplate.create(c);
+				CustomMessage.registerTemplate(c, tmpl);
+				insertCodeOfMessageConvertCallForRegisteredType(sb, f, c, i);
+			} else if (CustomMessage.isAnnotated(c, MessagePackDelegate.class)) {
+				// FIXME DelegatePacker
+				throw new UnsupportedOperationException("not supported yet. : "
+						+ c.getName());
+			} else if (CustomMessage.isAnnotated(c,
+					MessagePackOrdinalEnum.class)) {
+				// FIXME OrdinalEnumPacker
+				throw new UnsupportedOperationException("not supported yet. : "
+						+ c.getName());
 			} else {
 				throw new MessageTypeException("Type error: " + c.getName());
 			}
@@ -718,38 +737,6 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 
 	private void insertCodeOfMessageConvertCallForRegisteredType(
 			StringBuilder sb, Field f, Class<?> c, int i) {
-		// if (t.fi == null) { t.fi = new Foo(); }
-		// sb.append(KEYWORD_IF);
-		// sb.append(CHAR_NAME_SPACE);
-		// sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		// sb.append(VARIABLE_NAME_TARGET);
-		// sb.append(CHAR_NAME_DOT);
-		// sb.append(f.getName());
-		// sb.append(CHAR_NAME_SPACE);
-		// sb.append(CHAR_NAME_EQUAL);
-		// sb.append(CHAR_NAME_EQUAL);
-		// sb.append(CHAR_NAME_SPACE);
-		// sb.append(KEYWORD_NULL);
-		// sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-		// sb.append(CHAR_NAME_SPACE);
-		// sb.append(CHAR_NAME_LEFT_CURLY_BRACKET);
-		// sb.append(CHAR_NAME_SPACE);
-		// sb.append(VARIABLE_NAME_TARGET);
-		// sb.append(CHAR_NAME_DOT);
-		// sb.append(f.getName());
-		// sb.append(CHAR_NAME_SPACE);
-		// sb.append(CHAR_NAME_EQUAL);
-		// sb.append(CHAR_NAME_SPACE);
-		// sb.append(KEYWORD_NEW);
-		// sb.append(CHAR_NAME_SPACE);
-		// sb.append(c.getName());
-		// sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		// sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-		// sb.append(CHAR_NAME_SEMICOLON);
-		// sb.append(CHAR_NAME_SPACE);
-		// sb.append(CHAR_NAME_RIGHT_CURLY_BRACKET);
-		// sb.append(CHAR_NAME_SPACE);
-
 		// ((MessageConvertable)f_i).messageConvert(ary[i]);
 		// obj = tmpl.convert(mpo);
 		sb.append(VARIABLE_NAME_TARGET);
