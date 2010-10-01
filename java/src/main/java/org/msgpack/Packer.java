@@ -21,6 +21,7 @@ import java.io.OutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
+import java.util.Set;
 import java.util.Map;
 import java.math.BigInteger;
 
@@ -446,6 +447,11 @@ public class Packer {
 			return packRawBody(b);
 		} else if(o instanceof List) {
 			List<Object> l = (List<Object>)o;
+			packArray(l.size());
+			for(Object i : l) { pack(i); }
+			return this;
+		} else if(o instanceof Set) {
+			Set<Object> l = (Set<Object>)o;
 			packArray(l.size());
 			for(Object i : l) { pack(i); }
 			return this;
