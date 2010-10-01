@@ -28,6 +28,7 @@ import java.math.BigInteger;
 import org.msgpack.annotation.MessagePackDelegate;
 import org.msgpack.annotation.MessagePackMessage;
 import org.msgpack.annotation.MessagePackOrdinalEnum;
+import org.msgpack.packer.*;
 
 /**
  * Packer enables you to serialize objects into OutputStream.
@@ -46,6 +47,22 @@ import org.msgpack.annotation.MessagePackOrdinalEnum;
  * You can serialize objects that implements {@link MessagePackable} interface.
  */
 public class Packer {
+	static {
+		// final classes
+		BooleanPacker.getInstance();
+		ByteArrayPacker.getInstance();
+		BytePacker.getInstance();
+		DoublePacker.getInstance();
+		FloatPacker.getInstance();
+		IntegerPacker.getInstance();
+		LongPacker.getInstance();
+		ShortPacker.getInstance();
+		StringPacker.getInstance();
+		//BigIntegerPacker.getInstance();  // BigInteger is not final
+	}
+
+	public static void load() { }
+
 	protected byte[] castBytes = new byte[9];
 	protected ByteBuffer castBuffer = ByteBuffer.wrap(castBytes);
 	protected OutputStream out;
@@ -434,17 +451,17 @@ public class Packer {
 	public Packer pack(Object o) throws IOException {
 		if(o == null) {
 			return packNil();
-		} else if(o instanceof String) {
-			byte[] b = ((String)o).getBytes("UTF-8");
-			packRaw(b.length);
-			return packRawBody(b);
+		//} else if(o instanceof String) {
+		//	byte[] b = ((String)o).getBytes("UTF-8");
+		//	packRaw(b.length);
+		//	return packRawBody(b);
 		} else if(o instanceof MessagePackable) {
 			((MessagePackable)o).messagePack(this);
 			return this;
-		} else if(o instanceof byte[]) {
-			byte[] b = (byte[])o;
-			packRaw(b.length);
-			return packRawBody(b);
+		//} else if(o instanceof byte[]) {
+		//	byte[] b = (byte[])o;
+		//	packRaw(b.length);
+		//	return packRawBody(b);
 		} else if(o instanceof List) {
 			List<Object> l = (List<Object>)o;
 			packArray(l.size());
@@ -463,27 +480,27 @@ public class Packer {
 				pack(e.getValue());
 			}
 			return this;
-		} else if(o instanceof Boolean) {
-			if((Boolean)o) {
-				return packTrue();
-			} else {
-				return packFalse();
-			}
-		} else if(o instanceof Integer) {
-			return packInt((Integer)o);
-		} else if(o instanceof Long) {
-			return packLong((Long)o);
-		} else if(o instanceof Short) {
-			return packShort((Short)o);
-		} else if(o instanceof Byte) {
-			return packByte((Byte)o);
-		} else if(o instanceof Float) {
-			return packFloat((Float)o);
-		} else if(o instanceof Double) {
-			return packDouble((Double)o);
+		//} else if(o instanceof Boolean) {
+		//	if((Boolean)o) {
+		//		return packTrue();
+		//	} else {
+		//		return packFalse();
+		//	}
+		//} else if(o instanceof Integer) {
+		//	return packInt((Integer)o);
+		//} else if(o instanceof Long) {
+		//	return packLong((Long)o);
+		//} else if(o instanceof Short) {
+		//	return packShort((Short)o);
+		//} else if(o instanceof Byte) {
+		//	return packByte((Byte)o);
+		//} else if(o instanceof Float) {
+		//	return packFloat((Float)o);
+		//} else if(o instanceof Double) {
+		//	return packDouble((Double)o);
 		} else if(o instanceof BigInteger) {
 			return packBigInteger((BigInteger)o);
-		} 
+		}
 
 		Class<?> klass = o.getClass();
 		MessagePacker packer = CustomPacker.get(klass);
@@ -506,5 +523,5 @@ public class Packer {
 		}
 		throw new MessageTypeException("unknown object "+o+" ("+o.getClass()+")");
 	}
-
 }
+
