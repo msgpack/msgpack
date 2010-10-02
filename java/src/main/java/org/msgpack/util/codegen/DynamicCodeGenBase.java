@@ -62,7 +62,17 @@ public class DynamicCodeGenBase implements BasicConstants {
 	public void insertLocalVariableDecl(StringBuilder sb, Class<?> type,
 			String name) {
 		// int lv
+		insertLocalVariableDecl(sb, type, name, 0);
+	}
+	
+	public void insertLocalVariableDecl(StringBuilder sb, Class<?> type,
+			String name, int dim) {
+		// int[] lv
 		sb.append(type.getName());
+		for (int i = 0; i < dim; ++i) {
+			sb.append(CHAR_NAME_LEFT_SQUARE_BRACKET);
+			sb.append(CHAR_NAME_RIGHT_SQUARE_BRACKET);
+		}
 		sb.append(CHAR_NAME_SPACE);
 		sb.append(name);
 	}

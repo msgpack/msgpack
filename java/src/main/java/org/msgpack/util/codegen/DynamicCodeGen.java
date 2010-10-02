@@ -819,14 +819,23 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 		// Object unpack(Unpacker pac) throws IOException, MessageTypeException;
 		StringBuilder sb = new StringBuilder();
 		StringBuilder bsb = new StringBuilder();
-		// FIXME
 		insertMethodCall(bsb, VARIABLE_NAME_PK, METHOD_NAME_UNPACKARRAY,
 				new String[0]);
 		insertSemicolon(bsb);
-		// insertUnpackMethodBody(bsb, c, new Field[0]);
-		bsb.append("int _$$_i = _$$_pk.unpackInt();");
-		bsb.append("return " + c.getName()
-				+ ".class.getEnumConstants()[_$$_i];");
+		StringBuilder mc = new StringBuilder();
+		insertMethodCall(mc, VARIABLE_NAME_PK, METHOD_NAME_UNPACKINT,
+				new String[0]);
+		insertLocalVariableDecl(bsb, int.class, VARIABLE_NAME_I);
+		insertValueInsertion(bsb, mc.toString());
+		insertSemicolon(bsb);
+		mc = new StringBuilder();
+		insertMethodCall(mc, c.getName() + ".class",
+				METHOD_NAME_GETENUMCONSTANTS, new String[0]);
+		mc.append(CHAR_NAME_LEFT_SQUARE_BRACKET);
+		mc.append(VARIABLE_NAME_I);
+		mc.append(CHAR_NAME_RIGHT_SQUARE_BRACKET);
+		insertReturnStat(bsb, mc.toString());
+		insertSemicolon(bsb);
 		addPublicMethodDecl(sb, METHOD_NAME_UNPACK, Object.class,
 				new Class<?>[] { Unpacker.class },
 				new String[] { VARIABLE_NAME_PK }, new Class<?>[] {
@@ -883,21 +892,11 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 
 	private void insertCodeOfMessagePackObjectArrayGet(StringBuilder sb) {
 		// MessagePackObject[] ary = obj.asArray();
-		sb.append(MessagePackObject.class.getName());
-		sb.append(CHAR_NAME_LEFT_SQUARE_BRACKET);
-		sb.append(CHAR_NAME_RIGHT_SQUARE_BRACKET);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(VARIABLE_NAME_ARRAY);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(CHAR_NAME_EQUAL);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(VARIABLE_NAME_MPO);
-		sb.append(CHAR_NAME_DOT);
-		sb.append(METHOD_NAME_ASARRAY);
-		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-		sb.append(CHAR_NAME_SEMICOLON);
-		sb.append(CHAR_NAME_SPACE);
+		insertLocalVariableDecl(sb, MessagePackObject.class, VARIABLE_NAME_ARRAY, 1);
+		StringBuilder mc = new StringBuilder();
+		insertMethodCall(mc, VARIABLE_NAME_MPO, METHOD_NAME_ASARRAY, new String[0]);
+		insertValueInsertion(sb, mc.toString());
+		insertSemicolon(sb);
 	}
 
 	private void insertCodeOfConvertMethodCalls(StringBuilder sb, Field[] fields) {
@@ -1106,7 +1105,7 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 		sb.append(i);
 		sb.append(CHAR_NAME_RIGHT_SQUARE_BRACKET);
 		sb.append(CHAR_NAME_DOT);
-		sb.append("asList");
+		sb.append(METHOD_NAME_ASLIST);
 		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
 		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
 		sb.append(CHAR_NAME_SEMICOLON);
@@ -1352,15 +1351,25 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 		StringBuilder sb = new StringBuilder();
 		StringBuilder bsb = new StringBuilder();
 		insertCodeOfMessagePackObjectArrayGet(bsb);
-		// insertConvertMethodBody(bsb, c, new Field[0]);
-		// FIXME
-		// bsb.append("_$$_ary[0].asInt(); ");
-		// bsb.append("int i = _$$_ary[1].asInt(); ");
-		bsb.append("int i = _$$_ary[0].asInt(); ");
-		bsb.append("java.lang.Object o = ").append(c.getName()).append(
-				".class.getEnumConstants()[i]; ");
-		bsb.append("return (").append(c.getName()).append(") o; ");
-
+		StringBuilder mc = new StringBuilder();
+		insertMethodCall(mc, VARIABLE_NAME_ARRAY + "[0]", METHOD_NAME_ASINT,
+				new String[0]);
+		insertLocalVariableDecl(bsb, int.class, VARIABLE_NAME_I);
+		insertValueInsertion(bsb, mc.toString());
+		insertSemicolon(bsb);
+		mc = new StringBuilder();
+		insertMethodCall(mc, c.getName() + ".class",
+				METHOD_NAME_GETENUMCONSTANTS, new String[0]);
+		mc.append(CHAR_NAME_LEFT_SQUARE_BRACKET);
+		mc.append(VARIABLE_NAME_I);
+		mc.append(CHAR_NAME_RIGHT_SQUARE_BRACKET);
+		insertLocalVariableDecl(bsb, Object.class, VARIABLE_NAME_OBJECT);
+		insertValueInsertion(bsb, mc.toString());
+		insertSemicolon(bsb);
+		mc = new StringBuilder();
+		insertTypeCast(mc, c, VARIABLE_NAME_OBJECT);
+		insertReturnStat(bsb, mc.toString());
+		insertSemicolon(bsb);
 		addPublicMethodDecl(sb, METHOD_NAME_CONVERT, Object.class,
 				new Class<?>[] { MessagePackObject.class },
 				new String[] { VARIABLE_NAME_MPO },

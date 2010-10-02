@@ -100,6 +100,8 @@ public interface BasicConstants {
 
 	String METHOD_NAME_ORDINAL = "ordinal";
 
+	String METHOD_NAME_GETENUMCONSTANTS = "getEnumConstants";
+
 	String METHOD_NAME_CONVERT = "convert";
 
 	String METHOD_NAME_MSGCONVERT = "messageConvert";
