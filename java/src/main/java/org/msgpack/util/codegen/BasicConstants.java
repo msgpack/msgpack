@@ -19,7 +19,7 @@ public interface BasicConstants {
 	String KEYWORD_NEW = "new";
 
 	String KEYWORD_NULL = "null";
-	
+
 	String KEYWORD_RETURN = "return";
 
 	String KEYWORD_THROW = "throw";
@@ -98,8 +98,10 @@ public interface BasicConstants {
 
 	String METHOD_NAME_NEXT = "next";
 
+	String METHOD_NAME_ORDINAL = "ordinal";
+
 	String METHOD_NAME_CONVERT = "convert";
-	
+
 	String METHOD_NAME_MSGCONVERT = "messageConvert";
 
 	String METHOD_NAME_PACK = "pack";

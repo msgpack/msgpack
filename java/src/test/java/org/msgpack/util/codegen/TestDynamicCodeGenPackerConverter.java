@@ -21,6 +21,7 @@ import org.msgpack.Packer;
 import org.msgpack.Template;
 import org.msgpack.Unpacker;
 import org.msgpack.annotation.MessagePackMessage;
+import org.msgpack.annotation.MessagePackOrdinalEnum;
 
 public class TestDynamicCodeGenPackerConverter extends TestCase {
 
@@ -372,9 +373,9 @@ public class TestDynamicCodeGenPackerConverter extends TestCase {
 	public void testFinalClassAndAbstractClass01() throws Exception {
 		try {
 			DynamicCodeGenPacker.create(FinalModifierClass.class);
-			fail();
-		} catch (DynamicCodeGenException e) {
 			assertTrue(true);
+		} catch (DynamicCodeGenException e) {
+			fail();
 		}
 		assertTrue(true);
 		try {
@@ -390,9 +391,9 @@ public class TestDynamicCodeGenPackerConverter extends TestCase {
 	public void testFinalClassAndAbstractClass02() throws Exception {
 		try {
 			DynamicCodeGenTemplate.create(FinalModifierClass.class);
-			fail();
-		} catch (DynamicCodeGenException e) {
 			assertTrue(true);
+		} catch (DynamicCodeGenException e) {
+			fail();
 		}
 		assertTrue(true);
 		try {
@@ -429,16 +430,9 @@ public class TestDynamicCodeGenPackerConverter extends TestCase {
 	}
 
 	@Test
-	public void testInterfaceAndEnumType02() throws Exception {
+	public void testInterfaceType() throws Exception {
 		try {
 			DynamicCodeGenTemplate.create(SampleInterface.class);
-			fail();
-		} catch (DynamicCodeGenException e) {
-			assertTrue(true);
-		}
-		assertTrue(true);
-		try {
-			DynamicCodeGenTemplate.create(SampleEnum.class);
 			fail();
 		} catch (DynamicCodeGenException e) {
 			assertTrue(true);
@@ -449,7 +443,39 @@ public class TestDynamicCodeGenPackerConverter extends TestCase {
 	public interface SampleInterface {
 	}
 
+	@Test
+	public void testEnumTypeForOrdinal() throws Exception {
+		SampleEnumFieldClass src = new SampleEnumFieldClass();
+		src.f0 = 0;
+		src.f1 = SampleEnum.ONE;
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		MessagePacker packer = DynamicCodeGenPacker
+				.create(SampleEnumFieldClass.class);
+		packer.pack(new Packer(out), src);
+		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+		Template tmpl = DynamicCodeGenTemplate
+				.create(SampleEnumFieldClass.class);
+		Unpacker pac = new Unpacker(in);
+		Iterator<MessagePackObject> it = pac.iterator();
+		assertTrue(it.hasNext());
+		MessagePackObject mpo = it.next();
+		SampleEnumFieldClass dst = (SampleEnumFieldClass) tmpl.convert(mpo);
+		assertTrue(src.f0 == dst.f0);
+		assertTrue(src.f1 == dst.f1);
+	}
+
+	public static class SampleEnumFieldClass {
+		public int f0;
+
+		public SampleEnum f1;
+
+		public SampleEnumFieldClass() {
+		}
+	}
+
+	@MessagePackOrdinalEnum
 	public enum SampleEnum {
+		ONE, TWO, THREE;
 	}
 
 	@Test
