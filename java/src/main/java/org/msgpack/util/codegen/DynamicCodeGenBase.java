@@ -74,6 +74,13 @@ public class DynamicCodeGenBase implements BasicConstants {
 		sb.append(CHAR_NAME_SPACE);
 		sb.append(expr);
 	}
+	
+	public void insertInsertion(StringBuilder sb) {
+		// = 
+		sb.append(CHAR_NAME_SPACE);
+		sb.append(CHAR_NAME_EQUAL);
+		sb.append(CHAR_NAME_SPACE);
+	}
 
 	public void insertFieldAccess(StringBuilder sb, String target, String field) {
 		// target.field
@@ -226,7 +233,7 @@ public class DynamicCodeGenBase implements BasicConstants {
 		}
 	}
 
-	public String getAsMethodName(Class<?> c) throws DynamicCodeGenException {
+	public String getAsMethodName(Class<?> c) {
 		if (c.equals(boolean.class) || c.equals(Boolean.class)) {
 			return METHOD_NAME_ASBOOLEAN;
 		} else if (c.equals(byte.class) || c.equals(Byte.class)) {

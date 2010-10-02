@@ -24,6 +24,7 @@ import javassist.NotFoundException;
 
 import org.msgpack.CustomConverter;
 import org.msgpack.CustomMessage;
+import org.msgpack.CustomPacker;
 import org.msgpack.CustomUnpacker;
 import org.msgpack.MessageConvertable;
 import org.msgpack.MessagePackObject;
@@ -38,8 +39,12 @@ import org.msgpack.Unpacker;
 import org.msgpack.annotation.MessagePackDelegate;
 import org.msgpack.annotation.MessagePackMessage;
 import org.msgpack.annotation.MessagePackOrdinalEnum;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
+
+	private static Logger LOG = LoggerFactory.getLogger(DynamicCodeGen.class);
 
 	private static DynamicCodeGen INSTANCE;
 
@@ -51,6 +56,8 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 
 	public static DynamicCodeGen getInstance() {
 		if (INSTANCE == null) {
+			LOG.info("create an instance of the type: "
+					+ DynamicCodeGen.class.getName());
 			INSTANCE = new DynamicCodeGen();
 		}
 		return INSTANCE;
@@ -63,6 +70,8 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 	}
 
 	public Class<?> generateMessagePackerClass(Class<?> origClass) {
+		LOG.debug("start generating a MessagePacker impl.: "
+				+ origClass.getName());
 		try {
 			String origName = origClass.getName();
 			String packerName = origName + POSTFIX_TYPE_NAME_PACKER + inc();
@@ -75,31 +84,38 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 			addPackMethod(packerCtClass, origClass, fields);
 			return createClass(packerCtClass);
 		} catch (NotFoundException e) {
+			LOG.error(e.getMessage(), e);
 			throw new DynamicCodeGenException(e.getMessage(), e);
 		} catch (CannotCompileException e) {
+			LOG.error(e.getMessage(), e);
 			throw new DynamicCodeGenException(e.getMessage(), e);
 		}
 	}
 
 	public Class<?> generateOrdinalEnumPackerClass(Class<?> origClass) {
+		LOG.debug("start generating a OrdinalEnumPacker impl.: "
+				+ origClass.getName());
 		try {
 			String origName = origClass.getName();
 			String packerName = origName + POSTFIX_TYPE_NAME_PACKER + inc();
 			checkClassValidation(origClass);
-			//checkDefaultConstructorValidation(origClass);
 			CtClass packerCtClass = pool.makeClass(packerName);
 			setInterface(packerCtClass, MessagePacker.class);
 			addDefaultConstructor(packerCtClass);
 			addPackMethodForOrdinalEnumTypes(packerCtClass, origClass);
 			return createClass(packerCtClass);
 		} catch (NotFoundException e) {
+			LOG.error(e.getMessage(), e);
 			throw new DynamicCodeGenException(e.getMessage(), e);
 		} catch (CannotCompileException e) {
+			LOG.error(e.getMessage(), e);
 			throw new DynamicCodeGenException(e.getMessage(), e);
 		}
 	}
 
 	public Class<?> generateMessageUnpackerClass(Class<?> origClass) {
+		LOG.debug("start generating a MessageUnpacker impl.: "
+				+ origClass.getName());
 		try {
 			String origName = origClass.getName();
 			String unpackerName = origName + POSTFIX_TYPE_NAME_UNPACKER + inc();
@@ -112,13 +128,17 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 			addUnpackMethod(unpackerCtClass, origClass, fields);
 			return createClass(unpackerCtClass);
 		} catch (NotFoundException e) {
+			LOG.error(e.getMessage(), e);
 			throw new DynamicCodeGenException(e.getMessage(), e);
 		} catch (CannotCompileException e) {
+			LOG.error(e.getMessage(), e);
 			throw new DynamicCodeGenException(e.getMessage(), e);
 		}
 	}
 
 	public Class<?> generateOrdinalEnumUnpackerClass(Class<?> origClass) {
+		LOG.debug("start generating a OrdinalEnumUnpacker impl.: "
+				+ origClass.getName());
 		try {
 			String origName = origClass.getName();
 			String unpackerName = origName + POSTFIX_TYPE_NAME_UNPACKER + inc();
@@ -130,13 +150,17 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 			addUnpackMethodForOrdinalEnumTypes(unpackerCtClass, origClass);
 			return createClass(unpackerCtClass);
 		} catch (NotFoundException e) {
+			LOG.error(e.getMessage(), e);
 			throw new DynamicCodeGenException(e.getMessage(), e);
 		} catch (CannotCompileException e) {
+			LOG.error(e.getMessage(), e);
 			throw new DynamicCodeGenException(e.getMessage(), e);
 		}
 	}
 
 	public Class<?> generateMessageConverterClass(Class<?> origClass) {
+		LOG.debug("start generating a MessageConverter impl.: "
+				+ origClass.getName());
 		try {
 			String origName = origClass.getName();
 			String convName = origName + POSTFIX_TYPE_NAME_CONVERTER + inc();
@@ -149,31 +173,37 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 			addConvertMethod(converterCtClass, origClass, fields);
 			return createClass(converterCtClass);
 		} catch (NotFoundException e) {
+			LOG.error(e.getMessage(), e);
 			throw new DynamicCodeGenException(e.getMessage(), e);
 		} catch (CannotCompileException e) {
+			LOG.error(e.getMessage(), e);
 			throw new DynamicCodeGenException(e.getMessage(), e);
 		}
 	}
 
 	public Class<?> generateOrdinalEnumConverterClass(Class<?> origClass) {
+		LOG.debug("start generating a OrdinalEnumConverter impl.: "
+				+ origClass.getName());
 		try {
 			String origName = origClass.getName();
 			String convName = origName + POSTFIX_TYPE_NAME_CONVERTER + inc();
 			checkClassValidation(origClass);
-			//checkDefaultConstructorValidation(origClass);
 			CtClass converterCtClass = pool.makeClass(convName);
 			setInterface(converterCtClass, MessageUnpacker.class);
 			addDefaultConstructor(converterCtClass);
 			addConvertMethodForOrdinalEnumTypes(converterCtClass, origClass);
 			return createClass(converterCtClass);
 		} catch (NotFoundException e) {
+			LOG.error(e.getMessage(), e);
 			throw new DynamicCodeGenException(e.getMessage(), e);
 		} catch (CannotCompileException e) {
+			LOG.error(e.getMessage(), e);
 			throw new DynamicCodeGenException(e.getMessage(), e);
 		}
 	}
 
 	public Class<?> generateTemplateClass(Class<?> origClass) {
+		LOG.debug("start generating a Template impl.: " + origClass.getName());
 		try {
 			String origName = origClass.getName();
 			String tmplName = origName + POSTFIX_TYPE_NAME_TEMPLATE + inc();
@@ -187,18 +217,21 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 			addConvertMethod(tmplCtClass, origClass, fields);
 			return createClass(tmplCtClass);
 		} catch (NotFoundException e) {
+			LOG.error(e.getMessage(), e);
 			throw new DynamicCodeGenException(e.getMessage(), e);
 		} catch (CannotCompileException e) {
+			LOG.error(e.getMessage(), e);
 			throw new DynamicCodeGenException(e.getMessage(), e);
 		}
 	}
 
 	public Class<?> generateOrdinalEnumTemplateClass(Class<?> origClass) {
+		LOG.debug("start generating a OrdinalEnumTemplate impl.: "
+				+ origClass.getName());
 		try {
 			String origName = origClass.getName();
 			String tmplName = origName + POSTFIX_TYPE_NAME_TEMPLATE + inc();
 			checkClassValidation(origClass);
-			//checkDefaultConstructorValidation(origClass);
 			CtClass tmplCtClass = pool.makeClass(tmplName);
 			setInterface(tmplCtClass, Template.class);
 			addDefaultConstructor(tmplCtClass);
@@ -206,8 +239,10 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 			addConvertMethodForOrdinalEnumTypes(tmplCtClass, origClass);
 			return createClass(tmplCtClass);
 		} catch (NotFoundException e) {
+			LOG.error(e.getMessage(), e);
 			throw new DynamicCodeGenException(e.getMessage(), e);
 		} catch (CannotCompileException e) {
+			LOG.error(e.getMessage(), e);
 			throw new DynamicCodeGenException(e.getMessage(), e);
 		}
 	}
@@ -215,8 +250,7 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 	private void checkClassValidation(Class<?> origClass) {
 		// not public, abstract
 		int mod = origClass.getModifiers();
-		if ((!(Modifier.isPublic(mod) || Modifier.isProtected(mod)))
-				|| Modifier.isAbstract(mod)) {
+		if ((!Modifier.isPublic(mod)) || Modifier.isAbstract(mod)) {
 			throwClassValidationException(origClass,
 					"a class must have a public modifier");
 		}
@@ -229,7 +263,10 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 
 	private static void throwClassValidationException(Class<?> origClass,
 			String msg) {
-		throw new DynamicCodeGenException(msg + ": " + origClass.getName());
+		DynamicCodeGenException e = new DynamicCodeGenException(msg + ": "
+				+ origClass.getName());
+		LOG.error(e.getMessage(), e);
+		throw e;
 	}
 
 	private void checkDefaultConstructorValidation(Class<?> origClass) {
@@ -237,18 +274,20 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 		try {
 			cons = origClass.getDeclaredConstructor(new Class[0]);
 		} catch (Exception e1) {
-			throwConstructoValidationException(origClass);
+			throwConstructorValidationException(origClass);
 		}
 		int mod = cons.getModifiers();
-		if (!(Modifier.isPublic(mod) || Modifier.isProtected(mod))) {
-			throwConstructoValidationException(origClass);
+		if (!Modifier.isPublic(mod)) {
+			throwConstructorValidationException(origClass);
 		}
 	}
 
-	private static void throwConstructoValidationException(Class<?> origClass) {
-		throw new DynamicCodeGenException(
+	private static void throwConstructorValidationException(Class<?> origClass) {
+		DynamicCodeGenException e = new DynamicCodeGenException(
 				"it must have a public zero-argument constructor: "
 						+ origClass.getName());
+		LOG.error(e.getMessage(), e);
+		throw e;
 	}
 
 	private void setInterface(CtClass packerCtClass, Class<?> infClass)
@@ -257,11 +296,11 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 		packerCtClass.addInterface(infCtClass);
 	}
 
-	private void addDefaultConstructor(CtClass enhCtClass)
+	private void addDefaultConstructor(CtClass dstCtClass)
 			throws CannotCompileException {
 		CtConstructor newCtCons = CtNewConstructor
-				.defaultConstructor(enhCtClass);
-		enhCtClass.addConstructor(newCtCons);
+				.defaultConstructor(dstCtClass);
+		dstCtClass.addConstructor(newCtCons);
 	}
 
 	private Field[] getDeclaredFields(Class<?> origClass) {
@@ -281,29 +320,30 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 		return allFields.toArray(new Field[0]);
 	}
 
-	private void checkFieldValidation(Field field, List<Field> fields) {
-		// check modifiers (public or protected)
-		int mod = field.getModifiers();
-		if ((!(Modifier.isPublic(mod) || Modifier.isProtected(mod)))
-				|| Modifier.isStatic(mod) || Modifier.isFinal(mod)
-				|| Modifier.isTransient(mod) || field.isSynthetic()) {
-			throwFieldValidationException(field);
+	private void checkFieldValidation(Field f, List<Field> fs) {
+		// check that it has a public modifier
+		int mod = f.getModifiers();
+		if ((!(Modifier.isPublic(mod))) || Modifier.isStatic(mod)
+				|| Modifier.isFinal(mod) || Modifier.isTransient(mod)
+				|| f.isSynthetic()) {
+			throwFieldValidationException(f);
 		}
 		// check same name
-		for (Field f : fields) {
-			if (f.getName().equals(field.getName())) {
-				throwFieldValidationException(field);
+		for (Field f0 : fs) {
+			if (f0.getName().equals(f.getName())) {
+				throwFieldValidationException(f);
 			}
 		}
 	}
 
-	private static void throwFieldValidationException(Field field) {
-		throw new DynamicCodeGenException("it must be a public field: "
-				+ field.getName());
+	private static void throwFieldValidationException(Field f) {
+		DynamicCodeGenException e = new DynamicCodeGenException(
+				"it must be a public field: " + f.getName());
+		LOG.debug(e.getMessage(), e);
+		throw e;
 	}
 
-	private void addPackMethod(CtClass packerCtClass, Class<?> c, Field[] fs)
-			throws CannotCompileException, NotFoundException {
+	private void addPackMethod(CtClass packerCtClass, Class<?> c, Field[] fs) {
 		// void pack(Packer pk, Object target) throws IOException;
 		StringBuilder sb = new StringBuilder();
 		StringBuilder bsb = new StringBuilder();
@@ -312,9 +352,18 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 				Packer.class, Object.class }, new String[] { VARIABLE_NAME_PK,
 				VARIABLE_NAME_OBJECT }, new Class[] { IOException.class }, bsb
 				.toString());
-		System.out.println("pack method: " + sb.toString());
-		CtMethod newCtMethod = CtNewMethod.make(sb.toString(), packerCtClass);
-		packerCtClass.addMethod(newCtMethod);
+		LOG.trace("pack method src: " + sb.toString());
+		try {
+			CtMethod newCtMethod = CtNewMethod.make(sb.toString(),
+					packerCtClass);
+			packerCtClass.addMethod(newCtMethod);
+		} catch (CannotCompileException e) {
+			DynamicCodeGenException ex = new DynamicCodeGenException(e
+					.getMessage()
+					+ ": " + sb.toString(), e);
+			LOG.error(ex.getMessage(), ex);
+			throw ex;
+		}
 	}
 
 	private void insertPackMethodBody(StringBuilder sb, Class<?> c, Field[] fs) {
@@ -333,26 +382,41 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 
 	private void insertCodeOfPackMethodCall(StringBuilder sb, Field field) {
 		Class<?> c = field.getType();
-		if (c.isPrimitive() || c.equals(Boolean.class) || c.equals(Byte.class)
+		if (c.isPrimitive()) {
+		} else if (c.equals(Boolean.class) || c.equals(Byte.class)
 				|| c.equals(Double.class) || c.equals(Float.class)
 				|| c.equals(Integer.class) || c.equals(Long.class)
-				|| c.equals(Short.class) || List.class.isAssignableFrom(c)
-				|| Map.class.isAssignableFrom(c)
-				|| CustomUnpacker.isRegistered(c)
-				|| MessagePackable.class.isAssignableFrom(c)) {
-			;
+				|| c.equals(Short.class)) {
+			; // ignore
+		} else if (c.equals(String.class) || c.equals(BigInteger.class)
+				|| c.equals(byte[].class)) {
+			; // ignore
+		} else if (List.class.isAssignableFrom(c)
+				|| Map.class.isAssignableFrom(c)) {
+			; // ignore
+		} else if (CustomPacker.isRegistered(c)) {
+			; // ignore
+		} else if (MessagePackable.class.isAssignableFrom(c)) {
+			; // ignore
 		} else if (CustomMessage.isAnnotated(c, MessagePackMessage.class)) {
 			// @MessagePackMessage
 			MessagePacker packer = DynamicCodeGenPacker.create(c);
 			CustomMessage.registerPacker(c, packer);
 		} else if (CustomMessage.isAnnotated(c, MessagePackDelegate.class)) {
 			// FIXME DelegatePacker
-			throw new UnsupportedOperationException("not supported yet. : "
-					+ c.getName());
+			UnsupportedOperationException e = new UnsupportedOperationException(
+					"not supported yet. : " + c.getName());
+			LOG.error(e.getMessage(), e);
+			throw e;
 		} else if (CustomMessage.isAnnotated(c, MessagePackOrdinalEnum.class)) {
 			// @MessagePackOrdinalEnum
 			MessagePacker packer = DynamicCodeGenOrdinalEnumPacker.create(c);
 			CustomMessage.registerPacker(c, packer);
+		} else {
+			MessageTypeException e = new MessageTypeException("unknown type: "
+					+ c.getName());
+			LOG.error(e.getMessage(), e);
+			throw e;
 		}
 		StringBuilder fa = new StringBuilder();
 		insertFieldAccess(fa, VARIABLE_NAME_TARGET, field.getName());
@@ -366,37 +430,43 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 		// void pack(Packer pk, Object target) throws IOException;
 		StringBuilder sb = new StringBuilder();
 		StringBuilder bsb = new StringBuilder();
-		// FIXME
 		insertLocalVariableDecl(bsb, c, VARIABLE_NAME_TARGET);
-		StringBuilder mc = new StringBuilder();
-		insertTypeCast(mc, c, VARIABLE_NAME_OBJECT);
-		insertValueInsertion(bsb, mc.toString());
+		StringBuilder fa = new StringBuilder();
+		insertTypeCast(fa, c, VARIABLE_NAME_OBJECT);
+		insertValueInsertion(bsb, fa.toString());
 		insertSemicolon(bsb);
 		insertMethodCall(bsb, VARIABLE_NAME_PK, METHOD_NAME_PACKARRAY,
 				new String[] { new Integer(1).toString() });
 		insertSemicolon(bsb);
-		StringBuilder fa = new StringBuilder();
+		fa = new StringBuilder();
 		insertTypeCast(fa, Enum.class, VARIABLE_NAME_TARGET);
 		String t = fa.toString();
 		fa = new StringBuilder();
 		insertMethodCall(fa, t, METHOD_NAME_ORDINAL, new String[0]);
-		insertMethodCall(bsb, VARIABLE_NAME_PK, METHOD_NAME_PACK, new String[] { fa.toString() });
+		insertMethodCall(bsb, VARIABLE_NAME_PK, METHOD_NAME_PACK,
+				new String[] { fa.toString() });
 		insertSemicolon(bsb);
 		addPublicMethodDecl(sb, METHOD_NAME_PACK, void.class, new Class[] {
 				Packer.class, Object.class }, new String[] { VARIABLE_NAME_PK,
 				VARIABLE_NAME_OBJECT }, new Class[] { IOException.class }, bsb
 				.toString());
-		System.out.println("pack method: " + sb.toString());
+		LOG.trace("pack method src: " + sb.toString());
 		try {
-			CtMethod newCtMethod = CtNewMethod.make(sb.toString(), packerCtClass);
+			CtMethod newCtMethod = CtNewMethod.make(sb.toString(),
+					packerCtClass);
 			packerCtClass.addMethod(newCtMethod);
 		} catch (CannotCompileException e) {
-			throw new CannotCompileException(e.getMessage() + ": " + sb.toString(), e);
+			DynamicCodeGenException ex = new DynamicCodeGenException(e
+					.getMessage()
+					+ ": " + sb.toString(), e);
+			LOG.error(ex.getMessage(), ex);
+			throw ex;
 		}
 	}
 
 	private void addUnpackMethod(CtClass unpackerCtClass, Class<?> c, Field[] fs)
 			throws CannotCompileException, NotFoundException {
+		// Object unpack(Unpacker pac) throws IOException, MessageTypeException;
 		StringBuilder sb = new StringBuilder();
 		StringBuilder bsb = new StringBuilder();
 		insertUnpackMethodBody(bsb, c, fs);
@@ -405,12 +475,17 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 				new String[] { VARIABLE_NAME_PK }, new Class<?>[] {
 						MessageTypeException.class, IOException.class }, bsb
 						.toString());
-		System.out.println("unpack method: " + sb.toString());
+		LOG.trace("unpack method src: " + sb.toString());
 		try {
-			CtMethod newCtMethod = CtNewMethod.make(sb.toString(), unpackerCtClass);
+			CtMethod newCtMethod = CtNewMethod.make(sb.toString(),
+					unpackerCtClass);
 			unpackerCtClass.addMethod(newCtMethod);
 		} catch (CannotCompileException e) {
-			throw new CannotCompileException(e.getMessage() + ": " + sb.toString(), e);
+			DynamicCodeGenException ex = new DynamicCodeGenException(e
+					.getMessage()
+					+ ": " + sb.toString(), e);
+			LOG.error(ex.getMessage(), ex);
+			throw ex;
 		}
 	}
 
@@ -435,18 +510,14 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 		if (c.isPrimitive()) {
 			// primitive type
 			insertCodeOfUnpackMethodCallForPrimTypes(sb, f, c);
-		} else if (c.equals(Boolean.class) || // Boolean
-				c.equals(Byte.class) || // Byte
-				c.equals(Double.class) || // Double
-				c.equals(Float.class) || // Float
-				c.equals(Integer.class) || // Integer
-				c.equals(Long.class) || // Long
-				c.equals(Short.class)) { // Short
+		} else if (c.equals(Boolean.class) || c.equals(Byte.class)
+				|| c.equals(Double.class) || c.equals(Float.class)
+				|| c.equals(Integer.class) || c.equals(Long.class)
+				|| c.equals(Short.class)) {
 			// reference type (wrapper type)
 			insertCodeOfUnpackMethodCallForWrapTypes(sb, f, c);
-		} else if (c.equals(BigInteger.class) || // BigInteger
-				c.equals(String.class) || // String
-				c.equals(byte[].class)) { // byte[]
+		} else if (c.equals(BigInteger.class) || c.equals(String.class)
+				|| c.equals(byte[].class)) {
 			// reference type (other type)
 			insertCodeOfUnpackMethodCallForPrimTypes(sb, f, c);
 		} else if (List.class.isAssignableFrom(c)) {
@@ -467,27 +538,28 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 			insertCodeOfUnpackMethodCallForRegisteredType(sb, f, c);
 		} else if (CustomMessage.isAnnotated(c, MessagePackDelegate.class)) {
 			// FIXME DelegatePacker
-			throw new UnsupportedOperationException("not supported yet. : "
-					+ c.getName());
+			UnsupportedOperationException e = new UnsupportedOperationException(
+					"not supported yet. : " + c.getName());
+			LOG.error(e.getMessage(), e);
+			throw e;
 		} else if (CustomMessage.isAnnotated(c, MessagePackOrdinalEnum.class)) {
 			// @MessagePackOrdinalEnum
 			Template tmpl = DynamicCodeGenOrdinalEnumTemplate.create(c);
 			CustomMessage.registerTemplate(c, tmpl);
 			insertCodeOfUnpackMethodCallForRegisteredType(sb, f, c);
 		} else {
-			throw new MessageTypeException("unknown type:  " + c.getName());
+			MessageTypeException e = new MessageTypeException("unknown type:  "
+					+ c.getName());
+			LOG.error(e.getMessage(), e);
+			throw e;
 		}
 	}
 
 	private void insertCodeOfUnpackMethodCallForPrimTypes(StringBuilder sb,
 			Field f, Class<?> c) {
 		if (f != null) {
-			sb.append(VARIABLE_NAME_TARGET);
-			sb.append(CHAR_NAME_DOT);
-			sb.append(f.getName());
-			sb.append(CHAR_NAME_SPACE);
-			sb.append(CHAR_NAME_EQUAL);
-			sb.append(CHAR_NAME_SPACE);
+			insertFieldAccess(sb, VARIABLE_NAME_TARGET, f.getName());
+			insertInsertion(sb);
 		}
 		insertMethodCall(sb, VARIABLE_NAME_PK, getUnpackMethodName(c),
 				new String[0]);
@@ -499,12 +571,8 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 	private void insertCodeOfUnpackMethodCallForWrapTypes(StringBuilder sb,
 			Field f, Class<?> c) {
 		if (f != null) {
-			sb.append(VARIABLE_NAME_TARGET);
-			sb.append(CHAR_NAME_DOT);
-			sb.append(f.getName());
-			sb.append(CHAR_NAME_SPACE);
-			sb.append(CHAR_NAME_EQUAL);
-			sb.append(CHAR_NAME_SPACE);
+			insertFieldAccess(sb, VARIABLE_NAME_TARGET, f.getName());
+			insertInsertion(sb);
 		}
 		StringBuilder mc = new StringBuilder();
 		insertMethodCall(mc, VARIABLE_NAME_PK, getUnpackMethodName(c),
@@ -512,8 +580,7 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 		insertMethodCall(sb, c.getName(), METHOD_NAME_VALUEOF,
 				new String[] { mc.toString() });
 		if (f != null) {
-			sb.append(CHAR_NAME_SEMICOLON);
-			sb.append(CHAR_NAME_SPACE);
+			insertSemicolon(sb);
 		}
 	}
 
@@ -683,19 +750,16 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 			StringBuilder sb, Field f, Class<?> c) {
 		// target.field = (Cast) CustomUnpacker.get(C.class).unpack(pk);
 		StringBuilder mc = new StringBuilder();
-		insertTypeCast(mc, c);
-		mc.append(CustomUnpacker.class.getName());
+		insertMethodCall(mc, CustomUnpacker.class.getName(), METHOD_NAME_GET,
+				new String[] { c.getName() + ".class" });
 		String t = mc.toString();
-		mc = new StringBuilder();
-		insertMethodCall(mc, t, METHOD_NAME_GET, new String[] { c.getName()
-				+ ".class" });
-		t = mc.toString();
 		mc = new StringBuilder();
 		insertMethodCall(mc, t, METHOD_NAME_UNPACK,
 				new String[] { VARIABLE_NAME_PK });
-		sb.append(VARIABLE_NAME_TARGET);
-		sb.append(CHAR_NAME_DOT);
-		sb.append(f.getName());
+		t = mc.toString();
+		mc = new StringBuilder();
+		insertTypeCast(mc, c, t);
+		insertFieldAccess(sb, VARIABLE_NAME_TARGET, f.getName());
 		insertValueInsertion(sb, mc.toString());
 		insertSemicolon(sb);
 	}
@@ -751,7 +815,7 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 	}
 
 	private void addUnpackMethodForOrdinalEnumTypes(CtClass unpackerCtClass,
-			Class<?> c) throws CannotCompileException, NotFoundException {
+			Class<?> c) {
 		// Object unpack(Unpacker pac) throws IOException, MessageTypeException;
 		StringBuilder sb = new StringBuilder();
 		StringBuilder bsb = new StringBuilder();
@@ -759,7 +823,7 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 		insertMethodCall(bsb, VARIABLE_NAME_PK, METHOD_NAME_UNPACKARRAY,
 				new String[0]);
 		insertSemicolon(bsb);
-		//insertUnpackMethodBody(bsb, c, new Field[0]);
+		// insertUnpackMethodBody(bsb, c, new Field[0]);
 		bsb.append("int _$$_i = _$$_pk.unpackInt();");
 		bsb.append("return " + c.getName()
 				+ ".class.getEnumConstants()[_$$_i];");
@@ -768,13 +832,21 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 				new String[] { VARIABLE_NAME_PK }, new Class<?>[] {
 						MessageTypeException.class, IOException.class }, bsb
 						.toString());
-		System.out.println("unpack method: " + sb.toString());
-		CtMethod newCtMethod = CtNewMethod.make(sb.toString(), unpackerCtClass);
-		unpackerCtClass.addMethod(newCtMethod);
+		LOG.trace("unpack method src: " + sb.toString());
+		try {
+			CtMethod newCtMethod = CtNewMethod.make(sb.toString(),
+					unpackerCtClass);
+			unpackerCtClass.addMethod(newCtMethod);
+		} catch (CannotCompileException e) {
+			DynamicCodeGenException ex = new DynamicCodeGenException(e
+					.getMessage()
+					+ ": " + sb.toString(), e);
+			LOG.error(ex.getMessage(), ex);
+			throw ex;
+		}
 	}
 
-	public void addConvertMethod(CtClass tmplCtClass, Class<?> c, Field[] fs)
-			throws CannotCompileException, NotFoundException {
+	public void addConvertMethod(CtClass tmplCtClass, Class<?> c, Field[] fs) {
 		// Object convert(MessagePackObject from) throws MessageTypeException;
 		StringBuilder sb = new StringBuilder();
 		StringBuilder bsb = new StringBuilder();
@@ -783,13 +855,21 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 				new Class<?>[] { MessagePackObject.class },
 				new String[] { VARIABLE_NAME_MPO },
 				new Class<?>[] { MessageTypeException.class }, bsb.toString());
-		System.out.println("convert method: " + sb.toString());
-		CtMethod newCtMethod = CtNewMethod.make(sb.toString(), tmplCtClass);
-		tmplCtClass.addMethod(newCtMethod);
+		LOG.trace("convert method src: " + sb.toString());
+		try {
+			CtMethod newCtMethod = CtNewMethod.make(sb.toString(), tmplCtClass);
+			tmplCtClass.addMethod(newCtMethod);
+		} catch (CannotCompileException e) {
+			DynamicCodeGenException ex = new DynamicCodeGenException(e
+					.getMessage()
+					+ ": " + sb.toString(), e);
+			LOG.error(ex.getMessage(), ex);
+			throw ex;
+		}
 	}
 
 	private void insertConvertMethodBody(StringBuilder sb, Class<?> c,
-			Field[] fs) throws CannotCompileException {
+			Field[] fs) {
 		insertLocalVariableDecl(sb, c, VARIABLE_NAME_TARGET);
 		StringBuilder mc = new StringBuilder();
 		insertDefaultConsCall(mc, c);
@@ -831,42 +911,44 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 			Class<?> c, int i, String v) {
 		if (c.isPrimitive()) { // primitive type
 			insertCodeOfConvertMethodCallForPrimTypes(sb, f, c, i, v);
-		} else { // reference type
-			if (c.equals(Boolean.class) || c.equals(Byte.class)
-					|| c.equals(Short.class) || c.equals(Integer.class)
-					|| c.equals(Float.class) || c.equals(Long.class)
-					|| c.equals(Double.class)) {
-				// wrapper type
-				insertCodeOfConvertMethodCallForWrapTypes(sb, f, c, i, v);
-			} else if (c.equals(String.class) || c.equals(byte[].class)
-					|| c.equals(BigInteger.class)) {
-				insertCodeOfConvertMethodCallForPrimTypes(sb, f, c, i, v);
-			} else if (List.class.isAssignableFrom(c)) {
-				insertCodeOfConvertMethodCallForList(sb, f, c, i);
-			} else if (Map.class.isAssignableFrom(c)) {
-				insertCodeOfConvertMethodCallForMapType(sb, f, c, i);
-			} else if (MessageConvertable.class.isAssignableFrom(c)) {
-				insertCodeOfMessageConvertCallForMsgConvtblType(sb, f, c, i);
-			} else if (CustomConverter.isRegistered(c)) {
-				insertCodeOfMessageConvertCallForRegisteredType(sb, f, c, i);
-			} else if (CustomMessage.isAnnotated(c, MessagePackMessage.class)) {
-				// @MessagePackMessage
-				Template tmpl = DynamicCodeGenTemplate.create(c);
-				CustomMessage.registerTemplate(c, tmpl);
-				insertCodeOfMessageConvertCallForRegisteredType(sb, f, c, i);
-			} else if (CustomMessage.isAnnotated(c, MessagePackDelegate.class)) {
-				// FIXME DelegatePacker
-				throw new UnsupportedOperationException("not supported yet. : "
-						+ c.getName());
-			} else if (CustomMessage.isAnnotated(c,
-					MessagePackOrdinalEnum.class)) {
-				// @MessagePackMessage
-				Template tmpl = DynamicCodeGenOrdinalEnumTemplate.create(c);
-				CustomMessage.registerTemplate(c, tmpl);
-				insertCodeOfMessageConvertCallForRegisteredType(sb, f, c, i);
-			} else {
-				throw new MessageTypeException("Type error: " + c.getName());
-			}
+		} else if (c.equals(Boolean.class) || c.equals(Byte.class)
+				|| c.equals(Short.class) || c.equals(Integer.class)
+				|| c.equals(Float.class) || c.equals(Long.class)
+				|| c.equals(Double.class)) {
+			// reference type (wrapper)
+			insertCodeOfConvertMethodCallForWrapTypes(sb, f, c, i, v);
+		} else if (c.equals(String.class) || c.equals(byte[].class)
+				|| c.equals(BigInteger.class)) {
+			insertCodeOfConvertMethodCallForPrimTypes(sb, f, c, i, v);
+		} else if (List.class.isAssignableFrom(c)) {
+			insertCodeOfConvertMethodCallForList(sb, f, c, i);
+		} else if (Map.class.isAssignableFrom(c)) {
+			insertCodeOfConvertMethodCallForMapType(sb, f, c, i);
+		} else if (MessageConvertable.class.isAssignableFrom(c)) {
+			insertCodeOfMessageConvertCallForMsgConvtblType(sb, f, c, i);
+		} else if (CustomConverter.isRegistered(c)) {
+			insertCodeOfMessageConvertCallForRegisteredType(sb, f, c, i);
+		} else if (CustomMessage.isAnnotated(c, MessagePackMessage.class)) {
+			// @MessagePackMessage
+			Template tmpl = DynamicCodeGenTemplate.create(c);
+			CustomMessage.registerTemplate(c, tmpl);
+			insertCodeOfMessageConvertCallForRegisteredType(sb, f, c, i);
+		} else if (CustomMessage.isAnnotated(c, MessagePackDelegate.class)) {
+			// FIXME DelegatePacker
+			UnsupportedOperationException e = new UnsupportedOperationException(
+					"not supported yet. : " + c.getName());
+			LOG.error(e.getMessage(), e);
+			throw e;
+		} else if (CustomMessage.isAnnotated(c, MessagePackOrdinalEnum.class)) {
+			// @MessagePackMessage
+			Template tmpl = DynamicCodeGenOrdinalEnumTemplate.create(c);
+			CustomMessage.registerTemplate(c, tmpl);
+			insertCodeOfMessageConvertCallForRegisteredType(sb, f, c, i);
+		} else {
+			MessageTypeException e = new MessageTypeException("Type error: "
+					+ c.getName());
+			LOG.error(e.getMessage(), e);
+			throw e;
 		}
 	}
 
@@ -967,34 +1049,11 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 			sb.append(name);
 		}
 		sb.append(CHAR_NAME_DOT);
-		if (c.equals(boolean.class)) {
-			sb.append(METHOD_NAME_ASBOOLEAN);
-		} else if (c.equals(byte.class)) {
-			sb.append(METHOD_NAME_ASBYTE);
-		} else if (c.equals(short.class)) {
-			sb.append(METHOD_NAME_ASSHORT);
-		} else if (c.equals(int.class)) {
-			sb.append(METHOD_NAME_ASINT);
-		} else if (c.equals(float.class)) {
-			sb.append(METHOD_NAME_ASFLOAT);
-		} else if (c.equals(long.class)) {
-			sb.append(METHOD_NAME_ASLONG);
-		} else if (c.equals(double.class)) {
-			sb.append(METHOD_NAME_ASDOUBLE);
-		} else if (c.equals(String.class)) {
-			sb.append(METHOD_NAME_ASSTRING);
-		} else if (c.equals(byte[].class)) {
-			sb.append(METHOD_NAME_ASBYTEARRAY);
-		} else if (c.equals(BigInteger.class)) {
-			sb.append(METHOD_NAME_ASBIGINTEGER);
-		} else {
-			throw new MessageTypeException("Type error: " + c.getName());
-		}
+		sb.append(getAsMethodName(c));
 		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
 		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
 		if (f != null) {
-			sb.append(CHAR_NAME_SEMICOLON);
-			sb.append(CHAR_NAME_SPACE);
+			insertSemicolon(sb);
 		}
 	}
 
@@ -1010,23 +1069,7 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 		}
 		sb.append(KEYWORD_NEW);
 		sb.append(CHAR_NAME_SPACE);
-		if (c.equals(Boolean.class)) {
-			sb.append(Boolean.class.getName());
-		} else if (c.equals(Byte.class)) {
-			sb.append(Byte.class.getName());
-		} else if (c.equals(Short.class)) {
-			sb.append(Short.class.getName());
-		} else if (c.equals(Integer.class)) {
-			sb.append(Integer.class.getName());
-		} else if (c.equals(Float.class)) {
-			sb.append(Float.class.getName());
-		} else if (c.equals(Long.class)) {
-			sb.append(Long.class.getName());
-		} else if (c.equals(Double.class)) {
-			sb.append(Double.class.getName());
-		} else {
-			throw new MessageTypeException("Type error: " + c.getName());
-		}
+		sb.append(c.getName());
 		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
 		if (f != null) {
 			sb.append(VARIABLE_NAME_ARRAY);
@@ -1037,29 +1080,12 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 			sb.append(v);
 		}
 		sb.append(CHAR_NAME_DOT);
-		if (c.equals(Boolean.class)) {
-			sb.append(METHOD_NAME_ASBOOLEAN);
-		} else if (c.equals(Byte.class)) {
-			sb.append(METHOD_NAME_ASBYTE);
-		} else if (c.equals(Short.class)) {
-			sb.append(METHOD_NAME_ASSHORT);
-		} else if (c.equals(Integer.class)) {
-			sb.append(METHOD_NAME_ASINT);
-		} else if (c.equals(Float.class)) {
-			sb.append(METHOD_NAME_ASFLOAT);
-		} else if (c.equals(Long.class)) {
-			sb.append(METHOD_NAME_ASLONG);
-		} else if (c.equals(Double.class)) {
-			sb.append(METHOD_NAME_ASDOUBLE);
-		} else {
-			throw new MessageTypeException("Type error: " + c.getName());
-		}
+		sb.append(getAsMethodName(c));
 		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
 		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
 		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
 		if (f != null) {
-			sb.append(CHAR_NAME_SEMICOLON);
-			sb.append(CHAR_NAME_SPACE);
+			insertSemicolon(sb);
 		}
 	}
 
@@ -1321,15 +1347,15 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 	}
 
 	public void addConvertMethodForOrdinalEnumTypes(CtClass tmplCtClass,
-			Class<?> c) throws CannotCompileException, NotFoundException {
+			Class<?> c) {
 		// Object convert(MessagePackObject from) throws MessageTypeException;
 		StringBuilder sb = new StringBuilder();
 		StringBuilder bsb = new StringBuilder();
 		insertCodeOfMessagePackObjectArrayGet(bsb);
-		//insertConvertMethodBody(bsb, c, new Field[0]);
+		// insertConvertMethodBody(bsb, c, new Field[0]);
 		// FIXME
-		//bsb.append("_$$_ary[0].asInt(); ");
-		//bsb.append("int i = _$$_ary[1].asInt(); ");
+		// bsb.append("_$$_ary[0].asInt(); ");
+		// bsb.append("int i = _$$_ary[1].asInt(); ");
 		bsb.append("int i = _$$_ary[0].asInt(); ");
 		bsb.append("java.lang.Object o = ").append(c.getName()).append(
 				".class.getEnumConstants()[i]; ");
@@ -1339,9 +1365,17 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 				new Class<?>[] { MessagePackObject.class },
 				new String[] { VARIABLE_NAME_MPO },
 				new Class<?>[] { MessageTypeException.class }, bsb.toString());
-		System.out.println("convert method: " + sb.toString());
-		CtMethod newCtMethod = CtNewMethod.make(sb.toString(), tmplCtClass);
-		tmplCtClass.addMethod(newCtMethod);
+		LOG.trace("convert method src: " + sb.toString());
+		try {
+			CtMethod newCtMethod = CtNewMethod.make(sb.toString(), tmplCtClass);
+			tmplCtClass.addMethod(newCtMethod);
+		} catch (CannotCompileException e) {
+			DynamicCodeGenException ex = new DynamicCodeGenException(e
+					.getMessage()
+					+ ": " + sb.toString(), e);
+			LOG.error(ex.getMessage(), ex);
+			throw ex;
+		}
 	}
 
 	private Class<?> createClass(CtClass packerCtClass)

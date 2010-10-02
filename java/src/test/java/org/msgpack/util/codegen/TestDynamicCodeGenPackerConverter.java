@@ -241,9 +241,9 @@ public class TestDynamicCodeGenPackerConverter extends TestCase {
 		assertTrue(true);
 		try {
 			DynamicCodeGenPacker.create(ProtectedDefaultConstructorClass.class);
-			assertTrue(true);
-		} catch (DynamicCodeGenException e) {
 			fail();
+		} catch (DynamicCodeGenException e) {
+			assertTrue(true);
 		}
 		assertTrue(true);
 		try {
@@ -274,9 +274,9 @@ public class TestDynamicCodeGenPackerConverter extends TestCase {
 		try {
 			DynamicCodeGenTemplate
 					.create(ProtectedDefaultConstructorClass.class);
-			assertTrue(true);
-		} catch (DynamicCodeGenException e) {
 			fail();
+		} catch (DynamicCodeGenException e) {
+			assertTrue(true);
 		}
 		assertTrue(true);
 		try {
@@ -319,9 +319,9 @@ public class TestDynamicCodeGenPackerConverter extends TestCase {
 		assertTrue(true);
 		try {
 			DynamicCodeGenPacker.create(ProtectedModifierClass.class);
-			assertTrue(true);
-		} catch (DynamicCodeGenException e) {
 			fail();
+		} catch (DynamicCodeGenException e) {
+			assertTrue(true);
 		}
 		assertTrue(true);
 		try {
@@ -344,9 +344,9 @@ public class TestDynamicCodeGenPackerConverter extends TestCase {
 		assertTrue(true);
 		try {
 			DynamicCodeGenTemplate.create(ProtectedModifierClass.class);
-			assertTrue(true);
-		} catch (DynamicCodeGenException e) {
 			fail();
+		} catch (DynamicCodeGenException e) {
+			assertTrue(true);
 		}
 		assertTrue(true);
 		try {
@@ -500,7 +500,7 @@ public class TestDynamicCodeGenPackerConverter extends TestCase {
 		assertTrue(src.f0 == dst.f0);
 		assertTrue(src.f1 == dst.f1);
 		assertTrue(src.f2 != dst.f2);
-		assertTrue(src.f3 == dst.f3);
+		assertTrue(src.f3 != dst.f3);
 		assertTrue(src.f4 != dst.f4);
 		assertFalse(it.hasNext());
 	}
@@ -623,11 +623,11 @@ public class TestDynamicCodeGenPackerConverter extends TestCase {
 		assertTrue(src.f0 == dst.f0);
 		assertTrue(src.f1 == dst.f1);
 		assertTrue(src.f2 != dst.f2);
-		assertTrue(src.f3 == dst.f3);
+		assertTrue(src.f3 != dst.f3);
 		assertTrue(src.f4 != dst.f4);
 		assertTrue(src.f5 == dst.f5);
 		assertTrue(src.f6 == dst.f6);
-		assertTrue(src.f8 == dst.f8);
+		assertTrue(src.f8 != dst.f8);
 		assertTrue(src.f9 != dst.f9);
 		assertFalse(it.hasNext());
 	}
