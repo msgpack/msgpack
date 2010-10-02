@@ -588,10 +588,11 @@ public class Unpacker implements Iterable<MessagePackObject> {
 		}
 
 		MessageUnpacker unpacker = CustomUnpacker.get(klass);
+
 		if(unpacker != null) {
 			return unpacker.unpack(this);
 		}
-		
+
 		Template tmpl = null;
 		if (CustomMessage.isAnnotated(klass, MessagePackMessage.class)) {
 			tmpl = ReflectionTemplate.create(klass);
