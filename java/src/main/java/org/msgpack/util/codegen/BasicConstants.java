@@ -37,6 +37,8 @@ public interface BasicConstants {
 	String CHAR_NAME_PLUS = "+";
 
 	String CHAR_NAME_MINUS = "-";
+	
+	String CHAR_NAME_UNDERSCORE = "_";
 
 	String CHAR_NAME_LESSTHAN = "<";
 
@@ -60,7 +62,7 @@ public interface BasicConstants {
 
 	String VARIABLE_NAME_OBJECT = "_$$_obj";
 
-	String VARIABLE_NAME_TARGET = "_$$_target";
+	String VARIABLE_NAME_TARGET = "_$$_tt";
 
 	String VARIABLE_NAME_SIZE = "_$$_len";
 
