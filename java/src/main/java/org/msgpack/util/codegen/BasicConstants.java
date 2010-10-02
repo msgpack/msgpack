@@ -62,7 +62,7 @@ public interface BasicConstants {
 
 	String VARIABLE_NAME_OBJECT = "_$$_obj";
 
-	String VARIABLE_NAME_TARGET = "_$$_tt";
+	String VARIABLE_NAME_TARGET = "_$$_t";
 
 	String VARIABLE_NAME_SIZE = "_$$_len";
 

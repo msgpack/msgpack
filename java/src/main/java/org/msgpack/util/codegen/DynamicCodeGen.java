@@ -939,7 +939,7 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 			LOG.error(e.getMessage(), e);
 			throw e;
 		} else if (CustomMessage.isAnnotated(c, MessagePackOrdinalEnum.class)) {
-			// @MessagePackMessage
+			// @MessagePackOrdinalEnum
 			Template tmpl = DynamicCodeGenOrdinalEnumTemplate.create(c);
 			CustomMessage.registerTemplate(c, tmpl);
 			insertCodeOfMessageConvertCallForRegisteredType(sb, f, c, i);
@@ -953,8 +953,8 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 
 	private void insertCodeOfMessageConvertCallForRegisteredType(
 			StringBuilder sb, Field f, Class<?> c, int i) {
-		// ((MessageConvertable)f_i).messageConvert(ary[i]);
-		// obj = tmpl.convert(mpo);
+		// target.f0 = (Class) CustomConverter.get(C.class).convert(mpo[i]);
+		// obj = tmpl.convert(mpo[i]);
 		sb.append(VARIABLE_NAME_TARGET);
 		sb.append(CHAR_NAME_DOT);
 		sb.append(f.getName());
