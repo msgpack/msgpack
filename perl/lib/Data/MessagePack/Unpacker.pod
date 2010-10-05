@@ -31,6 +31,8 @@ returns I<$up> itself.
 
 If utf8 mode is enabled, strings will be decoded as UTF-8.
 
+The utf8 mode is disabled by default.
+
 =item my $ret = $up->get_utf8()
 
 returns the utf8 mode flag of I<$up>.
