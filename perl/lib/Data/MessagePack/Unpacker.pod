@@ -24,6 +24,17 @@ This is a streaming deserializer for messagepack.
 
 creates a new instance of stream deserializer.
 
+=item $up->utf8([$bool])
+
+sets utf8 mode. true if I<$bool> is omitted.
+returns I<$up> itself.
+
+If utf8 mode is enabled, strings will be decoded as UTF-8.
+
+=item my $ret = $up->get_utf8()
+
+returns the utf8 mode flag of I<$up>.
+
 =item my $ret = $up->execute($data, $offset);
 
 =item my $ret = $up->execute_limit($data, $offset, $limit)

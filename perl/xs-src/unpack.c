@@ -13,6 +13,7 @@ START_MY_CXT
 typedef struct {
     bool finished;
     bool incremented;
+    bool utf8;
 } unpack_user;
 
 #include "msgpack/unpack_define.h"
@@ -237,6 +238,9 @@ STATIC_INLINE int template_callback_raw(unpack_user* u PERL_UNUSED_DECL, const c
     dTHX;
     /*  newSVpvn(p, l) returns an undef if p == NULL */
     *o = ((l==0) ? newSVpvs("") : newSVpvn(p, l));
+    if(u->utf8) {
+        sv_utf8_decode(*o);
+    }
     return 0;
 }
 
@@ -276,7 +280,7 @@ XS(xs_unpack) {
     msgpack_unpack_t mp;
     template_init(&mp);
 
-    unpack_user const u = {false, false};
+    unpack_user const u = {false, false, false};
     mp.user = u;
 
     size_t from = 0;
@@ -303,7 +307,7 @@ XS(xs_unpack) {
 
 STATIC_INLINE void _reset(SV* const self) {
     dTHX;
-	unpack_user const u = {false, false};
+	unpack_user const u = {false, false, false};
 
 	UNPACKER(self, mp);
 	template_init(mp);
@@ -325,6 +329,26 @@ XS(xs_unpacker_new) {
     _reset(self);
 
     ST(0) = self;
+    XSRETURN(1);
+}
+
+XS(xs_unpacker_utf8) {
+    dXSARGS;
+    if (!(items == 1 || items == 2)) {
+        Perl_croak(aTHX_ "Usage: $unpacker->utf8([$bool)");
+    }
+    UNPACKER(ST(0), mp);
+    mp->user.utf8 = (items == 1 || sv_true(ST(1))) ? true : false;
+    XSRETURN(1); // returns $self
+}
+
+XS(xs_unpacker_get_utf8) {
+    dXSARGS;
+    if (items != 1) {
+        Perl_croak(aTHX_ "Usage: $unpacker->get_utf8()");
+    }
+    UNPACKER(ST(0), mp);
+    ST(0) = boolSV(mp->user.utf8);
     XSRETURN(1);
 }
 
