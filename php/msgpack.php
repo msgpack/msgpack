@@ -2,7 +2,7 @@
 $br = (php_sapi_name() == "cli")? "":"<br>";
 
 if(!extension_loaded('msgpack')) {
-	dl('msgpack.' . PHP_SHLIB_SUFFIX);
+    dl('msgpack.' . PHP_SHLIB_SUFFIX);
 }
 $module = 'msgpack';
 $functions = get_extension_funcs($module);
@@ -11,11 +11,11 @@ foreach($functions as $func) {
     echo $func."$br\n";
 }
 echo "$br\n";
-$function = 'confirm_' . $module . '_compiled';
+$function = $module . '_serialize';
 if (extension_loaded($module)) {
-	$str = $function($module);
+    $str = $function($module);
 } else {
-	$str = "Module $module is not compiled into PHP";
+    $str = "Module $module is not compiled into PHP";
 }
 echo "$str\n";
 ?>

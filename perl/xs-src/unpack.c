@@ -242,14 +242,17 @@ STATIC_INLINE int template_callback_raw(unpack_user* u PERL_UNUSED_DECL, const c
 
 #include "msgpack/unpack_template.h"
 
-#define UNPACKER(from, name)                                              \
-    msgpack_unpack_t *name;                                               \
-    if(!(SvROK(from) && SvIOK(SvRV(from)))) {                             \
-        Perl_croak(aTHX_ "Invalid unpacker instance for " #name);         \
-    }                                                                     \
-    name = INT2PTR(msgpack_unpack_t*, SvIVX(SvRV((from))));               \
-    if(name == NULL) {                                                    \
-        Perl_croak(aTHX_ "NULL found for " # name " when shouldn't be."); \
+#define UNPACKER(from, name)                                                  \
+    msgpack_unpack_t *name;                                                   \
+    {                                                                         \
+        SV* const obj = from;                                                 \
+        if(!(SvROK(obj) && SvIOK(SvRV(obj)))) {                               \
+            Perl_croak(aTHX_ "Invalid unpacker instance for " #name);         \
+        }                                                                     \
+        name = INT2PTR(msgpack_unpack_t*, SvIVX(SvRV((obj))));                \
+        if(name == NULL) {                                                    \
+            Perl_croak(aTHX_ "NULL found for " # name " when shouldn't be");  \
+        }                                                                     \
     }
 
 XS(xs_unpack) {
@@ -325,7 +328,7 @@ XS(xs_unpacker_new) {
     XSRETURN(1);
 }
 
-STATIC_INLINE SV*
+STATIC_INLINE size_t
 _execute_impl(SV* const self, SV* const data, UV const offset, UV const limit) {
     dTHX;
 
@@ -343,10 +346,9 @@ _execute_impl(SV* const self, SV* const data, UV const offset, UV const limit) {
 
     if(ret < 0) {
         Perl_croak(aTHX_ "Data::MessagePack::Unpacker: parse error while executing");
-    } else {
-        mp->user.finished = (ret > 0) ? true : false;
-        return sv_2mortal(newSVuv(from));
     }
+    mp->user.finished = (ret > 0) ? true : false;
+    return from;
 }
 
 XS(xs_unpacker_execute) {
@@ -365,9 +367,9 @@ XS(xs_unpacker_execute) {
         Perl_croak(aTHX_ "Usage: $unpacker->execute(data, offset = 0)");
     }
 
-    UNPACKER(self, mp);
-
-    ST(0) = _execute_impl(self, data, offset, sv_len(data));
+    dXSTARG;
+    sv_setuv(TARG, _execute_impl(self, data, offset, sv_len(data)));
+    ST(0) = TARG;
     XSRETURN(1);
 }
 
@@ -382,7 +384,9 @@ XS(xs_unpacker_execute_limit) {
     UV  const offset = SvUVx(ST(2));
     UV  const limit  = SvUVx(ST(3));
 
-    ST(0) = _execute_impl(self, data, offset, limit);
+    dXSTARG;
+    sv_setuv(TARG, _execute_impl(self, data, offset, limit));
+    ST(0) = TARG;
     XSRETURN(1);
 }
 
@@ -417,7 +421,7 @@ XS(xs_unpacker_reset) {
     UNPACKER(ST(0), mp);
 
     SV* const data = template_data(mp);
-    sv_2mortal(data);
+    SvREFCNT_dec(data);
     _reset(ST(0));
 
     XSRETURN(0);
@@ -432,7 +436,7 @@ XS(xs_unpacker_destroy) {
     UNPACKER(ST(0), mp);
 
     SV* const data = template_data(mp);
-    sv_2mortal(data);
+    SvREFCNT_dec(data);
     Safefree(mp);
 
     XSRETURN(0);
