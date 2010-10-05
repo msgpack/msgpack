@@ -37,7 +37,7 @@ public interface BasicConstants {
 	String CHAR_NAME_PLUS = "+";
 
 	String CHAR_NAME_MINUS = "-";
-	
+
 	String CHAR_NAME_UNDERSCORE = "_";
 
 	String CHAR_NAME_LESSTHAN = "<";
@@ -82,6 +82,10 @@ public interface BasicConstants {
 
 	String VARIABLE_NAME_I = "i";
 
+	String VARIABLE_NAME_TEMPLATES = "_$$_templates";
+
+	String VARIABLE_NAME_TEMPLATES0 = "_$$_tmpls";
+
 	String METHOD_NAME_VALUEOF = "valueOf";
 
 	String METHOD_NAME_ADD = "add";
@@ -107,6 +111,8 @@ public interface BasicConstants {
 	String METHOD_NAME_CONVERT = "convert";
 
 	String METHOD_NAME_MSGCONVERT = "messageConvert";
+
+	String METHOD_NAME_SETTEMPLATES = "setTemplates";
 
 	String METHOD_NAME_PACK = "pack";
 

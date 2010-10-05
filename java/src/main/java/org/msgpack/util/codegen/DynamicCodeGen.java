@@ -4,35 +4,31 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javassist.CannotCompileException;
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtConstructor;
+import javassist.CtField;
 import javassist.CtMethod;
 import javassist.CtNewConstructor;
 import javassist.CtNewMethod;
 import javassist.NotFoundException;
 
-import org.msgpack.CustomConverter;
 import org.msgpack.CustomMessage;
 import org.msgpack.CustomPacker;
-import org.msgpack.CustomUnpacker;
 import org.msgpack.MessageConvertable;
 import org.msgpack.MessagePackObject;
 import org.msgpack.MessagePackable;
 import org.msgpack.MessagePacker;
 import org.msgpack.MessageTypeException;
 import org.msgpack.MessageUnpackable;
-import org.msgpack.MessageUnpacker;
 import org.msgpack.Packer;
 import org.msgpack.Template;
 import org.msgpack.Unpacker;
@@ -65,8 +61,19 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 
 	private ClassPool pool;
 
-	private DynamicCodeGen() {
-		this.pool = ClassPool.getDefault();
+	private ConcurrentHashMap<String, Template[]> tmplMap;
+
+	DynamicCodeGen() {
+		pool = ClassPool.getDefault();
+		tmplMap = new ConcurrentHashMap<String, Template[]>();
+	}
+
+	public void setTemplates(Class<?> origClass, Template[] tmpls) {
+		tmplMap.putIfAbsent(origClass.getName(), tmpls);
+	}
+
+	public Template[] getTemplates(Class<?> origClass) {
+		return tmplMap.get(origClass.getName());
 	}
 
 	public Class<?> generateMessagePackerClass(Class<?> origClass) {
@@ -113,95 +120,6 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 		}
 	}
 
-	public Class<?> generateMessageUnpackerClass(Class<?> origClass) {
-		LOG.debug("start generating a MessageUnpacker impl.: "
-				+ origClass.getName());
-		try {
-			String origName = origClass.getName();
-			String unpackerName = origName + POSTFIX_TYPE_NAME_UNPACKER + inc();
-			checkClassValidation(origClass);
-			checkDefaultConstructorValidation(origClass);
-			CtClass unpackerCtClass = pool.makeClass(unpackerName);
-			setInterface(unpackerCtClass, MessageUnpacker.class);
-			addDefaultConstructor(unpackerCtClass);
-			Field[] fields = getDeclaredFields(origClass);
-			addUnpackMethod(unpackerCtClass, origClass, fields);
-			return createClass(unpackerCtClass);
-		} catch (NotFoundException e) {
-			LOG.error(e.getMessage(), e);
-			throw new DynamicCodeGenException(e.getMessage(), e);
-		} catch (CannotCompileException e) {
-			LOG.error(e.getMessage(), e);
-			throw new DynamicCodeGenException(e.getMessage(), e);
-		}
-	}
-
-	public Class<?> generateOrdinalEnumUnpackerClass(Class<?> origClass) {
-		LOG.debug("start generating a OrdinalEnumUnpacker impl.: "
-				+ origClass.getName());
-		try {
-			String origName = origClass.getName();
-			String unpackerName = origName + POSTFIX_TYPE_NAME_UNPACKER + inc();
-			checkClassValidation(origClass);
-			checkDefaultConstructorValidation(origClass);
-			CtClass unpackerCtClass = pool.makeClass(unpackerName);
-			setInterface(unpackerCtClass, MessageUnpacker.class);
-			addDefaultConstructor(unpackerCtClass);
-			addUnpackMethodForOrdinalEnumTypes(unpackerCtClass, origClass);
-			return createClass(unpackerCtClass);
-		} catch (NotFoundException e) {
-			LOG.error(e.getMessage(), e);
-			throw new DynamicCodeGenException(e.getMessage(), e);
-		} catch (CannotCompileException e) {
-			LOG.error(e.getMessage(), e);
-			throw new DynamicCodeGenException(e.getMessage(), e);
-		}
-	}
-
-	public Class<?> generateMessageConverterClass(Class<?> origClass) {
-		LOG.debug("start generating a MessageConverter impl.: "
-				+ origClass.getName());
-		try {
-			String origName = origClass.getName();
-			String convName = origName + POSTFIX_TYPE_NAME_CONVERTER + inc();
-			checkClassValidation(origClass);
-			checkDefaultConstructorValidation(origClass);
-			CtClass converterCtClass = pool.makeClass(convName);
-			setInterface(converterCtClass, MessageUnpacker.class);
-			addDefaultConstructor(converterCtClass);
-			Field[] fields = getDeclaredFields(origClass);
-			addConvertMethod(converterCtClass, origClass, fields);
-			return createClass(converterCtClass);
-		} catch (NotFoundException e) {
-			LOG.error(e.getMessage(), e);
-			throw new DynamicCodeGenException(e.getMessage(), e);
-		} catch (CannotCompileException e) {
-			LOG.error(e.getMessage(), e);
-			throw new DynamicCodeGenException(e.getMessage(), e);
-		}
-	}
-
-	public Class<?> generateOrdinalEnumConverterClass(Class<?> origClass) {
-		LOG.debug("start generating a OrdinalEnumConverter impl.: "
-				+ origClass.getName());
-		try {
-			String origName = origClass.getName();
-			String convName = origName + POSTFIX_TYPE_NAME_CONVERTER + inc();
-			checkClassValidation(origClass);
-			CtClass converterCtClass = pool.makeClass(convName);
-			setInterface(converterCtClass, MessageUnpacker.class);
-			addDefaultConstructor(converterCtClass);
-			addConvertMethodForOrdinalEnumTypes(converterCtClass, origClass);
-			return createClass(converterCtClass);
-		} catch (NotFoundException e) {
-			LOG.error(e.getMessage(), e);
-			throw new DynamicCodeGenException(e.getMessage(), e);
-		} catch (CannotCompileException e) {
-			LOG.error(e.getMessage(), e);
-			throw new DynamicCodeGenException(e.getMessage(), e);
-		}
-	}
-
 	public Class<?> generateTemplateClass(Class<?> origClass) {
 		LOG.debug("start generating a Template impl.: " + origClass.getName());
 		try {
@@ -211,8 +129,13 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 			checkDefaultConstructorValidation(origClass);
 			CtClass tmplCtClass = pool.makeClass(tmplName);
 			setInterface(tmplCtClass, Template.class);
+			setInterface(tmplCtClass, DynamicCodeGenBase.TemplateAccessor.class);
 			addDefaultConstructor(tmplCtClass);
 			Field[] fields = getDeclaredFields(origClass);
+			Template[] tmpls = createTemplates(fields);
+			setTemplates(origClass, tmpls);
+			addTemplateArrayField(tmplCtClass, origClass);
+			addSetTemplatesMethod(tmplCtClass, origClass);
 			addUnpackMethod(tmplCtClass, origClass, fields);
 			addConvertMethod(tmplCtClass, origClass, fields);
 			return createClass(tmplCtClass);
@@ -343,6 +266,23 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 		throw e;
 	}
 
+	Template[] createTemplates(Field[] fields) {
+		Template[] tmpls = new Template[fields.length];
+		for (int i = 0; i < tmpls.length; ++i) {
+			tmpls[i] = createTemplate(fields[i]);
+		}
+		return tmpls;
+	}
+
+	Template createTemplate(Field field) {
+		Class<?> c = field.getType();
+		if (List.class.isAssignableFrom(c) || Map.class.isAssignableFrom(c)) {
+			return createTemplate(field.getGenericType());
+		} else {
+			return createTemplate(c);
+		}
+	}
+
 	private void addPackMethod(CtClass packerCtClass, Class<?> c, Field[] fs) {
 		// void pack(Packer pk, Object target) throws IOException;
 		StringBuilder sb = new StringBuilder();
@@ -383,6 +323,7 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 	private void insertCodeOfPackMethodCall(StringBuilder sb, Field field) {
 		Class<?> c = field.getType();
 		if (c.isPrimitive()) {
+			; // ignore
 		} else if (c.equals(Boolean.class) || c.equals(Byte.class)
 				|| c.equals(Double.class) || c.equals(Float.class)
 				|| c.equals(Integer.class) || c.equals(Long.class)
@@ -464,6 +405,44 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 		}
 	}
 
+	private void addTemplateArrayField(CtClass newCtClass, Class<?> origClass) {
+		StringBuilder sb = new StringBuilder();
+		addPublicFieldDecl(sb, Template.class, VARIABLE_NAME_TEMPLATES, 1);
+		insertSemicolon(sb);
+		LOG.trace("templates field src: " + sb.toString());
+		try {
+			CtField templatesCtField = CtField.make(sb.toString(), newCtClass);
+			newCtClass.addField(templatesCtField);
+		} catch (CannotCompileException e) {
+			DynamicCodeGenException ex = new DynamicCodeGenException(e
+					.getMessage()
+					+ ": " + sb.toString(), e);
+			LOG.error(ex.getMessage(), ex);
+			throw ex;
+		}
+	}
+
+	private void addSetTemplatesMethod(CtClass newCtClass, Class<?> origClass) {
+		StringBuilder sb = new StringBuilder();
+		StringBuilder body = new StringBuilder();
+		body.append("_$$_templates = _$$_tmpls;");
+		addPublicMethodDecl(sb, METHOD_NAME_SETTEMPLATES, void.class,
+				new Class<?>[] { Template.class }, new int[] { 1 },
+				new String[] { VARIABLE_NAME_TEMPLATES0 }, new Class<?>[0],
+				body.toString());
+		LOG.trace("settemplates method src: " + sb.toString());
+		try {
+			CtMethod newCtMethod = CtNewMethod.make(sb.toString(), newCtClass);
+			newCtClass.addMethod(newCtMethod);
+		} catch (CannotCompileException e) {
+			DynamicCodeGenException ex = new DynamicCodeGenException(e
+					.getMessage()
+					+ ": " + sb.toString(), e);
+			LOG.error(ex.getMessage(), ex);
+			throw ex;
+		}
+	}
+
 	private void addUnpackMethod(CtClass unpackerCtClass, Class<?> c, Field[] fs)
 			throws CannotCompileException, NotFoundException {
 		// Object unpack(Unpacker pac) throws IOException, MessageTypeException;
@@ -498,268 +477,81 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 		insertMethodCall(sb, VARIABLE_NAME_PK, METHOD_NAME_UNPACKARRAY,
 				new String[0]);
 		insertSemicolon(sb);
-		for (Field f : fs) {
-			insertCodeOfUnpackMethodCall(sb, f, f.getType());
-		}
+		insertCodeOfUnpackMethodCalls(sb, fs);
 		insertReturnStat(sb, VARIABLE_NAME_TARGET);
 		insertSemicolon(sb);
 	}
 
-	private void insertCodeOfUnpackMethodCall(StringBuilder sb, Field f,
-			Class<?> c) {
-		if (c.isPrimitive()) {
-			// primitive type
-			insertCodeOfUnpackMethodCallForPrimTypes(sb, f, c);
-		} else if (c.equals(Boolean.class) || c.equals(Byte.class)
-				|| c.equals(Double.class) || c.equals(Float.class)
-				|| c.equals(Integer.class) || c.equals(Long.class)
-				|| c.equals(Short.class)) {
-			// reference type (wrapper type)
-			insertCodeOfUnpackMethodCallForWrapTypes(sb, f, c);
-		} else if (c.equals(BigInteger.class) || c.equals(String.class)
-				|| c.equals(byte[].class)) {
-			// reference type (other type)
-			insertCodeOfUnpackMethodCallForPrimTypes(sb, f, c);
-		} else if (List.class.isAssignableFrom(c)) {
-			// List
-			insertCodeOfUnpackMethodCallForListType(sb, f, c);
-		} else if (Map.class.isAssignableFrom(c)) {
-			// Map
-			insertCodeOfUnpackMethodCallForMapType(sb, f, c);
-		} else if (CustomUnpacker.isRegistered(c)) {
-			insertCodeOfUnpackMethodCallForRegisteredType(sb, f, c);
-		} else if (MessageUnpackable.class.isAssignableFrom(c)) {
-			// MessageUnpackable
-			insertCodeOfUnpackMethodCallForMsgUnpackableType(sb, f, c);
-		} else if (CustomMessage.isAnnotated(c, MessagePackMessage.class)) {
-			// @MessagePackMessage
-			Template tmpl = DynamicCodeGenTemplate.create(c);
-			CustomMessage.registerTemplate(c, tmpl);
-			insertCodeOfUnpackMethodCallForRegisteredType(sb, f, c);
-		} else if (CustomMessage.isAnnotated(c, MessagePackDelegate.class)) {
-			// FIXME DelegatePacker
-			UnsupportedOperationException e = new UnsupportedOperationException(
-					"not supported yet. : " + c.getName());
-			LOG.error(e.getMessage(), e);
-			throw e;
-		} else if (CustomMessage.isAnnotated(c, MessagePackOrdinalEnum.class)) {
-			// @MessagePackOrdinalEnum
-			Template tmpl = DynamicCodeGenOrdinalEnumTemplate.create(c);
-			CustomMessage.registerTemplate(c, tmpl);
-			insertCodeOfUnpackMethodCallForRegisteredType(sb, f, c);
+	private void insertCodeOfUnpackMethodCalls(StringBuilder sb, Field[] fields) {
+		for (int i = 0; i < fields.length; ++i) {
+			insertCodeOfUnpackMethodCall(sb, fields[i], i);
+		}
+	}
+
+	private void insertCodeOfUnpackMethodCall(StringBuilder sb, Field field,
+			int i) {
+		// target.fi = ((Integer)_$$_tmpls[i].unpack(_$$_pk)).intValue();
+		Class<?> type = field.getType();
+		insertFieldAccess(sb, VARIABLE_NAME_TARGET, field.getName());
+		String castType = null;
+		String rawValueGetter = null;
+		if (type.isPrimitive()) {
+			if (type.equals(byte.class)) {
+				castType = "(Byte)";
+				rawValueGetter = "byteValue";
+			} else if (type.equals(boolean.class)) {
+				castType = "(Boolean)";
+				rawValueGetter = "booleanValue";
+			} else if (type.equals(short.class)) {
+				castType = "(Short)";
+				rawValueGetter = "shortValue";
+			} else if (type.equals(int.class)) {
+				castType = "(Integer)";
+				rawValueGetter = "intValue";
+			} else if (type.equals(long.class)) {
+				castType = "(Long)";
+				rawValueGetter = "longValue";
+			} else if (type.equals(float.class)) {
+				castType = "(Float)";
+				rawValueGetter = "floatValue";
+			} else if (type.equals(double.class)) {
+				castType = "(Double)";
+				rawValueGetter = "doubleValue";
+			} else {
+				throw new DynamicCodeGenException("Fatal error: "
+						+ type.getName());
+			}
+		} else if (type.isArray()) {
+			Class<?> ct = type.getComponentType();
+			if (ct.equals(byte.class)) {
+				castType = "(byte[])";
+			} else {
+				throw new UnsupportedOperationException("Not supported yet: "
+						+ type.getName());
+			}
 		} else {
-			MessageTypeException e = new MessageTypeException("unknown type:  "
-					+ c.getName());
-			LOG.error(e.getMessage(), e);
-			throw e;
-		}
-	}
-
-	private void insertCodeOfUnpackMethodCallForPrimTypes(StringBuilder sb,
-			Field f, Class<?> c) {
-		if (f != null) {
-			insertFieldAccess(sb, VARIABLE_NAME_TARGET, f.getName());
-			insertInsertion(sb);
-		}
-		insertMethodCall(sb, VARIABLE_NAME_PK, getUnpackMethodName(c),
-				new String[0]);
-		if (f != null) {
-			insertSemicolon(sb);
-		}
-	}
-
-	private void insertCodeOfUnpackMethodCallForWrapTypes(StringBuilder sb,
-			Field f, Class<?> c) {
-		if (f != null) {
-			insertFieldAccess(sb, VARIABLE_NAME_TARGET, f.getName());
-			insertInsertion(sb);
+			castType = "(" + type.getName() + ")";
 		}
 		StringBuilder mc = new StringBuilder();
-		insertMethodCall(mc, VARIABLE_NAME_PK, getUnpackMethodName(c),
-				new String[0]);
-		insertMethodCall(sb, c.getName(), METHOD_NAME_VALUEOF,
-				new String[] { mc.toString() });
-		if (f != null) {
-			insertSemicolon(sb);
-		}
-	}
-
-	private void insertCodeOfUnpackMethodCallForListType(StringBuilder sb,
-			Field field, Class<?> type) {
-		ParameterizedType generic = (ParameterizedType) field.getGenericType();
-		Class<?> genericType = (Class<?>) generic.getActualTypeArguments()[0];
-
-		// len
-		sb.append(int.class.getName());
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(VARIABLE_NAME_SIZE);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(CHAR_NAME_EQUAL);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(VARIABLE_NAME_PK);
-		sb.append(CHAR_NAME_DOT);
-		sb.append(METHOD_NAME_UNPACKARRAY);
-		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-		sb.append(CHAR_NAME_SEMICOLON);
-		sb.append(CHAR_NAME_SPACE);
-
-		// field initializer
-		sb.append(VARIABLE_NAME_TARGET);
-		sb.append(CHAR_NAME_DOT);
-		sb.append(field.getName());
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(CHAR_NAME_EQUAL);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(KEYWORD_NEW);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(ArrayList.class.getName());
-		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-		sb.append(CHAR_NAME_SEMICOLON);
-		sb.append(CHAR_NAME_SPACE);
-
-		// for loop
-		sb.append(KEYWORD_FOR);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		sb.append(int.class.getName());
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(VARIABLE_NAME_I);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(CHAR_NAME_EQUAL);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(0);
-		sb.append(CHAR_NAME_SEMICOLON);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(VARIABLE_NAME_I);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(CHAR_NAME_LESSTHAN);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(VARIABLE_NAME_SIZE);
-		sb.append(CHAR_NAME_SEMICOLON);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(CHAR_NAME_PLUS);
-		sb.append(CHAR_NAME_PLUS);
-		sb.append(VARIABLE_NAME_I);
-		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(CHAR_NAME_LEFT_CURLY_BRACKET);
-		sb.append(CHAR_NAME_SPACE);
-
-		// block
-		sb.append(VARIABLE_NAME_TARGET);
-		sb.append(CHAR_NAME_DOT);
-		sb.append(field.getName());
-		sb.append(CHAR_NAME_DOT);
-		sb.append(METHOD_NAME_ADD);
-		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		insertCodeOfUnpackMethodCall(sb, null, genericType);
-		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-		sb.append(CHAR_NAME_SEMICOLON);
-		sb.append(CHAR_NAME_SPACE);
-
-		sb.append(CHAR_NAME_RIGHT_CURLY_BRACKET);
-		sb.append(CHAR_NAME_SPACE);
-	}
-
-	private void insertCodeOfUnpackMethodCallForMapType(StringBuilder sb,
-			Field field, Class<?> type) {
-		ParameterizedType generic = (ParameterizedType) field.getGenericType();
-		Class<?> genericType0 = (Class<?>) generic.getActualTypeArguments()[0];
-		Class<?> genericType1 = (Class<?>) generic.getActualTypeArguments()[1];
-
-		// len
-		sb.append(int.class.getName());
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(VARIABLE_NAME_SIZE);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(CHAR_NAME_EQUAL);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(VARIABLE_NAME_PK);
-		sb.append(CHAR_NAME_DOT);
-		sb.append(METHOD_NAME_UNPACKMAP);
-		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-		sb.append(CHAR_NAME_SEMICOLON);
-		sb.append(CHAR_NAME_SPACE);
-
-		// field initializer
-		sb.append(VARIABLE_NAME_TARGET);
-		sb.append(CHAR_NAME_DOT);
-		sb.append(field.getName());
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(CHAR_NAME_EQUAL);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(KEYWORD_NEW);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(HashMap.class.getName());
-		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-		sb.append(CHAR_NAME_SEMICOLON);
-		sb.append(CHAR_NAME_SPACE);
-
-		// for loop
-		sb.append(KEYWORD_FOR);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		sb.append(int.class.getName());
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(VARIABLE_NAME_I);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(CHAR_NAME_EQUAL);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(0);
-		sb.append(CHAR_NAME_SEMICOLON);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(VARIABLE_NAME_I);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(CHAR_NAME_LESSTHAN);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(VARIABLE_NAME_SIZE);
-		sb.append(CHAR_NAME_SEMICOLON);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(CHAR_NAME_PLUS);
-		sb.append(CHAR_NAME_PLUS);
-		sb.append(VARIABLE_NAME_I);
-		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(CHAR_NAME_LEFT_CURLY_BRACKET);
-		sb.append(CHAR_NAME_SPACE);
-
-		// block map.
-		sb.append(VARIABLE_NAME_TARGET);
-		sb.append(CHAR_NAME_DOT);
-		sb.append(field.getName());
-		sb.append(CHAR_NAME_DOT);
-		sb.append(METHOD_NAME_PUT);
-		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		insertCodeOfUnpackMethodCall(sb, null, genericType0);
-		sb.append(CHAR_NAME_COMMA);
-		sb.append(CHAR_NAME_SPACE);
-		insertCodeOfUnpackMethodCall(sb, null, genericType1);
-		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-		sb.append(CHAR_NAME_SEMICOLON);
-		sb.append(CHAR_NAME_SPACE);
-
-		sb.append(CHAR_NAME_RIGHT_CURLY_BRACKET);
-		sb.append(CHAR_NAME_SPACE);
-	}
-
-	private void insertCodeOfUnpackMethodCallForRegisteredType(
-			StringBuilder sb, Field f, Class<?> c) {
-		// target.field = (Cast) CustomUnpacker.get(C.class).unpack(pk);
-		StringBuilder mc = new StringBuilder();
-		insertMethodCall(mc, CustomUnpacker.class.getName(), METHOD_NAME_GET,
-				new String[] { c.getName() + ".class" });
-		String t = mc.toString();
+		mc.append(castType);
+		mc.append(VARIABLE_NAME_TEMPLATES);
+		mc.append(CHAR_NAME_LEFT_SQUARE_BRACKET);
+		mc.append(i);
+		mc.append(CHAR_NAME_RIGHT_SQUARE_BRACKET);
+		String tname = mc.toString();
 		mc = new StringBuilder();
-		insertMethodCall(mc, t, METHOD_NAME_UNPACK,
+		insertMethodCall(mc, tname, METHOD_NAME_UNPACK,
 				new String[] { VARIABLE_NAME_PK });
-		t = mc.toString();
-		mc = new StringBuilder();
-		insertTypeCast(mc, c, t);
-		insertFieldAccess(sb, VARIABLE_NAME_TARGET, f.getName());
+		if (type.isPrimitive()) {
+			tname = mc.toString();
+			mc = new StringBuilder();
+			mc.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			mc.append(tname);
+			mc.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			tname = mc.toString();
+			mc = new StringBuilder();
+			insertMethodCall(mc, tname, rawValueGetter, new String[0]);
+		}
 		insertValueInsertion(sb, mc.toString());
 		insertSemicolon(sb);
 	}
@@ -892,92 +684,90 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 
 	private void insertCodeOfMessagePackObjectArrayGet(StringBuilder sb) {
 		// MessagePackObject[] ary = obj.asArray();
-		insertLocalVariableDecl(sb, MessagePackObject.class, VARIABLE_NAME_ARRAY, 1);
+		insertLocalVariableDecl(sb, MessagePackObject.class,
+				VARIABLE_NAME_ARRAY, 1);
 		StringBuilder mc = new StringBuilder();
-		insertMethodCall(mc, VARIABLE_NAME_MPO, METHOD_NAME_ASARRAY, new String[0]);
+		insertMethodCall(mc, VARIABLE_NAME_MPO, METHOD_NAME_ASARRAY,
+				new String[0]);
 		insertValueInsertion(sb, mc.toString());
 		insertSemicolon(sb);
 	}
 
 	private void insertCodeOfConvertMethodCalls(StringBuilder sb, Field[] fields) {
 		for (int i = 0; i < fields.length; ++i) {
-			insertCodeOfConvertMethodCall(sb, fields[i], fields[i].getType(),
-					i, null);
+			insertCodeOfConvMethodCall(sb, fields[i], i);
 		}
 	}
 
-	private void insertCodeOfConvertMethodCall(StringBuilder sb, Field f,
-			Class<?> c, int i, String v) {
-		if (c.isPrimitive()) { // primitive type
-			insertCodeOfConvertMethodCallForPrimTypes(sb, f, c, i, v);
-		} else if (c.equals(Boolean.class) || c.equals(Byte.class)
-				|| c.equals(Short.class) || c.equals(Integer.class)
-				|| c.equals(Float.class) || c.equals(Long.class)
-				|| c.equals(Double.class)) {
-			// reference type (wrapper)
-			insertCodeOfConvertMethodCallForWrapTypes(sb, f, c, i, v);
-		} else if (c.equals(String.class) || c.equals(byte[].class)
-				|| c.equals(BigInteger.class)) {
-			insertCodeOfConvertMethodCallForPrimTypes(sb, f, c, i, v);
-		} else if (List.class.isAssignableFrom(c)) {
-			insertCodeOfConvertMethodCallForList(sb, f, c, i);
-		} else if (Map.class.isAssignableFrom(c)) {
-			insertCodeOfConvertMethodCallForMapType(sb, f, c, i);
-		} else if (MessageConvertable.class.isAssignableFrom(c)) {
-			insertCodeOfMessageConvertCallForMsgConvtblType(sb, f, c, i);
-		} else if (CustomConverter.isRegistered(c)) {
-			insertCodeOfMessageConvertCallForRegisteredType(sb, f, c, i);
-		} else if (CustomMessage.isAnnotated(c, MessagePackMessage.class)) {
-			// @MessagePackMessage
-			Template tmpl = DynamicCodeGenTemplate.create(c);
-			CustomMessage.registerTemplate(c, tmpl);
-			insertCodeOfMessageConvertCallForRegisteredType(sb, f, c, i);
-		} else if (CustomMessage.isAnnotated(c, MessagePackDelegate.class)) {
-			// FIXME DelegatePacker
-			UnsupportedOperationException e = new UnsupportedOperationException(
-					"not supported yet. : " + c.getName());
-			LOG.error(e.getMessage(), e);
-			throw e;
-		} else if (CustomMessage.isAnnotated(c, MessagePackOrdinalEnum.class)) {
-			// @MessagePackOrdinalEnum
-			Template tmpl = DynamicCodeGenOrdinalEnumTemplate.create(c);
-			CustomMessage.registerTemplate(c, tmpl);
-			insertCodeOfMessageConvertCallForRegisteredType(sb, f, c, i);
+	private void insertCodeOfConvMethodCall(StringBuilder sb, Field field, int i) {
+		// target.f0 = ((Integer)_$$_tmpls[i].convert(_$$_ary[i])).intValue();
+		Class<?> type = field.getType();
+		insertFieldAccess(sb, VARIABLE_NAME_TARGET, field.getName());
+		String castType = null;
+		String rawValueGetter = null;
+		if (type.isPrimitive()) {
+			if (type.equals(byte.class)) {
+				castType = "(Byte)";
+				rawValueGetter = "byteValue";
+			} else if (type.equals(boolean.class)) {
+				castType = "(Boolean)";
+				rawValueGetter = "booleanValue";
+			} else if (type.equals(short.class)) {
+				castType = "(Short)";
+				rawValueGetter = "shortValue";
+			} else if (type.equals(int.class)) {
+				castType = "(Integer)";
+				rawValueGetter = "intValue";
+			} else if (type.equals(long.class)) {
+				castType = "(Long)";
+				rawValueGetter = "longValue";
+			} else if (type.equals(float.class)) {
+				castType = "(Float)";
+				rawValueGetter = "floatValue";
+			} else if (type.equals(double.class)) {
+				castType = "(Double)";
+				rawValueGetter = "doubleValue";
+			} else {
+				throw new DynamicCodeGenException("Fatal error: "
+						+ type.getName());
+			}
+		} else if (type.isArray()) {
+			Class<?> ct = type.getComponentType();
+			if (ct.equals(byte.class)) {
+				castType = "(byte[])";
+			} else {
+				throw new UnsupportedOperationException("Not supported yet: "
+						+ type.getName());
+			}
 		} else {
-			MessageTypeException e = new MessageTypeException("Type error: "
-					+ c.getName());
-			LOG.error(e.getMessage(), e);
-			throw e;
+			castType = "(" + type.getName() + ")";
 		}
-	}
-
-	private void insertCodeOfMessageConvertCallForRegisteredType(
-			StringBuilder sb, Field f, Class<?> c, int i) {
-		// target.f0 = (Class) CustomConverter.get(C.class).convert(mpo[i]);
-		// obj = tmpl.convert(mpo[i]);
-		sb.append(VARIABLE_NAME_TARGET);
-		sb.append(CHAR_NAME_DOT);
-		sb.append(f.getName());
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(CHAR_NAME_EQUAL);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		sb.append(c.getName());
-		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-		sb.append(CustomConverter.class.getName());
-		sb.append(CHAR_NAME_DOT);
-		sb.append(METHOD_NAME_GET);
-		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		sb.append(c.getName() + ".class");
-		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-		sb.append(CHAR_NAME_DOT);
-		sb.append(METHOD_NAME_CONVERT);
-		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		sb.append(VARIABLE_NAME_ARRAY);
-		sb.append(CHAR_NAME_LEFT_SQUARE_BRACKET);
-		sb.append(i);
-		sb.append(CHAR_NAME_RIGHT_SQUARE_BRACKET);
-		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
+		StringBuilder mc = new StringBuilder();
+		mc.append(castType);
+		mc.append(VARIABLE_NAME_TEMPLATES);
+		mc.append(CHAR_NAME_LEFT_SQUARE_BRACKET);
+		mc.append(i);
+		mc.append(CHAR_NAME_RIGHT_SQUARE_BRACKET);
+		String tname = mc.toString();
+		mc = new StringBuilder();
+		mc.append(VARIABLE_NAME_ARRAY);
+		mc.append(CHAR_NAME_LEFT_SQUARE_BRACKET);
+		mc.append(i);
+		mc.append(CHAR_NAME_RIGHT_SQUARE_BRACKET);
+		String aname = mc.toString();
+		mc = new StringBuilder();
+		insertMethodCall(mc, tname, METHOD_NAME_CONVERT, new String[] { aname });
+		if (type.isPrimitive()) {
+			tname = mc.toString();
+			mc = new StringBuilder();
+			mc.append(Constants.CHAR_NAME_LEFT_PARENTHESIS);
+			mc.append(tname);
+			mc.append(Constants.CHAR_NAME_RIGHT_PARENTHESIS);
+			tname = mc.toString();
+			mc = new StringBuilder();
+			insertMethodCall(mc, tname, rawValueGetter, new String[0]);
+		}
+		insertValueInsertion(sb, mc.toString());
 		insertSemicolon(sb);
 	}
 
@@ -1027,321 +817,6 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 		sb.append(CHAR_NAME_RIGHT_SQUARE_BRACKET);
 		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
 		sb.append(CHAR_NAME_SEMICOLON);
-		sb.append(CHAR_NAME_SPACE);
-	}
-
-	private void insertCodeOfConvertMethodCallForPrimTypes(StringBuilder sb,
-			Field f, Class<?> c, int i, String name) {
-		// target.f0 = objs[0].intValue();
-		if (f != null) {
-			sb.append(VARIABLE_NAME_TARGET);
-			sb.append(CHAR_NAME_DOT);
-			sb.append(f.getName());
-			sb.append(CHAR_NAME_SPACE);
-			sb.append(CHAR_NAME_EQUAL);
-			sb.append(CHAR_NAME_SPACE);
-			sb.append(VARIABLE_NAME_ARRAY);
-			sb.append(CHAR_NAME_LEFT_SQUARE_BRACKET);
-			sb.append(i);
-			sb.append(CHAR_NAME_RIGHT_SQUARE_BRACKET);
-		} else {
-			sb.append(name);
-		}
-		sb.append(CHAR_NAME_DOT);
-		sb.append(getAsMethodName(c));
-		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-		if (f != null) {
-			insertSemicolon(sb);
-		}
-	}
-
-	private void insertCodeOfConvertMethodCallForWrapTypes(StringBuilder sb,
-			Field f, Class<?> c, int i, String v) {
-		if (f != null) {
-			sb.append(VARIABLE_NAME_TARGET);
-			sb.append(CHAR_NAME_DOT);
-			sb.append(f.getName());
-			sb.append(CHAR_NAME_SPACE);
-			sb.append(CHAR_NAME_EQUAL);
-			sb.append(CHAR_NAME_SPACE);
-		}
-		sb.append(KEYWORD_NEW);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(c.getName());
-		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		if (f != null) {
-			sb.append(VARIABLE_NAME_ARRAY);
-			sb.append(CHAR_NAME_LEFT_SQUARE_BRACKET);
-			sb.append(i);
-			sb.append(CHAR_NAME_RIGHT_SQUARE_BRACKET);
-		} else {
-			sb.append(v);
-		}
-		sb.append(CHAR_NAME_DOT);
-		sb.append(getAsMethodName(c));
-		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-		if (f != null) {
-			insertSemicolon(sb);
-		}
-	}
-
-	private void insertCodeOfConvertMethodCallForList(StringBuilder sb,
-			Field field, Class<?> type, int i) {
-		ParameterizedType generic = (ParameterizedType) field.getGenericType();
-		Class<?> genericType = (Class<?>) generic.getActualTypeArguments()[0];
-
-		// List<MessagePackObject> list = ary[i].asList();
-		sb.append(List.class.getName());
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(VARIABLE_NAME_LIST);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(CHAR_NAME_EQUAL);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(VARIABLE_NAME_ARRAY);
-		sb.append(CHAR_NAME_LEFT_SQUARE_BRACKET);
-		sb.append(i);
-		sb.append(CHAR_NAME_RIGHT_SQUARE_BRACKET);
-		sb.append(CHAR_NAME_DOT);
-		sb.append(METHOD_NAME_ASLIST);
-		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-		sb.append(CHAR_NAME_SEMICOLON);
-		sb.append(CHAR_NAME_SPACE);
-
-		// int size = list.size();
-		sb.append(int.class.getName());
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(VARIABLE_NAME_SIZE);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(CHAR_NAME_EQUAL);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(VARIABLE_NAME_LIST);
-		sb.append(CHAR_NAME_DOT);
-		sb.append(METHOD_NAME_SIZE);
-		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-		sb.append(CHAR_NAME_SEMICOLON);
-		sb.append(CHAR_NAME_SPACE);
-
-		// field initializer
-		sb.append(VARIABLE_NAME_TARGET);
-		sb.append(CHAR_NAME_DOT);
-		sb.append(field.getName());
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(CHAR_NAME_EQUAL);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(KEYWORD_NEW);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(ArrayList.class.getName());
-		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-		sb.append(CHAR_NAME_SEMICOLON);
-		sb.append(CHAR_NAME_SPACE);
-
-		// for loop
-		sb.append(KEYWORD_FOR);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		sb.append(int.class.getName());
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(VARIABLE_NAME_I);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(CHAR_NAME_EQUAL);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(0);
-		sb.append(CHAR_NAME_SEMICOLON);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(VARIABLE_NAME_I);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(CHAR_NAME_LESSTHAN);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(VARIABLE_NAME_SIZE);
-		sb.append(CHAR_NAME_SEMICOLON);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(CHAR_NAME_PLUS);
-		sb.append(CHAR_NAME_PLUS);
-		sb.append(VARIABLE_NAME_I);
-		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-		sb.append(CHAR_NAME_SPACE);
-
-		// block begin
-		sb.append(CHAR_NAME_LEFT_CURLY_BRACKET);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(MessagePackObject.class.getName());
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(VARIABLE_NAME_VAL);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(CHAR_NAME_EQUAL);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		sb.append(MessagePackObject.class.getName());
-		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-		sb.append(VARIABLE_NAME_LIST);
-		sb.append(CHAR_NAME_DOT);
-		sb.append(METHOD_NAME_GET);
-		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		sb.append(VARIABLE_NAME_I);
-		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-		sb.append(CHAR_NAME_SEMICOLON);
-		sb.append(CHAR_NAME_SPACE);
-
-		sb.append(VARIABLE_NAME_TARGET);
-		sb.append(CHAR_NAME_DOT);
-		sb.append(field.getName());
-		sb.append(CHAR_NAME_DOT);
-		sb.append(METHOD_NAME_ADD);
-		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		insertCodeOfConvertMethodCall(sb, null, genericType, -1,
-				VARIABLE_NAME_VAL);
-		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-		sb.append(CHAR_NAME_SEMICOLON);
-		sb.append(CHAR_NAME_SPACE);
-		// block end
-		sb.append(CHAR_NAME_RIGHT_CURLY_BRACKET);
-		sb.append(CHAR_NAME_SPACE);
-	}
-
-	private void insertCodeOfConvertMethodCallForMapType(StringBuilder sb,
-			Field f, Class<?> c, int i) {
-		ParameterizedType generic = (ParameterizedType) f.getGenericType();
-		Class<?> genericType0 = (Class<?>) generic.getActualTypeArguments()[0];
-		Class<?> genericType1 = (Class<?>) generic.getActualTypeArguments()[1];
-
-		// Map<MessagePackObject, MessagePackObject> map = ary[i].asMap();
-		sb.append(Map.class.getName());
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(VARIABLE_NAME_MAP);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(CHAR_NAME_EQUAL);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(VARIABLE_NAME_ARRAY);
-		sb.append(CHAR_NAME_LEFT_SQUARE_BRACKET);
-		sb.append(i);
-		sb.append(CHAR_NAME_RIGHT_SQUARE_BRACKET);
-		sb.append(CHAR_NAME_DOT);
-		sb.append("asMap");
-		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-		sb.append(CHAR_NAME_SEMICOLON);
-		sb.append(CHAR_NAME_SPACE);
-
-		// int size = list.size();
-		sb.append(int.class.getName());
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(VARIABLE_NAME_SIZE);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(CHAR_NAME_EQUAL);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(VARIABLE_NAME_MAP);
-		sb.append(CHAR_NAME_DOT);
-		sb.append(METHOD_NAME_SIZE);
-		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-		sb.append(CHAR_NAME_SEMICOLON);
-		sb.append(CHAR_NAME_SPACE);
-
-		// field initializer
-		sb.append(VARIABLE_NAME_TARGET);
-		sb.append(CHAR_NAME_DOT);
-		sb.append(f.getName());
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(CHAR_NAME_EQUAL);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(KEYWORD_NEW);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(HashMap.class.getName());
-		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-		sb.append(CHAR_NAME_SEMICOLON);
-		sb.append(CHAR_NAME_SPACE);
-
-		// for loop
-		sb.append(KEYWORD_FOR);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		sb.append(Iterator.class.getName());
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(VARIABLE_NAME_ITER);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(CHAR_NAME_EQUAL);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(VARIABLE_NAME_MAP);
-		sb.append(CHAR_NAME_DOT);
-		sb.append(METHOD_NAME_KEYSET);
-		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-		sb.append(CHAR_NAME_DOT);
-		sb.append(METHOD_NAME_ITERATOR);
-		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-		sb.append(CHAR_NAME_SEMICOLON);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(VARIABLE_NAME_ITER);
-		sb.append(CHAR_NAME_DOT);
-		sb.append(METHOD_NAME_HASNEXT);
-		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-		sb.append(CHAR_NAME_SEMICOLON);
-		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(CHAR_NAME_LEFT_CURLY_BRACKET);
-		sb.append(CHAR_NAME_SPACE);
-
-		// block map.
-		sb.append(MessagePackObject.class.getName());
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(VARIABLE_NAME_KEY);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(CHAR_NAME_EQUAL);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		sb.append(MessagePackObject.class.getName());
-		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-		sb.append(VARIABLE_NAME_ITER);
-		sb.append(CHAR_NAME_DOT);
-		sb.append(METHOD_NAME_NEXT);
-		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-		sb.append(CHAR_NAME_SEMICOLON);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(MessagePackObject.class.getName());
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(VARIABLE_NAME_VAL);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(CHAR_NAME_EQUAL);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		sb.append(MessagePackObject.class.getName());
-		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-		sb.append(VARIABLE_NAME_MAP);
-		sb.append(CHAR_NAME_DOT);
-		sb.append(METHOD_NAME_GET);
-		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		sb.append(VARIABLE_NAME_KEY);
-		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-		sb.append(CHAR_NAME_SEMICOLON);
-		sb.append(CHAR_NAME_SPACE);
-
-		sb.append(VARIABLE_NAME_TARGET);
-		sb.append(CHAR_NAME_DOT);
-		sb.append(f.getName());
-		sb.append(CHAR_NAME_DOT);
-		sb.append(METHOD_NAME_PUT);
-		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		insertCodeOfConvertMethodCall(sb, null, genericType0, -1,
-				VARIABLE_NAME_KEY);
-		sb.append(CHAR_NAME_COMMA);
-		sb.append(CHAR_NAME_SPACE);
-		insertCodeOfConvertMethodCall(sb, null, genericType1, -1,
-				VARIABLE_NAME_VAL);
-		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-		sb.append(CHAR_NAME_SEMICOLON);
-		sb.append(CHAR_NAME_SPACE);
-
-		sb.append(CHAR_NAME_RIGHT_CURLY_BRACKET);
 		sb.append(CHAR_NAME_SPACE);
 	}
 

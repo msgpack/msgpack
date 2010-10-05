@@ -8,7 +8,7 @@ public class DynamicCodeGenPacker {
 		try {
 			DynamicCodeGen gen = DynamicCodeGen.getInstance();
 			Class<?> packerClass = gen.generateMessagePackerClass(c);
-			return (MessagePacker)packerClass.newInstance();
+			return (MessagePacker) packerClass.newInstance();
 		} catch (InstantiationException e) {
 			throw new DynamicCodeGenException(e.getMessage(), e);
 		} catch (IllegalAccessException e) {

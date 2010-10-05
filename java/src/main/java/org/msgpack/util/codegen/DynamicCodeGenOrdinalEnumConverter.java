@@ -6,7 +6,7 @@ public class DynamicCodeGenOrdinalEnumConverter {
 	public static MessageConverter create(Class<?> c) {
 		try {
 			DynamicCodeGen gen = DynamicCodeGen.getInstance();
-			Class<?> unpackerClass = gen.generateOrdinalEnumConverterClass(c);
+			Class<?> unpackerClass = gen.generateOrdinalEnumTemplateClass(c);
 			return (MessageConverter) unpackerClass.newInstance();
 		} catch (InstantiationException e) {
 			throw new DynamicCodeGenException(e.getMessage(), e);

@@ -6,7 +6,7 @@ public class DynamicCodeGenOrdinalEnumUnpacker {
 	public static MessageUnpacker create(Class<?> c) {
 		try {
 			DynamicCodeGen gen = DynamicCodeGen.getInstance();
-			Class<?> unpackerClass = gen.generateOrdinalEnumUnpackerClass(c);
+			Class<?> unpackerClass = gen.generateOrdinalEnumTemplateClass(c);
 			return (MessageUnpacker) unpackerClass.newInstance();
 		} catch (InstantiationException e) {
 			throw new DynamicCodeGenException(e.getMessage(), e);

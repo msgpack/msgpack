@@ -1,17 +1,46 @@
 package org.msgpack.util.codegen;
 
+import java.lang.reflect.GenericArrayType;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
 
+import org.msgpack.CustomConverter;
+import org.msgpack.CustomMessage;
+import org.msgpack.Template;
+import org.msgpack.Templates;
+import org.msgpack.annotation.MessagePackDelegate;
+import org.msgpack.annotation.MessagePackMessage;
+import org.msgpack.annotation.MessagePackOrdinalEnum;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class DynamicCodeGenBase implements BasicConstants {
+	public static interface TemplateAccessor {
+		void setTemplates(Template[] templates);
+	}
+
+	private static Logger LOG = LoggerFactory
+			.getLogger(DynamicCodeGenBase.class);
+
 	public DynamicCodeGenBase() {
 	}
 
 	public void addPublicFieldDecl(StringBuilder sb, Class<?> type, String name) {
+		addPublicFieldDecl(sb, type, name, 0);
+	}
+
+	public void addPublicFieldDecl(StringBuilder sb, Class<?> type,
+			String name, int dim) {
 		sb.append(KEYWORD_MODIFIER_PUBLIC);
 		sb.append(CHAR_NAME_SPACE);
 		sb.append(type.getName());
+		for (int i = 0; i < dim; ++i) {
+			sb.append(CHAR_NAME_LEFT_SQUARE_BRACKET);
+			sb.append(CHAR_NAME_RIGHT_SQUARE_BRACKET);
+		}
 		sb.append(CHAR_NAME_SPACE);
 		sb.append(name);
 	}
@@ -19,6 +48,17 @@ public class DynamicCodeGenBase implements BasicConstants {
 	public void addPublicMethodDecl(StringBuilder sb, String mname,
 			Class<?> returnType, Class<?>[] paramTypes, String[] anames,
 			Class<?>[] exceptTypes, String methodBody) {
+		int[] dims = new int[paramTypes.length];
+		for (int i = 0; i < paramTypes.length; ++i) {
+			dims[i] = 0;
+		}
+		addPublicMethodDecl(sb, mname, returnType, paramTypes, dims, anames,
+				exceptTypes, methodBody);
+	}
+
+	public void addPublicMethodDecl(StringBuilder sb, String mname,
+			Class<?> returnType, Class<?>[] paramTypes, int[] dims,
+			String[] anames, Class<?>[] exceptTypes, String methodBody) {
 		sb.append(KEYWORD_MODIFIER_PUBLIC);
 		sb.append(CHAR_NAME_SPACE);
 		sb.append(returnType.getName());
@@ -27,6 +67,10 @@ public class DynamicCodeGenBase implements BasicConstants {
 		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
 		for (int i = 0; i < paramTypes.length; ++i) {
 			sb.append(paramTypes[i].getName());
+			for (int j = 0; j < dims[i]; ++j) {
+				sb.append(CHAR_NAME_LEFT_SQUARE_BRACKET);
+				sb.append(CHAR_NAME_RIGHT_SQUARE_BRACKET);
+			}
 			sb.append(CHAR_NAME_SPACE);
 			sb.append(anames[i]);
 			if (i + 1 != paramTypes.length) {
@@ -36,16 +80,18 @@ public class DynamicCodeGenBase implements BasicConstants {
 		}
 		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
 		sb.append(CHAR_NAME_SPACE);
-		sb.append(KEYWORD_THROWS);
-		sb.append(CHAR_NAME_SPACE);
-		for (int i = 0; i < exceptTypes.length; ++i) {
-			sb.append(exceptTypes[i].getName());
-			if (i + 1 != exceptTypes.length) {
-				sb.append(CHAR_NAME_COMMA);
-				sb.append(CHAR_NAME_SPACE);
+		if (exceptTypes.length != 0) {
+			sb.append(KEYWORD_THROWS);
+			sb.append(CHAR_NAME_SPACE);
+			for (int i = 0; i < exceptTypes.length; ++i) {
+				sb.append(exceptTypes[i].getName());
+				if (i + 1 != exceptTypes.length) {
+					sb.append(CHAR_NAME_COMMA);
+					sb.append(CHAR_NAME_SPACE);
+				}
 			}
+			sb.append(CHAR_NAME_SPACE);
 		}
-		sb.append(CHAR_NAME_SPACE);
 		sb.append(CHAR_NAME_LEFT_CURLY_BRACKET);
 		sb.append(CHAR_NAME_SPACE);
 		sb.append(methodBody);
@@ -64,7 +110,7 @@ public class DynamicCodeGenBase implements BasicConstants {
 		// int lv
 		insertLocalVariableDecl(sb, type, name, 0);
 	}
-	
+
 	public void insertLocalVariableDecl(StringBuilder sb, Class<?> type,
 			String name, int dim) {
 		// int[] lv
@@ -84,9 +130,9 @@ public class DynamicCodeGenBase implements BasicConstants {
 		sb.append(CHAR_NAME_SPACE);
 		sb.append(expr);
 	}
-	
+
 	public void insertInsertion(StringBuilder sb) {
-		// = 
+		// =
 		sb.append(CHAR_NAME_SPACE);
 		sb.append(CHAR_NAME_EQUAL);
 		sb.append(CHAR_NAME_SPACE);
@@ -270,6 +316,78 @@ public class DynamicCodeGenBase implements BasicConstants {
 			return METHOD_NAME_ASMAP;
 		} else {
 			throw new DynamicCodeGenException("Type error: " + c.getName());
+		}
+	}
+
+	public Template createTemplate(Type t) {
+		if (t.getClass().equals(Class.class)) {
+			Class<?> c = (Class<?>) t;
+			if (c.equals(boolean.class) || c.equals(Boolean.class)) {
+				return Templates.tBoolean();
+			} else if (c.equals(byte.class) || c.equals(Byte.class)) {
+				return Templates.tByte();
+			} else if (c.equals(short.class) || c.equals(Short.class)) {
+				return Templates.tShort();
+			} else if (c.equals(int.class) || c.equals(Integer.class)) {
+				return Templates.tInteger();
+			} else if (c.equals(float.class) || c.equals(Float.class)) {
+				return Templates.tFloat();
+			} else if (c.equals(long.class) || c.equals(Long.class)) {
+				return Templates.tLong();
+			} else if (c.equals(double.class) || c.equals(Double.class)) {
+				return Templates.tDouble();
+			} else if (c.equals(String.class)) {
+				return Templates.tString();
+			} else if (c.equals(BigInteger.class)) {
+				return Templates.tBigInteger();
+			} else if (CustomConverter.isRegistered(c)) {
+				return (Template) CustomConverter.get(c);
+			} else if (CustomMessage.isAnnotated(c, MessagePackMessage.class)) {
+				// @MessagePackMessage
+				Template tmpl = DynamicCodeGenTemplate.create(c);
+				CustomMessage.registerTemplate(c, tmpl);
+				return tmpl;
+			} else if (CustomMessage.isAnnotated(c, MessagePackDelegate.class)) {
+				// FIXME DelegatePacker
+				UnsupportedOperationException e = new UnsupportedOperationException(
+						"not supported yet. : " + c.getName());
+				LOG.error(e.getMessage(), e);
+				throw e;
+			} else if (CustomMessage.isAnnotated(c,
+					MessagePackOrdinalEnum.class)) {
+				// @MessagePackOrdinalEnum
+				Template tmpl = DynamicCodeGenOrdinalEnumTemplate.create(c);
+				CustomMessage.registerTemplate(c, tmpl);
+				return tmpl;
+			} else {
+				throw new DynamicCodeGenException("Type error: "
+						+ ((Class<?>) t).getName());
+			}
+		} else if (t instanceof GenericArrayType) {
+			GenericArrayType gat = (GenericArrayType) t;
+			Type gct = gat.getGenericComponentType();
+			if (gct.equals(byte.class)) {
+				return Templates.tByteArray();
+			} else {
+				throw new DynamicCodeGenException("Not supported yet: " + gat);
+			}
+		} else if (t instanceof ParameterizedType) {
+			ParameterizedType pt = (ParameterizedType) t;
+			Class<?> rawType = (Class<?>) pt.getRawType();
+			if (rawType.equals(List.class)) {
+				Type[] ats = pt.getActualTypeArguments();
+				return Templates.tList(createTemplate(ats[0]));
+			} else if (rawType.equals(Map.class)) {
+				Type[] ats = pt.getActualTypeArguments();
+				return Templates.tMap(createTemplate(ats[0]),
+						createTemplate(ats[1]));
+			} else {
+				throw new DynamicCodeGenException("Type error: "
+						+ t.getClass().getName());
+			}
+		} else {
+			throw new DynamicCodeGenException("Type error: "
+					+ t.getClass().getName());
 		}
 	}
 }

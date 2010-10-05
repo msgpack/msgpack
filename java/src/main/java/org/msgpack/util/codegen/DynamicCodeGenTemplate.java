@@ -1,13 +1,16 @@
 package org.msgpack.util.codegen;
 
 import org.msgpack.Template;
+import org.msgpack.util.codegen.DynamicCodeGenBase.TemplateAccessor;
 
 public class DynamicCodeGenTemplate {
 	public static Template create(Class<?> c) {
 		try {
 			DynamicCodeGen gen = DynamicCodeGen.getInstance();
 			Class<?> tmplClass = gen.generateTemplateClass(c);
-			return (Template) tmplClass.newInstance();
+			Object obj = tmplClass.newInstance();
+			((DynamicCodeGenBase.TemplateAccessor)obj).setTemplates(gen.getTemplates(c));
+			return (Template) obj;
 		} catch (InstantiationException e) {
 			throw new DynamicCodeGenException(e.getMessage(), e);
 		} catch (IllegalAccessException e) {
