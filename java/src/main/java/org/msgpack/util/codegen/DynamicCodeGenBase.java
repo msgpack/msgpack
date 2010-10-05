@@ -62,7 +62,17 @@ public class DynamicCodeGenBase implements BasicConstants {
 	public void insertLocalVariableDecl(StringBuilder sb, Class<?> type,
 			String name) {
 		// int lv
+		insertLocalVariableDecl(sb, type, name, 0);
+	}
+	
+	public void insertLocalVariableDecl(StringBuilder sb, Class<?> type,
+			String name, int dim) {
+		// int[] lv
 		sb.append(type.getName());
+		for (int i = 0; i < dim; ++i) {
+			sb.append(CHAR_NAME_LEFT_SQUARE_BRACKET);
+			sb.append(CHAR_NAME_RIGHT_SQUARE_BRACKET);
+		}
 		sb.append(CHAR_NAME_SPACE);
 		sb.append(name);
 	}
@@ -73,6 +83,13 @@ public class DynamicCodeGenBase implements BasicConstants {
 		sb.append(CHAR_NAME_EQUAL);
 		sb.append(CHAR_NAME_SPACE);
 		sb.append(expr);
+	}
+	
+	public void insertInsertion(StringBuilder sb) {
+		// = 
+		sb.append(CHAR_NAME_SPACE);
+		sb.append(CHAR_NAME_EQUAL);
+		sb.append(CHAR_NAME_SPACE);
 	}
 
 	public void insertFieldAccess(StringBuilder sb, String target, String field) {
@@ -226,7 +243,7 @@ public class DynamicCodeGenBase implements BasicConstants {
 		}
 	}
 
-	public String getAsMethodName(Class<?> c) throws DynamicCodeGenException {
+	public String getAsMethodName(Class<?> c) {
 		if (c.equals(boolean.class) || c.equals(Boolean.class)) {
 			return METHOD_NAME_ASBOOLEAN;
 		} else if (c.equals(byte.class) || c.equals(Byte.class)) {

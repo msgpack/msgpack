@@ -19,10 +19,17 @@ package org.msgpack;
 
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class CustomPacker {
+	private static Logger LOG = LoggerFactory.getLogger(CustomPacker.class);
+
 	private static ConcurrentHashMap<Class<?>, MessagePacker> map = new ConcurrentHashMap<Class<?>, MessagePacker>();
 
 	public static void register(Class<?> target, MessagePacker packer) {
+		LOG.debug("register a MessagePacker object for the type: "
+				+ target.getName());
 		map.putIfAbsent(target, packer);
 	}
 

@@ -19,11 +19,17 @@ package org.msgpack;
 
 import java.util.concurrent.ConcurrentHashMap;
 
-// FIXME package private?
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class CustomUnpacker {
+	private static Logger LOG = LoggerFactory.getLogger(CustomUnpacker.class);
+
 	private static ConcurrentHashMap<Class<?>, MessageUnpacker> map = new ConcurrentHashMap<Class<?>, MessageUnpacker>();
 
 	public static void register(Class<?> target, MessageUnpacker converter) {
+		LOG.debug("register a MessageUnpacker object for the type: "
+				+ target.getName());
 		map.putIfAbsent(target, converter);
 	}
 

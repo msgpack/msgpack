@@ -19,7 +19,7 @@ public interface BasicConstants {
 	String KEYWORD_NEW = "new";
 
 	String KEYWORD_NULL = "null";
-	
+
 	String KEYWORD_RETURN = "return";
 
 	String KEYWORD_THROW = "throw";
@@ -37,6 +37,8 @@ public interface BasicConstants {
 	String CHAR_NAME_PLUS = "+";
 
 	String CHAR_NAME_MINUS = "-";
+	
+	String CHAR_NAME_UNDERSCORE = "_";
 
 	String CHAR_NAME_LESSTHAN = "<";
 
@@ -60,7 +62,7 @@ public interface BasicConstants {
 
 	String VARIABLE_NAME_OBJECT = "_$$_obj";
 
-	String VARIABLE_NAME_TARGET = "_$$_target";
+	String VARIABLE_NAME_TARGET = "_$$_tt";
 
 	String VARIABLE_NAME_SIZE = "_$$_len";
 
@@ -98,8 +100,12 @@ public interface BasicConstants {
 
 	String METHOD_NAME_NEXT = "next";
 
+	String METHOD_NAME_ORDINAL = "ordinal";
+
+	String METHOD_NAME_GETENUMCONSTANTS = "getEnumConstants";
+
 	String METHOD_NAME_CONVERT = "convert";
-	
+
 	String METHOD_NAME_MSGCONVERT = "messageConvert";
 
 	String METHOD_NAME_PACK = "pack";

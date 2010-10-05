@@ -23,5 +23,9 @@ public class MessageTypeException extends RuntimeException {
 	public MessageTypeException(String s) {
 		super(s);
 	}
+	
+	public MessageTypeException(String s, Throwable t) {
+		super(s, t);
+	}
 }
 

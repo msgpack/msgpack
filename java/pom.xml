@@ -29,6 +29,16 @@
       <version>4.8.1</version>
       <scope>test</scope>
     </dependency>
+      <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.4.3</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
+      <version>1.4.3</version>
+    </dependency>
     <dependency>
       <groupId>javassist</groupId>
       <artifactId>javassist</artifactId>

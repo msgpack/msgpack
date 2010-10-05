@@ -21,6 +21,10 @@ import java.io.IOException;
 import org.msgpack.*;
 
 public class ClassTemplate implements Template {
+	static {
+		Templates.load();
+	}
+
 	private Class klass;
 
 	public ClassTemplate(Class klass) {

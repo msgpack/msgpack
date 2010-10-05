@@ -19,11 +19,17 @@ package org.msgpack;
 
 import java.util.concurrent.ConcurrentHashMap;
 
-// FIXME package private?
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class CustomConverter {
+	private static Logger LOG = LoggerFactory.getLogger(CustomConverter.class);
+	
 	private static ConcurrentHashMap<Class<?>, MessageConverter> map = new ConcurrentHashMap<Class<?>, MessageConverter>();
 	
 	public static void register(Class<?> target, MessageConverter converter) {
+		LOG.debug("register a MessageConverter object for the type: "
+				+ target.getName());
 		map.putIfAbsent(target, converter);
 	}
 
