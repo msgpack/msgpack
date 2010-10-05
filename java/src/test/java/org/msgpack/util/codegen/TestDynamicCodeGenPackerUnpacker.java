@@ -127,6 +127,13 @@ public class TestDynamicCodeGenPackerUnpacker extends TestCase {
 		src.f2.add("e1");
 		src.f2.add("e2");
 		src.f2.add("e3");
+		src.f3 = new ArrayList<List<String>>();
+		src.f3.add(src.f2);
+		src.f4 = new ArrayList<SampleListNestedType>();
+		SampleListNestedType slnt = new SampleListNestedType();
+		slnt.f0 = new byte[] { 0x01, 0x02 };
+		slnt.f1 = "muga";
+		src.f4.add(slnt);
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		MessagePacker packer = DynamicCodeGenPacker
 				.create(SampleListTypes.class);
@@ -143,14 +150,42 @@ public class TestDynamicCodeGenPackerUnpacker extends TestCase {
 		for (int i = 0; i < src.f2.size(); ++i) {
 			assertEquals(src.f2.get(i), dst.f2.get(i));
 		}
+		assertEquals(src.f3.size(), dst.f3.size());
+		for (int i = 0; i < src.f3.size(); ++i) {
+			List<String> srclist = src.f3.get(i);
+			List<String> dstlist = dst.f3.get(i);
+			assertEquals(srclist.size(), dstlist.size());
+			for (int j = 0; j < srclist.size(); ++j) {
+				assertEquals(srclist.get(j), dstlist.get(j));
+			}
+		}
+		assertEquals(src.f4.size(), dst.f4.size());
+		for (int i = 0; i < src.f4.size(); ++i) {
+			SampleListNestedType s = src.f4.get(i);
+			SampleListNestedType d = dst.f4.get(i);
+			assertEquals(s.f0[0], d.f0[0]);
+			assertEquals(s.f0[1], d.f0[1]);
+			assertEquals(s.f1, d.f1);
+		}
 	}
 
 	public static class SampleListTypes {
 		public List<Integer> f0;
 		public List<Integer> f1;
 		public List<String> f2;
+		public List<List<String>> f3;
+		public List<SampleListNestedType> f4;
 
 		public SampleListTypes() {
+		}
+	}
+
+	@MessagePackMessage
+	public static class SampleListNestedType {
+		public byte[] f0;
+		public String f1;
+
+		public SampleListNestedType() {
 		}
 	}
 
