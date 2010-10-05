@@ -10,13 +10,9 @@ sub import {
     warnings->import;
 
     no strict 'refs';
-    *{"$pkg\::true"} = sub () {
-        Data::MessagePack::true()
-    };
-    *{"$pkg\::false"} = sub () {
-        Data::MessagePack::false()
-    };
-    *{"$pkg\::null"} = sub() { undef };
+    *{"$pkg\::true"}  = \&Data::MessagePack::true;
+    *{"$pkg\::false"} = \&Data::MessagePack::false;
+    *{"$pkg\::null"}  = sub() { undef };
 }
 
 1;
