@@ -9,17 +9,13 @@ our $PreferInteger = 0;
 sub true () {
     require Data::MessagePack::Boolean;
     no warnings 'once', 'redefine';
-    my $t = $Data::MessagePack::Boolean::true;
-    *true = sub (){ $t };
-    return $t;
+    return $Data::MessagePack::Boolean::true;
 }
 
 sub false () {
     require Data::MessagePack::Boolean;
     no warnings 'once', 'redefine';
-    my $f = $Data::MessagePack::Boolean::false;
-    *false = sub (){ $f };
-    return $f;
+    return $Data::MessagePack::Boolean::false;
 }
 
 if ( !__PACKAGE__->can('pack') ) { # this idea comes from Text::Xslate
