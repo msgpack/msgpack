@@ -98,5 +98,8 @@ def test_match():
     for v, p in cases:
         match(v, p)
 
+def test_unicode():
+    assert_equal(b'foobar', unpacks(packs('foobar')))
+
 if __name__ == '__main__':
     main()
