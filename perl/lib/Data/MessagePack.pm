@@ -165,6 +165,12 @@ will astonish those who try to unpack byte streams with an arbitrary buffer size
 (e.g. C<< while(read($socket, $buffer, $arbitrary_buffer_size)) { ... } >>).
 We should implement the internal buffer for the unpacker.
 
+=item UTF8 mode
+
+Data::MessagePack::Unpacker supports utf8 mode, which decodes strings
+as UTF8-8. << Data::MessagePack->unpack >> should support utf8 mode in a
+future.
+
 =back
 
 =head1 AUTHORS
