@@ -1,2 +1,3 @@
 steps = FindVersion, ChangeVersion, CheckChangeLog, DistTest, Commit, Tag, MakeDist, UploadCPAN
+MakeDist.destination=~/.shipit-dist/
 git.tagpattern = perl-%v
