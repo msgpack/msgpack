@@ -443,10 +443,12 @@ XS(xs_unpacker_reset) {
     }
 
     UNPACKER(ST(0), mp);
+    bool const utf8 = mp->user.utf8; // save
 
     SV* const data = template_data(mp);
     SvREFCNT_dec(data);
     _reset(ST(0));
+    mp->user.utf8 = utf8;
 
     XSRETURN(0);
 }
