@@ -1,8 +1,7 @@
 # Usage: Makefile.PL --pp # disable XS
 #        Makefile.PL -g   # add -g to the compiler and disable optimization flags
 use inc::Module::Install;
-use Module::Install::XSUtil 0.32;
-use Config;
+use Module::Install::XSUtil 0.36;
 
 name 'Data-MessagePack';
 all_from 'lib/Data/MessagePack.pm';
