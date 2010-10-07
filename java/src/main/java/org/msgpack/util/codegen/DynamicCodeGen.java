@@ -254,18 +254,18 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 		return allFields.toArray(new Field[0]);
 	}
 
-	private void checkFieldValidation(Field f, List<Field> fs) {
+	private void checkFieldValidation(Field field, List<Field> fields) {
 		// check that it has a public modifier
-		int mod = f.getModifiers();
+		int mod = field.getModifiers();
 		if ((!(Modifier.isPublic(mod))) || Modifier.isStatic(mod)
 				|| Modifier.isFinal(mod) || Modifier.isTransient(mod)
-				|| f.isSynthetic()) {
-			throwFieldValidationException(f);
+				|| field.isSynthetic()) {
+			throwFieldValidationException(field);
 		}
 		// check same name
-		for (Field f0 : fs) {
-			if (f0.getName().equals(f.getName())) {
-				throwFieldValidationException(f);
+		for (Field f : fields) {
+			if (f.getName().equals(field.getName())) {
+				throwFieldValidationException(field);
 			}
 		}
 	}
@@ -486,39 +486,10 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 		String castType = null;
 		String rawValueGetter = null;
 		if (type.isPrimitive()) {
-			if (type.equals(byte.class)) {
-				castType = "(Byte)";
-				rawValueGetter = "byteValue";
-			} else if (type.equals(boolean.class)) {
-				castType = "(Boolean)";
-				rawValueGetter = "booleanValue";
-			} else if (type.equals(short.class)) {
-				castType = "(Short)";
-				rawValueGetter = "shortValue";
-			} else if (type.equals(int.class)) {
-				castType = "(Integer)";
-				rawValueGetter = "intValue";
-			} else if (type.equals(long.class)) {
-				castType = "(Long)";
-				rawValueGetter = "longValue";
-			} else if (type.equals(float.class)) {
-				castType = "(Float)";
-				rawValueGetter = "floatValue";
-			} else if (type.equals(double.class)) {
-				castType = "(Double)";
-				rawValueGetter = "doubleValue";
-			} else {
-				throw new DynamicCodeGenException("Fatal error: "
-						+ type.getName());
-			}
+			castType = "(" + primitiveTypeToWrapperType(type).getName() + ")";
+			rawValueGetter = getPrimTypeValueMethodName(type);
 		} else if (type.isArray()) {
-			Class<?> ct = type.getComponentType();
-			if (ct.equals(byte.class)) {
-				castType = "(byte[])";
-			} else {
-				throw new UnsupportedOperationException("Not supported yet: "
-						+ type.getName());
-			}
+			castType = "(" + arrayTypeToString(type) + ")";
 		} else {
 			castType = "(" + type.getName() + ")";
 		}
@@ -696,39 +667,10 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 		String castType = null;
 		String rawValueGetter = null;
 		if (type.isPrimitive()) {
-			if (type.equals(byte.class)) {
-				castType = "(Byte)";
-				rawValueGetter = "byteValue";
-			} else if (type.equals(boolean.class)) {
-				castType = "(Boolean)";
-				rawValueGetter = "booleanValue";
-			} else if (type.equals(short.class)) {
-				castType = "(Short)";
-				rawValueGetter = "shortValue";
-			} else if (type.equals(int.class)) {
-				castType = "(Integer)";
-				rawValueGetter = "intValue";
-			} else if (type.equals(long.class)) {
-				castType = "(Long)";
-				rawValueGetter = "longValue";
-			} else if (type.equals(float.class)) {
-				castType = "(Float)";
-				rawValueGetter = "floatValue";
-			} else if (type.equals(double.class)) {
-				castType = "(Double)";
-				rawValueGetter = "doubleValue";
-			} else {
-				throw new DynamicCodeGenException("Fatal error: "
-						+ type.getName());
-			}
+			castType = "(" + primitiveTypeToWrapperType(type).getName() + ")";
+			rawValueGetter = getPrimTypeValueMethodName(type);
 		} else if (type.isArray()) {
-			Class<?> ct = type.getComponentType();
-			if (ct.equals(byte.class)) {
-				castType = "(byte[])";
-			} else {
-				throw new UnsupportedOperationException("Not supported yet: "
-						+ type.getName());
-			}
+			castType = "(" + arrayTypeToString(type) + ")";
 		} else {
 			castType = "(" + type.getName() + ")";
 		}

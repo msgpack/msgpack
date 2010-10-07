@@ -88,6 +88,20 @@ public interface BasicConstants {
 
 	String METHOD_NAME_VALUEOF = "valueOf";
 
+	String METHOD_NAME_BOOLEANVALUE = "booleanValue";
+
+	String METHOD_NAME_BYTEVALUE = "byteValue";
+
+	String METHOD_NAME_SHORTVALUE = "shortValue";
+
+	String METHOD_NAME_INTVALUE = "intValue";
+
+	String METHOD_NAME_FLOATVALUE = "floatValue";
+
+	String METHOD_NAME_LONGVALUE = "longValue";
+
+	String METHOD_NAME_DOUBLEVALUE = "doubleValue";
+
 	String METHOD_NAME_ADD = "add";
 
 	String METHOD_NAME_PUT = "put";

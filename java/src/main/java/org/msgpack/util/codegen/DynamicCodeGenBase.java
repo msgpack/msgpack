@@ -9,6 +9,7 @@ import java.util.Map;
 
 import org.msgpack.CustomConverter;
 import org.msgpack.CustomMessage;
+import org.msgpack.MessageTypeException;
 import org.msgpack.Template;
 import org.msgpack.Templates;
 import org.msgpack.annotation.MessagePackDelegate;
@@ -21,10 +22,10 @@ public class DynamicCodeGenBase implements BasicConstants {
 	public static interface TemplateAccessor {
 		void setTemplates(Template[] templates);
 	}
-	
+
 	public static class TemplateAccessorImpl implements TemplateAccessor {
 		public Template[] _$$_templates;
-		
+
 		public void setTemplates(Template[] _$$_tmpls) {
 			_$$_templates = _$$_tmpls;
 		}
@@ -122,19 +123,17 @@ public class DynamicCodeGenBase implements BasicConstants {
 	public void insertLocalVariableDecl(StringBuilder sb, Class<?> type,
 			String name, int dim) {
 		// int[] lv
-		if (type.equals(byte[].class)) {
-			sb.append("byte[]");	
-		} else {
-			sb.append(type.getName());	
-		}
-		for (int i = 0; i < dim; ++i) {
+		int dim0 = dim + getArrayDim(type);
+		Class<?> type0 = getArrayBaseType(type);
+		sb.append(type0.getName());
+		for (int i = 0; i < dim0; ++i) {
 			sb.append(CHAR_NAME_LEFT_SQUARE_BRACKET);
 			sb.append(CHAR_NAME_RIGHT_SQUARE_BRACKET);
 		}
 		sb.append(CHAR_NAME_SPACE);
 		sb.append(name);
 	}
-	
+
 	static int getArrayDim(Class<?> type) {
 		if (type.isArray()) {
 			return 1 + getArrayDim(type.getComponentType());
@@ -149,6 +148,18 @@ public class DynamicCodeGenBase implements BasicConstants {
 		} else {
 			return type;
 		}
+	}
+	
+	public String arrayTypeToString(Class<?> type) {
+		StringBuilder sb = new StringBuilder();
+		int dim = getArrayDim(type);
+		Class<?> t = getArrayBaseType(type);
+		sb.append(t.getName());
+		for (int i = 0; i < dim; ++i) {
+			sb.append(CHAR_NAME_LEFT_SQUARE_BRACKET);
+			sb.append(CHAR_NAME_RIGHT_SQUARE_BRACKET);
+		}
+		return sb.toString();
 	}
 
 	public void insertValueInsertion(StringBuilder sb, String expr) {
@@ -235,25 +246,7 @@ public class DynamicCodeGenBase implements BasicConstants {
 	public void insertTypeConvToObjectType(StringBuilder sb, Class<?> type,
 			String expr) throws DynamicCodeGenException {
 		if (type.isPrimitive()) { // primitive type
-			if (type.equals(boolean.class)) {
-				// new Boolean(expr)
-				insertConsCall(sb, Boolean.class, expr);
-			} else if (type.equals(byte.class)) {
-				insertConsCall(sb, Byte.class, expr);
-			} else if (type.equals(short.class)) {
-				insertConsCall(sb, Short.class, expr);
-			} else if (type.equals(int.class)) {
-				insertConsCall(sb, Integer.class, expr);
-			} else if (type.equals(long.class)) {
-				insertConsCall(sb, Long.class, expr);
-			} else if (type.equals(float.class)) {
-				insertConsCall(sb, Float.class, expr);
-			} else if (type.equals(double.class)) {
-				insertConsCall(sb, Double.class, expr);
-			} else {
-				throw new DynamicCodeGenException("Type error: "
-						+ type.getName());
-			}
+			insertConsCall(sb, primitiveTypeToWrapperType(type), expr);
 		} else { // reference type
 			sb.append(expr);
 		}
@@ -285,7 +278,46 @@ public class DynamicCodeGenBase implements BasicConstants {
 			sb.append(CHAR_NAME_SPACE);
 		}
 	}
-
+	
+	public Class<?> primitiveTypeToWrapperType(Class<?> type) {
+		if (type.equals(boolean.class)) {
+			return Boolean.class;
+		} else if (type.equals(byte.class)) {
+			return Byte.class;
+		} else if (type.equals(short.class)) {
+			return Short.class;
+		} else if (type.equals(int.class)) {
+			return Integer.class;
+		} else if (type.equals(long.class)) {
+			return Long.class;
+		} else if (type.equals(float.class)) {
+			return Float.class;
+		} else if (type.equals(double.class)) {
+			return Double.class;
+		} else {
+			throw new MessageTypeException("Type error: " + type.getName());
+		}
+	}
+	
+	public String getPrimTypeValueMethodName(Class<?> type) {
+		if (type.equals(boolean.class)) {
+			return METHOD_NAME_BOOLEANVALUE;
+		} else if (type.equals(byte.class)) {
+			return METHOD_NAME_BYTEVALUE;
+		} else if (type.equals(short.class)) {
+			return METHOD_NAME_SHORTVALUE;
+		} else if (type.equals(int.class)) {
+			return METHOD_NAME_INTVALUE;
+		} else if (type.equals(long.class)) {
+			return METHOD_NAME_LONGVALUE;
+		} else if (type.equals(float.class)) {
+			return METHOD_NAME_FLOATVALUE;
+		} else if (type.equals(double.class)) {
+			return METHOD_NAME_DOUBLEVALUE;
+		} else {
+			throw new MessageTypeException("Type error: " + type.getName());
+		}
+	}
 	public String getUnpackMethodName(Class<?> c)
 			throws DynamicCodeGenException {
 		if (c.equals(boolean.class) || c.equals(Boolean.class)) {
