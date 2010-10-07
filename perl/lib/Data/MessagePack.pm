@@ -3,18 +3,18 @@ use strict;
 use warnings;
 use 5.008001;
 
-our $VERSION = '0.29';
+our $VERSION = '0.31';
 our $PreferInteger = 0;
 
 sub true () {
     require Data::MessagePack::Boolean;
-    no warnings 'once', 'redefine';
+    no warnings 'once';
     return $Data::MessagePack::Boolean::true;
 }
 
 sub false () {
     require Data::MessagePack::Boolean;
-    no warnings 'once', 'redefine';
+    no warnings 'once';
     return $Data::MessagePack::Boolean::false;
 }
 

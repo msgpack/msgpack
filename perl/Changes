@@ -1,11 +1,16 @@
 
+0.31
+
+    - update Module::Install::XSUtil for ccache support (gfx)
+    - add version check at bootstrap in order to avoid load old .so (gfx)
+
 0.30
 
-    - fix utf8 mode not to be reseted by $unpacker->reset method
+    - fix utf8 mode not to be reseted by $unpacker->reset method (gfx)
 
 0.29
 
-    - add $unpacker->utf8 mode, decoding strings as UTF-8.
+    - add $unpacker->utf8 mode, decoding strings as UTF-8 (gfx)
 
 0.28
 
