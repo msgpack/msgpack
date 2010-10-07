@@ -21,7 +21,7 @@ void init_Data__MessagePack_unpack(pTHX_ bool const cloning);
 
 XS(boot_Data__MessagePack) {
     dXSARGS;
-    PERL_UNUSED_VAR(items);
+    XS_VERSION_BOOTCHECK;
 
     init_Data__MessagePack_pack(aTHX_   false);
     init_Data__MessagePack_unpack(aTHX_ false);
