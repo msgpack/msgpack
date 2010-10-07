@@ -128,14 +128,15 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 			checkClassValidation(origClass);
 			checkDefaultConstructorValidation(origClass);
 			CtClass tmplCtClass = pool.makeClass(tmplName);
+			CtClass acsCtClass = pool.get(TemplateAccessorImpl.class.getName());
 			setInterface(tmplCtClass, Template.class);
 			setInterface(tmplCtClass, DynamicCodeGenBase.TemplateAccessor.class);
 			addDefaultConstructor(tmplCtClass);
 			Field[] fields = getDeclaredFields(origClass);
 			Template[] tmpls = createTemplates(fields);
 			setTemplates(origClass, tmpls);
-			addTemplateArrayField(tmplCtClass, origClass);
-			addSetTemplatesMethod(tmplCtClass, origClass);
+			addTemplateArrayField(tmplCtClass, acsCtClass);
+			addSetTemplatesMethod(tmplCtClass, acsCtClass);
 			addUnpackMethod(tmplCtClass, origClass, fields);
 			addConvertMethod(tmplCtClass, origClass, fields);
 			return createClass(tmplCtClass);
@@ -153,9 +154,8 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 				+ origClass.getName());
 		try {
 			String origName = origClass.getName();
-			String tmplName = origName + POSTFIX_TYPE_NAME_TEMPLATE + inc();
 			checkClassValidation(origClass);
-			CtClass tmplCtClass = pool.makeClass(tmplName);
+			CtClass tmplCtClass = makeClass(origName);
 			setInterface(tmplCtClass, Template.class);
 			addDefaultConstructor(tmplCtClass);
 			addUnpackMethodForOrdinalEnumTypes(tmplCtClass, origClass);
@@ -168,6 +168,17 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 			LOG.error(e.getMessage(), e);
 			throw new DynamicCodeGenException(e.getMessage(), e);
 		}
+	}
+
+	private CtClass makeClass(String origName) throws NotFoundException {
+		StringBuilder sb = new StringBuilder();
+		sb.append(origName);
+		sb.append(POSTFIX_TYPE_NAME_TEMPLATE);
+		sb.append(inc());
+		String invokerName = sb.toString();
+		CtClass newCtClass = pool.makeClass(invokerName);
+		newCtClass.setModifiers(Modifier.PUBLIC);
+		return newCtClass;
 	}
 
 	private void checkClassValidation(Class<?> origClass) {
@@ -405,46 +416,25 @@ public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 		}
 	}
 
-	private void addTemplateArrayField(CtClass newCtClass, Class<?> origClass) {
-		StringBuilder sb = new StringBuilder();
-		addPublicFieldDecl(sb, Template.class, VARIABLE_NAME_TEMPLATES, 1);
-		insertSemicolon(sb);
-		LOG.trace("templates field src: " + sb.toString());
-		try {
-			CtField templatesCtField = CtField.make(sb.toString(), newCtClass);
-			newCtClass.addField(templatesCtField);
-		} catch (CannotCompileException e) {
-			DynamicCodeGenException ex = new DynamicCodeGenException(e
-					.getMessage()
-					+ ": " + sb.toString(), e);
-			LOG.error(ex.getMessage(), ex);
-			throw ex;
-		}
+	private void addTemplateArrayField(CtClass newCtClass, CtClass acsCtClass)
+			throws NotFoundException, CannotCompileException {
+		CtField tmplsField = acsCtClass
+				.getDeclaredField(VARIABLE_NAME_TEMPLATES);
+		CtField tmplsField2 = new CtField(tmplsField.getType(), tmplsField
+				.getName(), newCtClass);
+		newCtClass.addField(tmplsField2);
 	}
 
-	private void addSetTemplatesMethod(CtClass newCtClass, Class<?> origClass) {
-		StringBuilder sb = new StringBuilder();
-		StringBuilder body = new StringBuilder();
-		body.append("_$$_templates = _$$_tmpls;");
-		addPublicMethodDecl(sb, METHOD_NAME_SETTEMPLATES, void.class,
-				new Class<?>[] { Template.class }, new int[] { 1 },
-				new String[] { VARIABLE_NAME_TEMPLATES0 }, new Class<?>[0],
-				body.toString());
-		LOG.trace("settemplates method src: " + sb.toString());
-		try {
-			CtMethod newCtMethod = CtNewMethod.make(sb.toString(), newCtClass);
-			newCtClass.addMethod(newCtMethod);
-		} catch (CannotCompileException e) {
-			DynamicCodeGenException ex = new DynamicCodeGenException(e
-					.getMessage()
-					+ ": " + sb.toString(), e);
-			LOG.error(ex.getMessage(), ex);
-			throw ex;
-		}
+	private void addSetTemplatesMethod(CtClass newCtClass, CtClass acsCtClass)
+			throws NotFoundException, CannotCompileException {
+		CtMethod settmplsMethod = acsCtClass
+				.getDeclaredMethod(METHOD_NAME_SETTEMPLATES);
+		CtMethod settmplsMethod2 = CtNewMethod.copy(settmplsMethod, newCtClass,
+				null);
+		newCtClass.addMethod(settmplsMethod2);
 	}
 
-	private void addUnpackMethod(CtClass unpackerCtClass, Class<?> c, Field[] fs)
-			throws CannotCompileException, NotFoundException {
+	private void addUnpackMethod(CtClass unpackerCtClass, Class<?> c, Field[] fs) {
 		// Object unpack(Unpacker pac) throws IOException, MessageTypeException;
 		StringBuilder sb = new StringBuilder();
 		StringBuilder bsb = new StringBuilder();

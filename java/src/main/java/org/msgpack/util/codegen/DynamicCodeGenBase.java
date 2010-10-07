@@ -21,6 +21,14 @@ public class DynamicCodeGenBase implements BasicConstants {
 	public static interface TemplateAccessor {
 		void setTemplates(Template[] templates);
 	}
+	
+	public static class TemplateAccessorImpl implements TemplateAccessor {
+		public Template[] _$$_templates;
+		
+		public void setTemplates(Template[] _$$_tmpls) {
+			_$$_templates = _$$_tmpls;
+		}
+	}
 
 	private static Logger LOG = LoggerFactory
 			.getLogger(DynamicCodeGenBase.class);
@@ -114,13 +122,33 @@ public class DynamicCodeGenBase implements BasicConstants {
 	public void insertLocalVariableDecl(StringBuilder sb, Class<?> type,
 			String name, int dim) {
 		// int[] lv
-		sb.append(type.getName());
+		if (type.equals(byte[].class)) {
+			sb.append("byte[]");	
+		} else {
+			sb.append(type.getName());	
+		}
 		for (int i = 0; i < dim; ++i) {
 			sb.append(CHAR_NAME_LEFT_SQUARE_BRACKET);
 			sb.append(CHAR_NAME_RIGHT_SQUARE_BRACKET);
 		}
 		sb.append(CHAR_NAME_SPACE);
 		sb.append(name);
+	}
+	
+	static int getArrayDim(Class<?> type) {
+		if (type.isArray()) {
+			return 1 + getArrayDim(type.getComponentType());
+		} else {
+			return 0;
+		}
+	}
+
+	static Class<?> getArrayBaseType(Class<?> type) {
+		if (type.isArray()) {
+			return getArrayBaseType(type.getComponentType());
+		} else {
+			return type;
+		}
 	}
 
 	public void insertValueInsertion(StringBuilder sb, String expr) {

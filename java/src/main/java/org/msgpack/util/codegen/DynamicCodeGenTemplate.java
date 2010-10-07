@@ -9,7 +9,7 @@ public class DynamicCodeGenTemplate {
 			DynamicCodeGen gen = DynamicCodeGen.getInstance();
 			Class<?> tmplClass = gen.generateTemplateClass(c);
 			Object obj = tmplClass.newInstance();
-			((DynamicCodeGenBase.TemplateAccessor)obj).setTemplates(gen.getTemplates(c));
+			((TemplateAccessor) obj).setTemplates(gen.getTemplates(c));
 			return (Template) obj;
 		} catch (InstantiationException e) {
 			throw new DynamicCodeGenException(e.getMessage(), e);
