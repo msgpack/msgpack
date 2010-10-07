@@ -1,6 +1,7 @@
 
 0.31
 
+    - update Module::Install::XSUtil for ccache support (gfx)
     - add version check at bootstrap in order to avoid load old .so (gfx)
 
 0.30
