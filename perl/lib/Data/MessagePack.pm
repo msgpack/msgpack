@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use 5.008001;
 
-our $VERSION = '0.29';
+our $VERSION = '0.30';
 our $PreferInteger = 0;
 
 sub true () {
