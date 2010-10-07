@@ -85,6 +85,10 @@ public interface BasicConstants {
 	String VARIABLE_NAME_TEMPLATES = "_$$_templates";
 
 	String VARIABLE_NAME_TEMPLATES0 = "_$$_tmpls";
+	
+	String VARIABLE_NAME_CLIENT = "_$$_client";
+	
+	String VARIABLE_NAME_CLIENT0 = "_$$_c";
 
 	String METHOD_NAME_VALUEOF = "valueOf";
 
@@ -127,6 +131,8 @@ public interface BasicConstants {
 	String METHOD_NAME_MSGCONVERT = "messageConvert";
 
 	String METHOD_NAME_SETTEMPLATES = "setTemplates";
+	
+	String METHOD_NAME_SETCLIENT = "setClient";
 
 	String METHOD_NAME_PACK = "pack";
 

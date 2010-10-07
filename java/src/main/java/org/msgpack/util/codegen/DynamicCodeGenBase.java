@@ -134,7 +134,7 @@ public class DynamicCodeGenBase implements BasicConstants {
 		sb.append(name);
 	}
 
-	static int getArrayDim(Class<?> type) {
+	protected int getArrayDim(Class<?> type) {
 		if (type.isArray()) {
 			return 1 + getArrayDim(type.getComponentType());
 		} else {
@@ -142,7 +142,7 @@ public class DynamicCodeGenBase implements BasicConstants {
 		}
 	}
 
-	static Class<?> getArrayBaseType(Class<?> type) {
+	protected Class<?> getArrayBaseType(Class<?> type) {
 		if (type.isArray()) {
 			return getArrayBaseType(type.getComponentType());
 		} else {
@@ -150,7 +150,7 @@ public class DynamicCodeGenBase implements BasicConstants {
 		}
 	}
 	
-	public String arrayTypeToString(Class<?> type) {
+	protected String arrayTypeToString(Class<?> type) {
 		StringBuilder sb = new StringBuilder();
 		int dim = getArrayDim(type);
 		Class<?> t = getArrayBaseType(type);

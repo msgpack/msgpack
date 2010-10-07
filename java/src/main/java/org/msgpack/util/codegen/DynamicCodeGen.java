@@ -38,7 +38,7 @@ import org.msgpack.annotation.MessagePackOrdinalEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
+class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 
 	private static Logger LOG = LoggerFactory.getLogger(DynamicCodeGen.class);
 
