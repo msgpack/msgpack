@@ -7,6 +7,7 @@ cdef extern from "Python.h":
     cdef object PyBytes_FromStringAndSize(const_char_ptr b, Py_ssize_t len)
     cdef PyObject* Py_True
     cdef PyObject* Py_False
+    cdef object PyUnicode_AsUTF8String(object)
 
     cdef long long PyLong_AsLongLong(object o)
     cdef unsigned long long PyLong_AsUnsignedLongLong(object o)
@@ -105,7 +106,7 @@ cdef class Packer(object):
             if ret == 0:
                 ret = msgpack_pack_raw_body(&self.pk, rawval, len(o))
         elif PyUnicode_Check(o):
-            o = o.encode('utf-8')
+            o = PyUnicode_AsUTF8String(o)
             rawval = o
             ret = msgpack_pack_raw(&self.pk, len(o))
             if ret == 0:
@@ -169,7 +170,7 @@ cdef extern from "unpack.h":
     object template_data(template_context* ctx)
 
 
-def unpackb(object packed_bytes):
+def unpackb(bytes packed_bytes):
     """Unpack packed_bytes to object. Returns an unpacked object."""
     cdef const_char_ptr p = packed_bytes
     cdef template_context ctx
@@ -232,7 +233,7 @@ cdef class Unpacker(object):
     cdef object file_like
     cdef int read_size
     cdef object waiting_bytes
-    cdef int use_list
+    cdef bint use_list
 
     def __cinit__(self):
         self.buf = NULL
@@ -241,7 +242,7 @@ cdef class Unpacker(object):
         if self.buf:
             free(self.buf);
 
-    def __init__(self, file_like=None, int read_size=0, use_list=0):
+    def __init__(self, file_like=None, int read_size=0, bint use_list=0):
         if read_size == 0:
             read_size = 1024*1024
         self.use_list = use_list

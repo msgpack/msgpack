@@ -248,6 +248,7 @@ sub _pack {
 # UNPACK
 #
 
+our $_utf8 = 0;
 my $p; # position variables for speed.
 
 sub unpack :method {
@@ -358,7 +359,9 @@ sub _unpack {
             $num = $byte & ~0xa0;
             $p += $num;
         }
-        return substr( $value, $p - $num, $num );
+        my $s = substr( $value, $p - $num, $num );
+        utf8::decode($s) if $_utf8;
+        return $s;
     }
 
     elsif ( $byte == 0xc0 ) { # nil
@@ -396,9 +399,19 @@ package
     Data::MessagePack::PP::Unpacker;
 
 sub new {
-    bless { pos => 0 }, shift;
+    bless { pos => 0, utf8 => 0 }, shift;
 }
 
+sub utf8 {
+    my $self = shift;
+    $self->{utf8} = (@_ ? shift : 1);
+    return $self;
+}
+
+sub get_utf8 {
+    my($self) = @_;
+    return $self->{utf8};
+}
 
 sub execute_limit {
     execute( @_ );
@@ -540,7 +553,9 @@ sub _count {
 
 
 sub data {
-    return Data::MessagePack->unpack( substr($_[0]->{ data }, 0, $_[0]->{pos}) );
+    my($self) = @_;
+    local $Data::MessagePack::PP::_utf8 = $self->{utf8};
+    return Data::MessagePack->unpack( substr($self->{ data }, 0, $self->{pos}) );
 }
 
 

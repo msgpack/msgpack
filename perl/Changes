@@ -1,3 +1,12 @@
+
+0.30
+
+    - fix utf8 mode not to be reseted by $unpacker->reset method
+
+0.29
+
+    - add $unpacker->utf8 mode, decoding strings as UTF-8.
+
 0.28
 
     - added more tests(gfx)
