@@ -36,11 +36,11 @@ public class TestDynamicCodeGenPackerConverter extends TestCase {
 		src.f5 = 5;
 		src.f6 = false;
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		MessagePacker packer = DynamicCodeGenPacker
+		MessagePacker packer = DynamicPacker
 				.create(PrimitiveTypeFieldsClass.class);
 		packer.pack(new Packer(out), src);
 		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = DynamicCodeGenTemplate
+		Template tmpl = DynamicTemplate
 				.create(PrimitiveTypeFieldsClass.class);
 		Unpacker pac = new Unpacker(in);
 		Iterator<MessagePackObject> it = pac.iterator();
@@ -85,11 +85,11 @@ public class TestDynamicCodeGenPackerConverter extends TestCase {
 		src.f8 = "8";
 		src.f9 = new byte[] { 0x01, 0x02 };
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		MessagePacker packer = DynamicCodeGenPacker
+		MessagePacker packer = DynamicPacker
 				.create(GeneralReferenceTypeFieldsClass.class);
 		packer.pack(new Packer(out), src);
 		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = DynamicCodeGenTemplate
+		Template tmpl = DynamicTemplate
 				.create(GeneralReferenceTypeFieldsClass.class);
 		Unpacker pac = new Unpacker(in);
 		Iterator<MessagePackObject> it = pac.iterator();
@@ -146,11 +146,11 @@ public class TestDynamicCodeGenPackerConverter extends TestCase {
 		slnt.f1 = "muga";
 		src.f4.add(slnt);
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		MessagePacker packer = DynamicCodeGenPacker
+		MessagePacker packer = DynamicPacker
 				.create(SampleListTypes.class);
 		packer.pack(new Packer(out), src);
 		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = DynamicCodeGenTemplate.create(SampleListTypes.class);
+		Template tmpl = DynamicTemplate.create(SampleListTypes.class);
 		Unpacker pac = new Unpacker(in);
 		Iterator<MessagePackObject> it = pac.iterator();
 		assertTrue(it.hasNext());
@@ -217,11 +217,11 @@ public class TestDynamicCodeGenPackerConverter extends TestCase {
 		src.f2.put("k2", 2);
 		src.f2.put("k3", 3);
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		MessagePacker packer = DynamicCodeGenPacker
+		MessagePacker packer = DynamicPacker
 				.create(SampleMapTypes.class);
 		packer.pack(new Packer(out), src);
 		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = DynamicCodeGenTemplate.create(SampleMapTypes.class);
+		Template tmpl = DynamicTemplate.create(SampleMapTypes.class);
 		Unpacker pac = new Unpacker(in);
 		Iterator<MessagePackObject> it = pac.iterator();
 		assertTrue(it.hasNext());
@@ -261,28 +261,28 @@ public class TestDynamicCodeGenPackerConverter extends TestCase {
 	@Test
 	public void testDefaultConstructorModifiers01() throws Exception {
 		try {
-			DynamicCodeGenPacker.create(NoDefaultConstructorClass.class);
+			DynamicPacker.create(NoDefaultConstructorClass.class);
 			fail();
 		} catch (DynamicCodeGenException e) {
 			assertTrue(true);
 		}
 		assertTrue(true);
 		try {
-			DynamicCodeGenPacker.create(PrivateDefaultConstructorClass.class);
+			DynamicPacker.create(PrivateDefaultConstructorClass.class);
 			fail();
 		} catch (DynamicCodeGenException e) {
 			assertTrue(true);
 		}
 		assertTrue(true);
 		try {
-			DynamicCodeGenPacker.create(ProtectedDefaultConstructorClass.class);
+			DynamicPacker.create(ProtectedDefaultConstructorClass.class);
 			fail();
 		} catch (DynamicCodeGenException e) {
 			assertTrue(true);
 		}
 		assertTrue(true);
 		try {
-			DynamicCodeGenPacker.create(PackageDefaultConstructorClass.class);
+			DynamicPacker.create(PackageDefaultConstructorClass.class);
 			fail();
 		} catch (DynamicCodeGenException e) {
 			assertTrue(true);
@@ -293,21 +293,21 @@ public class TestDynamicCodeGenPackerConverter extends TestCase {
 	@Test
 	public void testDefaultConstructorModifiers02() throws Exception {
 		try {
-			DynamicCodeGenTemplate.create(NoDefaultConstructorClass.class);
+			DynamicTemplate.create(NoDefaultConstructorClass.class);
 			fail();
 		} catch (DynamicCodeGenException e) {
 			assertTrue(true);
 		}
 		assertTrue(true);
 		try {
-			DynamicCodeGenTemplate.create(PrivateDefaultConstructorClass.class);
+			DynamicTemplate.create(PrivateDefaultConstructorClass.class);
 			fail();
 		} catch (DynamicCodeGenException e) {
 			assertTrue(true);
 		}
 		assertTrue(true);
 		try {
-			DynamicCodeGenTemplate
+			DynamicTemplate
 					.create(ProtectedDefaultConstructorClass.class);
 			fail();
 		} catch (DynamicCodeGenException e) {
@@ -315,7 +315,7 @@ public class TestDynamicCodeGenPackerConverter extends TestCase {
 		}
 		assertTrue(true);
 		try {
-			DynamicCodeGenTemplate.create(PackageDefaultConstructorClass.class);
+			DynamicTemplate.create(PackageDefaultConstructorClass.class);
 			fail();
 		} catch (DynamicCodeGenException e) {
 			assertTrue(true);
@@ -346,21 +346,21 @@ public class TestDynamicCodeGenPackerConverter extends TestCase {
 	@Test
 	public void testClassModifiers01() throws Exception {
 		try {
-			DynamicCodeGenPacker.create(PrivateModifierClass.class);
+			DynamicPacker.create(PrivateModifierClass.class);
 			fail();
 		} catch (DynamicCodeGenException e) {
 			assertTrue(true);
 		}
 		assertTrue(true);
 		try {
-			DynamicCodeGenPacker.create(ProtectedModifierClass.class);
+			DynamicPacker.create(ProtectedModifierClass.class);
 			fail();
 		} catch (DynamicCodeGenException e) {
 			assertTrue(true);
 		}
 		assertTrue(true);
 		try {
-			DynamicCodeGenPacker.create(PackageModifierClass.class);
+			DynamicPacker.create(PackageModifierClass.class);
 			fail();
 		} catch (DynamicCodeGenException e) {
 			assertTrue(true);
@@ -371,21 +371,21 @@ public class TestDynamicCodeGenPackerConverter extends TestCase {
 	@Test
 	public void testClassModifiers02() throws Exception {
 		try {
-			DynamicCodeGenTemplate.create(PrivateModifierClass.class);
+			DynamicTemplate.create(PrivateModifierClass.class);
 			fail();
 		} catch (DynamicCodeGenException e) {
 			assertTrue(true);
 		}
 		assertTrue(true);
 		try {
-			DynamicCodeGenTemplate.create(ProtectedModifierClass.class);
+			DynamicTemplate.create(ProtectedModifierClass.class);
 			fail();
 		} catch (DynamicCodeGenException e) {
 			assertTrue(true);
 		}
 		assertTrue(true);
 		try {
-			DynamicCodeGenTemplate.create(PackageModifierClass.class);
+			DynamicTemplate.create(PackageModifierClass.class);
 			fail();
 		} catch (DynamicCodeGenException e) {
 			assertTrue(true);
@@ -407,14 +407,14 @@ public class TestDynamicCodeGenPackerConverter extends TestCase {
 	@Test
 	public void testFinalClassAndAbstractClass01() throws Exception {
 		try {
-			DynamicCodeGenPacker.create(FinalModifierClass.class);
+			DynamicPacker.create(FinalModifierClass.class);
 			assertTrue(true);
 		} catch (DynamicCodeGenException e) {
 			fail();
 		}
 		assertTrue(true);
 		try {
-			DynamicCodeGenPacker.create(AbstractModifierClass.class);
+			DynamicPacker.create(AbstractModifierClass.class);
 			fail();
 		} catch (DynamicCodeGenException e) {
 			assertTrue(true);
@@ -425,14 +425,14 @@ public class TestDynamicCodeGenPackerConverter extends TestCase {
 	@Test
 	public void testFinalClassAndAbstractClass02() throws Exception {
 		try {
-			DynamicCodeGenTemplate.create(FinalModifierClass.class);
+			DynamicTemplate.create(FinalModifierClass.class);
 			assertTrue(true);
 		} catch (DynamicCodeGenException e) {
 			fail();
 		}
 		assertTrue(true);
 		try {
-			DynamicCodeGenTemplate.create(AbstractModifierClass.class);
+			DynamicTemplate.create(AbstractModifierClass.class);
 			fail();
 		} catch (DynamicCodeGenException e) {
 			assertTrue(true);
@@ -449,14 +449,14 @@ public class TestDynamicCodeGenPackerConverter extends TestCase {
 	@Test
 	public void testInterfaceAndEnumType01() throws Exception {
 		try {
-			DynamicCodeGenPacker.create(SampleInterface.class);
+			DynamicPacker.create(SampleInterface.class);
 			fail();
 		} catch (DynamicCodeGenException e) {
 			assertTrue(true);
 		}
 		assertTrue(true);
 		try {
-			DynamicCodeGenPacker.create(SampleEnum.class);
+			DynamicPacker.create(SampleEnum.class);
 			fail();
 		} catch (DynamicCodeGenException e) {
 			assertTrue(true);
@@ -467,7 +467,7 @@ public class TestDynamicCodeGenPackerConverter extends TestCase {
 	@Test
 	public void testInterfaceType() throws Exception {
 		try {
-			DynamicCodeGenTemplate.create(SampleInterface.class);
+			DynamicTemplate.create(SampleInterface.class);
 			fail();
 		} catch (DynamicCodeGenException e) {
 			assertTrue(true);
@@ -484,11 +484,11 @@ public class TestDynamicCodeGenPackerConverter extends TestCase {
 		src.f0 = 0;
 		src.f1 = SampleEnum.ONE;
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		MessagePacker packer = DynamicCodeGenPacker
+		MessagePacker packer = DynamicPacker
 				.create(SampleEnumFieldClass.class);
 		packer.pack(new Packer(out), src);
 		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = DynamicCodeGenTemplate
+		Template tmpl = DynamicTemplate
 				.create(SampleEnumFieldClass.class);
 		Unpacker pac = new Unpacker(in);
 		Iterator<MessagePackObject> it = pac.iterator();
@@ -521,11 +521,11 @@ public class TestDynamicCodeGenPackerConverter extends TestCase {
 		src.f3 = 3;
 		src.f4 = 4;
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		MessagePacker packer = DynamicCodeGenPacker
+		MessagePacker packer = DynamicPacker
 				.create(FieldModifiersClass.class);
 		packer.pack(new Packer(out), src);
 		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = DynamicCodeGenTemplate
+		Template tmpl = DynamicTemplate
 				.create(FieldModifiersClass.class);
 		Unpacker pac = new Unpacker(in);
 		Iterator<MessagePackObject> it = pac.iterator();
@@ -553,14 +553,14 @@ public class TestDynamicCodeGenPackerConverter extends TestCase {
 
 	@Test
 	public void testNestedFieldClass() throws Exception {
-		MessagePacker packer2 = DynamicCodeGenPacker.create(NestedClass.class);
+		MessagePacker packer2 = DynamicPacker.create(NestedClass.class);
 		CustomPacker.register(NestedClass.class, packer2);
-		MessagePacker packer1 = DynamicCodeGenPacker.create(BaseClass.class);
+		MessagePacker packer1 = DynamicPacker.create(BaseClass.class);
 		CustomPacker.register(BaseClass.class, packer1);
-		Template tmpl2 = DynamicCodeGenTemplate.create(NestedClass.class);
+		Template tmpl2 = DynamicTemplate.create(NestedClass.class);
 		CustomUnpacker.register(NestedClass.class, tmpl2);
 		CustomConverter.register(NestedClass.class, tmpl2);
-		Template tmpl1 = DynamicCodeGenTemplate.create(BaseClass.class);
+		Template tmpl1 = DynamicTemplate.create(BaseClass.class);
 		CustomUnpacker.register(BaseClass.class, tmpl1);
 		CustomConverter.register(BaseClass.class, tmpl1);
 		BaseClass src = new BaseClass();
@@ -604,14 +604,14 @@ public class TestDynamicCodeGenPackerConverter extends TestCase {
 		src2.f2 = 2;
 		src.f1 = src2;
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		MessagePacker packer = DynamicCodeGenPacker.create(BaseClass2.class);
+		MessagePacker packer = DynamicPacker.create(BaseClass2.class);
 		packer.pack(new Packer(out), src);
 		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
 		Unpacker pac = new Unpacker(in);
 		Iterator<MessagePackObject> it = pac.iterator();
 		assertTrue(it.hasNext());
 		MessagePackObject mpo = it.next();
-		Template tmpl = DynamicCodeGenTemplate.create(BaseClass2.class);
+		Template tmpl = DynamicTemplate.create(BaseClass2.class);
 		BaseClass2 dst = (BaseClass2) tmpl.convert(mpo);
 		assertTrue(src.f0 == dst.f0);
 		assertTrue(src.f1.f2 == dst.f1.f2);
@@ -645,11 +645,11 @@ public class TestDynamicCodeGenPackerConverter extends TestCase {
 		src.f8 = 8;
 		src.f9 = 9;
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		MessagePacker packer = DynamicCodeGenPacker
+		MessagePacker packer = DynamicPacker
 				.create(SampleSubClass.class);
 		packer.pack(new Packer(out), src);
 		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = DynamicCodeGenTemplate.create(SampleSubClass.class);
+		Template tmpl = DynamicTemplate.create(SampleSubClass.class);
 		Unpacker pac = new Unpacker(in);
 		Iterator<MessagePackObject> it = pac.iterator();
 		assertTrue(it.hasNext());

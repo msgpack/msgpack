@@ -1,11 +1,24 @@
 package org.msgpack.util.codegen;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.GenericArrayType;
+import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import javassist.CannotCompileException;
+import javassist.ClassPool;
+import javassist.CtClass;
+import javassist.CtConstructor;
+import javassist.CtField;
+import javassist.CtMethod;
+import javassist.CtNewConstructor;
+import javassist.CtNewMethod;
+import javassist.NotFoundException;
 
 import org.msgpack.CustomConverter;
 import org.msgpack.CustomMessage;
@@ -18,7 +31,7 @@ import org.msgpack.annotation.MessagePackOrdinalEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DynamicCodeGenBase implements BasicConstants {
+public class DynamicCodeGenBase implements Constants {
 	public static interface TemplateAccessor {
 		void setTemplates(Template[] templates);
 	}
@@ -34,252 +47,104 @@ public class DynamicCodeGenBase implements BasicConstants {
 	private static Logger LOG = LoggerFactory
 			.getLogger(DynamicCodeGenBase.class);
 
+	private static AtomicInteger COUNTER = new AtomicInteger(0);
+
+	protected static int inc() {
+		return COUNTER.addAndGet(1);
+	}
+
+	protected ClassPool pool;
+
 	public DynamicCodeGenBase() {
+		pool = ClassPool.getDefault();
 	}
 
-	public void addPublicFieldDecl(StringBuilder sb, Class<?> type, String name) {
-		addPublicFieldDecl(sb, type, name, 0);
+	protected void checkTypeValidation(Class<?> type) {
+		DynamicCodeGenException e = new DynamicCodeGenException("Fatal error: "
+				+ type.getName());
+		LOG.error(e.getMessage(), e);
+		throw e;
 	}
 
-	public void addPublicFieldDecl(StringBuilder sb, Class<?> type,
-			String name, int dim) {
-		sb.append(KEYWORD_MODIFIER_PUBLIC);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(type.getName());
-		for (int i = 0; i < dim; ++i) {
-			sb.append(CHAR_NAME_LEFT_SQUARE_BRACKET);
-			sb.append(CHAR_NAME_RIGHT_SQUARE_BRACKET);
-		}
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(name);
+	protected void throwTypeValidationException(Class<?> origClass,
+			String message) throws DynamicCodeGenException {
+		DynamicCodeGenException e = new DynamicCodeGenException(message + ": "
+				+ origClass.getName());
+		LOG.error(e.getMessage(), e);
+		throw e;
 	}
 
-	public void addPublicMethodDecl(StringBuilder sb, String mname,
-			Class<?> returnType, Class<?>[] paramTypes, String[] anames,
-			Class<?>[] exceptTypes, String methodBody) {
-		int[] dims = new int[paramTypes.length];
-		for (int i = 0; i < paramTypes.length; ++i) {
-			dims[i] = 0;
-		}
-		addPublicMethodDecl(sb, mname, returnType, paramTypes, dims, anames,
-				exceptTypes, methodBody);
+	protected void checkDefaultConstructorValidation(Class<?> type) {
+		DynamicCodeGenException e = new DynamicCodeGenException("Fatal error: "
+				+ type.getName());
+		LOG.error(e.getMessage(), e);
+		throw e;
 	}
 
-	public void addPublicMethodDecl(StringBuilder sb, String mname,
-			Class<?> returnType, Class<?>[] paramTypes, int[] dims,
-			String[] anames, Class<?>[] exceptTypes, String methodBody) {
-		sb.append(KEYWORD_MODIFIER_PUBLIC);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(returnType.getName());
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(mname);
-		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		for (int i = 0; i < paramTypes.length; ++i) {
-			sb.append(paramTypes[i].getName());
-			for (int j = 0; j < dims[i]; ++j) {
-				sb.append(CHAR_NAME_LEFT_SQUARE_BRACKET);
-				sb.append(CHAR_NAME_RIGHT_SQUARE_BRACKET);
-			}
-			sb.append(CHAR_NAME_SPACE);
-			sb.append(anames[i]);
-			if (i + 1 != paramTypes.length) {
-				sb.append(CHAR_NAME_COMMA);
-				sb.append(CHAR_NAME_SPACE);
-			}
-		}
-		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-		sb.append(CHAR_NAME_SPACE);
-		if (exceptTypes.length != 0) {
-			sb.append(KEYWORD_THROWS);
-			sb.append(CHAR_NAME_SPACE);
-			for (int i = 0; i < exceptTypes.length; ++i) {
-				sb.append(exceptTypes[i].getName());
-				if (i + 1 != exceptTypes.length) {
-					sb.append(CHAR_NAME_COMMA);
-					sb.append(CHAR_NAME_SPACE);
-				}
-			}
-			sb.append(CHAR_NAME_SPACE);
-		}
-		sb.append(CHAR_NAME_LEFT_CURLY_BRACKET);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(methodBody);
-		sb.append(CHAR_NAME_RIGHT_CURLY_BRACKET);
-		sb.append(CHAR_NAME_SPACE);
+	protected void throwConstructorValidationException(Class<?> origClass) {
+		DynamicCodeGenException e = new DynamicCodeGenException(
+				"it must have a public zero-argument constructor: "
+						+ origClass.getName());
+		LOG.error(e.getMessage(), e);
+		throw e;
 	}
 
-	public void insertSemicolon(StringBuilder sb) {
-		// ;
-		sb.append(CHAR_NAME_SEMICOLON);
-		sb.append(CHAR_NAME_SPACE);
+	protected void throwFieldValidationException(Field f) {
+		DynamicCodeGenException e = new DynamicCodeGenException(
+				"it must be a public field: " + f.getName());
+		LOG.debug(e.getMessage(), e);
+		throw e;
 	}
 
-	public void insertLocalVariableDecl(StringBuilder sb, Class<?> type,
-			String name) {
-		// int lv
-		insertLocalVariableDecl(sb, type, name, 0);
+	protected static void throwMethodValidationException(Method method,
+			String message) throws DynamicCodeGenException {
+		DynamicCodeGenException e = new DynamicCodeGenException(message + ": "
+				+ method.getName());
+		LOG.error(e.getMessage(), e);
+		throw e;
 	}
 
-	public void insertLocalVariableDecl(StringBuilder sb, Class<?> type,
-			String name, int dim) {
-		// int[] lv
-		int dim0 = dim + getArrayDim(type);
-		Class<?> type0 = getArrayBaseType(type);
-		sb.append(type0.getName());
-		for (int i = 0; i < dim0; ++i) {
-			sb.append(CHAR_NAME_LEFT_SQUARE_BRACKET);
-			sb.append(CHAR_NAME_RIGHT_SQUARE_BRACKET);
-		}
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(name);
+	protected CtClass makeClass(String name) throws NotFoundException {
+		DynamicCodeGenException e = new DynamicCodeGenException("Fatal error: "
+				+ name);
+		LOG.error(e.getMessage(), e);
+		throw e;
 	}
 
-	protected int getArrayDim(Class<?> type) {
-		if (type.isArray()) {
-			return 1 + getArrayDim(type.getComponentType());
-		} else {
-			return 0;
-		}
+	protected void setInterface(CtClass packerCtClass, Class<?> infClass)
+			throws NotFoundException {
+		CtClass infCtClass = pool.get(infClass.getName());
+		packerCtClass.addInterface(infCtClass);
 	}
 
-	protected Class<?> getArrayBaseType(Class<?> type) {
-		if (type.isArray()) {
-			return getArrayBaseType(type.getComponentType());
-		} else {
-			return type;
-		}
-	}
-	
-	protected String arrayTypeToString(Class<?> type) {
-		StringBuilder sb = new StringBuilder();
-		int dim = getArrayDim(type);
-		Class<?> t = getArrayBaseType(type);
-		sb.append(t.getName());
-		for (int i = 0; i < dim; ++i) {
-			sb.append(CHAR_NAME_LEFT_SQUARE_BRACKET);
-			sb.append(CHAR_NAME_RIGHT_SQUARE_BRACKET);
-		}
-		return sb.toString();
+	protected void addDefaultConstructor(CtClass enhancedCtClass)
+			throws CannotCompileException {
+		CtConstructor newCtCons = CtNewConstructor
+				.defaultConstructor(enhancedCtClass);
+		enhancedCtClass.addConstructor(newCtCons);
 	}
 
-	public void insertValueInsertion(StringBuilder sb, String expr) {
-		// = expr
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(CHAR_NAME_EQUAL);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(expr);
+	protected void addTemplateArrayField(CtClass newCtClass)
+			throws NotFoundException, CannotCompileException {
+		CtClass acsCtClass = pool.get(TemplateAccessorImpl.class.getName());
+		CtField tmplsField = acsCtClass
+				.getDeclaredField(VARIABLE_NAME_TEMPLATES);
+		CtField tmplsField2 = new CtField(tmplsField.getType(), tmplsField
+				.getName(), newCtClass);
+		newCtClass.addField(tmplsField2);
 	}
 
-	public void insertInsertion(StringBuilder sb) {
-		// =
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(CHAR_NAME_EQUAL);
-		sb.append(CHAR_NAME_SPACE);
+	protected void addSetTemplatesMethod(CtClass newCtClass)
+			throws NotFoundException, CannotCompileException {
+		CtClass acsCtClass = pool.get(TemplateAccessorImpl.class.getName());
+		CtMethod settmplsMethod = acsCtClass
+				.getDeclaredMethod(METHOD_NAME_SETTEMPLATES);
+		CtMethod settmplsMethod2 = CtNewMethod.copy(settmplsMethod, newCtClass,
+				null);
+		newCtClass.addMethod(settmplsMethod2);
 	}
 
-	public void insertFieldAccess(StringBuilder sb, String target, String field) {
-		// target.field
-		sb.append(target);
-		sb.append(CHAR_NAME_DOT);
-		sb.append(field);
-	}
-
-	public void insertDefaultConsCall(StringBuilder sb, Class<?> type) {
-		// new tname()
-		insertConsCall(sb, type, null);
-	}
-
-	public void insertConsCall(StringBuilder sb, Class<?> type, String expr) {
-		// new tname(expr)
-		sb.append(KEYWORD_NEW);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(type.getName());
-		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		if (expr != null) {
-			sb.append(expr);
-		}
-		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-	}
-
-	public void insertMethodCall(StringBuilder sb, String tname, String mname,
-			String[] anames) {
-		// tname.mname(anames[0], anames[1], ...)
-		int len = anames.length;
-		sb.append(tname);
-		sb.append(CHAR_NAME_DOT);
-		sb.append(mname);
-		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		for (int i = 0; i < len; ++i) {
-			sb.append(anames[i]);
-			if (i + 1 != len) {
-				sb.append(CHAR_NAME_COMMA);
-				sb.append(CHAR_NAME_SPACE);
-			}
-		}
-		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-	}
-
-	public void insertTypeCast(StringBuilder sb, Class<?> type) {
-		// (type)
-		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		sb.append(type.getName());
-		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-	}
-
-	public void insertTypeCast(StringBuilder sb, Class<?> type, String varName) {
-		// ((type)var)
-		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		sb.append(type.getName());
-		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-		sb.append(varName);
-		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-	}
-
-	public void insertReturnStat(StringBuilder sb, String expr) {
-		// return expr
-		sb.append(KEYWORD_RETURN);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(expr);
-	}
-
-	public void insertTypeConvToObjectType(StringBuilder sb, Class<?> type,
-			String expr) throws DynamicCodeGenException {
-		if (type.isPrimitive()) { // primitive type
-			insertConsCall(sb, primitiveTypeToWrapperType(type), expr);
-		} else { // reference type
-			sb.append(expr);
-		}
-	}
-
-	public void insertTryCatchBlocks(StringBuilder sb, String tryBody,
-			List<Class<?>> types, List<String> names, List<String> catchBodies) {
-		int len = types.size();
-		sb.append(KEYWORD_TRY);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(CHAR_NAME_LEFT_CURLY_BRACKET);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(tryBody);
-		sb.append(CHAR_NAME_RIGHT_CURLY_BRACKET);
-		sb.append(CHAR_NAME_SPACE);
-		for (int i = 0; i < len; ++i) {
-			sb.append(KEYWORD_CATCH);
-			sb.append(CHAR_NAME_SPACE);
-			sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-			sb.append(types.get(i).getName());
-			sb.append(CHAR_NAME_SPACE);
-			sb.append(names.get(i));
-			sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-			sb.append(CHAR_NAME_SPACE);
-			sb.append(CHAR_NAME_LEFT_CURLY_BRACKET);
-			sb.append(CHAR_NAME_SPACE);
-			sb.append(catchBodies.get(i));
-			sb.append(CHAR_NAME_RIGHT_CURLY_BRACKET);
-			sb.append(CHAR_NAME_SPACE);
-		}
-	}
-	
-	public Class<?> primitiveTypeToWrapperType(Class<?> type) {
+	protected Class<?> getPrimToWrapperType(Class<?> type) {
 		if (type.equals(boolean.class)) {
 			return Boolean.class;
 		} else if (type.equals(byte.class)) {
@@ -298,7 +163,7 @@ public class DynamicCodeGenBase implements BasicConstants {
 			throw new MessageTypeException("Type error: " + type.getName());
 		}
 	}
-	
+
 	public String getPrimTypeValueMethodName(Class<?> type) {
 		if (type.equals(boolean.class)) {
 			return METHOD_NAME_BOOLEANVALUE;
@@ -318,6 +183,7 @@ public class DynamicCodeGenBase implements BasicConstants {
 			throw new MessageTypeException("Type error: " + type.getName());
 		}
 	}
+
 	public String getUnpackMethodName(Class<?> c)
 			throws DynamicCodeGenException {
 		if (c.equals(boolean.class) || c.equals(Boolean.class)) {
@@ -404,7 +270,7 @@ public class DynamicCodeGenBase implements BasicConstants {
 				return (Template) CustomConverter.get(c);
 			} else if (CustomMessage.isAnnotated(c, MessagePackMessage.class)) {
 				// @MessagePackMessage
-				Template tmpl = DynamicCodeGenTemplate.create(c);
+				Template tmpl = DynamicTemplate.create(c);
 				CustomMessage.registerTemplate(c, tmpl);
 				return tmpl;
 			} else if (CustomMessage.isAnnotated(c, MessagePackDelegate.class)) {
@@ -416,7 +282,7 @@ public class DynamicCodeGenBase implements BasicConstants {
 			} else if (CustomMessage.isAnnotated(c,
 					MessagePackOrdinalEnum.class)) {
 				// @MessagePackOrdinalEnum
-				Template tmpl = DynamicCodeGenOrdinalEnumTemplate.create(c);
+				Template tmpl = DynamicOrdinalEnumTemplate.create(c);
 				CustomMessage.registerTemplate(c, tmpl);
 				return tmpl;
 			} else {
@@ -449,5 +315,76 @@ public class DynamicCodeGenBase implements BasicConstants {
 			throw new DynamicCodeGenException("Type error: "
 					+ t.getClass().getName());
 		}
+	}
+
+	protected int getArrayDim(Class<?> type) {
+		if (type.isArray()) {
+			return 1 + getArrayDim(type.getComponentType());
+		} else {
+			return 0;
+		}
+	}
+
+	protected Class<?> getArrayBaseType(Class<?> type) {
+		if (type.isArray()) {
+			return getArrayBaseType(type.getComponentType());
+		} else {
+			return type;
+		}
+	}
+
+	protected String arrayTypeToString(Class<?> type) {
+		StringBuilder sb = new StringBuilder();
+		int dim = getArrayDim(type);
+		Class<?> t = getArrayBaseType(type);
+		sb.append(t.getName());
+		for (int i = 0; i < dim; ++i) {
+			sb.append(CHAR_NAME_LEFT_SQUARE_BRACKET);
+			sb.append(CHAR_NAME_RIGHT_SQUARE_BRACKET);
+		}
+		return sb.toString();
+	}
+
+	protected String classToString(Class<?> type) {
+		if (type.isArray()) {
+			return arrayTypeToString(type);
+		} else {
+			return type.getName();
+		}
+	}
+
+	protected CtClass classToCtClass(Class<?> type) throws NotFoundException {
+		if (type.equals(void.class)) {
+			return CtClass.voidType;
+		} else if (type.isPrimitive()) {
+			if (type.equals(boolean.class)) {
+				return CtClass.booleanType;
+			} else if (type.equals(byte.class)) {
+				return CtClass.byteType;
+			} else if (type.equals(char.class)) {
+				return CtClass.charType;
+			} else if (type.equals(short.class)) {
+				return CtClass.shortType;
+			} else if (type.equals(int.class)) {
+				return CtClass.intType;
+			} else if (type.equals(long.class)) {
+				return CtClass.longType;
+			} else if (type.equals(float.class)) {
+				return CtClass.floatType;
+			} else if (type.equals(double.class)) {
+				return CtClass.doubleType;
+			} else {
+				throw new MessageTypeException("Fatal error: " + type.getName());
+			}
+		} else if (type.isArray()) {
+			return pool.get(arrayTypeToString(type));
+		} else {
+			return pool.get(type.getName());
+		}
+	}
+
+	protected Class<?> createClass(CtClass newCtClass)
+			throws CannotCompileException {
+		return newCtClass.toClass(null, null);
 	}
 }

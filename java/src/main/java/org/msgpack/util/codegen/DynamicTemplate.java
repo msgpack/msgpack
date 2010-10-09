@@ -3,7 +3,7 @@ package org.msgpack.util.codegen;
 import org.msgpack.Template;
 import org.msgpack.util.codegen.DynamicCodeGenBase.TemplateAccessor;
 
-public class DynamicCodeGenTemplate {
+public class DynamicTemplate {
 	public static Template create(Class<?> c) {
 		try {
 			DynamicCodeGen gen = DynamicCodeGen.getInstance();

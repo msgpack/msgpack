@@ -1,13 +1,13 @@
 package org.msgpack.util.codegen;
 
-import org.msgpack.Template;
+import org.msgpack.MessagePacker;
 
-public class DynamicCodeGenOrdinalEnumTemplate {
-	public static Template create(Class<?> c) {
+public class DynamicOrdinalEnumPacker {
+	public static MessagePacker create(Class<?> c) {
 		try {
 			DynamicCodeGen gen = DynamicCodeGen.getInstance();
-			Class<?> tmplClass = gen.generateOrdinalEnumTemplateClass(c);
-			return (Template) tmplClass.newInstance();
+			Class<?> packerClass = gen.generateOrdinalEnumPackerClass(c);
+			return (MessagePacker) packerClass.newInstance();
 		} catch (InstantiationException e) {
 			throw new DynamicCodeGenException(e.getMessage(), e);
 		} catch (IllegalAccessException e) {
