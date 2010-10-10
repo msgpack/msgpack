@@ -207,21 +207,27 @@ public interface Constants {
 
 	String STATEMENT_PACKER_PACKERMETHODBODY_04 = "$1.pack(((java.lang.Enum)_$$_t).ordinal()); ";
 
-	String STATEMENT_PACKER_UNPACKERMETHODBODY_01 = "%s _$$_t = new %s(); ";
+	String STATEMENT_PACKER_PACKERMETHODBODY_05 = "if (_$$_nullCheck && $2 == null) { $1.packNil(); return; } ";
 
-	String STATEMENT_PACKER_UNPACKERMETHODBODY_02 = "$1.unpackArray(); ";
+	String STATEMENT_TMPL_UNPACKERMETHODBODY_01 = "%s _$$_t = new %s(); ";
 
-	String STATEMENT_PACKER_UNPACKERMETHODBODY_03 = "_$$_t.%s = %s(%s)_$$_templates[%d].unpack($1)%s; ";
+	String STATEMENT_TMPL_UNPACKERMETHODBODY_02 = "$1.unpackArray(); ";
 
-	String STATEMENT_PACKER_UNPACKERMETHODBODY_04 = "return _$$_t; ";
+	String STATEMENT_TMPL_UNPACKERMETHODBODY_03 = "if (!_$$_nullCheck || !$1.tryUnpackNull()) { _$$_t.%s = %s(%s)_$$_templates[%d].unpack($1)%s; } ";
 
-	String STATEMENT_PACKER_UNPACKERMETHODBODY_05 = "int i = $1.unpackInt(); ";
+	String STATEMENT_TMPL_UNPACKERMETHODBODY_04 = "return _$$_t; ";
 
-	String STATEMENT_PACKER_UNPACKERMETHODBODY_06 = "return %s.class.getEnumConstants()[i]; ";
+	String STATEMENT_TMPL_UNPACKERMETHODBODY_05 = "int i = $1.unpackInt(); ";
 
-	String STATEMENT_PACKER_CONVERTMETHODBODY_01 = "%s _$$_ary = $1.asArray(); ";
+	String STATEMENT_TMPL_UNPACKERMETHODBODY_06 = "return %s.class.getEnumConstants()[i]; ";
 
-	String STATEMENT_PACKER_CONVERTMETHODBODY_02 = "_$$_t.%s = %s(%s)_$$_templates[%d].convert(_$$_ary[%d])%s; ";
+	String STATEMENT_TMPL_UNPACKERMETHODBODY_07 = "if (_$$_nullCheck && $1.tryUnpackNull()) { return null; } ";
 
-	String STATEMENT_PACKER_CONVERTMETHODBODY_03 = "int i = _$$_ary[0].asInt(); ";
+	String STATEMENT_TMPL_CONVERTMETHODBODY_01 = "%s _$$_ary = $1.asArray(); ";
+
+	String STATEMENT_TMPL_CONVERTMETHODBODY_02 = "if (!_$$_nullCheck || !_$$_ary[%d].isNil()) { _$$_t.%s = %s(%s)_$$_templates[%d].convert(_$$_ary[%d])%s; } ";
+
+	String STATEMENT_TMPL_CONVERTMETHODBODY_03 = "int i = _$$_ary[0].asInt(); ";
+
+	String STATEMENT_TMPL_CONVERTMETHODBODY_04 = "if (_$$_nullCheck && $1.isNil()) { return null; } ";
 }

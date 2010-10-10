@@ -32,11 +32,24 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class DynamicCodeGenBase implements Constants {
+
+	public static interface NullChecker {
+		void setNullCheck(boolean nullCheck);
+	}
+	
+	public static class NullCheckerImpl implements NullChecker {
+		public boolean _$$_nullCheck = true;
+
+		public void setNullCheck(boolean _$$_check) {
+			_$$_nullCheck = _$$_check;
+		}		
+	}
+	
 	public static interface TemplateAccessor {
 		void setTemplates(Template[] templates);
 	}
-
-	public static class TemplateAccessorImpl implements TemplateAccessor {
+	
+	public static class TemplateTemplate extends NullCheckerImpl implements TemplateAccessor {
 		public Template[] _$$_templates;
 
 		public void setTemplates(Template[] _$$_tmpls) {
@@ -111,10 +124,50 @@ public class DynamicCodeGenBase implements Constants {
 		throw e;
 	}
 
-	protected void setInterface(CtClass packerCtClass, Class<?> infClass)
+	enum Color {
+		// TODO
+		RED, BLUE
+	}
+	
+	public static void main(String[] args) throws Exception {
+		// TODO
+		class Foo {
+		}
+		class Bar extends Foo {
+		}
+		Color c = Color.RED;
+		Color c1 = null;
+
+		ClassPool pool = ClassPool.getDefault();
+		CtClass barCtClass = pool.get(Bar.class.getName());
+		CtClass sbarCtClass = barCtClass.getSuperclass();
+		System.out.println("bar: " + sbarCtClass.getName());
+		CtClass fooCtClass = pool.get(Foo.class.getName());
+		CtClass sfooCtClass = fooCtClass.getSuperclass();
+		System.out.println("foo: " + sfooCtClass.getName());
+	}
+
+	protected void setSuperclass(CtClass newCtClass, Class<?> superClass)
+			throws NotFoundException, CannotCompileException {
+		// check the specified super class
+		if (superClass.isInterface() || superClass.isEnum()
+				|| superClass.isAnnotation() || superClass.isArray()
+				|| superClass.isPrimitive()) {
+			throwTypeValidationException(superClass, "Fatal error");
+		}
+
+		// check the base class
+		if (!newCtClass.getSuperclass().equals(classToCtClass(Object.class))) {
+			throwTypeValidationException(superClass, "Fatal error");
+		}
+		CtClass superCtClass = pool.get(superClass.getName());
+		newCtClass.setSuperclass(superCtClass);
+	}
+
+	protected void setInterface(CtClass newCtClass, Class<?> infClass)
 			throws NotFoundException {
 		CtClass infCtClass = pool.get(infClass.getName());
-		packerCtClass.addInterface(infCtClass);
+		newCtClass.addInterface(infCtClass);
 	}
 
 	protected void addDefaultConstructor(CtClass enhancedCtClass)
@@ -126,7 +179,7 @@ public class DynamicCodeGenBase implements Constants {
 
 	protected void addTemplateArrayField(CtClass newCtClass)
 			throws NotFoundException, CannotCompileException {
-		CtClass acsCtClass = pool.get(TemplateAccessorImpl.class.getName());
+		CtClass acsCtClass = pool.get(TemplateTemplate.class.getName());
 		CtField tmplsField = acsCtClass
 				.getDeclaredField(VARIABLE_NAME_TEMPLATES);
 		CtField tmplsField2 = new CtField(tmplsField.getType(), tmplsField
@@ -136,7 +189,7 @@ public class DynamicCodeGenBase implements Constants {
 
 	protected void addSetTemplatesMethod(CtClass newCtClass)
 			throws NotFoundException, CannotCompileException {
-		CtClass acsCtClass = pool.get(TemplateAccessorImpl.class.getName());
+		CtClass acsCtClass = pool.get(TemplateTemplate.class.getName());
 		CtMethod settmplsMethod = acsCtClass
 				.getDeclaredMethod(METHOD_NAME_SETTEMPLATES);
 		CtMethod settmplsMethod2 = CtNewMethod.copy(settmplsMethod, newCtClass,
