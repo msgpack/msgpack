@@ -5,11 +5,14 @@ use Test::More;
 use t::Util;
 
 my @input = (
-    +[[]],
+    [[]],
     [[],[]],
     [{"a" => 97},{"a" => 97}],
     [{"a" => 97},{"a" => 97},{"a" => 97}],
     [ map { +{ "foo $_" => "bar $_" } } 'aa' .. 'zz' ],
+    [42, null],
+    [42, true],
+    [42, false],
 );
 
 plan tests => @input * 2;
