@@ -65,6 +65,9 @@ load_bool(pTHX_ const char* const name) {
     LEAVE;
     assert(sv);
     assert(sv_isobject(sv));
+    if(!SvOK(sv)) {
+        croak("Oops: Failed to load %"SVf, name);
+    }
     return sv;
 }
 
