@@ -1,4 +1,8 @@
 
+0.32
+
+    - add tests to detect Alpha problems reported via CPAN testers (gfx)
+
 0.31
 
     - update Module::Install::XSUtil for ccache support (gfx)
