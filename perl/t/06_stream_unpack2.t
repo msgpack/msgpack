@@ -7,7 +7,7 @@ use t::Util;
 my $input = [
     false,true,null,0,0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,
     127,127,255,65535,4294967295,-32,-32,-128,-32768,
-    -2147483648,0.0,-0.0, 3.14,-3.14,"a","a","a","","","",
+    -2147483648,0.0,-0.0, 3.0,-3.0,"a","a",("a" x 70000),"","","",
     [0],[0],[0],[],[],[],{},{},{},
     {"a" => 97},{"abc" => 97},{"xyz" => 97},[[]], [["foo"], ["bar"]],
     [["foo", true, false, null, 42]],
@@ -36,7 +36,7 @@ is_deeply(Data::MessagePack->unpack($packed), $input);
         $offset = $up->execute($packed, $offset);
         ok $up->is_finished, 'finished';
         my $data = $up->data;
-        is_deeply $data, $input;
+        is_deeply $data, $input, "block $i, offset $offset";
         $up->reset();
     }
 }
@@ -51,10 +51,8 @@ is_deeply(Data::MessagePack->unpack($packed), $input);
 
     my $offset = 0;
     for my $datum(reverse @{$input}) {
-        note "offset: $offset/".length($s);
-
         $offset = $up->execute($s, $offset);
-        is_deeply $up->data, $datum;
+        is_deeply $up->data, $datum, "offset $offset/" . length($s);
         $up->reset();
     }
 }
