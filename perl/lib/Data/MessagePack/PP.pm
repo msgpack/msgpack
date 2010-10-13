@@ -265,7 +265,7 @@ sub _unpack {
     my ( $value ) = @_;
     my $byte = CORE::unpack( 'C', substr( $value, $p++, 1 ) ); # get header
 
-    die "invalid data" unless defined $byte;
+    Carp::croak("invalid data") unless defined $byte;
 
     if ( ( $byte >= 0x90 and $byte <= 0x9f ) or $byte == 0xdc or $byte == 0xdd ) {
         my $num;
@@ -312,7 +312,7 @@ sub _unpack {
         return $byte;
     }
     elsif ( $byte == 0xcc ) { # uint8
-        CORE::unpack( 'C', substr( $value, $p++, 1 ) );
+        return CORE::unpack( 'C', substr( $value, $p++, 1 ) );
     }
     elsif ( $byte == 0xcd ) { # uint16
         $p += 2;
