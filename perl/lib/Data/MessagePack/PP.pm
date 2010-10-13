@@ -17,6 +17,8 @@ BEGIN {
     my $unpack_uint64_slow;
 
     if(!eval { pack 'Q', 1 }) { # don't have quad types
+        # emulates quad types with Math::BigInt.
+        # very slow but works well.
         $unpack_int64_slow = sub {
             require Math::BigInt;
             my $high = unpack_uint32( $_[0], $_[1] );
@@ -35,7 +37,7 @@ BEGIN {
         };
         $unpack_uint64_slow = sub {
             require Math::BigInt;
-            my $high = Math::BigInt->new( unpack_uint32(  $_[0], $_[1]) );
+            my $high = Math::BigInt->new( unpack_uint32( $_[0], $_[1]) );
             my $low  = Math::BigInt->new( unpack_uint32( $_[0], $_[1] + 4) );
             return +($high << 32 | $low)->bstr;
         };
@@ -104,7 +106,8 @@ BEGIN {
             *unpack_uint64 = $unpack_uint64_slow || sub { unpack 'Q', substr( $_[0], $_[1], 8 ); };
         }
     }
-    else {
+    else { # 5.10.0 or later
+        # pack_int64/uint64 are used only when the perl support quad types
         *pack_uint64   = sub { return pack 'CQ>', 0xcf, $_[0]; };
         *pack_int64    = sub { return pack 'Cq>', 0xd3, $_[0]; };
         *pack_double   = sub { return pack 'Cd>', 0xcb, $_[0]; };
