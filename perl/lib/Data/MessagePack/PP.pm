@@ -214,15 +214,18 @@ sub _pack {
 
         if ( $Data::MessagePack::PreferInteger ) {
             if ( $value =~ /^-?[0-9]+$/ ) { # ok?
-                my $value2 = 0 + $value;
-                if ( $value > 0xFFFFFFFF or $value < '-'.0x80000000 or # <- needless but for XS compat
-                    0 + $value != B::svref_2object( \$value2 )->int_value
-                ) {
-                    local $Data::MessagePack::PreferInteger; # avoid for PV => NV
-                    return _pack( "$value" );
+                # checks whether $value is in (u)int32
+                my $ivalue = 0 + $value;
+                if (!(
+                       $ivalue > 0xFFFFFFFF
+                    or $ivalue < '-'.0x80000000 # for XS compat
+                    or $ivalue != B::svref_2object(\$ivalue)->int_value
+                )) {
+                    return _pack( $ivalue );
                 }
-                return _pack( $value + 0 );
+                # fallthrough
             }
+            # fallthrough
         }
 
         utf8::encode( $value ) if utf8::is_utf8( $value );
