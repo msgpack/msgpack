@@ -26,6 +26,9 @@ no warnings; # i need this, i need this.
     'aa 34 32 39 34 39 36 37 32 39 35' => ''.0xFFFFFFFF,
     'ab 36 38 37 31 39 34 37 36 37 33 35' => ''.0xFFFFFFFFF,
 
+    'ca 00 00 00 00' => 0.0, # float
+    'ca 40 2c cc cd' => unpack('f', pack 'f', 2.7),
+
     'd2 80 00 00 01' => '-2147483647', # int32_t
     'ce 80 00 00 01' => '2147483649',  # uint32_t
 

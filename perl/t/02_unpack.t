@@ -15,7 +15,7 @@ sub pis ($$) {
         or diag( explain(unpackit($_[0])) );
 }
 
-my @dat = do 't/data.pl';
+my @dat = do 't/data.pl' or die $@;
 
 plan tests => 1*(scalar(@dat)/2);
 
