@@ -1,4 +1,9 @@
 
+0.33
+
+    - fix tests (gfx)
+    - optimize unpacking routines in Data::MessagePack::PP (gfx)
+
 0.32
 
     - add tests to detect Alpha problems reported via CPAN testers (gfx)

@@ -164,7 +164,7 @@ sub _pack {
 
     if ( ref($value) eq 'ARRAY' ) {
         my $num = @$value;
-        my $header = 
+        my $header =
               $num < 16          ? CORE::pack( 'C',  0x90 + $num )
             : $num < 2 ** 16 - 1 ? CORE::pack( 'Cn', 0xdc,  $num )
             : $num < 2 ** 32 - 1 ? CORE::pack( 'CN', 0xdd,  $num )
@@ -175,7 +175,7 @@ sub _pack {
 
     elsif ( ref($value) eq 'HASH' ) {
         my $num = keys %$value;
-        my $header = 
+        my $header =
               $num < 16          ? CORE::pack( 'C',  0x80 + $num )
             : $num < 2 ** 16 - 1 ? CORE::pack( 'Cn', 0xde,  $num )
             : $num < 2 ** 32 - 1 ? CORE::pack( 'CN', 0xdf,  $num )
@@ -231,11 +231,11 @@ sub _pack {
         utf8::encode( $value ) if utf8::is_utf8( $value );
 
         my $num = length $value;
-        my $header = 
+        my $header =
               $num < 32          ? CORE::pack( 'C',  0xa0 + $num )
             : $num < 2 ** 16 - 1 ? CORE::pack( 'Cn', 0xda, $num )
             : $num < 2 ** 32 - 1 ? CORE::pack( 'CN', 0xdb, $num )
-            : _unexpected_number($num)
+            : _unexpected('number %d', $num)
         ;
 
         return $header . $value;
@@ -266,14 +266,72 @@ sub unpack :method {
     return $data;
 }
 
+my $T_RAW             = 0x01;
+my $T_ARRAY           = 0x02;
+my $T_MAP             = 0x04;
+my $T_DIRECT          = 0x08; # direct mapping (e.g. 0xc0 <-> nil)
+
+my @typemap = ( (0x00) x 256 );
+
+$typemap[$_] |= $T_ARRAY for
+    0x90 .. 0x9f, # fix array
+    0xdc,         # array16
+    0xdd,         # array32
+;
+$typemap[$_] |= $T_MAP for
+    0x80 .. 0x8f, # fix map
+    0xde,         # map16
+    0xdf,         # map32
+;
+$typemap[$_] |= $T_RAW for
+    0xa0 .. 0xbf, # fix raw
+    0xda,         # raw16
+    0xdb,         # raw32
+;
+
+my @byte2value;
+foreach my $pair(
+    [0xc3, true],
+    [0xc2, false],
+    [0xc0, undef],
+
+    (map { [ $_, $_ ] }         0x00 .. 0x7f), # positive fixnum
+    (map { [ $_, $_ - 0x100 ] } 0xe0 .. 0xff), # negative fixnum
+) {
+    $typemap[    $pair->[0] ] |= $T_DIRECT;
+    $byte2value[ $pair->[0] ]  = $pair->[1];
+}
 
 sub _unpack {
     my ( $value ) = @_;
-    my $byte = CORE::unpack( 'C', substr( $value, $p++, 1 ) ); # get header
+    # get a header byte
+    my $byte = unpack "x$p C", $value; # "x$p" is faster than substr()
+    $p++;
 
     Carp::croak("invalid data") unless defined $byte;
 
-    if ( ( $byte >= 0x90 and $byte <= 0x9f ) or $byte == 0xdc or $byte == 0xdd ) {
+    # +/- fixnum, nil, true, false
+    return $byte2value[$byte] if $typemap[$byte] & $T_DIRECT;
+
+    if ( $typemap[$byte] & $T_RAW ) {
+        my $num;
+        if ( $byte == 0xda ) {
+            $num = CORE::unpack 'n', substr( $value, $p, 2 );
+            $p += 2 + $num;
+        }
+        elsif ( $byte == 0xdb ) {
+            $num = CORE::unpack 'N', substr( $value, $p, 4 );
+            $p += 4 + $num;
+        }
+        else { # fix raw
+            $num = $byte & ~0xa0;
+            $p += $num;
+        }
+        my $s = substr( $value, $p - $num, $num );
+        utf8::decode($s) if $_utf8;
+        return $s;
+    }
+    elsif ( $typemap[$byte] & $T_ARRAY ) {
         my $num;
         if ( $byte == 0xdc ) { # array 16
             $num = CORE::unpack 'n', substr( $value, $p, 2 );
@@ -287,11 +345,10 @@ sub _unpack {
             $num = $byte & ~0x90;
         }
         my @array;
-        push @array, _unpack( $value ) while $num-- > 0;
+        push @array, _unpack( $value ) while --$num >= 0;
         return \@array;
     }
-
-    elsif ( ( $byte >= 0x80 and $byte <= 0x8f ) or $byte == 0xde or $byte == 0xdf ) {
+    elsif ( $typemap[$byte] & $T_MAP ) {
         my $num;
         if ( $byte == 0xde ) { # map 16
             $num = CORE::unpack 'n', substr( $value, $p, 2 );
@@ -305,7 +362,7 @@ sub _unpack {
             $num = $byte & ~0x80;
         }
         my %map;
-        for ( 0 .. $num - 1 ) {
+        while ( --$num >= 0 ) {
             no warnings; # for undef key case
             my $key = _unpack( $value );
             my $val = _unpack( $value );
@@ -314,9 +371,6 @@ sub _unpack {
         return \%map;
     }
 
-    elsif ( $byte >= 0x00 and $byte <= 0x7f ) { # positive fixnum
-        return $byte;
-    }
     elsif ( $byte == 0xcc ) { # uint8
         return CORE::unpack( 'C', substr( $value, $p++, 1 ) );
     }
@@ -347,53 +401,17 @@ sub _unpack {
     elsif ( $byte == 0xd0 ) { # int8
         return CORE::unpack 'c',  substr( $value, $p++, 1 ); # c / C
     }
-    elsif ( $byte >= 0xe0 and $byte <= 0xff ) { # negative fixnum
-        return $byte - 256;
-    }
-
-    elsif ( ( $byte >= 0xa0 and $byte <= 0xbf ) or $byte == 0xda or $byte == 0xdb ) { # raw
-        my $num;
-        if ( $byte == 0xda ) {
-            $num = CORE::unpack 'n', substr( $value, $p, 2 );
-            $p += 2 + $num;
-        }
-        elsif ( $byte == 0xdb ) {
-            $num = CORE::unpack 'N', substr( $value, $p, 4 );
-            $p += 4 + $num;
-        }
-        else { # fix raw
-            $num = $byte & ~0xa0;
-            $p += $num;
-        }
-        my $s = substr( $value, $p - $num, $num );
-        utf8::decode($s) if $_utf8;
-        return $s;
-    }
-
-    elsif ( $byte == 0xc0 ) { # nil
-        return undef;
-    }
-    elsif ( $byte == 0xc2 ) { # boolean
-        return false;
-    }
-    elsif ( $byte == 0xc3 ) { # boolean
-        return true;
-    }
-
     elsif ( $byte == 0xcb ) { # double
         $p += 8;
         return unpack_double( $value, $p - 8 );
     }
-
     elsif ( $byte == 0xca ) { # float
         $p += 4;
         return unpack_float( $value, $p - 4 );
     }
-
     else {
         _unexpected("byte 0x%02x", $byte);
     }
-
 }
 
 
@@ -456,7 +474,28 @@ sub _count {
     my ( $self, $value ) = @_;
     my $byte = unpack( 'C', substr( $value, $p++, 1 ) ); # get header
 
-    if ( ( $byte >= 0x90 and $byte <= 0x9f ) or $byte == 0xdc or $byte == 0xdd ) {
+    Carp::croak('invalid data') unless defined $byte;
+
+    # +/- fixnum, nil, true, false
+    return 1 if $typemap[$byte] & $T_DIRECT;
+
+    if ( $typemap[$byte] & $T_RAW ) {
+        my $num;
+        if ( $byte == 0xda ) {
+            $num = unpack 'n', substr( $value, $p, 2 );
+            $p += 2;
+        }
+        elsif ( $byte == 0xdb ) {
+            $num = unpack 'N', substr( $value, $p, 4 );
+            $p += 4;
+        }
+        else { # fix raw
+            $num = $byte & ~0xa0;
+        }
+        $p += $num;
+        return 1;
+    }
+    elsif ( $typemap[$byte] & $T_ARRAY ) {
         my $num;
         if ( $byte == 0xdc ) { # array 16
             $num = unpack 'n', substr( $value, $p, 2 );
@@ -476,8 +515,7 @@ sub _count {
 
         return 1;
     }
-
-    elsif ( ( $byte >= 0x80 and $byte <= 0x8f ) or $byte == 0xde or $byte == 0xdf ) {
+    elsif ( $typemap[$byte] & $T_MAP ) {
         my $num;
         if ( $byte == 0xde ) { # map 16
             $num = unpack 'n', substr( $value, $p, 2 );
@@ -498,20 +536,12 @@ sub _count {
         return 1;
     }
 
-    elsif ( $byte == 0xc0 or $byte == 0xc2 or $byte == 0xc3 ) { # nil, false, true
-        return 1;
-    }
-
-    elsif ( $byte >= 0x00 and $byte <= 0x7f ) { # positive fixnum
-        return 1;
-    }
-
     elsif ( $byte >= 0xcc and $byte <= 0xcf ) { # uint
         $p += $byte == 0xcc ? 1
             : $byte == 0xcd ? 2
             : $byte == 0xce ? 4
             : $byte == 0xcf ? 8
-            : _unexpected("byte 0x%02x", $byte);
+            : Data::MessagePack::PP::_unexpected("byte 0x%02x", $byte);
         return 1;
     }
 
@@ -520,38 +550,15 @@ sub _count {
             : $byte == 0xd1 ? 2
             : $byte == 0xd2 ? 4
             : $byte == 0xd3 ? 8
-            : _unexpected("byte 0x%02x", $byte);
+            : Data::MessagePack::PP::_unexpected("byte 0x%02x", $byte);
         return 1;
     }
-
-    elsif ( $byte >= 0xe0 and $byte <= 0xff ) { # negative fixnum
-        return 1;
-    }
-
-    elsif ( $byte >= 0xca and $byte <= 0xcb ) { # float, double
+    elsif ( $byte == 0xca or $byte == 0xcb ) { # float, double
         $p += $byte == 0xca ? 4 : 8;
         return 1;
     }
-
-    elsif ( ( $byte >= 0xa0 and $byte <= 0xbf ) or $byte == 0xda or $byte == 0xdb ) {
-        my $num;
-        if ( $byte == 0xda ) {
-            $num = unpack 'n', substr( $value, $p, 2 );
-            $p += 2;
-        }
-        elsif ( $byte == 0xdb ) {
-            $num = unpack 'N', substr( $value, $p, 4 );
-            $p += 4;
-        }
-        else { # fix raw
-            $num = $byte & ~0xa0;
-        }
-        $p += $num;
-        return 1;
-    }
-
     else {
-        _unexpected("byte 0x%02x", $byte);
+        Data::MessagePack::PP::_unexpected("byte 0x%02x", $byte);
     }
 
     return 0;
@@ -602,6 +609,6 @@ makamaka
 =head1 COPYRIGHT AND LICENSE
 
 This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself. 
+it under the same terms as Perl itself.
 
 =cut
