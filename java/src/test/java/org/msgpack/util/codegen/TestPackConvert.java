@@ -23,7 +23,7 @@ import org.msgpack.Unpacker;
 import org.msgpack.annotation.MessagePackMessage;
 import org.msgpack.annotation.MessagePackOrdinalEnum;
 
-public class TestDynamicCodeGenPackerConverter extends TestCase {
+public class TestPackConvert extends TestCase {
 
 	@Test
 	public void testPrimitiveTypeField00s() throws Exception {

@@ -22,7 +22,7 @@ import org.msgpack.annotation.MessagePackOrdinalEnum;
 
 import junit.framework.TestCase;
 
-public class TestDynamicCodeGenPackerUnpacker extends TestCase {
+public class TestPackUnpack extends TestCase {
 
 	@Test
 	public void testPrimitiveTypeFields00() throws Exception {
