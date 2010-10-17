@@ -36,20 +36,21 @@ public class DynamicCodeGenBase implements Constants {
 	public static interface NullChecker {
 		void setNullCheck(boolean nullCheck);
 	}
-	
+
 	public static class NullCheckerImpl implements NullChecker {
 		public boolean _$$_nullCheck = true;
 
 		public void setNullCheck(boolean _$$_check) {
 			_$$_nullCheck = _$$_check;
-		}		
+		}
 	}
-	
+
 	public static interface TemplateAccessor {
 		void setTemplates(Template[] templates);
 	}
-	
-	public static class TemplateTemplate extends NullCheckerImpl implements TemplateAccessor {
+
+	public static class TemplateTemplate extends NullCheckerImpl implements
+			TemplateAccessor {
 		public Template[] _$$_templates;
 
 		public void setTemplates(Template[] _$$_tmpls) {
@@ -128,7 +129,7 @@ public class DynamicCodeGenBase implements Constants {
 		// TODO
 		RED, BLUE
 	}
-	
+
 	public static void main(String[] args) throws Exception {
 		// TODO
 		class Foo {
@@ -339,7 +340,7 @@ public class DynamicCodeGenBase implements Constants {
 				CustomMessage.registerTemplate(c, tmpl);
 				return tmpl;
 			} else {
-				throw new DynamicCodeGenException("Type error: "
+				throw new MessageTypeException("Type error: "
 						+ ((Class<?>) t).getName());
 			}
 		} else if (t instanceof GenericArrayType) {
