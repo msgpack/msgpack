@@ -22,9 +22,13 @@ no warnings; # i need this, i need this.
     '82 c2 81 c0 c0 c3 81 c0 80', {false,{undef,undef}, true,{undef,{}}},
     '96 de 00 00 de 00 01 c0 c2 de 00 02 c0 c2 c3 c2 df 00 00 00 00 df 00 00 00 01 c0 c2 df 00 00 00 02 c0 c2 c3 c2',
         [{}, {undef,false}, {true,false, undef,false}, {}, {undef,false}, {true,false, undef,false}],
+    'dc 01 00'       . (' c0' x 0x0100),     [(undef) x 0x0100],
     'ce 00 ff ff ff' => ''.0xFFFFFF,
     'aa 34 32 39 34 39 36 37 32 39 35' => ''.0xFFFFFFFF,
     'ab 36 38 37 31 39 34 37 36 37 33 35' => ''.0xFFFFFFFFF,
+
+    'ca 00 00 00 00' => 0.0, # float
+    'ca 40 2c cc cd' => unpack('f', pack 'f', 2.7),
 
     'd2 80 00 00 01' => '-2147483647', # int32_t
     'ce 80 00 00 01' => '2147483649',  # uint32_t

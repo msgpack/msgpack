@@ -1,4 +1,13 @@
 
+0.33
+
+    - fix tests (gfx)
+    - optimize unpacking routines in Data::MessagePack::PP (gfx)
+
+0.32
+
+    - add tests to detect Alpha problems reported via CPAN testers (gfx)
+
 0.31
 
     - update Module::Install::XSUtil for ccache support (gfx)

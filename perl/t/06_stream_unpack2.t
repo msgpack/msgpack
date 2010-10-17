@@ -1,15 +1,16 @@
 use strict;
 use warnings;
 use Data::MessagePack;
-use Test::More tests => 9;
+use Test::More tests => 61;
 use t::Util;
 
 my $input = [
     false,true,null,0,0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,
     127,127,255,65535,4294967295,-32,-32,-128,-32768,
-    -2147483648,0.0,-0.0,1.0,-1.0,"a","a","a","","","",
+    -2147483648,0.0,-0.0, 3.0,-3.0,"a","a",("a" x 70000),"","","",
     [0],[0],[0],[],[],[],{},{},{},
-    {"a" => 97},{"a" => 97},{"a" => 97},[[]],[["a"]]
+    {"a" => 97},{"abc" => 97},{"xyz" => 97},[[]], [["foo"], ["bar"]],
+    [["foo", true, false, null, 42]],
 ];
 
 my $packed = Data::MessagePack->pack($input);
@@ -35,9 +36,24 @@ is_deeply(Data::MessagePack->unpack($packed), $input);
         $offset = $up->execute($packed, $offset);
         ok $up->is_finished, 'finished';
         my $data = $up->data;
-        is_deeply $data, $input;
+        is_deeply $data, $input, "block $i, offset $offset";
         $up->reset();
     }
 }
 
+{
+    my $s    = '';
+    foreach my $datum(reverse @{$input}) {
+        $s .= Data::MessagePack->pack($datum);
+    }
+
+    my $up = Data::MessagePack::Unpacker->new();
+
+    my $offset = 0;
+    for my $datum(reverse @{$input}) {
+        $offset = $up->execute($s, $offset);
+        is_deeply $up->data, $datum, "offset $offset/" . length($s);
+        $up->reset();
+    }
+}
 
