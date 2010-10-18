@@ -125,14 +125,9 @@ static const char* str_from_uint64(char* buf_end, uint64_t v)
 {
   char *p = buf_end;
   *--p = '\0';
-  if (v == 0) {
-    *--p = '0';
-  } else {
-    do {
-      *--p = '0' + v % 10;
-      v /= 10;
-    } while (v != 0);
-  }
+  do {
+    *--p = '0' + v % 10;
+  } while ((v /= 10) != 0);
   return p;
 }
 
@@ -149,7 +144,7 @@ static int template_callback_uint64(unpack_user* u PERL_UNUSED_DECL, uint64_t co
 {
     dTHX;
     char tbuf[64];
-#if 1 /* workaround for win32-32bit (my_snprintf(%%d) returns are incorrect) */
+#if 1 /* workaround for win32-32bit (my_snprintf(%llu) returns are incorrect) */
     char* s = str_from_uint64(tbuf + sizeof(tbuf), d);
     *o = newSVpvn(s, tbuf + sizeof(tbuf) - 1 - s);
 #else
@@ -163,7 +158,7 @@ static int template_callback_int64(unpack_user* u PERL_UNUSED_DECL, int64_t cons
 {
     dTHX;
     char tbuf[64];
-#if 1 /* workaround for win32-32bit (my_snprintf(%%d) returns are incorrect) */
+#if 1 /* workaround for win32-32bit (my_snprintf(%lld) returns are incorrect) */
     char* s = str_from_int64(tbuf + sizeof(tbuf), d);
     *o = newSVpvn(s, tbuf + sizeof(tbuf) - 1 - s);
 #else
