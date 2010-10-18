@@ -1,3 +1,6 @@
+0.34
+
+    - do not use the corrupt my_snprintf(%ll[du]) on win32(kazuho)
 
 0.33
 

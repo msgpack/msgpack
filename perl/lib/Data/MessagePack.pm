@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use 5.008001;
 
-our $VERSION = '0.33';
+our $VERSION = '0.34';
 our $PreferInteger = 0;
 
 sub true () {
@@ -190,6 +190,8 @@ Dan Kogai
 FURUHASHI Sadayuki
 
 hanekomu
+
+Kazuho Oku
 
 =head1 LICENSE
 
