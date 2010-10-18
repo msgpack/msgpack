@@ -121,12 +121,41 @@ STATIC_INLINE int template_callback_IV(unpack_user* u PERL_UNUSED_DECL, IV const
     return 0;
 }
 
+static const char* str_from_uint64(char* buf_end, uint64_t v)
+{
+  char *p = buf_end;
+  *--p = '\0';
+  if (v == 0) {
+    *--p = '0';
+  } else {
+    do {
+      *--p = '0' + v % 10;
+      v /= 10;
+    } while (v != 0);
+  }
+  return p;
+}
+
+static const char* str_from_int64(char* buf_end, int64_t v)
+{
+  int minus = v < 0;
+  char* p = str_from_uint64(buf_end, minus ? -v : v);
+  if (minus)
+    *--p = '-';
+  return p;
+}
+
 static int template_callback_uint64(unpack_user* u PERL_UNUSED_DECL, uint64_t const d, SV** o)
 {
     dTHX;
     char tbuf[64];
+#if 1 /* workaround for win32-32bit (my_snprintf(%%d) returns are incorrect) */
+    char* s = str_from_uint64(tbuf + sizeof(tbuf), d);
+    *o = newSVpvn(s, tbuf + sizeof(tbuf) - 1 - s);
+#else
     STRLEN const len = my_snprintf(tbuf, sizeof(tbuf), "%llu", d);
     *o = newSVpvn(tbuf, len);
+#endif
     return 0;
 }
 
@@ -134,8 +163,13 @@ static int template_callback_int64(unpack_user* u PERL_UNUSED_DECL, int64_t cons
 {
     dTHX;
     char tbuf[64];
+#if 1 /* workaround for win32-32bit (my_snprintf(%%d) returns are incorrect) */
+    char* s = str_from_int64(tbuf + sizeof(tbuf), d);
+    *o = newSVpvn(s, tbuf + sizeof(tbuf) - 1 - s);
+#else
     STRLEN const len = my_snprintf(tbuf, sizeof(tbuf), "%lld", d);
     *o = newSVpvn(tbuf, len);
+#endif
     return 0;
 }
 
