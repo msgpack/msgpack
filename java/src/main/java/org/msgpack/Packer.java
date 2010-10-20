@@ -23,6 +23,7 @@ import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Set;
 import java.util.Map;
+import java.util.Collection;
 import java.math.BigInteger;
 
 import org.msgpack.annotation.MessagePackDelegate;
@@ -479,6 +480,11 @@ public class Packer {
 				pack(e.getKey());
 				pack(e.getValue());
 			}
+			return this;
+		} else if(o instanceof Collection) {
+			Collection<Object> l = (Collection<Object>)o;
+			packArray(l.size());
+			for(Object i : l) { pack(i); }
 			return this;
 		//} else if(o instanceof Boolean) {
 		//	if((Boolean)o) {

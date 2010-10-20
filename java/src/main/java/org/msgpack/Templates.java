@@ -30,6 +30,10 @@ public class Templates {
 		return new MapTemplate(keyTemplate, valueTemplate);
 	}
 
+	public static Template tCollection(Template elementTemplate) {
+		return new CollectionTemplate(elementTemplate);
+	}
+
 	public static Template tClass(Class target) {
 		return new ClassTemplate(target);
 	}
@@ -84,5 +88,6 @@ public class Templates {
 	public static Template tByteArray() {
 		return TByteArray;
 	}
+
 }
 
