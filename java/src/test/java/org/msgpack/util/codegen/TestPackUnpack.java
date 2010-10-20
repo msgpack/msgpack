@@ -2,6 +2,7 @@ package org.msgpack.util.codegen;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,7 +14,10 @@ import org.junit.Test;
 import org.msgpack.CustomConverter;
 import org.msgpack.CustomPacker;
 import org.msgpack.CustomUnpacker;
+import org.msgpack.MessagePackable;
 import org.msgpack.MessagePacker;
+import org.msgpack.MessageTypeException;
+import org.msgpack.MessageUnpackable;
 import org.msgpack.Packer;
 import org.msgpack.Template;
 import org.msgpack.Unpacker;
@@ -883,6 +887,106 @@ public class TestPackUnpack extends TestCase {
 		int f9;
 
 		public SampleSuperClass() {
+		}
+	}
+
+	//@Test
+	public void XtestMessagePackableUnpackableClass00() throws Exception {
+		BaseMessagePackableUnpackableClass src = new BaseMessagePackableUnpackableClass();
+		MessagePackableUnpackableClass src1 = new MessagePackableUnpackableClass();
+		List<MessagePackableUnpackableClass> src2 = new ArrayList<MessagePackableUnpackableClass>();
+		src1.f0 = 0;
+		src1.f1 = 1;
+		src.f0 = src1;
+		src.f1 = 1;
+		src2.add(src1);
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		MessagePacker packer = DynamicPacker
+				.create(BaseMessagePackableUnpackableClass.class);
+		packer.pack(new Packer(out), src);
+		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+		Template tmpl = DynamicTemplate
+				.create(BaseMessagePackableUnpackableClass.class);
+		BaseMessagePackableUnpackableClass dst = (BaseMessagePackableUnpackableClass) tmpl
+				.unpack(new Unpacker(in));
+		assertEquals(src.f0.f0, dst.f0.f0);
+		assertEquals(src.f0.f1, dst.f0.f1);
+		assertEquals(src.f1, dst.f1);
+		assertEquals(src.f2.size(), dst.f2.size());
+		assertEquals(src.f2.get(0).f0, dst.f2.get(0).f0);
+		assertEquals(src.f2.get(0).f1, dst.f2.get(0).f1);
+	}
+
+	//@Test
+	public void XtestMessagePackableUnpackableClass01() throws Exception {
+		BaseMessagePackableUnpackableClass src = new BaseMessagePackableUnpackableClass();
+		src.f0 = null;
+		src.f1 = 1;
+		src.f2 = null;
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		MessagePacker packer = DynamicPacker
+				.create(BaseMessagePackableUnpackableClass.class);
+		packer.pack(new Packer(out), src);
+		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+		Template tmpl = DynamicTemplate
+				.create(BaseMessagePackableUnpackableClass.class);
+		BaseMessagePackableUnpackableClass dst = (BaseMessagePackableUnpackableClass) tmpl
+				.unpack(new Unpacker(in));
+		assertEquals(src.f0, dst.f0);
+		assertEquals(src.f1, dst.f1);
+		assertEquals(src.f2, dst.f2);
+	}
+
+	//@Test
+	public void XtestMessagePackableUnpackableClass02() throws Exception {
+		BaseMessagePackableUnpackableClass src = null;
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		MessagePacker packer = DynamicPacker
+				.create(BaseMessagePackableUnpackableClass.class);
+		packer.pack(new Packer(out), src);
+		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+		Template tmpl = DynamicTemplate
+				.create(BaseMessagePackableUnpackableClass.class);
+		BaseMessagePackableUnpackableClass dst = (BaseMessagePackableUnpackableClass) tmpl
+				.unpack(new Unpacker(in));
+		assertEquals(src, dst);
+	}
+
+	public static class BaseMessagePackableUnpackableClass {
+		public MessagePackableUnpackableClass f0;
+
+		public int f1;
+
+		public List<MessagePackableUnpackableClass> f2;
+
+		public BaseMessagePackableUnpackableClass() {
+		}
+	}
+
+	public static class MessagePackableUnpackableClass implements
+			MessagePackable, MessageUnpackable {
+
+		public int f0;
+
+		public int f1;
+
+		public MessagePackableUnpackableClass() {
+		}
+
+		@Override
+		public void messagePack(Packer packer) throws IOException {
+			packer.pack(f0);
+			packer.pack(f1);
+		}
+
+		@Override
+		public void messageUnpack(Unpacker unpacker) throws IOException,
+				MessageTypeException {
+			if (unpacker.tryUnpackNull()) {
+				return;
+			}
+			f0 = unpacker.unpackInt();
+			f1 = unpacker.unpackInt();
 		}
 	}
 }

@@ -2,6 +2,7 @@ package org.msgpack.util.codegen;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,8 +16,11 @@ import org.junit.Test;
 import org.msgpack.CustomConverter;
 import org.msgpack.CustomPacker;
 import org.msgpack.CustomUnpacker;
+import org.msgpack.MessageConvertable;
 import org.msgpack.MessagePackObject;
+import org.msgpack.MessagePackable;
 import org.msgpack.MessagePacker;
+import org.msgpack.MessageTypeException;
 import org.msgpack.Packer;
 import org.msgpack.Template;
 import org.msgpack.Unpacker;
@@ -1005,6 +1009,123 @@ public class TestPackConvert extends TestCase {
 		int f9;
 
 		public SampleSuperClass() {
+		}
+	}
+
+	//@Test
+	public void XtestMessagePackableUnpackableClass00() throws Exception {
+		BaseMessagePackableConvertableClass src = new BaseMessagePackableConvertableClass();
+		MessagePackableConvertableClass src1 = new MessagePackableConvertableClass();
+		List<MessagePackableConvertableClass> src2 = new ArrayList<MessagePackableConvertableClass>();
+		src1.f0 = 0;
+		src1.f1 = 1;
+		src.f0 = src1;
+		src.f1 = 1;
+		src2.add(src1);
+		src.f2 = src2;
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		MessagePacker packer = DynamicPacker
+				.create(BaseMessagePackableConvertableClass.class);
+		packer.pack(new Packer(out), src);
+		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+		Template tmpl = DynamicTemplate
+				.create(BaseMessagePackableConvertableClass.class);
+		Unpacker pac = new Unpacker(in);
+		Iterator<MessagePackObject> it = pac.iterator();
+		assertTrue(it.hasNext());
+		MessagePackObject mpo = it.next();
+		BaseMessagePackableConvertableClass dst = (BaseMessagePackableConvertableClass) tmpl
+				.convert(mpo);
+		assertEquals(src.f0.f0, dst.f0.f0);
+		assertEquals(src.f0.f1, dst.f0.f1);
+		assertEquals(src.f1, dst.f1);
+		assertEquals(src.f2.size(), dst.f2.size());
+		assertEquals(src.f2.get(0).f0, dst.f2.get(0).f0);
+		assertEquals(src.f2.get(0).f1, dst.f2.get(0).f1);
+		assertFalse(it.hasNext());
+	}
+
+	//@Test
+	public void XtestMessagePackableUnpackableClass01() throws Exception {
+		BaseMessagePackableConvertableClass src = new BaseMessagePackableConvertableClass();
+		src.f0 = null;
+		src.f1 = 1;
+		src.f2 = null;
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		MessagePacker packer = DynamicPacker
+				.create(BaseMessagePackableConvertableClass.class);
+		packer.pack(new Packer(out), src);
+		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+		Template tmpl = DynamicTemplate
+				.create(BaseMessagePackableConvertableClass.class);
+		Unpacker pac = new Unpacker(in);
+		Iterator<MessagePackObject> it = pac.iterator();
+		assertTrue(it.hasNext());
+		MessagePackObject mpo = it.next();
+		BaseMessagePackableConvertableClass dst = (BaseMessagePackableConvertableClass) tmpl
+				.convert(mpo);
+		assertEquals(src.f0, dst.f0);
+		assertEquals(src.f1, dst.f1);
+		assertEquals(src.f2, dst.f2);
+		assertFalse(it.hasNext());
+	}
+
+	//@Test
+	public void XtestMessagePackableUnpackableClass02() throws Exception {
+		BaseMessagePackableConvertableClass src = null;
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		MessagePacker packer = DynamicPacker
+				.create(BaseMessagePackableConvertableClass.class);
+		packer.pack(new Packer(out), src);
+		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+		Template tmpl = DynamicTemplate
+				.create(BaseMessagePackableConvertableClass.class);
+		Unpacker pac = new Unpacker(in);
+		Iterator<MessagePackObject> it = pac.iterator();
+		assertTrue(it.hasNext());
+		MessagePackObject mpo = it.next();
+		BaseMessagePackableConvertableClass dst = (BaseMessagePackableConvertableClass) tmpl
+				.convert(mpo);
+		assertEquals(src, dst);
+		assertFalse(it.hasNext());
+	}
+
+	public static class BaseMessagePackableConvertableClass {
+		public MessagePackableConvertableClass f0;
+
+		public int f1;
+
+		public List<MessagePackableConvertableClass> f2;
+
+		public BaseMessagePackableConvertableClass() {
+		}
+	}
+
+	public static class MessagePackableConvertableClass implements
+			MessagePackable, MessageConvertable {
+
+		public int f0;
+
+		public int f1;
+
+		public MessagePackableConvertableClass() {
+		}
+
+		@Override
+		public void messagePack(Packer packer) throws IOException {
+			packer.pack(f0);
+			packer.pack(f1);
+		}
+
+		@Override
+		public void messageConvert(MessagePackObject obj)
+				throws MessageTypeException {
+			if (obj.isNil()) {
+				return;
+			}
+			MessagePackObject[] objs = obj.asArray();
+			f0 = objs[0].asInt();
+			f1 = objs[1].asInt();
 		}
 	}
 }

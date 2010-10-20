@@ -33,6 +33,9 @@ import org.slf4j.LoggerFactory;
 
 public class DynamicCodeGenBase implements Constants {
 
+	private static Logger LOG = LoggerFactory
+			.getLogger(DynamicCodeGenBase.class);
+
 	public static interface NullChecker {
 		void setNullCheck(boolean nullCheck);
 	}
@@ -58,9 +61,6 @@ public class DynamicCodeGenBase implements Constants {
 		}
 	}
 
-	private static Logger LOG = LoggerFactory
-			.getLogger(DynamicCodeGenBase.class);
-
 	private static AtomicInteger COUNTER = new AtomicInteger(0);
 
 	protected static int inc() {
@@ -74,78 +74,56 @@ public class DynamicCodeGenBase implements Constants {
 	}
 
 	protected void checkTypeValidation(Class<?> type) {
-		DynamicCodeGenException e = new DynamicCodeGenException("Fatal error: "
-				+ type.getName());
+		DynamicCodeGenException e = new DynamicCodeGenException(String.format(
+				"Fatal error: %s", new Object[] { type.getName() }));
 		LOG.error(e.getMessage(), e);
 		throw e;
 	}
 
-	protected void throwTypeValidationException(Class<?> origClass,
-			String message) throws DynamicCodeGenException {
-		DynamicCodeGenException e = new DynamicCodeGenException(message + ": "
-				+ origClass.getName());
+	protected void throwTypeValidationException(Class<?> type, String message)
+			throws DynamicCodeGenException {
+		DynamicCodeGenException e = new DynamicCodeGenException(String.format(
+				"%s: %s", new Object[] { message, type.getName() }));
 		LOG.error(e.getMessage(), e);
 		throw e;
 	}
 
 	protected void checkDefaultConstructorValidation(Class<?> type) {
-		DynamicCodeGenException e = new DynamicCodeGenException("Fatal error: "
-				+ type.getName());
+		DynamicCodeGenException e = new DynamicCodeGenException(String.format(
+				"Fatal error: %s", new Object[] { type.getName() }));
 		LOG.error(e.getMessage(), e);
 		throw e;
 	}
 
 	protected void throwConstructorValidationException(Class<?> origClass) {
-		DynamicCodeGenException e = new DynamicCodeGenException(
-				"it must have a public zero-argument constructor: "
-						+ origClass.getName());
+		DynamicCodeGenException e = new DynamicCodeGenException(String.format(
+				"it must have a public zero-argument constructor: %s",
+				new Object[] { origClass.getName() }));
 		LOG.error(e.getMessage(), e);
 		throw e;
 	}
 
-	protected void throwFieldValidationException(Field f) {
-		DynamicCodeGenException e = new DynamicCodeGenException(
-				"it must be a public field: " + f.getName());
+	protected void throwFieldValidationException(Field field) {
+		DynamicCodeGenException e = new DynamicCodeGenException(String.format(
+				"it must be a public field: %s",
+				new Object[] { field.getName() }));
 		LOG.debug(e.getMessage(), e);
 		throw e;
 	}
 
 	protected static void throwMethodValidationException(Method method,
 			String message) throws DynamicCodeGenException {
-		DynamicCodeGenException e = new DynamicCodeGenException(message + ": "
-				+ method.getName());
+		DynamicCodeGenException e = new DynamicCodeGenException(String.format(
+				"%s: %s", new Object[] { message, method.getName() }));
 		LOG.error(e.getMessage(), e);
 		throw e;
 	}
 
 	protected CtClass makeClass(String name) throws NotFoundException {
-		DynamicCodeGenException e = new DynamicCodeGenException("Fatal error: "
-				+ name);
+		DynamicCodeGenException e = new DynamicCodeGenException(String.format(
+				"Fatal error: %s", new Object[] { name }));
 		LOG.error(e.getMessage(), e);
 		throw e;
-	}
-
-	enum Color {
-		// TODO
-		RED, BLUE
-	}
-
-	public static void main(String[] args) throws Exception {
-		// TODO
-		class Foo {
-		}
-		class Bar extends Foo {
-		}
-		Color c = Color.RED;
-		Color c1 = null;
-
-		ClassPool pool = ClassPool.getDefault();
-		CtClass barCtClass = pool.get(Bar.class.getName());
-		CtClass sbarCtClass = barCtClass.getSuperclass();
-		System.out.println("bar: " + sbarCtClass.getName());
-		CtClass fooCtClass = pool.get(Foo.class.getName());
-		CtClass sfooCtClass = fooCtClass.getSuperclass();
-		System.out.println("foo: " + sfooCtClass.getName());
 	}
 
 	protected void setSuperclass(CtClass newCtClass, Class<?> superClass)
