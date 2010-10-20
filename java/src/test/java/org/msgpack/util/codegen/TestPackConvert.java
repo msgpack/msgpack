@@ -1012,8 +1012,8 @@ public class TestPackConvert extends TestCase {
 		}
 	}
 
-	//@Test
-	public void XtestMessagePackableUnpackableClass00() throws Exception {
+	@Test
+	public void testMessagePackableUnpackableClass00() throws Exception {
 		BaseMessagePackableConvertableClass src = new BaseMessagePackableConvertableClass();
 		MessagePackableConvertableClass src1 = new MessagePackableConvertableClass();
 		List<MessagePackableConvertableClass> src2 = new ArrayList<MessagePackableConvertableClass>();
@@ -1045,8 +1045,8 @@ public class TestPackConvert extends TestCase {
 		assertFalse(it.hasNext());
 	}
 
-	//@Test
-	public void XtestMessagePackableUnpackableClass01() throws Exception {
+	@Test
+	public void testMessagePackableUnpackableClass01() throws Exception {
 		BaseMessagePackableConvertableClass src = new BaseMessagePackableConvertableClass();
 		src.f0 = null;
 		src.f1 = 1;
@@ -1070,8 +1070,8 @@ public class TestPackConvert extends TestCase {
 		assertFalse(it.hasNext());
 	}
 
-	//@Test
-	public void XtestMessagePackableUnpackableClass02() throws Exception {
+	@Test
+	public void testMessagePackableUnpackableClass02() throws Exception {
 		BaseMessagePackableConvertableClass src = null;
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		MessagePacker packer = DynamicPacker
@@ -1113,17 +1113,18 @@ public class TestPackConvert extends TestCase {
 
 		@Override
 		public void messagePack(Packer packer) throws IOException {
+			packer.packArray(2);
 			packer.pack(f0);
 			packer.pack(f1);
 		}
 
 		@Override
-		public void messageConvert(MessagePackObject obj)
+		public void messageConvert(MessagePackObject from)
 				throws MessageTypeException {
-			if (obj.isNil()) {
+			if (from.isNil()) {
 				return;
 			}
-			MessagePackObject[] objs = obj.asArray();
+			MessagePackObject[] objs = from.asArray();
 			f0 = objs[0].asInt();
 			f1 = objs[1].asInt();
 		}

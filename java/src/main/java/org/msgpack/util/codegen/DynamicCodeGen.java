@@ -18,12 +18,10 @@ import javassist.NotFoundException;
 
 import org.msgpack.CustomMessage;
 import org.msgpack.CustomPacker;
-import org.msgpack.MessageConvertable;
 import org.msgpack.MessagePackObject;
 import org.msgpack.MessagePackable;
 import org.msgpack.MessagePacker;
 import org.msgpack.MessageTypeException;
-import org.msgpack.MessageUnpackable;
 import org.msgpack.Packer;
 import org.msgpack.Template;
 import org.msgpack.Unpacker;
@@ -450,56 +448,6 @@ class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 		sb.append(String.format(STATEMENT_TMPL_UNPACKERMETHODBODY_03, args));
 	}
 
-	private void insertCodeOfUnpackMethodCallForMsgUnpackableType(
-			StringBuilder sb, Field f, Class<?> c) {
-		// if (t.fi == null) { t.fi = new Foo(); }
-		sb.append(KEYWORD_IF);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		sb.append(VARIABLE_NAME_TARGET);
-		sb.append(CHAR_NAME_DOT);
-		sb.append(f.getName());
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(CHAR_NAME_EQUAL);
-		sb.append(CHAR_NAME_EQUAL);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(KEYWORD_NULL);
-		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(CHAR_NAME_LEFT_CURLY_BRACKET);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(VARIABLE_NAME_TARGET);
-		sb.append(CHAR_NAME_DOT);
-		sb.append(f.getName());
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(CHAR_NAME_EQUAL);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(KEYWORD_NEW);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(c.getName());
-		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-		sb.append(CHAR_NAME_SEMICOLON);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(CHAR_NAME_RIGHT_CURLY_BRACKET);
-		sb.append(CHAR_NAME_SPACE);
-
-		// insert a right variable // ignore
-		sb.append(VARIABLE_NAME_PK);
-		sb.append(CHAR_NAME_DOT);
-		sb.append(METHOD_NAME_UNPACK);
-		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		sb.append(MessageUnpackable.class.getName());
-		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-		sb.append(VARIABLE_NAME_TARGET);
-		sb.append(CHAR_NAME_DOT);
-		sb.append(f.getName());
-		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-		sb.append(CHAR_NAME_SEMICOLON);
-		sb.append(CHAR_NAME_SPACE);
-	}
-
 	private void insertOrdinalEnumUnpackMethodBody(StringBuilder sb,
 			Class<?> type) {
 		// Object unpack(Unpacker u) throws IOException, MessageTypeException;
@@ -595,55 +543,6 @@ class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 				isPrim ? ")." + getPrimTypeValueMethodName(returnType) + "()"
 						: "" };
 		sb.append(String.format(STATEMENT_TMPL_CONVERTMETHODBODY_02, args));
-	}
-
-	private void insertCodeOfMessageConvertCallForMsgConvtblType(
-			StringBuilder sb, Field f, Class<?> c, int i) {
-		// if (fi == null) { fi = new Foo_$$_Enhanced(); }
-		sb.append(KEYWORD_IF);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		sb.append(f.getName());
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(CHAR_NAME_EQUAL);
-		sb.append(CHAR_NAME_EQUAL);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(KEYWORD_NULL);
-		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(CHAR_NAME_LEFT_CURLY_BRACKET);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(f.getName());
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(CHAR_NAME_EQUAL);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(KEYWORD_NEW);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(c.getName());
-		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-		sb.append(CHAR_NAME_SEMICOLON);
-		sb.append(CHAR_NAME_SPACE);
-		sb.append(CHAR_NAME_RIGHT_CURLY_BRACKET);
-		sb.append(CHAR_NAME_SPACE);
-
-		// ((MessageConvertable)f_i).messageConvert(ary[i]);
-		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		sb.append(MessageConvertable.class.getName());
-		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-		sb.append(f.getName());
-		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-		sb.append(CHAR_NAME_DOT);
-		sb.append(METHOD_NAME_MSGCONVERT);
-		sb.append(CHAR_NAME_LEFT_PARENTHESIS);
-		sb.append(VARIABLE_NAME_ARRAY);
-		sb.append(CHAR_NAME_LEFT_SQUARE_BRACKET);
-		sb.append(i);
-		sb.append(CHAR_NAME_RIGHT_SQUARE_BRACKET);
-		sb.append(CHAR_NAME_RIGHT_PARENTHESIS);
-		sb.append(CHAR_NAME_SEMICOLON);
-		sb.append(CHAR_NAME_SPACE);
 	}
 
 	private void insertOrdinalEnumConvertMethodBody(StringBuilder sb,

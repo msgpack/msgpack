@@ -890,8 +890,8 @@ public class TestPackUnpack extends TestCase {
 		}
 	}
 
-	//@Test
-	public void XtestMessagePackableUnpackableClass00() throws Exception {
+	@Test
+	public void testMessagePackableUnpackableClass00() throws Exception {
 		BaseMessagePackableUnpackableClass src = new BaseMessagePackableUnpackableClass();
 		MessagePackableUnpackableClass src1 = new MessagePackableUnpackableClass();
 		List<MessagePackableUnpackableClass> src2 = new ArrayList<MessagePackableUnpackableClass>();
@@ -900,6 +900,7 @@ public class TestPackUnpack extends TestCase {
 		src.f0 = src1;
 		src.f1 = 1;
 		src2.add(src1);
+		src.f2 = src2;
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		MessagePacker packer = DynamicPacker
 				.create(BaseMessagePackableUnpackableClass.class);
@@ -917,8 +918,8 @@ public class TestPackUnpack extends TestCase {
 		assertEquals(src.f2.get(0).f1, dst.f2.get(0).f1);
 	}
 
-	//@Test
-	public void XtestMessagePackableUnpackableClass01() throws Exception {
+	@Test
+	public void testMessagePackableUnpackableClass01() throws Exception {
 		BaseMessagePackableUnpackableClass src = new BaseMessagePackableUnpackableClass();
 		src.f0 = null;
 		src.f1 = 1;
@@ -937,8 +938,8 @@ public class TestPackUnpack extends TestCase {
 		assertEquals(src.f2, dst.f2);
 	}
 
-	//@Test
-	public void XtestMessagePackableUnpackableClass02() throws Exception {
+	@Test
+	public void testMessagePackableUnpackableClass02() throws Exception {
 		BaseMessagePackableUnpackableClass src = null;
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		MessagePacker packer = DynamicPacker
@@ -975,6 +976,7 @@ public class TestPackUnpack extends TestCase {
 
 		@Override
 		public void messagePack(Packer packer) throws IOException {
+			packer.packArray(2);
 			packer.pack(f0);
 			packer.pack(f1);
 		}
@@ -985,6 +987,7 @@ public class TestPackUnpack extends TestCase {
 			if (unpacker.tryUnpackNull()) {
 				return;
 			}
+			unpacker.unpackArray();
 			f0 = unpacker.unpackInt();
 			f1 = unpacker.unpackInt();
 		}

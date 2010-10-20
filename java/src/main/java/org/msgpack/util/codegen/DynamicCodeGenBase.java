@@ -1,5 +1,6 @@
 package org.msgpack.util.codegen;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.Method;
@@ -22,9 +23,13 @@ import javassist.NotFoundException;
 
 import org.msgpack.CustomConverter;
 import org.msgpack.CustomMessage;
+import org.msgpack.MessageConvertable;
+import org.msgpack.MessagePackObject;
 import org.msgpack.MessageTypeException;
+import org.msgpack.MessageUnpackable;
 import org.msgpack.Template;
 import org.msgpack.Templates;
+import org.msgpack.Unpacker;
 import org.msgpack.annotation.MessagePackDelegate;
 import org.msgpack.annotation.MessagePackMessage;
 import org.msgpack.annotation.MessagePackOrdinalEnum;
@@ -38,6 +43,50 @@ public class DynamicCodeGenBase implements Constants {
 
 	public static interface NullChecker {
 		void setNullCheck(boolean nullCheck);
+	}
+
+	public static class MessageUnpackableConvertableTemplate implements
+			Template {
+
+		private Class<?> type;
+
+		public MessageUnpackableConvertableTemplate(Class<?> type) {
+			this.type = type;
+		}
+
+		@Override
+		public Object unpack(Unpacker unpacker) throws IOException,
+				MessageTypeException {
+			try {
+				MessageUnpackable obj = (MessageUnpackable) type.newInstance();
+				obj.messageUnpack(unpacker);
+				return obj;
+			} catch (ClassCastException e) {
+				throw new MessageTypeException(e.getMessage(), e);
+			} catch (InstantiationException e) {
+				throw new MessageTypeException(e.getMessage(), e);
+			} catch (IllegalAccessException e) {
+				throw new MessageTypeException(e.getMessage(), e);
+			}
+		}
+
+		@Override
+		public Object convert(MessagePackObject from)
+				throws MessageTypeException {
+			try {
+				MessageConvertable obj = (MessageConvertable) type
+						.newInstance();
+				obj.messageConvert(from);
+				return obj;
+			} catch (ClassCastException e) {
+				throw new MessageTypeException(e.getMessage(), e);
+			} catch (InstantiationException e) {
+				throw new MessageTypeException(e.getMessage(), e);
+			} catch (IllegalAccessException e) {
+				throw new MessageTypeException(e.getMessage(), e);
+			}
+		}
+
 	}
 
 	public static class NullCheckerImpl implements NullChecker {
@@ -315,6 +364,11 @@ public class DynamicCodeGenBase implements Constants {
 					MessagePackOrdinalEnum.class)) {
 				// @MessagePackOrdinalEnum
 				Template tmpl = DynamicOrdinalEnumTemplate.create(c);
+				CustomMessage.registerTemplate(c, tmpl);
+				return tmpl;
+			} else if (MessageConvertable.class.isAssignableFrom(c)
+					|| MessageUnpackable.class.isAssignableFrom(c)) {
+				Template tmpl = new MessageUnpackableConvertableTemplate(c);
 				CustomMessage.registerTemplate(c, tmpl);
 				return tmpl;
 			} else {
