@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 use Data::MessagePack;
-use Test::More tests => 61;
+use Test::More tests => 64;
 use t::Util;
 
 my $input = [
@@ -36,6 +36,7 @@ is_deeply(Data::MessagePack->unpack($packed), $input);
         $offset = $up->execute($packed, $offset);
         ok $up->is_finished, 'finished';
         my $data = $up->data;
+        is scalar(@{$data}), scalar(@{$input}), 'size of @{$data}';
         is_deeply $data, $input, "block $i, offset $offset";
         $up->reset();
     }
