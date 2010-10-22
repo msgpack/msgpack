@@ -24,7 +24,7 @@ public class ShortPacker implements MessagePacker {
 	private ShortPacker() { }
 
 	public void pack(Packer pk, Object target) throws IOException {
-		pk.pack(((Short)target).shortValue());
+		pk.packShort((Short)target);
 	}
 
 	static public ShortPacker getInstance() {

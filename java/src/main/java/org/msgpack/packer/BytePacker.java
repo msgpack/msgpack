@@ -24,7 +24,7 @@ public class BytePacker implements MessagePacker {
 	private BytePacker() { }
 
 	public void pack(Packer pk, Object target) throws IOException {
-		pk.pack(((Byte)target).byteValue());
+		pk.packByte((Byte)target);
 	}
 
 	static public BytePacker getInstance() {

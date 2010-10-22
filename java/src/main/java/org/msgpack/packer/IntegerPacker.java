@@ -24,7 +24,7 @@ public class IntegerPacker implements MessagePacker {
 	private IntegerPacker() { }
 
 	public void pack(Packer pk, Object target) throws IOException {
-		pk.pack(((Integer)target).intValue());
+		pk.packInt((Integer)target);
 	}
 
 	static public IntegerPacker getInstance() {

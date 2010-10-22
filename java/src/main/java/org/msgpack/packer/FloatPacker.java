@@ -24,7 +24,7 @@ public class FloatPacker implements MessagePacker {
 	private FloatPacker() { }
 
 	public void pack(Packer pk, Object target) throws IOException {
-		pk.pack(((Float)target).floatValue());
+		pk.packFloat((Float)target);
 	}
 
 	static public FloatPacker getInstance() {

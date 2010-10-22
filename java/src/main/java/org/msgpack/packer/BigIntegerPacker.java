@@ -25,7 +25,7 @@ public class BigIntegerPacker implements MessagePacker {
 	private BigIntegerPacker() { }
 
 	public void pack(Packer pk, Object target) throws IOException {
-		pk.pack((BigInteger)target);
+		pk.packBigInteger((BigInteger)target);
 	}
 
 	static public BigIntegerPacker getInstance() {

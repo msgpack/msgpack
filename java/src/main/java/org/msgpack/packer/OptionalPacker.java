@@ -20,21 +20,19 @@ package org.msgpack.packer;
 import java.io.IOException;
 import org.msgpack.*;
 
-public class ByteArrayPacker implements MessagePacker {
-	private ByteArrayPacker() { }
+public class OptionalPacker implements MessagePacker {
+	private MessagePacker elementPacker;
+
+	public OptionalPacker(MessagePacker elementPacker) {
+		this.elementPacker = elementPacker;
+	}
 
 	public void pack(Packer pk, Object target) throws IOException {
-		pk.packByteArray((byte[])target);
-	}
-
-	static public ByteArrayPacker getInstance() {
-		return instance;
-	}
-
-	static final ByteArrayPacker instance = new ByteArrayPacker();
-
-	static {
-		CustomMessage.registerPacker(byte[].class, instance);
+		if(target == null) {
+			pk.packNil();
+		} else {
+			elementPacker.pack(pk, target);
+		}
 	}
 }
 

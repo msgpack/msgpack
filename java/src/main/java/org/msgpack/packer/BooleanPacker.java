@@ -24,7 +24,7 @@ public class BooleanPacker implements MessagePacker {
 	private BooleanPacker() { }
 
 	public void pack(Packer pk, Object target) throws IOException {
-		pk.pack((Boolean)target);
+		pk.packBoolean((Boolean)target);
 	}
 
 	static public BooleanPacker getInstance() {

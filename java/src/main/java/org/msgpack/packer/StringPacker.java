@@ -24,7 +24,7 @@ public class StringPacker implements MessagePacker {
 	private StringPacker() { }
 
 	public void pack(Packer pk, Object target) throws IOException {
-		pk.pack((String)target);
+		pk.packString((String)target);
 	}
 
 	static public StringPacker getInstance() {

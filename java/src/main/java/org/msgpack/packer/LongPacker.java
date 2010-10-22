@@ -24,7 +24,7 @@ public class LongPacker implements MessagePacker {
 	private LongPacker() { }
 
 	public void pack(Packer pk, Object target) throws IOException {
-		pk.pack(((Long)target).longValue());
+		pk.packLong((Long)target);
 	}
 
 	static public LongPacker getInstance() {

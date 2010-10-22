@@ -331,6 +331,16 @@ public class Packer {
 	}
 
 
+	public Packer packByteArray(byte[] b) throws IOException {
+		packRaw(b.length);
+		return packRawBody(b, 0, b.length);
+	}
+
+	public Packer packByteArray(byte[] b, int off, int length) throws IOException {
+		packRaw(length);
+		return packRawBody(b, off, length);
+	}
+
 	public Packer packString(String s) throws IOException {
 		byte[] b = ((String)s).getBytes("UTF-8");
 		packRaw(b.length);

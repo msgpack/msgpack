@@ -24,7 +24,7 @@ public class DoublePacker implements MessagePacker {
 	private DoublePacker() { }
 
 	public void pack(Packer pk, Object target) throws IOException {
-		pk.pack(((Double)target).doubleValue());
+		pk.packDouble(((Double)target));
 	}
 
 	static public DoublePacker getInstance() {
