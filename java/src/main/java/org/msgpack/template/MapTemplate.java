@@ -42,6 +42,7 @@ public class MapTemplate implements Template {
 		return map;
 	}
 
+	@SuppressWarnings("unchecked")
 	public Object convert(MessagePackObject from) throws MessageTypeException {
 		Map<MessagePackObject,MessagePackObject> src = from.asMap();
 		Map<Object,Object> map = new HashMap();

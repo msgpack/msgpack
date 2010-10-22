@@ -1,6 +1,7 @@
 package org.msgpack.util.codegen;
 
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -27,7 +28,9 @@ import org.msgpack.Template;
 import org.msgpack.Unpacker;
 import org.msgpack.annotation.MessagePackDelegate;
 import org.msgpack.annotation.MessagePackMessage;
+import org.msgpack.annotation.MessagePackOptional;
 import org.msgpack.annotation.MessagePackOrdinalEnum;
+import org.msgpack.template.OptionalTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,7 +64,8 @@ class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 		return tmplCache.get(type.getName());
 	}
 
-	public Class<?> generateMessagePackerClass(Class<?> origClass) {
+	public Class<?> generateMessagePackerClass(Class<?> origClass,
+			List<FieldOption> fieldOpts) {
 		try {
 			LOG.debug("start generating a packer class for "
 					+ origClass.getName());
@@ -70,10 +74,12 @@ class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 			checkTypeValidation(origClass);
 			checkDefaultConstructorValidation(origClass);
 			CtClass packerCtClass = pool.makeClass(packerName);
-			setSuperclass(packerCtClass, NullCheckerImpl.class);
 			setInterface(packerCtClass, MessagePacker.class);
 			addDefaultConstructor(packerCtClass);
 			Field[] fields = getDeclaredFields(origClass);
+			if (fieldOpts != null) {
+				fields = sortFields(fields, fieldOpts);
+			}
 			addPackMethod(packerCtClass, origClass, fields, false);
 			Class<?> packerClass = createClass(packerCtClass);
 			LOG.debug("generated a packer class for " + origClass.getName());
@@ -95,7 +101,6 @@ class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 			String packerName = origName + POSTFIX_TYPE_NAME_PACKER + inc();
 			checkTypeValidation(origClass);
 			CtClass packerCtClass = pool.makeClass(packerName);
-			setSuperclass(packerCtClass, NullCheckerImpl.class);
 			setInterface(packerCtClass, MessagePacker.class);
 			addDefaultConstructor(packerCtClass);
 			addPackMethod(packerCtClass, origClass, null, true);
@@ -111,7 +116,8 @@ class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 		}
 	}
 
-	public Class<?> generateTemplateClass(Class<?> origClass) {
+	public Class<?> generateTemplateClass(Class<?> origClass,
+			List<FieldOption> fieldOpts) {
 		try {
 			LOG.debug("start generating a template class for "
 					+ origClass.getName());
@@ -120,11 +126,17 @@ class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 			checkTypeValidation(origClass);
 			checkDefaultConstructorValidation(origClass);
 			CtClass tmplCtClass = pool.makeClass(tmplName);
-			setSuperclass(tmplCtClass, TemplateTemplate.class);
+			setSuperclass(tmplCtClass, TemplateAccessorImpl.class);
 			setInterface(tmplCtClass, Template.class);
 			addDefaultConstructor(tmplCtClass);
 			Field[] fields = getDeclaredFields(origClass);
-			Template[] tmpls = createTemplates(fields);
+			Template[] tmpls = null;
+			if (fieldOpts != null) {
+				fields = sortFields(fields, fieldOpts);
+				tmpls = createTemplates(fieldOpts);
+			} else {
+				tmpls = createTemplates(fields);
+			}
 			setTemplates(origClass, tmpls);
 			addUnpackMethod(tmplCtClass, origClass, fields, false);
 			addConvertMethod(tmplCtClass, origClass, fields, false);
@@ -152,7 +164,7 @@ class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 			checkTypeValidation(origClass);
 			String tmplName = origName + POSTFIX_TYPE_NAME_TEMPLATE + inc();
 			CtClass tmplCtClass = pool.makeClass(tmplName);
-			setSuperclass(tmplCtClass, TemplateTemplate.class);
+			setSuperclass(tmplCtClass, TemplateAccessorImpl.class);
 			setInterface(tmplCtClass, Template.class);
 			addDefaultConstructor(tmplCtClass);
 			addUnpackMethod(tmplCtClass, origClass, null, true);
@@ -240,6 +252,41 @@ class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 		}
 	}
 
+	Field[] sortFields(Field[] fields, List<FieldOption> fieldOpts) {
+		if (fields.length != fieldOpts.size()) {
+			throwFieldSortingException(String.format(
+					"Mismatch: public field num: %d, option num: %d",
+					new Object[] { fields.length, fieldOpts.size() }));
+		}
+		Field[] sorted = new Field[fields.length];
+		for (int i = 0; i < sorted.length; ++i) {
+			FieldOption opt = fieldOpts.get(i);
+			Field match = null;
+			for (Field f : fields) {
+				if (opt.name.equals(f.getName())) {
+					match = f;
+					break;
+				}
+			}
+			if (match != null) {
+				sorted[i] = match;
+			} else {
+				throwFieldSortingException(String.format(
+						"Mismatch: a %s field option is not declared",
+						new Object[] { opt.name }));
+			}
+		}
+		return sorted;
+	}
+
+	Template[] createTemplates(List<FieldOption> fieldOpts) {
+		Template[] tmpls = new Template[fieldOpts.size()];
+		for (int i = 0; i < tmpls.length; ++i) {
+			tmpls[i] = fieldOpts.get(i).tmpl;
+		}
+		return tmpls;
+	}
+
 	Template[] createTemplates(Field[] fields) {
 		Template[] tmpls = new Template[fields.length];
 		for (int i = 0; i < tmpls.length; ++i) {
@@ -249,12 +296,23 @@ class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 	}
 
 	Template createTemplate(Field field) {
+		boolean isOptional = isAnnotated(field, MessagePackOptional.class);
 		Class<?> c = field.getType();
+		Template tmpl = null;
 		if (List.class.isAssignableFrom(c) || Map.class.isAssignableFrom(c)) {
-			return createTemplate(field.getGenericType());
+			tmpl = createTemplate(field.getGenericType());
 		} else {
-			return createTemplate(c);
+			tmpl = createTemplate(c);
 		}
+		if (isOptional) {
+			return new OptionalTemplate(tmpl);
+		} else {
+			return tmpl;
+		}
+	}
+	
+	private boolean isAnnotated(Field field, Class<? extends Annotation> with) {
+		return field.getAnnotation(with) != null;
 	}
 
 	private void addPackMethod(CtClass packerCtClass, Class<?> c, Field[] fs,
@@ -297,8 +355,6 @@ class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 		// void pack(Packer packer, Object target) throws IOException;
 		sb.append(CHAR_NAME_LEFT_CURLY_BRACKET);
 		sb.append(CHAR_NAME_SPACE);
-		Object[] args2 = new Object[0];
-		sb.append(String.format(STATEMENT_PACKER_PACKERMETHODBODY_05, args2));
 		String typeName = classToString(type);
 		Object[] args0 = new Object[] { typeName, typeName };
 		sb.append(String.format(STATEMENT_PACKER_PACKERMETHODBODY_01, args0));
@@ -357,8 +413,6 @@ class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 		// void pack(Packer packer, Object target) throws IOException;
 		sb.append(CHAR_NAME_LEFT_CURLY_BRACKET);
 		sb.append(CHAR_NAME_SPACE);
-		Object[] args3 = new Object[0];
-		sb.append(String.format(STATEMENT_PACKER_PACKERMETHODBODY_05, args3));
 		String typeName = classToString(c);
 		Object[] args0 = new Object[] { typeName, typeName };
 		sb.append(String.format(STATEMENT_PACKER_PACKERMETHODBODY_01, args0));
@@ -412,8 +466,6 @@ class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 		sb.append(CHAR_NAME_SPACE);
 		// Foo _$$_t = new Foo();
 		String typeName = classToString(type);
-		Object[] args3 = new Object[0];
-		sb.append(String.format(STATEMENT_TMPL_UNPACKERMETHODBODY_07, args3));
 		Object[] args0 = new Object[] { typeName, typeName };
 		sb.append(String.format(STATEMENT_TMPL_UNPACKERMETHODBODY_01, args0));
 		// $1.unpackArray();
@@ -453,8 +505,6 @@ class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 		// Object unpack(Unpacker u) throws IOException, MessageTypeException;
 		sb.append(CHAR_NAME_LEFT_CURLY_BRACKET);
 		sb.append(CHAR_NAME_SPACE);
-		Object[] args3 = new Object[0];
-		sb.append(String.format(STATEMENT_TMPL_UNPACKERMETHODBODY_07, args3));
 		// $1.unpackArray();
 		Object[] args0 = new Object[0];
 		sb.append(String.format(STATEMENT_TMPL_UNPACKERMETHODBODY_02, args0));
@@ -506,8 +556,6 @@ class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 		// Object convert(MessagePackObject mpo) throws MessageTypeException;
 		sb.append(CHAR_NAME_LEFT_CURLY_BRACKET);
 		sb.append(CHAR_NAME_SPACE);
-		Object[] args3 = new Object[0];
-		sb.append(String.format(STATEMENT_TMPL_CONVERTMETHODBODY_04, args3));
 		// Foo _$$_t = new Foo();
 		String typeName = classToString(type);
 		Object[] args0 = new Object[] { typeName, typeName };
@@ -533,7 +581,6 @@ class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 		Class<?> returnType = field.getType();
 		boolean isPrim = returnType.isPrimitive();
 		Object[] args = new Object[] {
-				i,
 				field.getName(),
 				isPrim ? "(" : "",
 				isPrim ? getPrimToWrapperType(returnType).getName()
@@ -550,8 +597,6 @@ class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 		// Object convert(MessagePackObject mpo) throws MessageTypeException;
 		sb.append(CHAR_NAME_LEFT_CURLY_BRACKET);
 		sb.append(CHAR_NAME_SPACE);
-		Object[] args3 = new Object[0];
-		sb.append(String.format(STATEMENT_TMPL_CONVERTMETHODBODY_04, args3));
 		// MessagePackObject[] _$$_ary = $1.asArray();
 		Object[] args0 = new Object[] { classToString(MessagePackObject[].class) };
 		sb.append(String.format(STATEMENT_TMPL_CONVERTMETHODBODY_01, args0));

@@ -17,8 +17,6 @@
 //
 package org.msgpack.template;
 
-import java.util.List;
-import java.util.ArrayList;
 import java.io.IOException;
 import org.msgpack.*;
 

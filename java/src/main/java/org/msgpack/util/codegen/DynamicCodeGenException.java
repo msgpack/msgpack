@@ -1,5 +1,6 @@
 package org.msgpack.util.codegen;
 
+@SuppressWarnings("serial")
 public class DynamicCodeGenException extends RuntimeException {
 
 	public DynamicCodeGenException(String reason) {

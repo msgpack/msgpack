@@ -41,10 +41,6 @@ public class DynamicCodeGenBase implements Constants {
 	private static Logger LOG = LoggerFactory
 			.getLogger(DynamicCodeGenBase.class);
 
-	public static interface NullChecker {
-		void setNullCheck(boolean nullCheck);
-	}
-
 	public static class MessageUnpackableConvertableTemplate implements
 			Template {
 
@@ -86,23 +82,13 @@ public class DynamicCodeGenBase implements Constants {
 				throw new MessageTypeException(e.getMessage(), e);
 			}
 		}
-
-	}
-
-	public static class NullCheckerImpl implements NullChecker {
-		public boolean _$$_nullCheck = true;
-
-		public void setNullCheck(boolean _$$_check) {
-			_$$_nullCheck = _$$_check;
-		}
 	}
 
 	public static interface TemplateAccessor {
 		void setTemplates(Template[] templates);
 	}
 
-	public static class TemplateTemplate extends NullCheckerImpl implements
-			TemplateAccessor {
+	public static class TemplateAccessorImpl implements TemplateAccessor {
 		public Template[] _$$_templates;
 
 		public void setTemplates(Template[] _$$_tmpls) {
@@ -160,6 +146,12 @@ public class DynamicCodeGenBase implements Constants {
 		throw e;
 	}
 
+	protected void throwFieldSortingException(String message) {
+		DynamicCodeGenException e = new DynamicCodeGenException(message);
+		LOG.debug(e.getMessage(), e);
+		throw e;
+	}
+
 	protected static void throwMethodValidationException(Method method,
 			String message) throws DynamicCodeGenException {
 		DynamicCodeGenException e = new DynamicCodeGenException(String.format(
@@ -207,7 +199,7 @@ public class DynamicCodeGenBase implements Constants {
 
 	protected void addTemplateArrayField(CtClass newCtClass)
 			throws NotFoundException, CannotCompileException {
-		CtClass acsCtClass = pool.get(TemplateTemplate.class.getName());
+		CtClass acsCtClass = pool.get(TemplateAccessorImpl.class.getName());
 		CtField tmplsField = acsCtClass
 				.getDeclaredField(VARIABLE_NAME_TEMPLATES);
 		CtField tmplsField2 = new CtField(tmplsField.getType(), tmplsField
@@ -217,7 +209,7 @@ public class DynamicCodeGenBase implements Constants {
 
 	protected void addSetTemplatesMethod(CtClass newCtClass)
 			throws NotFoundException, CannotCompileException {
-		CtClass acsCtClass = pool.get(TemplateTemplate.class.getName());
+		CtClass acsCtClass = pool.get(TemplateAccessorImpl.class.getName());
 		CtMethod settmplsMethod = acsCtClass
 				.getDeclaredMethod(METHOD_NAME_SETTEMPLATES);
 		CtMethod settmplsMethod2 = CtNewMethod.copy(settmplsMethod, newCtClass,
@@ -425,8 +417,7 @@ public class DynamicCodeGenBase implements Constants {
 		Class<?> t = getArrayBaseType(type);
 		sb.append(t.getName());
 		for (int i = 0; i < dim; ++i) {
-			sb.append(CHAR_NAME_LEFT_SQUARE_BRACKET);
-			sb.append(CHAR_NAME_RIGHT_SQUARE_BRACKET);
+			sb.append(STRING_NAME_LEFT_RIGHT_SQUARE_BRACKET);
 		}
 		return sb.toString();
 	}
