@@ -30,7 +30,7 @@ public class CustomConverter {
 	public static void register(Class<?> target, MessageConverter converter) {
 		LOG.debug("register a MessageConverter object for the type: "
 				+ target.getName());
-		map.putIfAbsent(target, converter);
+		map.put(target, converter);
 	}
 
 	public static MessageConverter get(Class<?> target) {

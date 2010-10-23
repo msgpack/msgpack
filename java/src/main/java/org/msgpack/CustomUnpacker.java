@@ -30,7 +30,7 @@ public class CustomUnpacker {
 	public static void register(Class<?> target, MessageUnpacker converter) {
 		LOG.debug("register a MessageUnpacker object for the type: "
 				+ target.getName());
-		map.putIfAbsent(target, converter);
+		map.put(target, converter);
 	}
 
 	public static MessageUnpacker get(Class<?> target) {

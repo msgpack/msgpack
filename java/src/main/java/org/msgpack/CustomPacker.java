@@ -30,7 +30,7 @@ public class CustomPacker {
 	public static void register(Class<?> target, MessagePacker packer) {
 		LOG.debug("register a MessagePacker object for the type: "
 				+ target.getName());
-		map.putIfAbsent(target, packer);
+		map.put(target, packer);
 	}
 
 	public static MessagePacker get(Class<?> target) {

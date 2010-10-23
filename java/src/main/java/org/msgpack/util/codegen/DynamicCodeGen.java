@@ -71,7 +71,7 @@ class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 	}
 
 	public void setTemplates(Class<?> type, Template[] tmpls) {
-		tmplCache.putIfAbsent(type.getName(), tmpls);
+		tmplCache.put(type.getName(), tmpls);
 	}
 
 	public Template[] getTemplates(Class<?> type) {
@@ -79,7 +79,7 @@ class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 	}
 
 	public void setMessagePackers(Class<?> type, MessagePacker[] pks) {
-		pkCache.putIfAbsent(type.getName(), pks);
+		pkCache.put(type.getName(), pks);
 	}
 
 	public MessagePacker[] getMessagePackers(Class<?> type) {
