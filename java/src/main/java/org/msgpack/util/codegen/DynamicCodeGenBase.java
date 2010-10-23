@@ -207,11 +207,11 @@ public class DynamicCodeGenBase implements Constants {
 		}
 	}
 
-	static interface TemplateAccessor {
+	public static interface TemplateAccessor {
 		void setTemplates(Template[] templates);
 	}
 
-	static class TemplateAccessorImpl implements TemplateAccessor {
+	protected static class TemplateAccessorImpl implements TemplateAccessor {
 		public Class<?> type;
 
 		public Template[] _$$_templates;
@@ -413,67 +413,6 @@ public class DynamicCodeGenBase implements Constants {
 			return METHOD_NAME_DOUBLEVALUE;
 		} else {
 			throw new MessageTypeException("Type error: " + type.getName());
-		}
-	}
-
-	public String getUnpackMethodName(Class<?> c)
-			throws DynamicCodeGenException {
-		if (c.equals(boolean.class) || c.equals(Boolean.class)) {
-			return METHOD_NAME_UNPACKBOOLEAN;
-		} else if (c.equals(byte.class) || c.equals(Byte.class)) {
-			return METHOD_NAME_UNPACKBYTE;
-		} else if (c.equals(short.class) || c.equals(Short.class)) {
-			return METHOD_NAME_UNPACKSHORT;
-		} else if (c.equals(int.class) || c.equals(Integer.class)) {
-			return METHOD_NAME_UNPACKINT;
-		} else if (c.equals(float.class) || c.equals(Float.class)) {
-			return METHOD_NAME_UNPACKFLOAT;
-		} else if (c.equals(long.class) || c.equals(Long.class)) {
-			return METHOD_NAME_UNPACKLONG;
-		} else if (c.equals(double.class) || c.equals(Double.class)) {
-			return METHOD_NAME_UNPACKDOUBLE;
-		} else if (c.equals(String.class)) {
-			return METHOD_NAME_UNPACKSTRING;
-		} else if (c.equals(byte[].class)) {
-			return METHOD_NAME_UNPACKBYTEARRAY;
-		} else if (c.equals(BigInteger.class)) {
-			return METHOD_NAME_UNPACKBIGINTEGER;
-		} else if (List.class.isAssignableFrom(c)) {
-			return METHOD_NAME_UNPACK;
-		} else if (Map.class.isAssignableFrom(c)) {
-			return METHOD_NAME_UNPACK;
-		} else {
-			throw new DynamicCodeGenException("Type error: " + c.getName());
-		}
-	}
-
-	public String getAsMethodName(Class<?> c) {
-		if (c.equals(boolean.class) || c.equals(Boolean.class)) {
-			return METHOD_NAME_ASBOOLEAN;
-		} else if (c.equals(byte.class) || c.equals(Byte.class)) {
-			return METHOD_NAME_ASBYTE;
-		} else if (c.equals(short.class) || c.equals(Short.class)) {
-			return METHOD_NAME_ASSHORT;
-		} else if (c.equals(int.class) || c.equals(Integer.class)) {
-			return METHOD_NAME_ASINT;
-		} else if (c.equals(float.class) || c.equals(Float.class)) {
-			return METHOD_NAME_ASFLOAT;
-		} else if (c.equals(long.class) || c.equals(Long.class)) {
-			return METHOD_NAME_ASLONG;
-		} else if (c.equals(double.class) || c.equals(Double.class)) {
-			return METHOD_NAME_ASDOUBLE;
-		} else if (c.equals(String.class)) {
-			return METHOD_NAME_ASSTRING;
-		} else if (c.equals(byte[].class)) {
-			return METHOD_NAME_ASBYTEARRAY;
-		} else if (c.equals(BigInteger.class)) {
-			return METHOD_NAME_ASBIGINTEGER;
-		} else if (List.class.isAssignableFrom(c)) {
-			return METHOD_NAME_ASLIST;
-		} else if (Map.class.isAssignableFrom(c)) {
-			return METHOD_NAME_ASMAP;
-		} else {
-			throw new DynamicCodeGenException("Type error: " + c.getName());
 		}
 	}
 

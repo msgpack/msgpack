@@ -68,58 +68,6 @@ public interface Constants {
 
 	String METHOD_NAME_UNPACK = "unpack";
 
-	String METHOD_NAME_UNPACKBOOLEAN = "unpackBoolean";
-
-	String METHOD_NAME_UNPACKBYTE = "unpackByte";
-
-	String METHOD_NAME_UNPACKDOUBLE = "unpackDouble";
-
-	String METHOD_NAME_UNPACKFLOAT = "unpackFloat";
-
-	String METHOD_NAME_UNPACKINT = "unpackInt";
-
-	String METHOD_NAME_UNPACKLONG = "unpackLong";
-
-	String METHOD_NAME_UNPACKSHORT = "unpackShort";
-
-	String METHOD_NAME_UNPACKSTRING = "unpackString";
-
-	String METHOD_NAME_UNPACKBIGINTEGER = "unpackBigInteger";
-
-	String METHOD_NAME_UNPACKOBJECT = "unpackObject";
-
-	String METHOD_NAME_UNPACKBYTEARRAY = "unpackByteArray";
-
-	String METHOD_NAME_UNPACKARRAY = "unpackArray";
-
-	String METHOD_NAME_UNPACKMAP = "unpackMap";
-
-	String METHOD_NAME_ASARRAY = "asArray";
-
-	String METHOD_NAME_ASBOOLEAN = "asBoolean";
-
-	String METHOD_NAME_ASBYTE = "asByte";
-
-	String METHOD_NAME_ASSHORT = "asShort";
-
-	String METHOD_NAME_ASINT = "asInt";
-
-	String METHOD_NAME_ASFLOAT = "asFloat";
-
-	String METHOD_NAME_ASLONG = "asLong";
-
-	String METHOD_NAME_ASDOUBLE = "asDouble";
-
-	String METHOD_NAME_ASSTRING = "asString";
-
-	String METHOD_NAME_ASBYTEARRAY = "asByteArray";
-
-	String METHOD_NAME_ASBIGINTEGER = "asBigInteger";
-
-	String METHOD_NAME_ASLIST = "asList";
-
-	String METHOD_NAME_ASMAP = "asMap";
-
 	String STATEMENT_PACKER_PACKERMETHODBODY_01 = "%s _$$_t = (%s)$2; ";
 
 	String STATEMENT_PACKER_PACKERMETHODBODY_02 = "$1.packArray(%d); ";

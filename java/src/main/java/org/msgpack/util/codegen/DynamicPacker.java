@@ -37,8 +37,8 @@ public class DynamicPacker {
 			Constructor<?> cons = packerClass
 					.getDeclaredConstructor(new Class[] { Class.class });
 			Object obj = cons.newInstance(new Object[] { c });
-			((MessagePackerAccessor) obj).setMessagePackers(gen
-					.getMessagePackers(c));
+			MessagePacker[] packers = gen.getMessagePackers(c);
+			((MessagePackerAccessor) obj).setMessagePackers(packers);
 			return (MessagePacker) obj;
 		} catch (InstantiationException e) {
 			throw new DynamicCodeGenException(e.getMessage(), e);
