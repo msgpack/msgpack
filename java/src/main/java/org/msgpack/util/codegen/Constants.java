@@ -21,6 +21,8 @@ public interface Constants {
 
 	String VARIABLE_NAME_TEMPLATES = "_$$_templates";
 
+	String VARIABLE_NAME_PACKERS = "_$$_packers";
+
 	String VARIABLE_NAME_CLIENT = "_$$_client";
 
 	String METHOD_NAME_BOOLEANVALUE = "booleanValue";
@@ -42,6 +44,8 @@ public interface Constants {
 	String METHOD_NAME_CONVERT = "convert";
 
 	String METHOD_NAME_SETTEMPLATES = "setTemplates";
+
+	String METHOD_NAME_SETMESSAGEPACKERS = "setMessagePackers";
 
 	String METHOD_NAME_PACK = "pack";
 
@@ -103,7 +107,7 @@ public interface Constants {
 
 	String STATEMENT_PACKER_PACKERMETHODBODY_02 = "$1.packArray(%d); ";
 
-	String STATEMENT_PACKER_PACKERMETHODBODY_03 = "$1.pack(_$$_t.%s); ";
+	String STATEMENT_PACKER_PACKERMETHODBODY_03 = "_$$_packers[%d].pack($1, %s_$$_t.%s%s); ";
 
 	String STATEMENT_PACKER_PACKERMETHODBODY_04 = "$1.pack(((java.lang.Enum)_$$_t).ordinal()); ";
 

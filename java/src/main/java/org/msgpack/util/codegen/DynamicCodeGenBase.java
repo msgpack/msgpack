@@ -7,6 +7,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.math.BigInteger;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -23,16 +24,46 @@ import javassist.NotFoundException;
 
 import org.msgpack.CustomConverter;
 import org.msgpack.CustomMessage;
+import org.msgpack.CustomPacker;
 import org.msgpack.MessageConvertable;
 import org.msgpack.MessagePackObject;
+import org.msgpack.MessagePackable;
+import org.msgpack.MessagePacker;
 import org.msgpack.MessageTypeException;
 import org.msgpack.MessageUnpackable;
+import org.msgpack.Packer;
 import org.msgpack.Template;
 import org.msgpack.Templates;
 import org.msgpack.Unpacker;
 import org.msgpack.annotation.MessagePackDelegate;
 import org.msgpack.annotation.MessagePackMessage;
 import org.msgpack.annotation.MessagePackOrdinalEnum;
+import org.msgpack.packer.BigIntegerPacker;
+import org.msgpack.packer.BooleanPacker;
+import org.msgpack.packer.ByteArrayPacker;
+import org.msgpack.packer.BytePacker;
+import org.msgpack.packer.DoublePacker;
+import org.msgpack.packer.FloatPacker;
+import org.msgpack.packer.IntegerPacker;
+import org.msgpack.packer.LongPacker;
+import org.msgpack.packer.OptionalPacker;
+import org.msgpack.packer.ShortPacker;
+import org.msgpack.packer.StringPacker;
+import org.msgpack.template.BigIntegerTemplate;
+import org.msgpack.template.BooleanTemplate;
+import org.msgpack.template.ByteArrayTemplate;
+import org.msgpack.template.ByteTemplate;
+import org.msgpack.template.ClassTemplate;
+import org.msgpack.template.CollectionTemplate;
+import org.msgpack.template.DoubleTemplate;
+import org.msgpack.template.FloatTemplate;
+import org.msgpack.template.IntegerTemplate;
+import org.msgpack.template.ListTemplate;
+import org.msgpack.template.LongTemplate;
+import org.msgpack.template.MapTemplate;
+import org.msgpack.template.OptionalTemplate;
+import org.msgpack.template.ShortTemplate;
+import org.msgpack.template.StringTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,12 +72,66 @@ public class DynamicCodeGenBase implements Constants {
 	private static Logger LOG = LoggerFactory
 			.getLogger(DynamicCodeGenBase.class);
 
-	public static class MessageUnpackableConvertableTemplate implements
-			Template {
-
+	static class MessagePackablePacker implements MessagePacker {
+		@SuppressWarnings("unused")
 		private Class<?> type;
 
-		public MessageUnpackableConvertableTemplate(Class<?> type) {
+		MessagePackablePacker(Class<?> type) {
+			this.type = type;
+		}
+
+		@Override
+		public void pack(Packer packer, Object target) throws IOException {
+			MessagePackable mp = MessagePackable.class.cast(target);
+			mp.messagePack(packer);
+		}
+	}
+
+	static class ListPacker implements MessagePacker {
+		private MessagePacker elementPacker;
+
+		ListPacker(MessagePacker elementPacker) {
+			this.elementPacker = elementPacker;
+		}
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public void pack(Packer packer, Object target) throws IOException {
+			List<Object> list = (List<Object>) target;
+			packer.packArray(list.size());
+			for (Iterator<Object> iter = list.iterator(); iter.hasNext();) {
+				elementPacker.pack(packer, iter.next());
+			}
+		}
+	}
+
+	static class MapPacker implements MessagePacker {
+		private MessagePacker keyPacker;
+		private MessagePacker valPacker;
+
+		MapPacker(MessagePacker keyPacker, MessagePacker valPacker) {
+			this.keyPacker = keyPacker;
+			this.valPacker = valPacker;
+		}
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public void pack(Packer packer, Object target) throws IOException {
+			Map<Object, Object> map = (Map<Object, Object>) target;
+			packer.packMap(map.size());
+			for (Map.Entry<Object, Object> e : ((Map<Object, Object>) map)
+					.entrySet()) {
+				keyPacker.pack(packer, e.getKey());
+				valPacker.pack(packer, e.getValue());
+			}
+		}
+
+	}
+
+	static class MessageUnpackableConvertableTemplate implements Template {
+		private Class<?> type;
+
+		MessageUnpackableConvertableTemplate(Class<?> type) {
 			this.type = type;
 		}
 
@@ -84,12 +169,42 @@ public class DynamicCodeGenBase implements Constants {
 		}
 	}
 
-	public static interface TemplateAccessor {
+	static interface MessagePackerAccessor {
+		void setMessagePackers(MessagePacker[] packers);
+	}
+
+	static class MessagePackerAccessorImpl implements MessagePackerAccessor {
+		public Class<?> type;
+
+		public MessagePacker[] _$$_packers;
+
+		public MessagePackerAccessorImpl() {
+		}
+
+		public MessagePackerAccessorImpl(Class<?> type) {
+			this.type = type;
+		}
+
+		public void setMessagePackers(MessagePacker[] _$$_pks) {
+			_$$_packers = _$$_pks;
+		}
+	}
+
+	static interface TemplateAccessor {
 		void setTemplates(Template[] templates);
 	}
 
-	public static class TemplateAccessorImpl implements TemplateAccessor {
+	static class TemplateAccessorImpl implements TemplateAccessor {
+		public Class<?> type;
+
 		public Template[] _$$_templates;
+
+		public TemplateAccessorImpl() {
+		}
+
+		public TemplateAccessorImpl(Class<?> type) {
+			this.type = type;
+		}
 
 		public void setTemplates(Template[] _$$_tmpls) {
 			_$$_templates = _$$_tmpls;
@@ -190,11 +305,38 @@ public class DynamicCodeGenBase implements Constants {
 		newCtClass.addInterface(infCtClass);
 	}
 
-	protected void addDefaultConstructor(CtClass enhancedCtClass)
+	protected void addClassTypeConstructor(CtClass newCtClass)
+			throws CannotCompileException, NotFoundException {
+		CtConstructor newCtCons = CtNewConstructor.make(new CtClass[] { pool
+				.get(Class.class.getName()) }, new CtClass[0], newCtClass);
+		newCtClass.addConstructor(newCtCons);
+	}
+
+	protected void addDefaultConstructor(CtClass newCtClass)
 			throws CannotCompileException {
 		CtConstructor newCtCons = CtNewConstructor
-				.defaultConstructor(enhancedCtClass);
-		enhancedCtClass.addConstructor(newCtCons);
+				.defaultConstructor(newCtClass);
+		newCtClass.addConstructor(newCtCons);
+	}
+
+	protected void addMessagePackerArrayField(CtClass newCtClass)
+			throws NotFoundException, CannotCompileException {
+		CtClass acsCtClass = pool
+				.get(MessagePackerAccessorImpl.class.getName());
+		CtField pksField = acsCtClass.getDeclaredField(VARIABLE_NAME_PACKERS);
+		CtField pksField2 = new CtField(pksField.getType(), pksField.getName(),
+				newCtClass);
+		newCtClass.addField(pksField2);
+	}
+
+	protected void addSetMessagePackersMethod(CtClass newCtClass)
+			throws NotFoundException, CannotCompileException {
+		CtClass acsCtClass = pool.get(TemplateAccessorImpl.class.getName());
+		CtMethod setPksMethod = acsCtClass
+				.getDeclaredMethod(METHOD_NAME_SETMESSAGEPACKERS);
+		CtMethod setPksMethod2 = CtNewMethod.copy(setPksMethod, newCtClass,
+				null);
+		newCtClass.addMethod(setPksMethod2);
 	}
 
 	protected void addTemplateArrayField(CtClass newCtClass)
@@ -315,6 +457,139 @@ public class DynamicCodeGenBase implements Constants {
 			return METHOD_NAME_ASMAP;
 		} else {
 			throw new DynamicCodeGenException("Type error: " + c.getName());
+		}
+	}
+
+	public static MessagePacker toMessagePacker(Template tmpl) {
+		if (tmpl instanceof BigIntegerTemplate) {
+			return BigIntegerPacker.getInstance();
+		} else if (tmpl instanceof BooleanTemplate) {
+			return BooleanPacker.getInstance();
+		} else if (tmpl instanceof ByteArrayTemplate) {
+			return ByteArrayPacker.getInstance();
+		} else if (tmpl instanceof ByteTemplate) {
+			return BytePacker.getInstance();
+		} else if (tmpl instanceof ClassTemplate) {
+			UnsupportedOperationException e = new UnsupportedOperationException(
+					"not supported yet.");
+			LOG.error(e.getMessage(), e);
+			throw e;
+		} else if (tmpl instanceof CollectionTemplate) {
+			UnsupportedOperationException e = new UnsupportedOperationException(
+					"not supported yet.");
+			LOG.error(e.getMessage(), e);
+			throw e;
+		} else if (tmpl instanceof DoubleTemplate) {
+			return DoublePacker.getInstance();
+		} else if (tmpl instanceof FloatTemplate) {
+			return FloatPacker.getInstance();
+		} else if (tmpl instanceof IntegerTemplate) {
+			return IntegerPacker.getInstance();
+		} else if (tmpl instanceof ListTemplate) {
+			ListTemplate t = (ListTemplate) tmpl;
+			return new ListPacker(toMessagePacker(t.getElementTemplate()));
+		} else if (tmpl instanceof LongTemplate) {
+			return LongPacker.getInstance();
+		} else if (tmpl instanceof MapTemplate) {
+			MapTemplate t = (MapTemplate) tmpl;
+			return new MapPacker(toMessagePacker(t.getKeyTemplate()),
+					toMessagePacker(t.getValueTemplate()));
+		} else if (tmpl instanceof OptionalTemplate) {
+			OptionalTemplate t = (OptionalTemplate) tmpl;
+			return new OptionalPacker(toMessagePacker(t.getElementTemplate()));
+		} else if (tmpl instanceof ShortTemplate) {
+			return ShortPacker.getInstance();
+		} else if (tmpl instanceof StringTemplate) {
+			return StringPacker.getInstance();
+		} else if (tmpl instanceof TemplateAccessorImpl) {
+			Class<?> c = ((TemplateAccessorImpl) tmpl).type;
+			if (CustomPacker.isRegistered(c)) {
+				return CustomPacker.get(c);
+			} else {
+				MessagePacker packer = DynamicPacker.create(c);
+				CustomMessage.registerPacker(c, packer);
+				return packer;
+			}
+		}
+		UnsupportedOperationException e = new UnsupportedOperationException(
+				"not supported yet.");
+		LOG.error(e.getMessage(), e);
+		throw e;
+	}
+
+	public MessagePacker createMessagePacker(Type t) {
+		if (t.getClass().equals(Class.class)) {
+			Class<?> c = (Class<?>) t;
+			if (c.equals(boolean.class) || c.equals(Boolean.class)) {
+				return BooleanPacker.getInstance();
+			} else if (c.equals(byte.class) || c.equals(Byte.class)) {
+				return BytePacker.getInstance();
+			} else if (c.equals(short.class) || c.equals(Short.class)) {
+				return ShortPacker.getInstance();
+			} else if (c.equals(int.class) || c.equals(Integer.class)) {
+				return IntegerPacker.getInstance();
+			} else if (c.equals(float.class) || c.equals(Float.class)) {
+				return FloatPacker.getInstance();
+			} else if (c.equals(long.class) || c.equals(Long.class)) {
+				return LongPacker.getInstance();
+			} else if (c.equals(double.class) || c.equals(Double.class)) {
+				return DoublePacker.getInstance();
+			} else if (c.equals(String.class)) {
+				return StringPacker.getInstance();
+			} else if (c.equals(BigInteger.class)) {
+				return BigIntegerPacker.getInstance();
+			} else if (CustomPacker.isRegistered(c)) {
+				return CustomPacker.get(c);
+			} else if (CustomMessage.isAnnotated(c, MessagePackMessage.class)) {
+				// @MessagePackMessage
+				MessagePacker packer = DynamicPacker.create(c);
+				CustomMessage.registerPacker(c, packer);
+				return packer;
+			} else if (CustomMessage.isAnnotated(c, MessagePackDelegate.class)) {
+				// FIXME DelegatePacker
+				UnsupportedOperationException e = new UnsupportedOperationException(
+						"not supported yet. : " + c.getName());
+				LOG.error(e.getMessage(), e);
+				throw e;
+			} else if (CustomMessage.isAnnotated(c,
+					MessagePackOrdinalEnum.class)) {
+				// @MessagePackOrdinalEnum
+				MessagePacker packer = DynamicOrdinalEnumPacker.create(c);
+				CustomMessage.registerPacker(c, packer);
+				return packer;
+			} else if (MessagePackable.class.isAssignableFrom(c)) {
+				MessagePacker packer = new MessagePackablePacker(c);
+				CustomMessage.registerPacker(c, packer);
+				return packer;
+			} else {
+				throw new MessageTypeException("Type error: "
+						+ ((Class<?>) t).getName());
+			}
+		} else if (t instanceof GenericArrayType) {
+			GenericArrayType gat = (GenericArrayType) t;
+			Type gct = gat.getGenericComponentType();
+			if (gct.equals(byte.class)) {
+				return ByteArrayPacker.getInstance();
+			} else {
+				throw new DynamicCodeGenException("Not supported yet: " + gat);
+			}
+		} else if (t instanceof ParameterizedType) {
+			ParameterizedType pt = (ParameterizedType) t;
+			Class<?> rawType = (Class<?>) pt.getRawType();
+			if (rawType.equals(List.class)) {
+				Type[] ats = pt.getActualTypeArguments();
+				return new ListPacker(createMessagePacker(ats[0]));
+			} else if (rawType.equals(Map.class)) {
+				Type[] ats = pt.getActualTypeArguments();
+				return new MapPacker(createMessagePacker(ats[0]),
+						createMessagePacker(ats[1]));
+			} else {
+				throw new DynamicCodeGenException("Type error: "
+						+ t.getClass().getName());
+			}
+		} else {
+			throw new DynamicCodeGenException("Type error: "
+					+ t.getClass().getName());
 		}
 	}
 

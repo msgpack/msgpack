@@ -5,7 +5,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -17,19 +16,14 @@ import javassist.CtMethod;
 import javassist.CtNewMethod;
 import javassist.NotFoundException;
 
-import org.msgpack.CustomMessage;
-import org.msgpack.CustomPacker;
 import org.msgpack.MessagePackObject;
-import org.msgpack.MessagePackable;
 import org.msgpack.MessagePacker;
 import org.msgpack.MessageTypeException;
 import org.msgpack.Packer;
 import org.msgpack.Template;
 import org.msgpack.Unpacker;
-import org.msgpack.annotation.MessagePackDelegate;
-import org.msgpack.annotation.MessagePackMessage;
 import org.msgpack.annotation.MessagePackOptional;
-import org.msgpack.annotation.MessagePackOrdinalEnum;
+import org.msgpack.packer.OptionalPacker;
 import org.msgpack.template.OptionalTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,9 +45,12 @@ class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 
 	private ConcurrentHashMap<String, Template[]> tmplCache;
 
+	private ConcurrentHashMap<String, MessagePacker[]> pkCache;
+
 	DynamicCodeGen() {
 		super();
 		tmplCache = new ConcurrentHashMap<String, Template[]>();
+		pkCache = new ConcurrentHashMap<String, MessagePacker[]>();
 	}
 
 	public void setTemplates(Class<?> type, Template[] tmpls) {
@@ -62,6 +59,14 @@ class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 
 	public Template[] getTemplates(Class<?> type) {
 		return tmplCache.get(type.getName());
+	}
+
+	public void setMessagePackers(Class<?> type, MessagePacker[] pks) {
+		pkCache.putIfAbsent(type.getName(), pks);
+	}
+
+	public MessagePacker[] getMessagePackers(Class<?> type) {
+		return pkCache.get(type.getName());
 	}
 
 	public Class<?> generateMessagePackerClass(Class<?> origClass,
@@ -74,12 +79,18 @@ class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 			checkTypeValidation(origClass);
 			checkDefaultConstructorValidation(origClass);
 			CtClass packerCtClass = pool.makeClass(packerName);
+			setSuperclass(packerCtClass, MessagePackerAccessorImpl.class);
 			setInterface(packerCtClass, MessagePacker.class);
-			addDefaultConstructor(packerCtClass);
+			addClassTypeConstructor(packerCtClass);
 			Field[] fields = getDeclaredFields(origClass);
+			MessagePacker[] packers = null;
 			if (fieldOpts != null) {
 				fields = sortFields(fields, fieldOpts);
+				packers = createMessagePackers(fieldOpts);
+			} else {
+				packers = createMessagePackers(fields);
 			}
+			setMessagePackers(origClass, packers);
 			addPackMethod(packerCtClass, origClass, fields, false);
 			Class<?> packerClass = createClass(packerCtClass);
 			LOG.debug("generated a packer class for " + origClass.getName());
@@ -101,8 +112,9 @@ class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 			String packerName = origName + POSTFIX_TYPE_NAME_PACKER + inc();
 			checkTypeValidation(origClass);
 			CtClass packerCtClass = pool.makeClass(packerName);
+			setSuperclass(packerCtClass, MessagePackerAccessorImpl.class);
 			setInterface(packerCtClass, MessagePacker.class);
-			addDefaultConstructor(packerCtClass);
+			addClassTypeConstructor(packerCtClass);
 			addPackMethod(packerCtClass, origClass, null, true);
 			Class<?> packerClass = createClass(packerCtClass);
 			LOG.debug("generated an enum class for " + origClass.getName());
@@ -128,7 +140,7 @@ class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 			CtClass tmplCtClass = pool.makeClass(tmplName);
 			setSuperclass(tmplCtClass, TemplateAccessorImpl.class);
 			setInterface(tmplCtClass, Template.class);
-			addDefaultConstructor(tmplCtClass);
+			addClassTypeConstructor(tmplCtClass);
 			Field[] fields = getDeclaredFields(origClass);
 			Template[] tmpls = null;
 			if (fieldOpts != null) {
@@ -166,7 +178,7 @@ class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 			CtClass tmplCtClass = pool.makeClass(tmplName);
 			setSuperclass(tmplCtClass, TemplateAccessorImpl.class);
 			setInterface(tmplCtClass, Template.class);
-			addDefaultConstructor(tmplCtClass);
+			addClassTypeConstructor(tmplCtClass);
 			addUnpackMethod(tmplCtClass, origClass, null, true);
 			addConvertMethod(tmplCtClass, origClass, null, true);
 			Class<?> tmplClass = createClass(tmplCtClass);
@@ -279,6 +291,38 @@ class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 		return sorted;
 	}
 
+	MessagePacker[] createMessagePackers(List<FieldOption> fieldOpts) {
+		MessagePacker[] pks = new MessagePacker[fieldOpts.size()];
+		for (int i = 0; i < pks.length; ++i) {
+			pks[i] = toMessagePacker(fieldOpts.get(i).tmpl);
+		}
+		return pks;
+	}
+
+	MessagePacker[] createMessagePackers(Field[] fields) {
+		MessagePacker[] pks = new MessagePacker[fields.length];
+		for (int i = 0; i < pks.length; ++i) {
+			pks[i] = createMessagePacker(fields[i]);
+		}
+		return pks;
+	}
+
+	MessagePacker createMessagePacker(Field field) {
+		boolean isOptional = isAnnotated(field, MessagePackOptional.class);
+		Class<?> c = field.getType();
+		MessagePacker pk = null;
+		if (List.class.isAssignableFrom(c) || Map.class.isAssignableFrom(c)) {
+			pk = createMessagePacker(field.getGenericType());
+		} else {
+			pk = createMessagePacker(c);
+		}
+		if (isOptional) {
+			return new OptionalPacker(pk);
+		} else {
+			return pk;
+		}
+	}
+
 	Template[] createTemplates(List<FieldOption> fieldOpts) {
 		Template[] tmpls = new Template[fieldOpts.size()];
 		for (int i = 0; i < tmpls.length; ++i) {
@@ -310,17 +354,17 @@ class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 			return tmpl;
 		}
 	}
-	
+
 	private boolean isAnnotated(Field field, Class<? extends Annotation> with) {
 		return field.getAnnotation(with) != null;
 	}
 
-	private void addPackMethod(CtClass packerCtClass, Class<?> c, Field[] fs,
-			boolean isEnum) {
+	private void addPackMethod(CtClass packerCtClass, Class<?> c,
+			Field[] fields, boolean isEnum) {
 		// void pack(Packer pk, Object target) throws IOException;
 		StringBuilder sb = new StringBuilder();
 		if (!isEnum) {
-			insertPackMethodBody(sb, c, fs);
+			insertPackMethodBody(sb, c, fields);
 		} else {
 			insertOrdinalEnumPackMethodBody(sb, c);
 		}
@@ -360,52 +404,20 @@ class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 		sb.append(String.format(STATEMENT_PACKER_PACKERMETHODBODY_01, args0));
 		Object[] args1 = new Object[] { fields.length };
 		sb.append(String.format(STATEMENT_PACKER_PACKERMETHODBODY_02, args1));
-		for (Field f : fields) {
-			insertCodeOfPackMethodCall(sb, f);
+		for (int i = 0; i < fields.length; ++i) {
+			insertCodeOfPackMethodCall(sb, fields[i], i);
 		}
 		sb.append(CHAR_NAME_RIGHT_CURLY_BRACKET);
 	}
 
-	private void insertCodeOfPackMethodCall(StringBuilder sb, Field field) {
-		Class<?> c = field.getType();
-		if (c.isPrimitive()) {
-			; // ignore
-		} else if (c.equals(Boolean.class) || c.equals(Byte.class)
-				|| c.equals(Double.class) || c.equals(Float.class)
-				|| c.equals(Integer.class) || c.equals(Long.class)
-				|| c.equals(Short.class)) {
-			; // ignore
-		} else if (c.equals(String.class) || c.equals(BigInteger.class)
-				|| c.equals(byte[].class)) {
-			; // ignore
-		} else if (List.class.isAssignableFrom(c)
-				|| Map.class.isAssignableFrom(c)) {
-			; // ignore
-		} else if (CustomPacker.isRegistered(c)) {
-			; // ignore
-		} else if (MessagePackable.class.isAssignableFrom(c)) {
-			; // ignore
-		} else if (CustomMessage.isAnnotated(c, MessagePackMessage.class)) {
-			// @MessagePackMessage
-			MessagePacker packer = DynamicPacker.create(c);
-			CustomMessage.registerPacker(c, packer);
-		} else if (CustomMessage.isAnnotated(c, MessagePackDelegate.class)) {
-			// FIXME DelegatePacker
-			UnsupportedOperationException e = new UnsupportedOperationException(
-					"not supported yet. : " + c.getName());
-			LOG.error(e.getMessage(), e);
-			throw e;
-		} else if (CustomMessage.isAnnotated(c, MessagePackOrdinalEnum.class)) {
-			// @MessagePackOrdinalEnum
-			MessagePacker packer = DynamicOrdinalEnumPacker.create(c);
-			CustomMessage.registerPacker(c, packer);
-		} else {
-			MessageTypeException e = new MessageTypeException("unknown type: "
-					+ c.getName());
-			LOG.error(e.getMessage(), e);
-			throw e;
-		}
-		Object[] args = new Object[] { field.getName() };
+	private void insertCodeOfPackMethodCall(StringBuilder sb, Field field, int i) {
+		// _$$_packers[i].pack($1, new Integer(target.fi));
+		Class<?> type = field.getType();
+		boolean isPrim = type.isPrimitive();
+		Object[] args = new Object[] {
+				i,
+				isPrim ? "new " + getPrimToWrapperType(type).getName() + "("
+						: "", field.getName(), isPrim ? ")" : "" };
 		sb.append(String.format(STATEMENT_PACKER_PACKERMETHODBODY_03, args));
 	}
 
