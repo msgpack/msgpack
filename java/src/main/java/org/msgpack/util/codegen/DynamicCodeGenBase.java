@@ -186,11 +186,11 @@ public class DynamicCodeGenBase implements Constants {
 		}
 	}
 
-	static interface MessagePackerAccessor {
+	public static interface MessagePackerAccessor {
 		void setMessagePackers(MessagePacker[] packers);
 	}
 
-	static class MessagePackerAccessorImpl implements MessagePackerAccessor {
+	protected static class MessagePackerAccessorImpl implements MessagePackerAccessor {
 		public Class<?> type;
 
 		public MessagePacker[] _$$_packers;
