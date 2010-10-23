@@ -28,6 +28,10 @@ public class OptionalTemplate implements Template {
 		this(elementTemplate, null);
 	}
 
+	public Template getElementTemplate() {
+		return elementTemplate;
+	}
+
 	public OptionalTemplate(Template elementTemplate, Object defaultObject) {
 		this.elementTemplate = elementTemplate;
 		this.defaultObject = defaultObject;

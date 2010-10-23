@@ -29,6 +29,10 @@ public class ListTemplate implements Template {
 		this.elementTemplate = elementTemplate;
 	}
 
+	public Template getElementTemplate() {
+		return elementTemplate;
+	}
+
 	public Object unpack(Unpacker pac) throws IOException, MessageTypeException {
 		int length = pac.unpackArray();
 		List<Object> list = new ArrayList<Object>(length);

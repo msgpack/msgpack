@@ -31,6 +31,14 @@ public class MapTemplate implements Template {
 		this.valueTemplate = valueTemplate;
 	}
 
+	public Template getKeyTemplate() {
+		return keyTemplate;
+	}
+
+	public Template getValueTemplate() {
+		return valueTemplate;
+	}
+
 	public Object unpack(Unpacker pac) throws IOException, MessageTypeException {
 		int length = pac.unpackMap();
 		Map<Object,Object> map = new HashMap<Object,Object>(length);
