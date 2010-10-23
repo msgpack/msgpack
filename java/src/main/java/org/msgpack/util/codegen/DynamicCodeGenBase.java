@@ -236,7 +236,7 @@ public class DynamicCodeGenBase implements Constants {
 
 	protected ClassPool pool;
 
-	public DynamicCodeGenBase() {
+	protected DynamicCodeGenBase() {
 		pool = ClassPool.getDefault();
 	}
 
@@ -396,7 +396,7 @@ public class DynamicCodeGenBase implements Constants {
 		}
 	}
 
-	public String getPrimTypeValueMethodName(Class<?> type) {
+	public static String getPrimTypeValueMethodName(Class<?> type) {
 		if (type.equals(boolean.class)) {
 			return METHOD_NAME_BOOLEANVALUE;
 		} else if (type.equals(byte.class)) {
@@ -473,7 +473,7 @@ public class DynamicCodeGenBase implements Constants {
 		throw e;
 	}
 
-	public MessagePacker createMessagePacker(Type t) {
+	public static MessagePacker createMessagePacker(Type t) {
 		if (t.getClass().equals(Class.class)) {
 			Class<?> c = (Class<?>) t;
 			if (c.equals(boolean.class) || c.equals(Boolean.class)) {
@@ -549,7 +549,7 @@ public class DynamicCodeGenBase implements Constants {
 		}
 	}
 
-	public Template createTemplate(Type t) {
+	public static Template createTemplate(Type t) {
 		if (t.getClass().equals(Class.class)) {
 			Class<?> c = (Class<?>) t;
 			if (c.equals(boolean.class) || c.equals(Boolean.class)) {
@@ -626,7 +626,7 @@ public class DynamicCodeGenBase implements Constants {
 		}
 	}
 
-	protected int getArrayDim(Class<?> type) {
+	static int getArrayDim(Class<?> type) {
 		if (type.isArray()) {
 			return 1 + getArrayDim(type.getComponentType());
 		} else {
@@ -634,7 +634,7 @@ public class DynamicCodeGenBase implements Constants {
 		}
 	}
 
-	protected Class<?> getArrayBaseType(Class<?> type) {
+	static Class<?> getArrayBaseType(Class<?> type) {
 		if (type.isArray()) {
 			return getArrayBaseType(type.getComponentType());
 		} else {
@@ -642,7 +642,7 @@ public class DynamicCodeGenBase implements Constants {
 		}
 	}
 
-	protected String arrayTypeToString(Class<?> type) {
+	static String arrayTypeToString(Class<?> type) {
 		StringBuilder sb = new StringBuilder();
 		int dim = getArrayDim(type);
 		Class<?> t = getArrayBaseType(type);
@@ -653,7 +653,7 @@ public class DynamicCodeGenBase implements Constants {
 		return sb.toString();
 	}
 
-	protected String classToString(Class<?> type) {
+	protected static String classToString(Class<?> type) {
 		if (type.isArray()) {
 			return arrayTypeToString(type);
 		} else {
@@ -691,7 +691,7 @@ public class DynamicCodeGenBase implements Constants {
 		}
 	}
 
-	protected Class<?> createClass(CtClass newCtClass)
+	protected static Class<?> createClass(CtClass newCtClass)
 			throws CannotCompileException {
 		return newCtClass.toClass(null, null);
 	}
