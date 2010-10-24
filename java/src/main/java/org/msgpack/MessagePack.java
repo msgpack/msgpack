@@ -21,6 +21,10 @@ import java.io.OutputStream;
 import java.io.InputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+//import org.msgpack.util.codegen.DynamicTemplate;  // FIXME
+import org.msgpack.util.codegen.DynamicPacker;
+import org.msgpack.util.codegen.DynamicConverter;
+import org.msgpack.util.codegen.DynamicUnpacker;
 
 public class MessagePack {
 	public static byte[] pack(Object obj) {
@@ -110,14 +114,43 @@ public class MessagePack {
 
 	}
 
-	//public static void register(Class<?> target);  // TODO: auto-detect
+	public static void register(Class<?> target) {  // auto-detect
+		// FIXME
+		//Template tmpl;
+		//if(List.isAssignableFrom(target)) {
+		//} else if(Set.isAssignableFrom(target)) {
+		//} else if(Map.isAssignableFrom(target)) {
+		//} else if(Collection.isAssignableFrom(target)) {
+		//} else if(BigInteger.isAssignableFrom(target)) {
+		//} else {
+		//}
 
-	//public static void register(Class<?> target, Template tmpl); // TODO
+		// FIXME
+		//Template tmpl = DynamicTemplate.create(target);
+		//register(target, tmpl);
 
-	//public static void registerPacker(Class<?> target, MessagePacker packer); // TODO
+		// FIXME
+		CustomPacker.register(target, DynamicPacker.create(target));
+		CustomConverter.register(target, DynamicConverter.create(target));
+		CustomUnpacker.register(target, DynamicUnpacker.create(target));
+	}
 
-	//public static void registerConverter(Class<?> target, MessageConverter converter); // TODO
+	public static void register(Class<?> target, Template tmpl) {
+		CustomPacker.register(target, tmpl);
+		CustomConverter.register(target, tmpl);
+		CustomUnpacker.register(target, tmpl);
+	}
 
-	//public static void registerUnpacker(Class<?> target, MessageUnpacker unpacker); // TODO
+	public static void registerPacker(Class<?> target, MessagePacker packer) {
+		CustomPacker.register(target, packer);
+	}
+
+	public static void registerConverter(Class<?> target, MessageConverter converter) {
+		CustomConverter.register(target, converter);
+	}
+
+	public static void registerUnpacker(Class<?> target, MessageUnpacker unpacker) {
+		CustomUnpacker.register(target, unpacker);
+	}
 }
 
