@@ -42,7 +42,7 @@ public class ByteArrayTemplate implements Template {
 	static final ByteArrayTemplate instance = new ByteArrayTemplate();
 
 	static {
-		CustomMessage.registerTemplate(byte[].class, instance);
+		CustomMessage.register(byte[].class, instance);
 	}
 }
 

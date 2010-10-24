@@ -1116,9 +1116,9 @@ public class TestPackUnpack extends TestCase {
 	@Test
 	public void testNestedFieldClass00() throws Exception {
 		Template tmpl2 = DynamicTemplate.create(NestedClass.class);
-		CustomMessage.registerTemplate(NestedClass.class, tmpl2);
+		CustomMessage.register(NestedClass.class, tmpl2);
 		Template tmpl = DynamicTemplate.create(BaseClass.class);
-		CustomMessage.registerTemplate(BaseClass.class, tmpl);
+		CustomMessage.register(BaseClass.class, tmpl);
 		BaseClass src = new BaseClass();
 		NestedClass src2 = new NestedClass();
 		src.f0 = 0;
@@ -1135,7 +1135,7 @@ public class TestPackUnpack extends TestCase {
 	@Test
 	public void testNestedFieldClass01() throws Exception {
 		Template tmpl2 = DynamicTemplate.create(NestedClass.class);
-		CustomMessage.registerTemplate(NestedClass.class, tmpl2);
+		CustomMessage.register(NestedClass.class, tmpl2);
 		Template tmpl = new OptionalTemplate(DynamicTemplate.create(BaseClass.class));
 		BaseClass src = null;
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -1163,7 +1163,7 @@ public class TestPackUnpack extends TestCase {
 	@Test
 	public void testOptionalNestedFieldClass00() throws Exception {
 		Template tmpl2 = DynamicTemplate.create(OptionalNestedClass.class);
-		CustomMessage.registerTemplate(OptionalNestedClass.class, tmpl2);
+		CustomMessage.register(OptionalNestedClass.class, tmpl2);
 		Template tmpl = DynamicTemplate.create(OptionalBaseClass.class);
 		OptionalBaseClass src = new OptionalBaseClass();
 		OptionalNestedClass src2 = new OptionalNestedClass();
@@ -1181,9 +1181,9 @@ public class TestPackUnpack extends TestCase {
 	@Test
 	public void testOptionalNestedFieldClass01() throws Exception {
 		Template tmpl2 = DynamicTemplate.create(OptionalNestedClass.class);
-		CustomMessage.registerTemplate(OptionalNestedClass.class, tmpl2);
+		CustomMessage.register(OptionalNestedClass.class, tmpl2);
 		Template tmpl = DynamicTemplate.create(OptionalBaseClass.class);
-		CustomMessage.registerTemplate(OptionalBaseClass.class, tmpl);
+		CustomMessage.register(OptionalBaseClass.class, tmpl);
 		OptionalBaseClass src = new OptionalBaseClass();
 		src.f1 = null;
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -1197,9 +1197,9 @@ public class TestPackUnpack extends TestCase {
 	@Test
 	public void testOptionalNestedFieldClass02() throws Exception {
 		Template tmpl2 = DynamicTemplate.create(OptionalNestedClass.class);
-		CustomMessage.registerTemplate(OptionalNestedClass.class, tmpl2);
+		CustomMessage.register(OptionalNestedClass.class, tmpl2);
 		Template tmpl = new OptionalTemplate(DynamicTemplate.create(OptionalBaseClass.class));
-		CustomMessage.registerTemplate(OptionalBaseClass.class, tmpl);
+		CustomMessage.register(OptionalBaseClass.class, tmpl);
 		OptionalBaseClass src = null;
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		tmpl.pack(new Packer(out), src);

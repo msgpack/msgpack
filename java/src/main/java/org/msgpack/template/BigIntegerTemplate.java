@@ -43,7 +43,7 @@ public class BigIntegerTemplate implements Template {
 	static final BigIntegerTemplate instance = new BigIntegerTemplate();
 
 	static {
-		CustomMessage.registerTemplate(BigInteger.class, instance);
+		CustomMessage.register(BigInteger.class, instance);
 	}
 }
 

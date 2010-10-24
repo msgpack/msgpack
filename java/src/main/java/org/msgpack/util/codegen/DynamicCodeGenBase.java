@@ -322,7 +322,7 @@ public class DynamicCodeGenBase implements Constants {
 			} else if (CustomMessage.isAnnotated(c, MessagePackMessage.class)) {
 				// @MessagePackMessage
 				Template tmpl = DynamicTemplate.create(c);
-				CustomMessage.registerTemplate(c, tmpl);
+				CustomMessage.register(c, tmpl);
 				return tmpl;
 			} else if (CustomMessage.isAnnotated(c, MessagePackDelegate.class)) {
 				// FIXME DelegatePacker
@@ -330,20 +330,19 @@ public class DynamicCodeGenBase implements Constants {
 						"not supported yet. : " + c.getName());
 				LOG.error(e.getMessage(), e);
 				throw e;
-			} else if (CustomMessage.isAnnotated(c,
-					MessagePackOrdinalEnum.class)) {
+			} else if (CustomMessage.isAnnotated(c, MessagePackOrdinalEnum.class)) {
 				// @MessagePackOrdinalEnum
 				Template tmpl = DynamicOrdinalEnumTemplate.create(c);
-				CustomMessage.registerTemplate(c, tmpl);
+				CustomMessage.register(c, tmpl);
 				return tmpl;
-			} else if (MessageConvertable.class.isAssignableFrom(c)
+			} else if (MessagePackable.class.isAssignableFrom(c)
+					|| MessageConvertable.class.isAssignableFrom(c)
 					|| MessageUnpackable.class.isAssignableFrom(c)) {
 				Template tmpl = new MessagePackUnpackConvertableTemplate(c);
-				CustomMessage.registerTemplate(c, tmpl);
+				CustomMessage.register(c, tmpl);
 				return tmpl;
 			} else {
-				throw new MessageTypeException("Type error: "
-						+ ((Class<?>) t).getName());
+				throw new MessageTypeException("Type error: " + ((Class<?>) t).getName());
 			}
 		} else if (t instanceof GenericArrayType) {
 			GenericArrayType gat = (GenericArrayType) t;

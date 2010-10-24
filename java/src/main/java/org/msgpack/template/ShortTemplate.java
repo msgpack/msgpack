@@ -42,7 +42,7 @@ public class ShortTemplate implements Template {
 	static final ShortTemplate instance = new ShortTemplate();
 
 	static {
-		CustomMessage.registerTemplate(Short.class, instance);
+		CustomMessage.register(Short.class, instance);
 	}
 }
 

@@ -31,10 +31,11 @@ public class CollectionTemplate implements Template {
 	}
 
 	public void pack(Packer pk, Object target) throws IOException {
-		if(target instanceof Collection) {
+		if(!(target instanceof Collection)) {
 			throw new MessageTypeException();
 		}
 		Collection<Object> collection = (Collection<Object>)target;
+		pk.packArray(collection.size());
 		for(Object element : collection) {
 			elementTemplate.pack(pk, element);
 		}

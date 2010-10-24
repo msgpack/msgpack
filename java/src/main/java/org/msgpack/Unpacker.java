@@ -580,8 +580,9 @@ public class Unpacker implements Iterable<MessagePackObject> {
 		return tmpl.unpack(this);
 	}
 
-	final public Object unpack(Class<?> klass) throws IOException, MessageTypeException, InstantiationException, IllegalAccessException {
-		return unpack(Templates.tClass(klass));
+	final public <T> T unpack(Class<T> klass) throws IOException, MessageTypeException {
+		// FIXME optional?
+		return (T)unpack(Templates.tOptional(Templates.tClass(klass)));
 	}
 }
 

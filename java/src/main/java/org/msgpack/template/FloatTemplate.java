@@ -42,7 +42,7 @@ public class FloatTemplate implements Template {
 	static final FloatTemplate instance = new FloatTemplate();
 
 	static {
-		CustomMessage.registerTemplate(Float.class, instance);
+		CustomMessage.register(Float.class, instance);
 	}
 }
 

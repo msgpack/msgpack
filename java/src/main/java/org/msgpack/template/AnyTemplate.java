@@ -46,7 +46,7 @@ public class AnyTemplate implements Template {
 	static final AnyTemplate instance = new AnyTemplate();
 
 	static {
-		CustomMessage.registerTemplate(MessagePackObject.class, instance);
+		CustomMessage.register(MessagePackObject.class, instance);
 	}
 }
 

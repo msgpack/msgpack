@@ -24,10 +24,18 @@ public class CustomMessage {
 		CustomPacker.register(target, packer);
 	}
 
-	public static void registerTemplate(Class<?> target, Template tmpl) {
+	public static void registerConverter(Class<?> target, MessageConverter converter) {
+		CustomConverter.register(target, converter);
+	}
+
+	public static void registerUnpacker(Class<?> target, MessageUnpacker unpacker) {
+		CustomUnpacker.register(target, unpacker);
+	}
+
+	public static void register(Class<?> target, Template tmpl) {
 		CustomPacker.register(target, tmpl);
-		CustomUnpacker.register(target, tmpl);
 		CustomConverter.register(target, tmpl);
+		CustomUnpacker.register(target, tmpl);
 	}
 
 	public static boolean isAnnotated(Class<?> target, Class<? extends Annotation> with) {
