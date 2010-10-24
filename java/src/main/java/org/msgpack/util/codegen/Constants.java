@@ -72,7 +72,7 @@ public interface Constants {
 
 	String STATEMENT_PACKER_PACKERMETHODBODY_02 = "$1.packArray(%d); ";
 
-	String STATEMENT_PACKER_PACKERMETHODBODY_03 = "_$$_packers[%d].pack($1, %s_$$_t.%s%s); ";
+	String STATEMENT_PACKER_PACKERMETHODBODY_03 = "_$$_templates[%d].pack($1, %s_$$_t.%s%s); ";
 
 	String STATEMENT_PACKER_PACKERMETHODBODY_04 = "$1.pack(((java.lang.Enum)_$$_t).ordinal()); ";
 

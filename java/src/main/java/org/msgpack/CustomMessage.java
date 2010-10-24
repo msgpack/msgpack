@@ -25,6 +25,7 @@ public class CustomMessage {
 	}
 
 	public static void registerTemplate(Class<?> target, Template tmpl) {
+		CustomPacker.register(target, tmpl);
 		CustomUnpacker.register(target, tmpl);
 		CustomConverter.register(target, tmpl);
 	}

@@ -14,6 +14,7 @@ import junit.framework.TestCase;
 
 import org.junit.Test;
 import org.msgpack.CustomConverter;
+import org.msgpack.CustomMessage;
 import org.msgpack.CustomPacker;
 import org.msgpack.CustomUnpacker;
 import org.msgpack.MessageConvertable;
@@ -1233,29 +1234,23 @@ public class TestPackConvert extends TestCase {
 
 	@Test
 	public void testNestedFieldClass00() throws Exception {
-		MessagePacker packer2 = DynamicPacker.create(NestedClass.class);
-		CustomPacker.register(NestedClass.class, packer2);
-		MessagePacker packer1 = DynamicPacker.create(BaseClass.class);
-		CustomPacker.register(BaseClass.class, packer1);
 		Template tmpl2 = DynamicTemplate.create(NestedClass.class);
-		CustomUnpacker.register(NestedClass.class, tmpl2);
-		CustomConverter.register(NestedClass.class, tmpl2);
-		Template tmpl1 = DynamicTemplate.create(BaseClass.class);
-		CustomUnpacker.register(BaseClass.class, tmpl1);
-		CustomConverter.register(BaseClass.class, tmpl1);
+		CustomMessage.registerTemplate(NestedClass.class, tmpl2);
+		Template tmpl = DynamicTemplate.create(BaseClass.class);
+		CustomMessage.registerTemplate(BaseClass.class, tmpl);
 		BaseClass src = new BaseClass();
 		NestedClass src2 = new NestedClass();
 		src.f0 = 0;
 		src2.f2 = 2;
 		src.f1 = src2;
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		packer1.pack(new Packer(out), src);
+		tmpl.pack(new Packer(out), src);
 		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
 		Unpacker pac = new Unpacker(in);
 		Iterator<MessagePackObject> it = pac.iterator();
 		assertTrue(it.hasNext());
 		MessagePackObject mpo = it.next();
-		BaseClass dst = (BaseClass) tmpl1.convert(mpo);
+		BaseClass dst = (BaseClass) tmpl.convert(mpo);
 		assertTrue(src.f0 == dst.f0);
 		assertTrue(src.f1.f2 == dst.f1.f2);
 		assertFalse(it.hasNext());
@@ -1263,21 +1258,13 @@ public class TestPackConvert extends TestCase {
 
 	@Test
 	public void testNestedFieldClass02() throws Exception {
-		MessagePacker packer2 = DynamicPacker.create(NestedClass.class);
-		CustomPacker.register(NestedClass.class, packer2);
-		MessagePacker packer = new OptionalPacker(DynamicPacker
-				.create(BaseClass.class));
-		CustomPacker.register(BaseClass.class, packer);
 		Template tmpl2 = DynamicTemplate.create(NestedClass.class);
-		CustomUnpacker.register(NestedClass.class, tmpl2);
-		CustomConverter.register(NestedClass.class, tmpl2);
-		Template tmpl = new OptionalTemplate(DynamicTemplate
-				.create(BaseClass.class));
-		CustomUnpacker.register(BaseClass.class, tmpl);
-		CustomConverter.register(BaseClass.class, tmpl);
+		CustomMessage.registerTemplate(NestedClass.class, tmpl2);
+		Template tmpl = new OptionalTemplate(DynamicTemplate.create(BaseClass.class));
+		CustomMessage.registerTemplate(BaseClass.class, tmpl);
 		BaseClass src = null;
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		packer.pack(new Packer(out), src);
+		tmpl.pack(new Packer(out), src);
 		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
 		Unpacker pac = new Unpacker(in);
 		Iterator<MessagePackObject> it = pac.iterator();
@@ -1305,23 +1292,17 @@ public class TestPackConvert extends TestCase {
 
 	@Test
 	public void testOptionalNestedFieldClass00() throws Exception {
-		MessagePacker packer2 = DynamicPacker.create(OptionalNestedClass.class);
-		CustomPacker.register(OptionalNestedClass.class, packer2);
-		MessagePacker packer = DynamicPacker.create(OptionalBaseClass.class);
-		CustomPacker.register(OptionalBaseClass.class, packer);
 		Template tmpl2 = DynamicTemplate.create(OptionalNestedClass.class);
-		CustomUnpacker.register(OptionalNestedClass.class, tmpl2);
-		CustomConverter.register(OptionalNestedClass.class, tmpl2);
+		CustomMessage.registerTemplate(OptionalNestedClass.class, tmpl2);
 		Template tmpl = DynamicTemplate.create(OptionalBaseClass.class);
-		CustomUnpacker.register(OptionalBaseClass.class, tmpl);
-		CustomConverter.register(OptionalBaseClass.class, tmpl);
+		CustomMessage.registerTemplate(OptionalBaseClass.class, tmpl);
 		OptionalBaseClass src = new OptionalBaseClass();
 		OptionalNestedClass src2 = new OptionalNestedClass();
 		src.f0 = 0;
 		src2.f2 = 2;
 		src.f1 = src2;
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		packer.pack(new Packer(out), src);
+		tmpl.pack(new Packer(out), src);
 		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
 		Unpacker pac = new Unpacker(in);
 		Iterator<MessagePackObject> it = pac.iterator();
@@ -1335,19 +1316,13 @@ public class TestPackConvert extends TestCase {
 
 	@Test
 	public void testOptionalNestedFieldClass01() throws Exception {
-		MessagePacker packer2 = DynamicPacker.create(OptionalNestedClass.class);
-		CustomPacker.register(OptionalNestedClass.class, packer2);
-		MessagePacker packer = DynamicPacker.create(OptionalBaseClass.class);
-		CustomPacker.register(OptionalBaseClass.class, packer);
 		Template tmpl2 = DynamicTemplate.create(OptionalNestedClass.class);
-		CustomUnpacker.register(OptionalNestedClass.class, tmpl2);
-		CustomConverter.register(OptionalNestedClass.class, tmpl2);
+		CustomMessage.registerTemplate(OptionalNestedClass.class, tmpl2);
 		Template tmpl = DynamicTemplate.create(OptionalBaseClass.class);
-		CustomUnpacker.register(OptionalBaseClass.class, tmpl);
-		CustomConverter.register(OptionalBaseClass.class, tmpl);
+		CustomMessage.registerTemplate(OptionalBaseClass.class, tmpl);
 		OptionalBaseClass src = new OptionalBaseClass();
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		packer.pack(new Packer(out), src);
+		tmpl.pack(new Packer(out), src);
 		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
 		Unpacker pac = new Unpacker(in);
 		Iterator<MessagePackObject> it = pac.iterator();
