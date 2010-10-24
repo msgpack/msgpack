@@ -23,6 +23,10 @@ import org.msgpack.*;
 public class IntegerTemplate implements Template {
 	private IntegerTemplate() { }
 
+	public void pack(Packer pk, Object target) throws IOException {
+		pk.packInt((Integer)target);
+	}
+
 	public Object unpack(Unpacker pac) throws IOException, MessageTypeException {
 		return pac.unpackInt();
 	}

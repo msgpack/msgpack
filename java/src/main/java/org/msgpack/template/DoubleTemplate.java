@@ -23,6 +23,10 @@ import org.msgpack.*;
 public class DoubleTemplate implements Template {
 	private DoubleTemplate() { }
 
+	public void pack(Packer pk, Object target) throws IOException {
+		pk.packDouble(((Double)target));
+	}
+
 	public Object unpack(Unpacker pac) throws IOException, MessageTypeException {
 		return pac.unpackDouble();
 	}

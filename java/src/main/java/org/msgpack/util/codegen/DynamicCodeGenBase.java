@@ -153,6 +153,12 @@ public class DynamicCodeGenBase implements Constants {
 		}
 
 		@Override
+		public void pack(Packer pk, Object target) throws IOException {
+			// FIXME
+			pk.pack(target);
+		}
+
+		@Override
 		public Object unpack(Unpacker unpacker) throws IOException,
 				MessageTypeException {
 			try {

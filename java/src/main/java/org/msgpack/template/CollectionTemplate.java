@@ -17,6 +17,7 @@
 //
 package org.msgpack.template;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.LinkedList;
 import java.io.IOException;
@@ -27,6 +28,16 @@ public class CollectionTemplate implements Template {
 
 	public CollectionTemplate(Template elementTemplate) {
 		this.elementTemplate = elementTemplate;
+	}
+
+	public void pack(Packer pk, Object target) throws IOException {
+		if(target instanceof Collection) {
+			throw new MessageTypeException();
+		}
+		Collection<Object> collection = (Collection<Object>)target;
+		for(Object element : collection) {
+			elementTemplate.pack(pk, element);
+		}
 	}
 
 	public Object unpack(Unpacker pac) throws IOException, MessageTypeException {

@@ -28,13 +28,21 @@ public class OptionalTemplate implements Template {
 		this(elementTemplate, null);
 	}
 
+	public OptionalTemplate(Template elementTemplate, Object defaultObject) {
+		this.elementTemplate = elementTemplate;
+		this.defaultObject = defaultObject;
+	}
+
 	public Template getElementTemplate() {
 		return elementTemplate;
 	}
 
-	public OptionalTemplate(Template elementTemplate, Object defaultObject) {
-		this.elementTemplate = elementTemplate;
-		this.defaultObject = defaultObject;
+	public void pack(Packer pk, Object target) throws IOException {
+		if(target == null) {
+			pk.pack(defaultObject);
+		} else {
+			elementTemplate.pack(pk, target);
+		}
 	}
 
 	public Object unpack(Unpacker pac) throws IOException, MessageTypeException {

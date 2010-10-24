@@ -24,6 +24,10 @@ import org.msgpack.*;
 public class BigIntegerTemplate implements Template {
 	private BigIntegerTemplate() { }
 
+	public void pack(Packer pk, Object target) throws IOException {
+		pk.packBigInteger((BigInteger)target);
+	}
+
 	public Object unpack(Unpacker pac) throws IOException, MessageTypeException {
 		return pac.unpackBigInteger();
 	}

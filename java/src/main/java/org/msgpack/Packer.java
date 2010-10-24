@@ -29,7 +29,7 @@ import java.math.BigInteger;
 import org.msgpack.annotation.MessagePackDelegate;
 import org.msgpack.annotation.MessagePackMessage;
 import org.msgpack.annotation.MessagePackOrdinalEnum;
-import org.msgpack.packer.*;
+import org.msgpack.util.codegen.DynamicTemplate;
 
 /**
  * Packer enables you to serialize objects into OutputStream.
@@ -49,17 +49,7 @@ import org.msgpack.packer.*;
  */
 public class Packer {
 	static {
-		// final classes
-		BooleanPacker.getInstance();
-		ByteArrayPacker.getInstance();
-		BytePacker.getInstance();
-		DoublePacker.getInstance();
-		FloatPacker.getInstance();
-		IntegerPacker.getInstance();
-		LongPacker.getInstance();
-		ShortPacker.getInstance();
-		StringPacker.getInstance();
-		//BigIntegerPacker.getInstance();  // BigInteger is not final
+		Templates.load();
 	}
 
 	public static void load() { }
@@ -429,12 +419,6 @@ public class Packer {
 		return packString(o);
 	}
 
-	public Packer pack(MessagePackable o) throws IOException {
-		if(o == null) { return packNil(); }
-		o.messagePack(this);
-		return this;
-	}
-
 	public Packer pack(byte[] o) throws IOException {
 		if(o == null) { return packNil(); }
 		packRaw(o.length);
@@ -458,86 +442,20 @@ public class Packer {
 		return this;
 	}
 
+	public Packer pack(MessagePackable o) throws IOException {
+		if(o == null) { return packNil(); }
+		o.messagePack(this);
+		return this;
+	}
 
 	public Packer pack(Object o) throws IOException {
-		if(o == null) {
-			return packNil();
-		//} else if(o instanceof String) {
-		//	byte[] b = ((String)o).getBytes("UTF-8");
-		//	packRaw(b.length);
-		//	return packRawBody(b);
-		} else if(o instanceof MessagePackable) {
-			((MessagePackable)o).messagePack(this);
-			return this;
-		//} else if(o instanceof byte[]) {
-		//	byte[] b = (byte[])o;
-		//	packRaw(b.length);
-		//	return packRawBody(b);
-		} else if(o instanceof List) {
-			List<Object> l = (List<Object>)o;
-			packArray(l.size());
-			for(Object i : l) { pack(i); }
-			return this;
-		} else if(o instanceof Set) {
-			Set<Object> l = (Set<Object>)o;
-			packArray(l.size());
-			for(Object i : l) { pack(i); }
-			return this;
-		} else if(o instanceof Map) {
-			Map<Object,Object> m = (Map<Object,Object>)o;
-			packMap(m.size());
-			for(Map.Entry<Object,Object> e : m.entrySet()) {
-				pack(e.getKey());
-				pack(e.getValue());
-			}
-			return this;
-		} else if(o instanceof Collection) {
-			Collection<Object> l = (Collection<Object>)o;
-			packArray(l.size());
-			for(Object i : l) { pack(i); }
-			return this;
-		//} else if(o instanceof Boolean) {
-		//	if((Boolean)o) {
-		//		return packTrue();
-		//	} else {
-		//		return packFalse();
-		//	}
-		//} else if(o instanceof Integer) {
-		//	return packInt((Integer)o);
-		//} else if(o instanceof Long) {
-		//	return packLong((Long)o);
-		//} else if(o instanceof Short) {
-		//	return packShort((Short)o);
-		//} else if(o instanceof Byte) {
-		//	return packByte((Byte)o);
-		//} else if(o instanceof Float) {
-		//	return packFloat((Float)o);
-		//} else if(o instanceof Double) {
-		//	return packDouble((Double)o);
-		} else if(o instanceof BigInteger) {
-			return packBigInteger((BigInteger)o);
-		}
+		Templates.TAny.pack(this, o);
+		return this;
+	}
 
-		Class<?> klass = o.getClass();
-		MessagePacker packer = CustomPacker.get(klass);
-		if(packer != null) {
-			packer.pack(this, o);
-			return this;
-		} else if (CustomMessage.isAnnotated(klass, MessagePackMessage.class)) {
-			packer = ReflectionPacker.create(klass);
-			packer.pack(this, o);
-			return this;
-		} else if (CustomMessage.isAnnotated(klass, MessagePackDelegate.class)) {
-			// FIXME DelegatePacker
-			throw new UnsupportedOperationException("not supported yet. : " + klass.getName());
-		} else if (CustomMessage.isAnnotated(klass, MessagePackOrdinalEnum.class)) {
-			// FIXME OrdinalEnumPacker
-			throw new UnsupportedOperationException("not supported yet. : " + klass.getName());
-		}
-		if (packer != null) {
-			CustomMessage.registerPacker(klass, packer);
-		}
-		throw new MessageTypeException("unknown object "+o+" ("+o.getClass()+")");
+	public Packer pack(Object o, Template tmpl) throws IOException {
+		tmpl.pack(this, o);
+		return this;
 	}
 }
 

@@ -24,10 +24,6 @@ import java.util.Iterator;
 import java.nio.ByteBuffer;
 import java.math.BigInteger;
 
-import org.msgpack.annotation.MessagePackDelegate;
-import org.msgpack.annotation.MessagePackMessage;
-import org.msgpack.annotation.MessagePackOrdinalEnum;
-
 /**
  * Unpacker enables you to deserialize objects from stream.
  *
@@ -572,46 +568,20 @@ public class Unpacker implements Iterable<MessagePackObject> {
 		return impl.tryUnpackNull();
 	}
 
-	final public Object unpack(MessageUnpacker unpacker) throws IOException, MessageTypeException {
-		return unpacker.unpack(this);
-	}
-
 	final public void unpack(MessageUnpackable obj) throws IOException, MessageTypeException {
 		obj.messageUnpack(this);
 	}
 
+	//final public MessagePackObject unpack() throws IOException {
+	//	return unpackObject();
+	//}
+
+	final public Object unpack(Template tmpl) throws IOException, MessageTypeException {
+		return tmpl.unpack(this);
+	}
+
 	final public Object unpack(Class<?> klass) throws IOException, MessageTypeException, InstantiationException, IllegalAccessException {
-		if(MessageUnpackable.class.isAssignableFrom(klass)) {
-			Object obj = klass.newInstance();
-			((MessageUnpackable)obj).messageUnpack(this);
-			return obj;
-		}
-
-		MessageUnpacker unpacker = CustomUnpacker.get(klass);
-
-		if(unpacker != null) {
-			return unpacker.unpack(this);
-		}
-
-		Template tmpl = null;
-		if (CustomMessage.isAnnotated(klass, MessagePackMessage.class)) {
-			tmpl = ReflectionTemplate.create(klass);
-			return tmpl.unpack(this);
-		} else if (CustomMessage.isAnnotated(klass, MessagePackDelegate.class)) {
-			// FIXME DelegateTemplate
-			throw new UnsupportedOperationException("not supported yet. : " + klass.getName());
-		} else if (CustomMessage.isAnnotated(klass, MessagePackOrdinalEnum.class)) {
-			// FIXME OrdinalEnumTemplate
-			throw new UnsupportedOperationException("not supported yet. : " + klass.getName());
-		}
-		if (tmpl != null) {
-			CustomMessage.registerTemplate(klass, tmpl);
-		}
-		MessageConverter converter = CustomConverter.get(klass);
-		if(converter != null) {
-			return converter.convert(unpackObject());
-		}
-		throw new MessageTypeException();
+		return unpack(Templates.tClass(klass));
 	}
 }
 

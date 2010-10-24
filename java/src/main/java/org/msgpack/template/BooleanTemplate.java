@@ -23,6 +23,10 @@ import org.msgpack.*;
 public class BooleanTemplate implements Template {
 	private BooleanTemplate() { }
 
+	public void pack(Packer pk, Object target) throws IOException {
+		pk.packBoolean((Boolean)target);
+	}
+
 	public Object unpack(Unpacker pac) throws IOException, MessageTypeException {
 		return pac.unpackBoolean();
 	}

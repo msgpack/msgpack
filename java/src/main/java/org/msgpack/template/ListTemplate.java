@@ -33,6 +33,16 @@ public class ListTemplate implements Template {
 		return elementTemplate;
 	}
 
+	public void pack(Packer pk, Object target) throws IOException {
+		if(target instanceof List) {
+			throw new MessageTypeException();
+		}
+		List<Object> list = (List<Object>)target;
+		for(Object element : list) {
+			elementTemplate.pack(pk, element);
+		}
+	}
+
 	public Object unpack(Unpacker pac) throws IOException, MessageTypeException {
 		int length = pac.unpackArray();
 		List<Object> list = new ArrayList<Object>(length);

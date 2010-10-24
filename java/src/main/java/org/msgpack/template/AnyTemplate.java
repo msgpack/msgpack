@@ -20,29 +20,33 @@ package org.msgpack.template;
 import java.io.IOException;
 import org.msgpack.*;
 
-public class ShortTemplate implements Template {
-	private ShortTemplate() { }
+public class AnyTemplate implements Template {
+	private AnyTemplate() { }
 
 	public void pack(Packer pk, Object target) throws IOException {
-		pk.packShort((Short)target);
+		if(target == null) {
+			pk.packNil();
+		} else {
+			new ClassTemplate(target.getClass()).pack(pk, target);
+		}
 	}
 
 	public Object unpack(Unpacker pac) throws IOException, MessageTypeException {
-		return pac.unpackShort();
+		return pac.unpackObject();
 	}
 
 	public Object convert(MessagePackObject from) throws MessageTypeException {
-		return from.asShort();
+		return from;
 	}
 
-	static public ShortTemplate getInstance() {
+	static public AnyTemplate getInstance() {
 		return instance;
 	}
 
-	static final ShortTemplate instance = new ShortTemplate();
+	static final AnyTemplate instance = new AnyTemplate();
 
 	static {
-		CustomMessage.registerTemplate(Short.class, instance);
+		CustomMessage.registerTemplate(MessagePackObject.class, instance);
 	}
 }
 

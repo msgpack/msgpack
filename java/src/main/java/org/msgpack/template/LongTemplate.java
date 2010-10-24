@@ -23,6 +23,10 @@ import org.msgpack.*;
 public class LongTemplate implements Template {
 	private LongTemplate() { }
 
+	public void pack(Packer pk, Object target) throws IOException {
+		pk.packLong((Long)target);
+	}
+
 	public Object unpack(Unpacker pac) throws IOException, MessageTypeException {
 		return pac.unpackLong();
 	}

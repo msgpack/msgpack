@@ -23,6 +23,10 @@ import org.msgpack.*;
 public class ByteTemplate implements Template {
 	private ByteTemplate() { }
 
+	public void pack(Packer pk, Object target) throws IOException {
+		pk.packByte((Byte)target);
+	}
+
 	public Object unpack(Unpacker pac) throws IOException, MessageTypeException {
 		return pac.unpackByte();
 	}

@@ -17,6 +17,6 @@
 //
 package org.msgpack;
 
-public interface Template extends MessageUnpacker, MessageConverter {
+public interface Template extends MessagePacker, MessageUnpacker, MessageConverter {
 }
 
