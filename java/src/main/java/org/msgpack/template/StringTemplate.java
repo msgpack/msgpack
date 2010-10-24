@@ -42,7 +42,7 @@ public class StringTemplate implements Template {
 	static final StringTemplate instance = new StringTemplate();
 
 	static {
-		CustomMessage.registerTemplate(String.class, instance);
+		CustomMessage.register(String.class, instance);
 	}
 }
 

@@ -42,7 +42,7 @@ public class LongTemplate implements Template {
 	static final LongTemplate instance = new LongTemplate();
 
 	static {
-		CustomMessage.registerTemplate(Long.class, instance);
+		CustomMessage.register(Long.class, instance);
 	}
 }
 

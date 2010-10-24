@@ -42,7 +42,7 @@ public class BooleanTemplate implements Template {
 	static final BooleanTemplate instance = new BooleanTemplate();
 
 	static {
-		CustomMessage.registerTemplate(Boolean.class, instance);
+		CustomMessage.register(Boolean.class, instance);
 	}
 }
 

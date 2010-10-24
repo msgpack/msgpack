@@ -42,7 +42,7 @@ public class IntegerTemplate implements Template {
 	static final IntegerTemplate instance = new IntegerTemplate();
 
 	static {
-		CustomMessage.registerTemplate(Integer.class, instance);
+		CustomMessage.register(Integer.class, instance);
 	}
 }
 

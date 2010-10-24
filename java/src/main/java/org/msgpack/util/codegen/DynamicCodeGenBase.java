@@ -581,7 +581,7 @@ public class DynamicCodeGenBase implements Constants {
 			} else if (CustomMessage.isAnnotated(c, MessagePackMessage.class)) {
 				// @MessagePackMessage
 				Template tmpl = DynamicTemplate.create(c);
-				CustomMessage.registerTemplate(c, tmpl);
+				CustomMessage.register(c, tmpl);
 				return tmpl;
 			} else if (CustomMessage.isAnnotated(c, MessagePackDelegate.class)) {
 				// FIXME DelegatePacker
@@ -593,12 +593,12 @@ public class DynamicCodeGenBase implements Constants {
 					MessagePackOrdinalEnum.class)) {
 				// @MessagePackOrdinalEnum
 				Template tmpl = DynamicOrdinalEnumTemplate.create(c);
-				CustomMessage.registerTemplate(c, tmpl);
+				CustomMessage.register(c, tmpl);
 				return tmpl;
 			} else if (MessageConvertable.class.isAssignableFrom(c)
 					|| MessageUnpackable.class.isAssignableFrom(c)) {
 				Template tmpl = new MessageUnpackableConvertableTemplate(c);
-				CustomMessage.registerTemplate(c, tmpl);
+				CustomMessage.register(c, tmpl);
 				return tmpl;
 			} else {
 				throw new MessageTypeException("Type error: "

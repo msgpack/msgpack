@@ -73,20 +73,6 @@ public class TestMessagePackStaticMethods extends TestCase {
 		byte[] f = MessagePack.pack(createUserDefinedClass(), tClass(UserDefinedClass.class));
 
 		{
-			String  aobj = MessagePack.unpack(a, String.class);
-			Integer bobj = MessagePack.unpack(b, Integer.class);
-			Object  cobj = MessagePack.unpack(c, Object.class);
-			ProvidedClass eobj = MessagePack.unpack(e, ProvidedClass.class);
-			UserDefinedClass fobj = MessagePack.unpack(f, UserDefinedClass.class);
-
-			assertEquals(aobj, "msgpack");
-			assertEquals(bobj, (Integer)1);
-			assertEquals(cobj, null);
-			assertEquals(eobj, createProvidedClass());
-			assertEquals(fobj, createUserDefinedClass());
-		}
-
-		{
 			Object aobj = MessagePack.unpack(a, TString);
 			Object bobj = MessagePack.unpack(b, TInteger);
 			Object cobj_any = MessagePack.unpack(c, TAny);
@@ -100,6 +86,20 @@ public class TestMessagePackStaticMethods extends TestCase {
 			assertEquals(cobj_any, NilType.create());
 			assertEquals(cobj_obj, null);
 			assertEquals(dobj, createStringList());
+			assertEquals(eobj, createProvidedClass());
+			assertEquals(fobj, createUserDefinedClass());
+		}
+
+		{
+			String  aobj = MessagePack.unpack(a, String.class);
+			Integer bobj = MessagePack.unpack(b, Integer.class);
+			Object  cobj = MessagePack.unpack(c, Object.class);
+			ProvidedClass eobj = MessagePack.unpack(e, ProvidedClass.class);
+			UserDefinedClass fobj = MessagePack.unpack(f, UserDefinedClass.class);
+
+			assertEquals(aobj, "msgpack");
+			assertEquals(bobj, (Integer)1);
+			assertEquals(cobj, null);
 			assertEquals(eobj, createProvidedClass());
 			assertEquals(fobj, createUserDefinedClass());
 		}
@@ -122,25 +122,6 @@ public class TestMessagePackStaticMethods extends TestCase {
 
 		{
 			InputStream ain = new ByteArrayInputStream(aout.toByteArray());
-			String  aobj = MessagePack.unpack(ain, String.class);
-			InputStream bin = new ByteArrayInputStream(bout.toByteArray());
-			Integer bobj = MessagePack.unpack(bin, Integer.class);
-			InputStream cin = new ByteArrayInputStream(cout.toByteArray());
-			Object  cobj = MessagePack.unpack(cin, Object.class);
-			InputStream ein = new ByteArrayInputStream(eout.toByteArray());
-			ProvidedClass eobj = MessagePack.unpack(ein, ProvidedClass.class);
-			InputStream fin = new ByteArrayInputStream(fout.toByteArray());
-			UserDefinedClass fobj = MessagePack.unpack(fin, UserDefinedClass.class);
-
-			assertEquals(aobj, "msgpack");
-			assertEquals(bobj, (Integer)1);
-			assertEquals(cobj, null);
-			assertEquals(eobj, createProvidedClass());
-			assertEquals(fobj, createUserDefinedClass());
-		}
-
-		{
-			InputStream ain = new ByteArrayInputStream(aout.toByteArray());
 			Object aobj = MessagePack.unpack(ain, TString);
 			InputStream bin = new ByteArrayInputStream(bout.toByteArray());
 			Object bobj = MessagePack.unpack(bin, TInteger);
@@ -160,6 +141,25 @@ public class TestMessagePackStaticMethods extends TestCase {
 			assertEquals(cobj_any, NilType.create());
 			assertEquals(cobj_obj, null);
 			assertEquals(dobj, createStringList());
+			assertEquals(eobj, createProvidedClass());
+			assertEquals(fobj, createUserDefinedClass());
+		}
+
+		{
+			InputStream ain = new ByteArrayInputStream(aout.toByteArray());
+			String  aobj = MessagePack.unpack(ain, String.class);
+			InputStream bin = new ByteArrayInputStream(bout.toByteArray());
+			Integer bobj = MessagePack.unpack(bin, Integer.class);
+			InputStream cin = new ByteArrayInputStream(cout.toByteArray());
+			Object  cobj = MessagePack.unpack(cin, Object.class);
+			InputStream ein = new ByteArrayInputStream(eout.toByteArray());
+			ProvidedClass eobj = MessagePack.unpack(ein, ProvidedClass.class);
+			InputStream fin = new ByteArrayInputStream(fout.toByteArray());
+			UserDefinedClass fobj = MessagePack.unpack(fin, UserDefinedClass.class);
+
+			assertEquals(aobj, "msgpack");
+			assertEquals(bobj, (Integer)1);
+			assertEquals(cobj, null);
 			assertEquals(eobj, createProvidedClass());
 			assertEquals(fobj, createUserDefinedClass());
 		}
