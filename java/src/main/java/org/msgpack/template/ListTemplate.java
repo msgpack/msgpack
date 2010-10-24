@@ -34,10 +34,11 @@ public class ListTemplate implements Template {
 	}
 
 	public void pack(Packer pk, Object target) throws IOException {
-		if(target instanceof List) {
+		if(!(target instanceof List)) {
 			throw new MessageTypeException();
 		}
 		List<Object> list = (List<Object>)target;
+		pk.packArray(list.size());
 		for(Object element : list) {
 			elementTemplate.pack(pk, element);
 		}

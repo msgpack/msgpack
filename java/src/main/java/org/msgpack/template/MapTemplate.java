@@ -40,10 +40,11 @@ public class MapTemplate implements Template {
 	}
 
 	public void pack(Packer pk, Object target) throws IOException {
-		if(target instanceof Map) {
+		if(!(target instanceof Map)) {
 			throw new MessageTypeException();
 		}
 		Map<Object,Object> map = (Map<Object,Object>)target;
+		pk.packMap(map.size());
 		for(Map.Entry<Object,Object> pair : map.entrySet()) {
 			keyTemplate.pack(pk, pair.getKey());
 			valueTemplate.pack(pk, pair.getValue());
