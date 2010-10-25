@@ -262,6 +262,7 @@ class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 			tmpl = createTemplate(c);
 		}
 		if (isOptional) {
+			// for pack
 			return new OptionalTemplate(tmpl);
 		} else {
 			return tmpl;
@@ -393,7 +394,7 @@ class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 		String typeName = classToString(type);
 		Object[] args0 = new Object[] { typeName, typeName };
 		sb.append(String.format(STATEMENT_TMPL_UNPACKERMETHODBODY_01, args0));
-		// $1.unpackArray();
+		// int _$$_L = $1.unpackArray();
 		Object[] args1 = new Object[0];
 		sb.append(String.format(STATEMENT_TMPL_UNPACKERMETHODBODY_02, args1));
 		insertCodeOfUnpackMethodCalls(sb, fields);
@@ -407,10 +408,27 @@ class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 		for (int i = 0; i < fields.length; ++i) {
 			insertCodeOfUnpackMethodCall(sb, fields[i], i);
 		}
+		insertCodeOfUnpackTrails(sb, fields.length);
 	}
 
 	private void insertCodeOfUnpackMethodCall(StringBuilder sb, Field field,
 			int i) {
+		boolean isOptional = isAnnotated(field, MessagePackOptional.class);
+
+		if(isOptional) {
+			// if(_$$_L > i && !$1.tryUnpackNull()) {
+			Object[] args0 = new Object[] { i };
+			sb.append(String.format(STATEMENT_TMPL_UNPACKERMETHODBODY_08, args0));
+			sb.append(CHAR_NAME_LEFT_CURLY_BRACKET);
+
+		} else {
+			// if(_$$_L <= i) {
+			// 	throw new MessageTypeException();
+			// }
+			Object[] args0 = new Object[] { i };
+			sb.append(String.format(STATEMENT_TMPL_UNPACKERMETHODBODY_07, args0));
+		}
+
 		// target.fi = ((Integer)_$$_tmpls[i].unpack(_$$_pk)).intValue();
 		Class<?> returnType = field.getType();
 		boolean isPrim = returnType.isPrimitive();
@@ -423,6 +441,19 @@ class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 				isPrim ? ")." + getPrimTypeValueMethodName(returnType) + "()"
 						: "" };
 		sb.append(String.format(STATEMENT_TMPL_UNPACKERMETHODBODY_03, args));
+
+		if(isOptional) {
+			// }
+			sb.append(CHAR_NAME_RIGHT_CURLY_BRACKET);
+		}
+	}
+
+	private void insertCodeOfUnpackTrails(StringBuilder sb, int length) {
+		// for(int _$$_n = length; _$$_n < _$$_L; _$$_n++) {
+		//     $1.unpackObject();
+		// }
+		Object[] args0 = new Object[] { length };
+		sb.append(String.format(STATEMENT_TMPL_UNPACKERMETHODBODY_09, args0));
 	}
 
 	private void insertOrdinalEnumUnpackMethodBody(StringBuilder sb,

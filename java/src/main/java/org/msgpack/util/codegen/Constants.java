@@ -78,7 +78,7 @@ public interface Constants {
 
 	String STATEMENT_TMPL_UNPACKERMETHODBODY_01 = "%s _$$_t = new %s(); ";
 
-	String STATEMENT_TMPL_UNPACKERMETHODBODY_02 = "$1.unpackArray(); ";
+	String STATEMENT_TMPL_UNPACKERMETHODBODY_02 = "int _$$_L = $1.unpackArray(); ";
 
 	String STATEMENT_TMPL_UNPACKERMETHODBODY_03 = "_$$_t.%s = %s(%s)_$$_templates[%d].unpack($1)%s; ";
 
@@ -87,6 +87,12 @@ public interface Constants {
 	String STATEMENT_TMPL_UNPACKERMETHODBODY_05 = "int i = $1.unpackInt(); ";
 
 	String STATEMENT_TMPL_UNPACKERMETHODBODY_06 = "return %s.class.getEnumConstants()[i]; ";
+
+	String STATEMENT_TMPL_UNPACKERMETHODBODY_07 = "if(_$$_L <= %d) { throw new org.msgpack.MessageTypeException(); } ";
+
+	String STATEMENT_TMPL_UNPACKERMETHODBODY_08 = "if(_$$_L > %d && !$1.tryUnpackNull()) ";
+
+	String STATEMENT_TMPL_UNPACKERMETHODBODY_09 = "for(int _$$_n = %d; _$$_n < _$$_L; _$$_n++) { $1.unpackObject(); } ";
 
 	String STATEMENT_TMPL_CONVERTMETHODBODY_01 = "%s _$$_ary = $1.asArray(); ";
 
