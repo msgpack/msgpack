@@ -80,7 +80,7 @@ cdef class Packer(object):
     def __dealloc__(self):
         free(self.pk.buf);
 
-    cdef int _pack(self, object o) except -1:
+    cdef int _pack(self, object o, int nest_limit=511, default=None) except -1:
         cdef long long llval
         cdef unsigned long long ullval
         cdef long longval
@@ -88,6 +88,9 @@ cdef class Packer(object):
         cdef char* rawval 
         cdef int ret
         cdef dict d
+
+        if nest_limit < 0:
+            raise ValueError("Too deep.")
 
         if o is None:
             ret = msgpack_pack_nil(&self.pk)
@@ -126,33 +129,26 @@ cdef class Packer(object):
             ret = msgpack_pack_map(&self.pk, len(d))
             if ret == 0:
                 for k,v in d.items():
-                    ret = self._pack(k)
+                    ret = self._pack(k, nest_limit-1, default)
                     if ret != 0: break
-                    ret = self._pack(v)
+                    ret = self._pack(v, nest_limit-1, default)
                     if ret != 0: break
         elif PySequence_Check(o):
             ret = msgpack_pack_array(&self.pk, len(o))
             if ret == 0:
                 for v in o:
-                    ret = self._pack(v)
+                    ret = self._pack(v, nest_limit-1, default)
                     if ret != 0: break
-        elif self.default is not None:
+        elif default is not None:
             o = self.default(o)
-            d = o
-            ret = msgpack_pack_map(&self.pk, len(d))
-            if ret == 0:
-                for k,v in d.items():
-                    ret = self._pack(k)
-                    if ret != 0: break
-                    ret = self._pack(v)
-                    if ret != 0: break
+            ret = self._pack(o, nest_limit)
         else:
             raise TypeError("can't serialize %r" % (o,))
         return ret
 
     def pack(self, object obj):
         cdef int ret
-        ret = self._pack(obj)
+        ret = self._pack(obj, self.default)
         if ret:
             raise TypeError
         buf = PyBytes_FromStringAndSize(self.pk.buf, self.pk.length)
