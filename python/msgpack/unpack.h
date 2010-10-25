@@ -178,7 +178,6 @@ int template_callback_map_end(unpack_user* u, msgpack_unpack_object* c)
 {
     if (u->object_hook) {
         PyObject *arglist = Py_BuildValue("(O)", *c);
-        Py_INCREF(*c);
         *c = PyEval_CallObject(u->object_hook, arglist);
         Py_DECREF(arglist);
         return 0;

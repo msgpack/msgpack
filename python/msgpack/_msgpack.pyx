@@ -202,12 +202,8 @@ def unpackb(bytes packed_bytes, object object_hook=None):
     if object_hook is not None:
         if not PyCallable_Check(object_hook):
             raise TypeError("object_hook must be a callable.")
-        Py_INCREF(object_hook)
         ctx.user.object_hook = <PyObject*>object_hook
     ret = template_execute(&ctx, p, len(packed_bytes), &off)
-    if object_hook is not None:
-        pass
-        #Py_DECREF(object_hook)
     if ret == 1:
         return template_data(&ctx)
     else:
