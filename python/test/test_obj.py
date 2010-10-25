@@ -31,7 +31,16 @@ def test_bad_hook():
     packed = packs([3, 1+2j], default=lambda o: o)
     unpacked = unpacks(packed)
 
+def _arr_to_str(arr):
+    return ''.join(str(c) for c in arr)
+
+def test_array_hook():
+    packed = packs([1,2,3])
+    unpacked = unpacks(packed, list_hook=_arr_to_str)
+    eq_(unpacked, '123')
+
 if __name__ == '__main__':
     test_decode_hook()
     test_encode_hook()
     test_bad_hook()
+    test_array_hook()

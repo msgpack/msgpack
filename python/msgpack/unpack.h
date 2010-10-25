@@ -22,6 +22,7 @@
 typedef struct unpack_user {
     int use_list;
     PyObject *object_hook;
+    PyObject *list_hook;
 } unpack_user;
 
 
@@ -154,6 +155,16 @@ static inline int template_callback_array_item(unpack_user* u, unsigned int curr
     return 0;
 }
 
+static inline int template_callback_array_end(unpack_user* u, msgpack_unpack_object* c)
+{
+    if (u->list_hook) {
+        PyObject *arglist = Py_BuildValue("(O)", *c);
+        *c = PyEval_CallObject(u->list_hook, arglist);
+        Py_DECREF(arglist);
+    }
+    return 0;
+}
+
 static inline int template_callback_map(unpack_user* u, unsigned int n, msgpack_unpack_object* o)
 {
     PyObject *p = PyDict_New();
@@ -173,16 +184,14 @@ static inline int template_callback_map_item(unpack_user* u, msgpack_unpack_obje
     return -1;
 }
 
-//static inline int template_callback_map_end(unpack_user* u, msgpack_unpack_object* c)
-int template_callback_map_end(unpack_user* u, msgpack_unpack_object* c)
+static inline int template_callback_map_end(unpack_user* u, msgpack_unpack_object* c)
 {
     if (u->object_hook) {
         PyObject *arglist = Py_BuildValue("(O)", *c);
         *c = PyEval_CallObject(u->object_hook, arglist);
         Py_DECREF(arglist);
-        return 0;
     }
-    return -1;
+    return 0;
 }
 
 static inline int template_callback_raw(unpack_user* u, const char* b, const char* p, unsigned int l, msgpack_unpack_object* o)

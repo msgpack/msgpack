@@ -304,6 +304,7 @@ _push:
 	case CT_ARRAY_ITEM:
 		if(msgpack_unpack_callback(_array_item)(user, c->curr, &c->obj, obj) < 0) { goto _failed; }
 		if(++c->curr == c->count) {
+			msgpack_unpack_callback(_array_end)(user, &c->obj);
 			obj = c->obj;
 			--top;
 			/*printf("stack pop %d\n", top);*/
@@ -317,7 +318,7 @@ _push:
 	case CT_MAP_VALUE:
 		if(msgpack_unpack_callback(_map_item)(user, &c->obj, c->map_key, obj) < 0) { goto _failed; }
 		if(--c->count == 0) {
-            msgpack_unpack_callback(_map_end)(user, &c->obj);
+			msgpack_unpack_callback(_map_end)(user, &c->obj);
 			obj = c->obj;
 			--top;
 			/*printf("stack pop %d\n", top);*/

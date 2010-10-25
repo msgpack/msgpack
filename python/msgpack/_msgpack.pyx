@@ -52,6 +52,7 @@ cdef extern from "pack.h":
     int msgpack_pack_raw(msgpack_packer* pk, size_t l)
     int msgpack_pack_raw_body(msgpack_packer* pk, char* body, size_t l)
 
+cdef int DEFAULT_RECURSE_LIMIT=511
 
 cdef class Packer(object):
     """MessagePack Packer
@@ -80,7 +81,8 @@ cdef class Packer(object):
     def __dealloc__(self):
         free(self.pk.buf);
 
-    cdef int _pack(self, object o, int nest_limit=511, default=None) except -1:
+    cdef int _pack(self, object o, int nest_limit=DEFAULT_RECURSE_LIMIT,
+                   default=None) except -1:
         cdef long long llval
         cdef unsigned long long ullval
         cdef long longval
@@ -148,7 +150,7 @@ cdef class Packer(object):
 
     def pack(self, object obj):
         cdef int ret
-        ret = self._pack(obj, self.default)
+        ret = self._pack(obj, DEFAULT_RECURSE_LIMIT, self.default)
         if ret:
             raise TypeError
         buf = PyBytes_FromStringAndSize(self.pk.buf, self.pk.length)
@@ -172,6 +174,7 @@ cdef extern from "unpack.h":
     ctypedef struct msgpack_user:
         int use_list
         PyObject* object_hook
+        PyObject* list_hook
 
     ctypedef struct template_context:
         msgpack_user user
@@ -186,7 +189,7 @@ cdef extern from "unpack.h":
     object template_data(template_context* ctx)
 
 
-def unpackb(bytes packed_bytes, object object_hook=None):
+def unpackb(bytes packed_bytes, object object_hook=None, object list_hook=None):
     """Unpack packed_bytes to object. Returns an unpacked object."""
     cdef const_char_ptr p = packed_bytes
     cdef template_context ctx
@@ -194,11 +197,15 @@ def unpackb(bytes packed_bytes, object object_hook=None):
     cdef int ret
     template_init(&ctx)
     ctx.user.use_list = 0
-    ctx.user.object_hook = NULL
+    ctx.user.object_hook = ctx.user.list_hook = NULL
     if object_hook is not None:
         if not PyCallable_Check(object_hook):
             raise TypeError("object_hook must be a callable.")
         ctx.user.object_hook = <PyObject*>object_hook
+    if list_hook is not None:
+        if not PyCallable_Check(list_hook):
+            raise TypeError("list_hook must be a callable.")
+        ctx.user.list_hook = <PyObject*>list_hook
     ret = template_execute(&ctx, p, len(packed_bytes), &off)
     if ret == 1:
         return template_data(&ctx)
@@ -207,10 +214,10 @@ def unpackb(bytes packed_bytes, object object_hook=None):
 
 unpacks = unpackb
 
-def unpack(object stream, object object_hook=None):
+def unpack(object stream, object object_hook=None, object list_hook=None):
     """unpack an object from stream."""
     packed = stream.read()
-    return unpackb(packed, object_hook=object_hook)
+    return unpackb(packed, object_hook=object_hook, list_hook=list_hook)
 
 cdef class UnpackIterator(object):
     cdef object unpacker
@@ -265,7 +272,7 @@ cdef class Unpacker(object):
             free(self.buf);
 
     def __init__(self, file_like=None, int read_size=0, bint use_list=0,
-                 object object_hook=None):
+                 object object_hook=None, object list_hook=None):
         if read_size == 0:
             read_size = 1024*1024
         self.use_list = use_list
@@ -278,11 +285,15 @@ cdef class Unpacker(object):
         self.buf_tail = 0
         template_init(&self.ctx)
         self.ctx.user.use_list = use_list
-        self.ctx.user.object_hook = <PyObject*>NULL
+        self.ctx.user.object_hook = self.ctx.user.list_hook = <PyObject*>NULL
         if object_hook is not None:
             if not PyCallable_Check(object_hook):
                 raise TypeError("object_hook must be a callable.")
             self.ctx.user.object_hook = <PyObject*>object_hook
+        if list_hook is not None:
+            if not PyCallable_Check(list_hook):
+                raise TypeError("object_hook must be a callable.")
+            self.ctx.user.list_hook = <PyObject*>list_hook
 
     def feed(self, bytes next_bytes):
         self.waiting_bytes.append(next_bytes)
