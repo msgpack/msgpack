@@ -56,7 +56,7 @@ public class MessagePack {
 	}
 
 
-	public static MessagePackObject unpack(byte[] buffer) throws IOException {
+	public static MessagePackObject unpack(byte[] buffer) throws MessageTypeException {
 		Unpacker pac = new Unpacker();
 		pac.wrap(buffer);
 		try {
