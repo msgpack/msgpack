@@ -20,6 +20,9 @@ cdef extern from "Python.h":
     cdef bint PyFloat_Check(object o)
     cdef bint PyBytes_Check(object o)
     cdef bint PyUnicode_Check(object o)
+    cdef bint PyCallable_Check(object o)
+    cdef void Py_INCREF(object o)
+    cdef void Py_DECREF(object o)
 
 cdef extern from "stdlib.h":
     void* malloc(size_t)
@@ -60,12 +63,19 @@ cdef class Packer(object):
         astream.write(packer.pack(b))
     """
     cdef msgpack_packer pk
+    cdef object default
 
     def __cinit__(self):
         cdef int buf_size = 1024*1024
         self.pk.buf = <char*> malloc(buf_size);
         self.pk.buf_size = buf_size
         self.pk.length = 0
+
+    def __init__(self, default=None):
+        if default is not None:
+            if not PyCallable_Check(default):
+                raise TypeError("default must be a callable.")
+        self.default = default
 
     def __dealloc__(self):
         free(self.pk.buf);
@@ -126,9 +136,18 @@ cdef class Packer(object):
                 for v in o:
                     ret = self._pack(v)
                     if ret != 0: break
+        elif self.default is not None:
+            o = self.default(o)
+            d = o
+            ret = msgpack_pack_map(&self.pk, len(d))
+            if ret == 0:
+                for k,v in d.items():
+                    ret = self._pack(k)
+                    if ret != 0: break
+                    ret = self._pack(v)
+                    if ret != 0: break
         else:
-            # TODO: Serialize with defalt() like simplejson.
-            raise TypeError, "can't serialize %r" % (o,)
+            raise TypeError("can't serialize %r" % (o,))
         return ret
 
     def pack(self, object obj):
@@ -141,14 +160,14 @@ cdef class Packer(object):
         return buf
 
 
-def pack(object o, object stream):
+def pack(object o, object stream, default=None):
     """pack an object `o` and write it to stream)."""
-    packer = Packer()
+    packer = Packer(default)
     stream.write(packer.pack(o))
 
-def packb(object o):
+def packb(object o, default=None):
     """pack o and return packed bytes."""
-    packer = Packer()
+    packer = Packer(default=default)
     return packer.pack(o)
 
 packs = packb
@@ -156,6 +175,7 @@ packs = packb
 cdef extern from "unpack.h":
     ctypedef struct msgpack_user:
         int use_list
+        PyObject* object_hook
 
     ctypedef struct template_context:
         msgpack_user user
@@ -170,7 +190,7 @@ cdef extern from "unpack.h":
     object template_data(template_context* ctx)
 
 
-def unpackb(bytes packed_bytes):
+def unpackb(bytes packed_bytes, object object_hook=None):
     """Unpack packed_bytes to object. Returns an unpacked object."""
     cdef const_char_ptr p = packed_bytes
     cdef template_context ctx
@@ -178,7 +198,16 @@ def unpackb(bytes packed_bytes):
     cdef int ret
     template_init(&ctx)
     ctx.user.use_list = 0
+    ctx.user.object_hook = NULL
+    if object_hook is not None:
+        if not PyCallable_Check(object_hook):
+            raise TypeError("object_hook must be a callable.")
+        Py_INCREF(object_hook)
+        ctx.user.object_hook = <PyObject*>object_hook
     ret = template_execute(&ctx, p, len(packed_bytes), &off)
+    if object_hook is not None:
+        pass
+        #Py_DECREF(object_hook)
     if ret == 1:
         return template_data(&ctx)
     else:
@@ -186,10 +215,10 @@ def unpackb(bytes packed_bytes):
 
 unpacks = unpackb
 
-def unpack(object stream):
+def unpack(object stream, object object_hook=None):
     """unpack an object from stream."""
     packed = stream.read()
-    return unpackb(packed)
+    return unpackb(packed, object_hook=object_hook)
 
 cdef class UnpackIterator(object):
     cdef object unpacker
@@ -234,6 +263,7 @@ cdef class Unpacker(object):
     cdef int read_size
     cdef object waiting_bytes
     cdef bint use_list
+    cdef object object_hook
 
     def __cinit__(self):
         self.buf = NULL
@@ -242,7 +272,8 @@ cdef class Unpacker(object):
         if self.buf:
             free(self.buf);
 
-    def __init__(self, file_like=None, int read_size=0, bint use_list=0):
+    def __init__(self, file_like=None, int read_size=0, bint use_list=0,
+                 object object_hook=None):
         if read_size == 0:
             read_size = 1024*1024
         self.use_list = use_list
@@ -255,6 +286,11 @@ cdef class Unpacker(object):
         self.buf_tail = 0
         template_init(&self.ctx)
         self.ctx.user.use_list = use_list
+        self.ctx.user.object_hook = <PyObject*>NULL
+        if object_hook is not None:
+            if not PyCallable_Check(object_hook):
+                raise TypeError("object_hook must be a callable.")
+            self.ctx.user.object_hook = <PyObject*>object_hook
 
     def feed(self, bytes next_bytes):
         self.waiting_bytes.append(next_bytes)

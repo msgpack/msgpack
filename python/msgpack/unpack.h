@@ -21,6 +21,7 @@
 
 typedef struct unpack_user {
     int use_list;
+    PyObject *object_hook;
 } unpack_user;
 
 
@@ -167,6 +168,19 @@ static inline int template_callback_map_item(unpack_user* u, msgpack_unpack_obje
     if (PyDict_SetItem(*c, k, v) == 0) {
         Py_DECREF(k);
         Py_DECREF(v);
+        return 0;
+    }
+    return -1;
+}
+
+//static inline int template_callback_map_end(unpack_user* u, msgpack_unpack_object* c)
+int template_callback_map_end(unpack_user* u, msgpack_unpack_object* c)
+{
+    if (u->object_hook) {
+        PyObject *arglist = Py_BuildValue("(O)", *c);
+        Py_INCREF(*c);
+        *c = PyEval_CallObject(u->object_hook, arglist);
+        Py_DECREF(arglist);
         return 0;
     }
     return -1;

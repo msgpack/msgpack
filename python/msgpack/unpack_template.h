@@ -317,6 +317,7 @@ _push:
 	case CT_MAP_VALUE:
 		if(msgpack_unpack_callback(_map_item)(user, &c->obj, c->map_key, obj) < 0) { goto _failed; }
 		if(--c->count == 0) {
+            msgpack_unpack_callback(_map_end)(user, &c->obj);
 			obj = c->obj;
 			--top;
 			/*printf("stack pop %d\n", top);*/
