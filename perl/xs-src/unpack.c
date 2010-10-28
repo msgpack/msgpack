@@ -101,24 +101,21 @@ static SV* template_data(msgpack_unpack_t* u);
 static int template_execute(msgpack_unpack_t* u PERL_UNUSED_DECL,
     const char* data, size_t len, size_t* off);
 
-STATIC_INLINE
-SV* template_callback_root(unpack_user* u PERL_UNUSED_DECL)
+STATIC_INLINE SV* template_callback_root(unpack_user* u PERL_UNUSED_DECL)
 {
     return NULL;
 }
 
 #if IVSIZE == 4
 
-STATIC_INLINE
-int template_callback_UV(unpack_user* u PERL_UNUSED_DECL, UV const d, SV** o)
+STATIC_INLINE int template_callback_UV(unpack_user* u PERL_UNUSED_DECL, UV const d, SV** o)
 {
     dTHX;
     *o = newSVuv(d);
     return 0;
 }
 
-STATIC_INLINE
-int template_callback_IV(unpack_user* u PERL_UNUSED_DECL, IV const d, SV** o)
+STATIC_INLINE int template_callback_IV(unpack_user* u PERL_UNUSED_DECL, IV const d, SV** o)
 {
     dTHX;
     *o = newSViv(d);
@@ -126,8 +123,7 @@ int template_callback_IV(unpack_user* u PERL_UNUSED_DECL, IV const d, SV** o)
 }
 
 /* workaround win32 problems (my_snprintf(%llu) returns incorrect values ) */
-static
-char* str_from_uint64(char* buf_end, uint64_t v)
+static char* str_from_uint64(char* buf_end, uint64_t v)
 {
   char *p = buf_end;
   *--p = '\0';
@@ -137,8 +133,7 @@ char* str_from_uint64(char* buf_end, uint64_t v)
   return p;
 }
 
-static
-const char* str_from_int64(char* buf_end, int64_t const v) {
+static const char* str_from_int64(char* buf_end, int64_t const v) {
   bool const minus = v < 0;
   char* p = str_from_uint64(buf_end, minus ? -v : v);
   if (minus)
@@ -146,8 +141,7 @@ const char* str_from_int64(char* buf_end, int64_t const v) {
   return p;
 }
 
-static
-int template_callback_uint64(unpack_user* u PERL_UNUSED_DECL, uint64_t const d, SV** o)
+static int template_callback_uint64(unpack_user* u PERL_UNUSED_DECL, uint64_t const d, SV** o)
 {
     dTHX;
     char tbuf[64];
@@ -156,8 +150,7 @@ int template_callback_uint64(unpack_user* u PERL_UNUSED_DECL, uint64_t const d, 
     return 0;
 }
 
-static
-int template_callback_int64(unpack_user* u PERL_UNUSED_DECL, int64_t const d, SV** o)
+static int template_callback_int64(unpack_user* u PERL_UNUSED_DECL, int64_t const d, SV** o)
 {
     dTHX;
     char tbuf[64];
@@ -169,8 +162,7 @@ int template_callback_int64(unpack_user* u PERL_UNUSED_DECL, int64_t const d, SV
 #else /* IVSIZE == 8 */
 
 
-STATIC_INLINE
-int template_callback_UV(unpack_user* u PERL_UNUSED_DECL, UV const d, SV** o)
+STATIC_INLINE int template_callback_UV(unpack_user* u PERL_UNUSED_DECL, UV const d, SV** o)
 {
     dTHX;
     *o = newSVuv(d);
@@ -200,8 +192,7 @@ STATIC_INLINE int template_callback_IV(unpack_user* u PERL_UNUSED_DECL, IV const
 
 #define template_callback_float template_callback_double
 
-STATIC_INLINE
-int template_callback_double(unpack_user* u PERL_UNUSED_DECL, double d, SV** o)
+STATIC_INLINE int template_callback_double(unpack_user* u PERL_UNUSED_DECL, double d, SV** o)
 {
     dTHX;
     *o = newSVnv(d);
@@ -209,30 +200,26 @@ int template_callback_double(unpack_user* u PERL_UNUSED_DECL, double d, SV** o)
 }
 
 /* &PL_sv_undef is not so good. see http://gist.github.com/387743 */
-STATIC_INLINE
-int template_callback_nil(unpack_user* u PERL_UNUSED_DECL, SV** o)
+STATIC_INLINE int template_callback_nil(unpack_user* u PERL_UNUSED_DECL, SV** o)
 {
     dTHX;
     *o = newSV(0);
     return 0;
 }
 
-STATIC_INLINE
-int template_callback_true(unpack_user* u PERL_UNUSED_DECL, SV** o)
+STATIC_INLINE int template_callback_true(unpack_user* u PERL_UNUSED_DECL, SV** o)
 {
     *o = get_bool(true);
     return 0;
 }
 
-STATIC_INLINE
-int template_callback_false(unpack_user* u PERL_UNUSED_DECL, SV** o)
+STATIC_INLINE int template_callback_false(unpack_user* u PERL_UNUSED_DECL, SV** o)
 {
     *o = get_bool(false);
     return 0;
 }
 
-STATIC_INLINE
-int template_callback_array(unpack_user* u PERL_UNUSED_DECL, unsigned int n, SV** o)
+STATIC_INLINE int template_callback_array(unpack_user* u PERL_UNUSED_DECL, unsigned int n, SV** o)
 {
     dTHX;
     AV* const a = newAV();
@@ -241,8 +228,7 @@ int template_callback_array(unpack_user* u PERL_UNUSED_DECL, unsigned int n, SV*
     return 0;
 }
 
-STATIC_INLINE
-int template_callback_array_item(unpack_user* u PERL_UNUSED_DECL, SV** c, SV* o)
+STATIC_INLINE int template_callback_array_item(unpack_user* u PERL_UNUSED_DECL, SV** c, SV* o)
 {
     dTHX;
     AV* const a = (AV*)SvRV(*c);
@@ -251,8 +237,7 @@ int template_callback_array_item(unpack_user* u PERL_UNUSED_DECL, SV** c, SV* o)
     return 0;
 }
 
-STATIC_INLINE
-int template_callback_map(unpack_user* u PERL_UNUSED_DECL, unsigned int n, SV** o)
+STATIC_INLINE int template_callback_map(unpack_user* u PERL_UNUSED_DECL, unsigned int n, SV** o)
 {
     dTHX;
     HV* const h = newHV();
@@ -261,8 +246,7 @@ int template_callback_map(unpack_user* u PERL_UNUSED_DECL, unsigned int n, SV** 
     return 0;
 }
 
-STATIC_INLINE
-int template_callback_map_item(unpack_user* u PERL_UNUSED_DECL, SV** c, SV* k, SV* v)
+STATIC_INLINE int template_callback_map_item(unpack_user* u PERL_UNUSED_DECL, SV** c, SV* k, SV* v)
 {
     dTHX;
     HV* const h = (HV*)SvRV(*c);
@@ -272,8 +256,7 @@ int template_callback_map_item(unpack_user* u PERL_UNUSED_DECL, SV** c, SV* k, S
     return 0;
 }
 
-STATIC_INLINE int
-template_callback_raw(unpack_user* u PERL_UNUSED_DECL, const char* b PERL_UNUSED_DECL, const char* p, unsigned int l, SV** o)
+STATIC_INLINE int template_callback_raw(unpack_user* u PERL_UNUSED_DECL, const char* b PERL_UNUSED_DECL, const char* p, unsigned int l, SV** o)
 {
     dTHX;
     /*  newSVpvn(p, l) returns an undef if p == NULL */
