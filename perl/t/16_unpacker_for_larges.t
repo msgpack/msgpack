@@ -2,16 +2,14 @@ use strict;
 use Test::More;
 use Data::MessagePack;
 
-foreach my $data("abc") {
+foreach my $data("abc", [42]) {
     my $packed = Data::MessagePack->pack($data);
 
     my $unpacker = Data::MessagePack::Unpacker->new;
     note "buff: ", join " ", map { unpack 'H2', $_ } split //, $packed;
 
-    my $offset = 0;
     foreach my $byte(split //, $packed) {
-        note "offset: $offset";
-        $offset += $unpacker->execute($byte);
+        $unpacker->execute($byte);
     }
 
     ok $unpacker->is_finished, 'finished';
