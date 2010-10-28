@@ -47,7 +47,8 @@ STATIC_INLINE void need(enc_t* const enc, STRLEN const len);
 #define ERR_NESTING_EXCEEDED "perl structure exceeds maximum nesting level (max_depth set too low?)"
 
 
-STATIC_INLINE void need(enc_t* const enc, STRLEN const len)
+STATIC_INLINE
+void need(enc_t* const enc, STRLEN const len)
 {
     if (enc->cur + len >= enc->end) {
         dTHX;
@@ -61,7 +62,8 @@ STATIC_INLINE void need(enc_t* const enc, STRLEN const len)
 
 static int s_pref_int = 0;
 
-STATIC_INLINE int pref_int_set(pTHX_ SV* sv, MAGIC* mg PERL_UNUSED_DECL) {
+STATIC_INLINE
+int pref_int_set(pTHX_ SV* sv, MAGIC* mg PERL_UNUSED_DECL) {
     if (SvTRUE(sv)) {
         s_pref_int = 1;
     } else {
@@ -90,7 +92,8 @@ void init_Data__MessagePack_pack(pTHX_ bool const cloning) {
 }
 
 
-STATIC_INLINE int try_int(enc_t* enc, const char *p, size_t len) {
+STATIC_INLINE
+int try_int(enc_t* enc, const char *p, size_t len) {
     int negative = 0;
     const char* pe = p + len;
     uint64_t num = 0;
@@ -144,9 +147,11 @@ STATIC_INLINE int try_int(enc_t* enc, const char *p, size_t len) {
 }
 
 
-STATIC_INLINE void _msgpack_pack_rv(enc_t *enc, SV* sv, int depth);
+STATIC_INLINE
+void _msgpack_pack_rv(enc_t *enc, SV* sv, int depth);
 
-STATIC_INLINE void _msgpack_pack_sv(enc_t* const enc, SV* const sv, int const depth) {
+STATIC_INLINE
+void _msgpack_pack_sv(enc_t* const enc, SV* const sv, int const depth) {
     dTHX;
     assert(sv);
     if (UNLIKELY(depth <= 0)) Perl_croak(aTHX_ ERR_NESTING_EXCEEDED);
@@ -185,12 +190,13 @@ STATIC_INLINE void _msgpack_pack_sv(enc_t* const enc, SV* const sv, int const de
     }
 }
 
-STATIC_INLINE void _msgpack_pack_rv(enc_t *enc, SV* sv, int depth) {
-    svtype svt;
+STATIC_INLINE
+void _msgpack_pack_rv(enc_t *enc, SV* sv, int depth) {
     dTHX;
+
     assert(sv);
     SvGETMAGIC(sv);
-    svt = SvTYPE(sv);
+    svtype const svt = SvTYPE(sv);
 
     if (SvOBJECT (sv)) {
         HV *stash = gv_stashpv ("Data::MessagePack::Boolean", 1); // TODO: cache?
@@ -201,8 +207,8 @@ STATIC_INLINE void _msgpack_pack_rv(enc_t *enc, SV* sv, int depth) {
                 msgpack_pack_false(enc);
             }
         } else {
-            croak ("encountered object '%s', Data::MessagePack doesn't allow the object",
-                           SvPV_nolen(sv_2mortal(newRV_inc(sv))));
+            croak ("encountered object '%"SVf"', Data::MessagePack doesn't allow the object",
+                           sv_2mortal(newRV_inc(sv)));
         }
     } else if (svt == SVt_PVHV) {
         HV* hval = (HV*)sv;
@@ -238,12 +244,12 @@ STATIC_INLINE void _msgpack_pack_rv(enc_t *enc, SV* sv, int depth) {
             msgpack_pack_false(enc); 
         else {
             //sv_dump(sv);
-            croak("cannot encode reference to scalar '%s' unless the scalar is 0 or 1",
-                    SvPV_nolen (sv_2mortal (newRV_inc (sv))));
+            croak("cannot encode reference to scalar '%"SVf"' unless the scalar is 0 or 1",
+                    sv_2mortal(newRV_inc(sv)));
         }
     } else {
-        croak ("encountered %s, but msgpack can only represent references to arrays or hashes",
-                   SvPV_nolen (sv_2mortal (newRV_inc (sv))));
+        croak ("encountered %"SVf", but msgpack can only represent references to arrays or hashes",
+                   sv_2mortal(newRV_inc(sv)));
     }
 }
 
@@ -266,8 +272,10 @@ XS(xs_pack) {
     _msgpack_pack_sv(&enc, val, depth);
 
     SvCUR_set(enc.sv, enc.cur - SvPVX (enc.sv));
-    *SvEND (enc.sv) = 0; /* many xs functions expect a trailing 0 for text strings */
+    /* many C functions expect a trailing NUL for strings */
+    *SvEND(enc.sv) = '\0';
 
     ST(0) = enc.sv;
     XSRETURN(1);
 }
+
