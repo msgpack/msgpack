@@ -305,10 +305,10 @@ foreach my $pair(
 sub _unpack {
     my ( $value ) = @_;
     # get a header byte
-    my $byte = unpack "x$p C", $value; # "x$p" is faster than substr()
+    defined(my $byte = unpack "x$p C", $value)
+        or Carp::confess("Data::MessagePack->unpack: insufficient bytes");
     $p++;
 
-    Carp::croak("invalid data") unless defined $byte;
 
     # +/- fixnum, nil, true, false
     return $byte2value[$byte] if $typemap[$byte] & $T_DIRECT;
