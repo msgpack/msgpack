@@ -304,11 +304,11 @@ foreach my $pair(
 
 sub _unpack {
     my ( $value ) = @_;
-    # get a header byte
-    defined(my $byte = unpack "x$p C", $value)
+    $p < length($value)
         or Carp::confess("Data::MessagePack->unpack: insufficient bytes");
+    # get a header byte
+    my $byte = ord( substr $value, $p, 1 );
     $p++;
-
 
     # +/- fixnum, nil, true, false
     return $byte2value[$byte] if $typemap[$byte] & $T_DIRECT;
@@ -454,6 +454,9 @@ sub execute {
     $self->{buff} .= $value;
     local $self->{stack} = [];
 
+    #$p = 0;
+    #eval { Data::MessagePack::PP::_unpack($self->{buff}) };
+    #warn "[$p][$@]";
     $p = 0;
 
     while ( length($self->{buff}) > $p ) {
