@@ -423,7 +423,11 @@ package
     Data::MessagePack::PP::Unpacker;
 
 sub new {
-    bless { pos => 0, utf8 => 0 }, shift;
+    bless {
+        pos  => 0,
+        utf8 => 0,
+        buff => '',
+    }, shift;
 }
 
 sub utf8 {
@@ -447,13 +451,13 @@ sub execute {
     my $value = substr( $data, $offset, $limit ? $limit : length $data );
     my $len   = length $value;
 
-    $self->{data} .= $value;
+    $self->{buff} .= $value;
     local $self->{stack} = [];
 
     $p = 0;
 
-    while ( length($self->{data}) > $p ) {
-        _count( $self, $self->{data} ) or last;
+    while ( length($self->{buff}) > $p ) {
+        _count( $self, $self->{buff} ) or last;
 
         while ( @{ $self->{stack} } > 0 && --$self->{stack}->[-1] == 0) {
             pop @{ $self->{stack} };
@@ -568,7 +572,7 @@ sub _count {
 sub data {
     my($self) = @_;
     local $Data::MessagePack::PP::_utf8 = $self->{utf8};
-    return Data::MessagePack->unpack( substr($self->{ data }, 0, $self->{pos}) );
+    return Data::MessagePack->unpack( substr($self->{buff}, 0, $self->{pos}) );
 }
 
 
@@ -578,9 +582,9 @@ sub is_finished {
 }
 
 sub reset :method {
-    $_[0]->{ data }   = undef;
-    $_[0]->{ pos }    = 0;
-    $_[0]->{ is_finished } = 0;
+    $_[0]->{buff}        = '';
+    $_[0]->{pos}         = 0;
+    $_[0]->{is_finished} = 0;
 }
 
 1;
