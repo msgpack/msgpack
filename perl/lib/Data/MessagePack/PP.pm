@@ -480,6 +480,7 @@ sub execute {
 
 sub _count {
     my ( $self, $value ) = @_;
+    no warnings; # FIXME
     my $byte = unpack( 'C', substr( $value, $p++, 1 ) ); # get header
 
     Carp::croak('invalid data') unless defined $byte;
