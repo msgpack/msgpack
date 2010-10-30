@@ -19,6 +19,7 @@ typedef struct {
     msgpack_unpack_t mp;
     php_unserialize_data_t var_hash;
     long php_only;
+    zend_bool finished;
 } php_msgpack_unpacker_t;
 
 #if ZEND_MODULE_API_NO >= 20060613
@@ -348,6 +349,7 @@ static ZEND_METHOD(msgpack_unpacker, __construct)
     unpacker->buffer.a = 0;
     unpacker->retval = NULL;
     unpacker->offset = 0;
+    unpacker->finished = 0;
 
     template_init(&unpacker->mp);
 
@@ -460,6 +462,22 @@ static ZEND_METHOD(msgpack_unpacker, execute)
     {
         ALLOC_INIT_ZVAL(unpacker->retval);
     }
+    else if (unpacker->finished)
+    {
+        zval_ptr_dtor(&unpacker->retval);
+
+        msgpack_unserialize_var_destroy(&unpacker->var_hash);
+
+
+        ALLOC_INIT_ZVAL(unpacker->retval);
+
+        template_init(&unpacker->mp);
+
+        msgpack_unserialize_var_init(&unpacker->var_hash);
+
+        (&unpacker->mp)->user.var_hash =
+            (php_unserialize_data_t *)&unpacker->var_hash;
+    }
     (&unpacker->mp)->user.retval = (zval *)unpacker->retval;
 
     MSGPACK_G(error_display) = 0;
@@ -483,6 +501,7 @@ static ZEND_METHOD(msgpack_unpacker, execute)
     {
         case MSGPACK_UNPACK_EXTRA_BYTES:
         case MSGPACK_UNPACK_SUCCESS:
+            unpacker->finished = 1;
             RETURN_TRUE;
         default:
             RETURN_FALSE;
@@ -493,7 +512,16 @@ static ZEND_METHOD(msgpack_unpacker, data)
 {
     MSGPACK_UNPACKER_OBJECT;
 
-    RETURN_ZVAL(unpacker->retval, 1, 1);
+    if (unpacker->retval != NULL)
+    {
+        ZVAL_ZVAL(return_value, unpacker->retval, 1, 0);
+
+        MSGPACK_METHOD(msgpack_unpacker, reset, NULL, getThis());
+
+        return;
+    }
+
+    RETURN_FALSE;
 }
 
 static ZEND_METHOD(msgpack_unpacker, reset)
@@ -513,6 +541,7 @@ static ZEND_METHOD(msgpack_unpacker, reset)
     unpacker->buffer.len = 0;
     unpacker->buffer.a = 0;
     unpacker->offset = 0;
+    unpacker->finished = 0;
 
     if (buffer.len > 0)
     {
@@ -530,12 +559,12 @@ static ZEND_METHOD(msgpack_unpacker, reset)
     msgpack_unserialize_var_destroy(&unpacker->var_hash);
 
 
+    template_init(&unpacker->mp);
+
     msgpack_unserialize_var_init(&unpacker->var_hash);
 
     (&unpacker->mp)->user.var_hash =
         (php_unserialize_data_t *)&unpacker->var_hash;
-
-    msgpack_unserialize_init(&((&unpacker->mp)->user));
 }
 
 void msgpack_init_class()

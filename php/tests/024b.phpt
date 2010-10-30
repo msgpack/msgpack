@@ -2,8 +2,8 @@
 Recursive objects
 --SKIPIF--
 <?php
-if (version_compare(PHP_VERSION, '5.3.2') <= 0) {
-    echo "skip tests in PHP 5.3.3";
+if (version_compare(PHP_VERSION, '5.3.3') >= 0) {
+    echo "skip tests in PHP 5.3.2 or older";
 }
 --FILE--
 <?php
@@ -160,6 +160,11 @@ object(Obj4)#%d (2) {
   [%r"?a"?:("Obj4":)?private"?%r]=>
   int(100)
   [%r"?obj"?:("Obj4":)?private"?%r]=>
-  *RECURSION*
+  object(Obj4)#%d (2) {
+    [%r"?a"?:("Obj4":)?private"?%r]=>
+    int(100)
+    [%r"?obj"?:("Obj4":)?private"?%r]=>
+    *RECURSION*
+  }
 }
 OK

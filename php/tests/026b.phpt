@@ -3,8 +3,8 @@ Cyclic array test
 --INI--
 --SKIPIF--
 <?php
-if (version_compare(PHP_VERSION, '5.3.2') <= 0) {
-    echo "skip tests in PHP 5.3.3";
+if (version_compare(PHP_VERSION, '5.3.3') >= 0) {
+    echo "skip tests in PHP 5.3.2 or older";
 }
 --FILE--
 <?php
@@ -62,7 +62,17 @@ array(2) {
       string(1) "e"
     }
     ["f"]=>
-    *RECURSION*
+    &array(2) {
+      ["a"]=>
+      array(2) {
+        ["b"]=>
+        string(1) "c"
+        ["d"]=>
+        string(1) "e"
+      }
+      ["f"]=>
+      *RECURSION*
+    }
   }
 }
 OK
@@ -74,7 +84,17 @@ array(1) {
     [1]=>
     int(2)
     [2]=>
-    *RECURSION*
+    array(1) {
+      ["foo"]=>
+      &array(3) {
+        [0]=>
+        int(1)
+        [1]=>
+        int(2)
+        [2]=>
+        *RECURSION*
+      }
+    }
   }
 }
 array(1) {
@@ -87,7 +107,17 @@ array(1) {
     [2]=>
     array(1) {
       ["foo"]=>
-      *RECURSION*
+      &array(3) {
+        [0]=>
+        int(1)
+        [1]=>
+        int(2)
+        [2]=>
+        array(1) {
+          ["foo"]=>
+          *RECURSION*
+        }
+      }
     }
   }
 }
@@ -101,7 +131,17 @@ array(1) {
     [2]=>
     array(1) {
       ["foo"]=>
-      *RECURSION*
+      &array(3) {
+        [0]=>
+        int(1)
+        [1]=>
+        string(1) "b"
+        [2]=>
+        array(1) {
+          ["foo"]=>
+          *RECURSION*
+        }
+      }
     }
   }
 }

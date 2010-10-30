@@ -1,5 +1,5 @@
 --TEST--
-Check for class methods unpacker
+Check for unbuffered streaming unserialization (single)
 --SKIPIF--
 <?php
 if (version_compare(PHP_VERSION, '5.3.3') >= 0) {
@@ -11,52 +11,33 @@ if(!extension_loaded('msgpack')) {
     dl('msgpack.' . PHP_SHLIB_SUFFIX);
 }
 
-function test($type, $variable, $test = null) {
-    $msgpack = new MessagePack();
+$unpacker = new MessagePackUnpacker();
 
-    $serialized = $msgpack->pack($variable);
-    $unpacker = $msgpack->unpacker();
+function test($type, $variable, $test = null) {
+    $serialized = msgpack_serialize($variable);
+
+    global $unpacker;
 
     $length = strlen($serialized);
 
-    if (rand(0, 1))
-    {
-        for ($i = 0; $i < $length;) {
-            $len = rand(1, 10);
-            $str = substr($serialized, $i, $len);
+    $str = "";
+    $offset = 0;
 
-            $unpacker->feed($str);
-            if ($unpacker->execute())
-            {
-                $unserialized = $unpacker->data();
-                var_dump($unserialized);
-                $unpacker->reset();
-            }
+    for ($i = 0; $i < $length;) {
+        $len = rand(1, 10);
+        $str .= substr($serialized, $i, $len);
 
-            $i += $len;
+        if ($unpacker->execute($str, $offset))
+        {
+            $unserialized = $unpacker->data();
+            var_dump($unserialized);
+
+            $unpacker->reset();
+            $str = "";
+            $offset = 0;
         }
-    }
-    else
-    {
-        $str = "";
-        $offset = 0;
 
-        for ($i = 0; $i < $length;) {
-            $len = rand(1, 10);
-            $str .= substr($serialized, $i, $len);
-
-            if ($unpacker->execute($str, $offset))
-            {
-                $unserialized = $unpacker->data();
-                var_dump($unserialized);
-
-                $unpacker->reset();
-                $str = "";
-                $offset = 0;
-            }
-
-            $i += $len;
-        }
+        $i += $len;
     }
 
     if (!is_bool($test))

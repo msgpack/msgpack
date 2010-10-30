@@ -113,7 +113,7 @@ zend_module_entry msgpack_module_entry = {
     NULL,
     ZEND_MINFO(msgpack),
 #if ZEND_MODULE_API_NO >= 20010901
-    MSGPACK_VERSION,
+    MSGPACK_EXTENSION_VERSION,
 #endif
     STANDARD_MODULE_PROPERTIES
 };

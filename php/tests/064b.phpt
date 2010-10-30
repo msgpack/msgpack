@@ -1,5 +1,5 @@
 --TEST--
-Check for class methods unpacker
+Check for buffered streaming unserialization (single)
 --SKIPIF--
 <?php
 if (version_compare(PHP_VERSION, '5.3.3') >= 0) {
@@ -11,52 +11,28 @@ if(!extension_loaded('msgpack')) {
     dl('msgpack.' . PHP_SHLIB_SUFFIX);
 }
 
-function test($type, $variable, $test = null) {
-    $msgpack = new MessagePack();
+$unpacker = new MessagePackUnpacker();
 
-    $serialized = $msgpack->pack($variable);
-    $unpacker = $msgpack->unpacker();
+function test($type, $variable, $test = null) {
+    $serialized = msgpack_serialize($variable);
+
+    global $unpacker;
 
     $length = strlen($serialized);
 
-    if (rand(0, 1))
-    {
-        for ($i = 0; $i < $length;) {
-            $len = rand(1, 10);
-            $str = substr($serialized, $i, $len);
+    for ($i = 0; $i < $length;) {
+        $len = rand(1, 10);
+        $str = substr($serialized, $i, $len);
 
-            $unpacker->feed($str);
-            if ($unpacker->execute())
-            {
-                $unserialized = $unpacker->data();
-                var_dump($unserialized);
-                $unpacker->reset();
-            }
-
-            $i += $len;
+        $unpacker->feed($str);
+        if ($unpacker->execute())
+        {
+            $unserialized = $unpacker->data();
+            var_dump($unserialized);
+            $unpacker->reset();
         }
-    }
-    else
-    {
-        $str = "";
-        $offset = 0;
 
-        for ($i = 0; $i < $length;) {
-            $len = rand(1, 10);
-            $str .= substr($serialized, $i, $len);
-
-            if ($unpacker->execute($str, $offset))
-            {
-                $unserialized = $unpacker->data();
-                var_dump($unserialized);
-
-                $unpacker->reset();
-                $str = "";
-                $offset = 0;
-            }
-
-            $i += $len;
-        }
+        $i += $len;
     }
 
     if (!is_bool($test))
@@ -71,8 +47,8 @@ function test($type, $variable, $test = null) {
 
 test('null', null);
 
-test('boo:l true', true);
-test('bool: true', false);
+test('bool: true', true);
+test('bool: false', false);
 
 test('zero: 0', 0);
 test('small: 1', 1);
@@ -87,9 +63,9 @@ test('double: 123.456', 123.456);
 test('empty: ""', "");
 test('string: "foobar"', "foobar");
 
-test('empty: array', array(), false);
-test('empty: array(1, 2, 3)', array(1, 2, 3), false);
-test('empty: array(array(1, 2, 3), arr...', array(array(1, 2, 3), array(4, 5, 6), array(7, 8, 9)), false);
+test('array', array(), false);
+test('array(1, 2, 3)', array(1, 2, 3), false);
+test('array(array(1, 2, 3), arr...', array(array(1, 2, 3), array(4, 5, 6), array(7, 8, 9)), false);
 
 test('array("foo", "foo", "foo")', array("foo", "foo", "foo"), false);
 test('array("one" => 1, "two" => 2))', array("one" => 1, "two" => 2), false);
