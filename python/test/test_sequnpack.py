@@ -1,22 +1,22 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from __future__ import unicode_literals, print_function
+from __future__ import unicode_literals
 
 from msgpack import Unpacker
 
 def test_foobar():
     unpacker = Unpacker(read_size=3)
     unpacker.feed(b'foobar')
-    assert unpacker.unpack() == ord('f')
-    assert unpacker.unpack() == ord('o')
-    assert unpacker.unpack() == ord('o')
-    assert unpacker.unpack() == ord('b')
-    assert unpacker.unpack() == ord('a')
-    assert unpacker.unpack() == ord('r')
+    assert unpacker.unpack() == ord(b'f')
+    assert unpacker.unpack() == ord(b'o')
+    assert unpacker.unpack() == ord(b'o')
+    assert unpacker.unpack() == ord(b'b')
+    assert unpacker.unpack() == ord(b'a')
+    assert unpacker.unpack() == ord(b'r')
     try:
         o = unpacker.unpack()
-        print("Oops!", o)
+        print "Oops!", o
         assert 0
     except StopIteration:
         assert 1

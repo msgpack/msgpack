@@ -7,10 +7,10 @@ from msgpack import packb, unpackb
 
 def test_unpack_buffer():
     from array import array
-    buf = array('b')
-    buf.fromstring(packb(['foo', 'bar']))
+    buf = array('c')
+    buf.fromstring(packb(('foo', 'bar')))
     obj = unpackb(buf)
-    assert_equal(['foo', 'bar'], obj)
+    assert_equal(('foo', 'bar'), obj)
 
 if __name__ == '__main__':
     main()

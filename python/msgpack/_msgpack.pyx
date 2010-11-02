@@ -1,37 +1,14 @@
 # coding: utf-8
 
+from cpython cimport *
 cdef extern from "Python.h":
     ctypedef char* const_char_ptr "const char*"
+    ctypedef char* const_void_ptr "const void*"
     ctypedef struct PyObject
+    cdef int PyObject_AsReadBuffer(object o, const_void_ptr* buff, Py_ssize_t* buf_len) except -1
 
-    cdef object PyBytes_FromStringAndSize(const_char_ptr b, Py_ssize_t len)
-    cdef PyObject* Py_True
-    cdef PyObject* Py_False
-    cdef object PyUnicode_AsUTF8String(object)
-
-    cdef long long PyLong_AsLongLong(object o)
-    cdef unsigned long long PyLong_AsUnsignedLongLong(object o)
-
-    cdef bint PyBool_Check(object o)
-    cdef bint PyDict_Check(object o)
-    cdef bint PySequence_Check(object o)
-    cdef bint PyLong_Check(object o)
-    cdef bint PyInt_Check(object o)
-    cdef bint PyFloat_Check(object o)
-    cdef bint PyBytes_Check(object o)
-    cdef bint PyUnicode_Check(object o)
-    cdef bint PyCallable_Check(object o)
-    cdef void Py_INCREF(object o)
-    cdef void Py_DECREF(object o)
-
-cdef extern from "stdlib.h":
-    void* malloc(size_t)
-    void* realloc(void*, size_t)
-    void free(void*)
-
-cdef extern from "string.h":
-    void* memcpy(char* dst, char* src, size_t size)
-    void* memmove(char* dst, char* src, size_t size)
+from libc.stdlib cimport *
+from libc.string cimport *
 
 cdef extern from "pack.h":
     struct msgpack_packer:
@@ -104,10 +81,10 @@ cdef class Packer(object):
                 ret = msgpack_pack_false(&self.pk)
         elif PyLong_Check(o):
             if o > 0:
-                ullval = PyLong_AsUnsignedLongLong(o)
+                ullval = o
                 ret = msgpack_pack_unsigned_long_long(&self.pk, ullval)
             else:
-                llval = PyLong_AsLongLong(o)
+                llval = o
                 ret = msgpack_pack_long_long(&self.pk, llval)
         elif PyInt_Check(o):
             longval = o
@@ -160,7 +137,7 @@ cdef class Packer(object):
 
 def pack(object o, object stream, default=None):
     """pack an object `o` and write it to stream)."""
-    packer = Packer(default)
+    packer = Packer(default=default)
     stream.write(packer.pack(o))
 
 def packb(object o, default=None):
@@ -184,17 +161,21 @@ cdef extern from "unpack.h":
         PyObject* key
 
     int template_execute(template_context* ctx, const_char_ptr data,
-            size_t len, size_t* off)
+                         size_t len, size_t* off)
     void template_init(template_context* ctx)
     object template_data(template_context* ctx)
 
 
-def unpackb(bytes packed_bytes, object object_hook=None, object list_hook=None):
+def unpackb(object packed, object object_hook=None, object list_hook=None):
     """Unpack packed_bytes to object. Returns an unpacked object."""
-    cdef const_char_ptr p = packed_bytes
     cdef template_context ctx
     cdef size_t off = 0
     cdef int ret
+
+    cdef char* buf
+    cdef Py_ssize_t buf_len
+    PyObject_AsReadBuffer(packed, <const_void_ptr*>&buf, &buf_len)
+
     template_init(&ctx)
     ctx.user.use_list = 0
     ctx.user.object_hook = ctx.user.list_hook = NULL
@@ -206,7 +187,7 @@ def unpackb(bytes packed_bytes, object object_hook=None, object list_hook=None):
         if not PyCallable_Check(list_hook):
             raise TypeError("list_hook must be a callable.")
         ctx.user.list_hook = <PyObject*>list_hook
-    ret = template_execute(&ctx, p, len(packed_bytes), &off)
+    ret = template_execute(&ctx, buf, buf_len, &off)
     if ret == 1:
         return template_data(&ctx)
     else:
@@ -216,8 +197,8 @@ unpacks = unpackb
 
 def unpack(object stream, object object_hook=None, object list_hook=None):
     """unpack an object from stream."""
-    packed = stream.read()
-    return unpackb(packed, object_hook=object_hook, list_hook=list_hook)
+    return unpackb(stream.read(),
+                   object_hook=object_hook, list_hook=list_hook)
 
 cdef class UnpackIterator(object):
     cdef object unpacker
@@ -232,21 +213,12 @@ cdef class UnpackIterator(object):
         return self
 
 cdef class Unpacker(object):
-    """Unpacker(file_like=None, read_size=1024*1024)
+    """Unpacker(read_size=1024*1024)
 
     Streaming unpacker.
-    file_like must have read(n) method.
     read_size is used like file_like.read(read_size)
 
-    If file_like is None, you can ``feed()`` bytes. ``feed()`` is
-    useful for unpacking from non-blocking stream.
-
-    exsample 1:
-        unpacker = Unpacker(afile)
-        for o in unpacker:
-            do_something(o)
-
-    example 2:
+    example:
         unpacker = Unpacker()
         while 1:
             buf = astream.read()
@@ -254,13 +226,11 @@ cdef class Unpacker(object):
             for o in unpacker:
                 do_something(o)
     """
-
     cdef template_context ctx
     cdef char* buf
     cdef size_t buf_size, buf_head, buf_tail
     cdef object file_like
     cdef int read_size
-    cdef object waiting_bytes
     cdef bint use_list
     cdef object object_hook
 
@@ -268,8 +238,7 @@ cdef class Unpacker(object):
         self.buf = NULL
 
     def __dealloc__(self):
-        if self.buf:
-            free(self.buf);
+        free(self.buf);
 
     def __init__(self, file_like=None, int read_size=0, bint use_list=0,
                  object object_hook=None, object list_hook=None):
@@ -278,7 +247,6 @@ cdef class Unpacker(object):
         self.use_list = use_list
         self.file_like = file_like
         self.read_size = read_size
-        self.waiting_bytes = []
         self.buf = <char*>malloc(read_size)
         self.buf_size = read_size
         self.buf_head = 0
@@ -295,64 +263,48 @@ cdef class Unpacker(object):
                 raise TypeError("object_hook must be a callable.")
             self.ctx.user.list_hook = <PyObject*>list_hook
 
-    def feed(self, bytes next_bytes):
-        self.waiting_bytes.append(next_bytes)
+    def feed(self, object next_bytes):
+        cdef char* buf
+        cdef Py_ssize_t buf_len
+        PyObject_AsReadBuffer(next_bytes, <const_void_ptr*>&buf, &buf_len)
+        self.append_buffer(buf, buf_len)
 
-    cdef append_buffer(self):
-        cdef char* buf = self.buf
-        cdef Py_ssize_t tail = self.buf_tail
-        cdef Py_ssize_t l
-        cdef bytes b
+    cdef append_buffer(self, void* _buf, Py_ssize_t _buf_len):
+        cdef:
+            char* buf = self.buf
+            size_t head = self.buf_head
+            size_t tail = self.buf_tail
+            size_t buf_size = self.buf_size
+            size_t new_size
 
-        for b in self.waiting_bytes:
-            l = len(b)
-            memcpy(buf + tail, <char*>(b), l)
-            tail += l
-        self.buf_tail = tail
-        del self.waiting_bytes[:]
+        if tail + _buf_len > buf_size:
+            if ((tail - head) + _buf_len)*2 < buf_size:
+                # move to front.
+                memmove(buf, buf + head, tail - head)
+                tail -= head
+                head = 0
+            else:
+                # expand buffer.
+                new_size = tail + _buf_len
+                if new_size < buf_size*2:
+                    new_size = buf_size*2
+                buf = <char*>realloc(buf, new_size)
+                buf_size = new_size
 
-    # prepare self.buf
+        memcpy(buf + tail, <char*>(_buf), _buf_len)
+        self.buf_head = head
+        self.buf_size = buf_size
+        self.buf_tail = tail + _buf_len
+
+    # prepare self.buf from file_like
     cdef fill_buffer(self):
-        cdef Py_ssize_t add_size
-
         if self.file_like is not None:
             next_bytes = self.file_like.read(self.read_size)
             if next_bytes:
-                self.waiting_bytes.append(next_bytes)
+                self.append_buffer(PyBytes_AsString(next_bytes),
+                                   PyBytes_Size(next_bytes))
             else:
                 self.file_like = None
-
-        if not self.waiting_bytes:
-            return
-
-        add_size = 0
-        for b in self.waiting_bytes:
-            add_size += len(b)
-
-        cdef char* buf = self.buf
-        cdef size_t head = self.buf_head
-        cdef size_t tail = self.buf_tail
-        cdef size_t size = self.buf_size
-
-        if self.buf_tail + add_size <= self.buf_size:
-            # do nothing.
-            pass
-        if self.buf_tail - self.buf_head + add_size < self.buf_size:
-            # move to front.
-            memmove(buf, buf + head, tail - head)
-            tail -= head
-            head = 0
-        else:
-            # expand buffer
-            size = tail + add_size
-            buf = <char*>realloc(<void*>buf, size)
-
-        self.buf = buf
-        self.buf_head = head
-        self.buf_tail = tail
-        self.buf_size = size
-
-        self.append_buffer()
 
     cpdef unpack(self):
         """unpack one object"""
