@@ -1,5 +1,9 @@
 msgpack extension changelog
 
+Version 0.3.1
+-------------
+	* Fix class MessagePackUnpacker.
+
 Version 0.3.0
 -------------
 	* Change msgpack_unpack.c (used template)

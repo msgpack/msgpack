@@ -12,7 +12,6 @@ Packager: advect <advect@gmail.com>
 Provides: php-pecl-msgpack
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
 BuildRequires: php-devel
-Requires: msgpack
 %if 0%{?php_zend_api}
 Requires: php(zend-abi) = %{php_zend_api}
 Requires: php(api) = %{php_core_api}

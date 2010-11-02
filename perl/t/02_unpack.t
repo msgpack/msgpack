@@ -12,7 +12,10 @@ sub unpackit {
 
 sub pis ($$) {
     is_deeply unpackit($_[0]), $_[1], 'dump ' . $_[0]
-        or diag( explain(unpackit($_[0])) );
+        or do {
+            diag( 'got:', explain(unpackit($_[0])) );
+            diag( 'expected:', explain($_[1]) );
+        };
 }
 
 my @dat = do 't/data.pl' or die $@;

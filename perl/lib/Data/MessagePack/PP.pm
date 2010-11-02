@@ -138,6 +138,7 @@ sub _unexpected {
     Carp::confess("Unexpected " . sprintf(shift, @_) . " found");
 }
 
+
 #
 # PACK
 #
@@ -257,6 +258,10 @@ sub _pack {
 our $_utf8 = 0;
 my $p; # position variables for speed.
 
+sub _insufficient {
+    Carp::confess("Insufficient bytes (pos=$p, type=@_)");
+}
+
 sub unpack :method {
     $p = 0; # init
     my $data = _unpack( $_[1] );
@@ -302,67 +307,51 @@ foreach my $pair(
     $byte2value[ $pair->[0] ]  = $pair->[1];
 }
 
+sub _fetch_size {
+    my($value_ref, $byte, $x16, $x32, $x_fixbits) = @_;
+    if ( $byte == $x16 ) {
+        $p += 2;
+        $p <= length(${$value_ref}) or _insufficient('x/16');
+        return unpack 'n', substr( ${$value_ref}, $p - 2, 2 );
+    }
+    elsif ( $byte == $x32 ) {
+        $p += 4;
+        $p <= length(${$value_ref}) or _insufficient('x/32');
+        return unpack 'N', substr( ${$value_ref}, $p - 4, 4 );
+    }
+    else { # fix raw
+        return $byte & ~$x_fixbits;
+    }
+}
+
 sub _unpack {
     my ( $value ) = @_;
+    $p < length($value) or _insufficient('header byte');
     # get a header byte
-    my $byte = unpack "x$p C", $value; # "x$p" is faster than substr()
+    my $byte = ord( substr $value, $p, 1 );
     $p++;
-
-    Carp::croak("invalid data") unless defined $byte;
 
     # +/- fixnum, nil, true, false
     return $byte2value[$byte] if $typemap[$byte] & $T_DIRECT;
 
     if ( $typemap[$byte] & $T_RAW ) {
-        my $num;
-        if ( $byte == 0xda ) {
-            $num = CORE::unpack 'n', substr( $value, $p, 2 );
-            $p += 2 + $num;
-        }
-        elsif ( $byte == 0xdb ) {
-            $num = CORE::unpack 'N', substr( $value, $p, 4 );
-            $p += 4 + $num;
-        }
-        else { # fix raw
-            $num = $byte & ~0xa0;
-            $p += $num;
-        }
-        my $s = substr( $value, $p - $num, $num );
+        my $size = _fetch_size(\$value, $byte, 0xda, 0xdb, 0xa0);
+        my $s    = substr( $value, $p, $size );
+        length($s) == $size or _insufficient('raw');
+        $p      += $size;
         utf8::decode($s) if $_utf8;
         return $s;
     }
     elsif ( $typemap[$byte] & $T_ARRAY ) {
-        my $num;
-        if ( $byte == 0xdc ) { # array 16
-            $num = CORE::unpack 'n', substr( $value, $p, 2 );
-            $p += 2;
-        }
-        elsif ( $byte == 0xdd ) { # array 32
-            $num = CORE::unpack 'N', substr( $value, $p, 4 );
-            $p += 4;
-        }
-        else { # fix array
-            $num = $byte & ~0x90;
-        }
+        my $size = _fetch_size(\$value, $byte, 0xdc, 0xdd, 0x90);
         my @array;
-        push @array, _unpack( $value ) while --$num >= 0;
+        push @array, _unpack( $value ) while --$size >= 0;
         return \@array;
     }
     elsif ( $typemap[$byte] & $T_MAP ) {
-        my $num;
-        if ( $byte == 0xde ) { # map 16
-            $num = CORE::unpack 'n', substr( $value, $p, 2 );
-            $p += 2;
-        }
-        elsif ( $byte == 0xdf ) { # map 32
-            $num = CORE::unpack 'N', substr( $value, $p, 4 );
-            $p += 4;
-        }
-        else { # fix map
-            $num = $byte & ~0x80;
-        }
+        my $size = _fetch_size(\$value, $byte, 0xde, 0xdf, 0x80);
         my %map;
-        while ( --$num >= 0 ) {
+        while(--$size >= 0) {
             no warnings; # for undef key case
             my $key = _unpack( $value );
             my $val = _unpack( $value );
@@ -372,41 +361,53 @@ sub _unpack {
     }
 
     elsif ( $byte == 0xcc ) { # uint8
-        return CORE::unpack( 'C', substr( $value, $p++, 1 ) );
+        $p++;
+        $p <= length($value) or _insufficient('uint8');
+        return CORE::unpack( 'C', substr( $value, $p - 1, 1 ) );
     }
     elsif ( $byte == 0xcd ) { # uint16
         $p += 2;
+        $p <= length($value) or _insufficient('uint16');
         return unpack_uint16( $value, $p - 2 );
     }
     elsif ( $byte == 0xce ) { # unit32
         $p += 4;
+        $p <= length($value) or _insufficient('uint32');
         return unpack_uint32( $value, $p - 4 );
     }
     elsif ( $byte == 0xcf ) { # unit64
         $p += 8;
+        $p <= length($value) or _insufficient('uint64');
         return unpack_uint64( $value, $p - 8 );
     }
     elsif ( $byte == 0xd3 ) { # int64
         $p += 8;
+        $p <= length($value) or _insufficient('int64');
         return unpack_int64( $value, $p - 8 );
     }
     elsif ( $byte == 0xd2 ) { # int32
         $p += 4;
+        $p <= length($value) or _insufficient('int32');
         return unpack_int32( $value, $p - 4 );
     }
     elsif ( $byte == 0xd1 ) { # int16
         $p += 2;
+        $p <= length($value) or _insufficient('int16');
         return unpack_int16( $value, $p - 2 );
     }
     elsif ( $byte == 0xd0 ) { # int8
-        return CORE::unpack 'c',  substr( $value, $p++, 1 ); # c / C
+        $p++;
+        $p <= length($value) or _insufficient('int8');
+        return CORE::unpack 'c',  substr( $value, $p - 1, 1 );
     }
     elsif ( $byte == 0xcb ) { # double
         $p += 8;
+        $p <= length($value) or _insufficient('double');
         return unpack_double( $value, $p - 8 );
     }
     elsif ( $byte == 0xca ) { # float
         $p += 4;
+        $p <= length($value) or _insufficient('float');
         return unpack_float( $value, $p - 4 );
     }
     else {
@@ -423,7 +424,11 @@ package
     Data::MessagePack::PP::Unpacker;
 
 sub new {
-    bless { pos => 0, utf8 => 0 }, shift;
+    bless {
+        pos  => 0,
+        utf8 => 0,
+        buff => '',
+    }, shift;
 }
 
 sub utf8 {
@@ -447,13 +452,16 @@ sub execute {
     my $value = substr( $data, $offset, $limit ? $limit : length $data );
     my $len   = length $value;
 
-    $self->{data} .= $value;
+    $self->{buff} .= $value;
     local $self->{stack} = [];
 
+    #$p = 0;
+    #eval { Data::MessagePack::PP::_unpack($self->{buff}) };
+    #warn "[$p][$@]";
     $p = 0;
 
-    while ( length($self->{data}) > $p ) {
-        _count( $self, $self->{data} ) or last;
+    while ( length($self->{buff}) > $p ) {
+        _count( $self, $self->{buff} ) or last;
 
         while ( @{ $self->{stack} } > 0 && --$self->{stack}->[-1] == 0) {
             pop @{ $self->{stack} };
@@ -472,6 +480,7 @@ sub execute {
 
 sub _count {
     my ( $self, $value ) = @_;
+    no warnings; # FIXME
     my $byte = unpack( 'C', substr( $value, $p++, 1 ) ); # get header
 
     Carp::croak('invalid data') unless defined $byte;
@@ -568,7 +577,7 @@ sub _count {
 sub data {
     my($self) = @_;
     local $Data::MessagePack::PP::_utf8 = $self->{utf8};
-    return Data::MessagePack->unpack( substr($self->{ data }, 0, $self->{pos}) );
+    return Data::MessagePack->unpack( substr($self->{buff}, 0, $self->{pos}) );
 }
 
 
@@ -578,9 +587,9 @@ sub is_finished {
 }
 
 sub reset :method {
-    $_[0]->{ data }   = undef;
-    $_[0]->{ pos }    = 0;
-    $_[0]->{ is_finished } = 0;
+    $_[0]->{buff}        = '';
+    $_[0]->{pos}         = 0;
+    $_[0]->{is_finished} = 0;
 }
 
 1;

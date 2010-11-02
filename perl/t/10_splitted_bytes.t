@@ -20,8 +20,6 @@ my $input = [
 my $packed = Data::MessagePack->pack($input);
 
 foreach my $size(1 .. 16) {
-    local $TODO = "Splitted byte streaming is not yet supported (bufer size: $size)";
-
     my $up = Data::MessagePack::Unpacker->new();
 
     open my $stream, '<:bytes :scalar', \$packed;
@@ -29,7 +27,7 @@ foreach my $size(1 .. 16) {
     my $buff;
     my $done = 0;
     while( read($stream, $buff, $size) ) {
-        #note "buff: ", join " ", map { unpack 'H2', $_ } split //, $buff;
+        note "buff: ", join " ", map { unpack 'H2', $_ } split //, $buff;
 
         $done = $up->execute($buff);
     }
