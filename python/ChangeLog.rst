@@ -1,6 +1,6 @@
-0.2.0
+0.1.7
 ======
-:release date: NOT RELEASED YET
+:release date: 2010-11-02
 
 New feature
 ------------
