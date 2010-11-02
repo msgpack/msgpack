@@ -3,6 +3,7 @@
 version = (0, 1, 6, 'final')
 
 import os
+import sys
 from glob import glob
 from distutils.core import setup, Extension
 from distutils.command.sdist import sdist
@@ -42,10 +43,13 @@ else:
 
     Sdist = sdist
 
+libraries = ['ws2_32'] if sys.platform == 'win32' else []
+
 msgpack_mod = Extension('msgpack._msgpack',
                         sources=sources,
+                        libraries=libraries,
                         )
-del sources
+del sources, libraries
 
 
 desc = 'MessagePack (de)serializer.'
@@ -69,6 +73,7 @@ setup(name='msgpack-python',
       url='http://msgpack.sourceforge.net/',
       download_url='http://pypi.python.org/pypi/msgpack/',
       classifiers=[
+          'Programming Language :: Python :: 2',
           'Programming Language :: Python :: 3',
           'Development Status :: 4 - Beta',
           'Intended Audience :: Developers',
