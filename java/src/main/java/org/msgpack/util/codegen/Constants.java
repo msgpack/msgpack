@@ -78,7 +78,7 @@ public interface Constants {
 
 	String STATEMENT_TMPL_UNPACKERMETHODBODY_01 = "%s _$$_t = new %s(); ";
 
-	String STATEMENT_TMPL_UNPACKERMETHODBODY_02 = "int _$$_L = $1.unpackArray(); ";
+	String STATEMENT_TMPL_UNPACKERMETHODBODY_02 = "int _$$_len = $1.unpackArray(); ";
 
 	String STATEMENT_TMPL_UNPACKERMETHODBODY_03 = "_$$_t.%s = %s(%s)_$$_templates[%d].unpack($1)%s; ";
 
@@ -88,15 +88,19 @@ public interface Constants {
 
 	String STATEMENT_TMPL_UNPACKERMETHODBODY_06 = "return %s.class.getEnumConstants()[i]; ";
 
-	String STATEMENT_TMPL_UNPACKERMETHODBODY_07 = "if(_$$_L <= %d) { throw new org.msgpack.MessageTypeException(); } ";
+	String STATEMENT_TMPL_UNPACKERMETHODBODY_07 = "if (_$$_len <= %d) { throw new org.msgpack.MessageTypeException(\"optional error\"); } ";
 
-	String STATEMENT_TMPL_UNPACKERMETHODBODY_08 = "if(_$$_L > %d && !$1.tryUnpackNull()) ";
+	String STATEMENT_TMPL_UNPACKERMETHODBODY_08 = "if (_$$_len > %d && !$1.tryUnpackNull()) { %s } ";
 
-	String STATEMENT_TMPL_UNPACKERMETHODBODY_09 = "for(int _$$_n = %d; _$$_n < _$$_L; _$$_n++) { $1.unpackObject(); } ";
+	String STATEMENT_TMPL_UNPACKERMETHODBODY_09 = "for (int _$$_i = %d; _$$_i < _$$_len; _$$_i++) { $1.unpackObject(); } ";
 
 	String STATEMENT_TMPL_CONVERTMETHODBODY_01 = "%s _$$_ary = $1.asArray(); ";
 
 	String STATEMENT_TMPL_CONVERTMETHODBODY_02 = "_$$_t.%s = %s(%s)_$$_templates[%d].convert(_$$_ary[%d])%s; ";
 
 	String STATEMENT_TMPL_CONVERTMETHODBODY_03 = "int i = _$$_ary[0].asInt(); ";
+
+	String STATEMENT_TMPL_CONVERTMETHODBODY_04 = "int _$$_len = _$$_ary.length; ";
+
+	String STATEMENT_TMPL_CONVERTMETHODBODY_05 = "if (_$$_len > %d && !_$$_ary[%d].isNil()) { %s }";
 }

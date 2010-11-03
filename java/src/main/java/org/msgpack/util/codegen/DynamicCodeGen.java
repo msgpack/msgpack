@@ -397,38 +397,23 @@ class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 		// int _$$_L = $1.unpackArray();
 		Object[] args1 = new Object[0];
 		sb.append(String.format(STATEMENT_TMPL_UNPACKERMETHODBODY_02, args1));
-		insertCodeOfUnpackMethodCalls(sb, fields);
+		insertCodeOfUnpackMethodCalls(sb, fields, getTemplates(type));
 		// return _$$_t;
 		Object[] args2 = new Object[0];
 		sb.append(String.format(STATEMENT_TMPL_UNPACKERMETHODBODY_04, args2));
 		sb.append(CHAR_NAME_RIGHT_CURLY_BRACKET);
 	}
 
-	private void insertCodeOfUnpackMethodCalls(StringBuilder sb, Field[] fields) {
+	private void insertCodeOfUnpackMethodCalls(StringBuilder sb, Field[] fields,
+			Template[] tmpls) {
 		for (int i = 0; i < fields.length; ++i) {
-			insertCodeOfUnpackMethodCall(sb, fields[i], i);
+			insertCodeOfUnpackMethodCall(sb, fields[i], i, tmpls[i]);
 		}
 		insertCodeOfUnpackTrails(sb, fields.length);
 	}
 
 	private void insertCodeOfUnpackMethodCall(StringBuilder sb, Field field,
-			int i) {
-		boolean isOptional = isAnnotated(field, MessagePackOptional.class);
-
-		if(isOptional) {
-			// if(_$$_L > i && !$1.tryUnpackNull()) {
-			Object[] args0 = new Object[] { i };
-			sb.append(String.format(STATEMENT_TMPL_UNPACKERMETHODBODY_08, args0));
-			sb.append(CHAR_NAME_LEFT_CURLY_BRACKET);
-
-		} else {
-			// if(_$$_L <= i) {
-			// 	throw new MessageTypeException();
-			// }
-			Object[] args0 = new Object[] { i };
-			sb.append(String.format(STATEMENT_TMPL_UNPACKERMETHODBODY_07, args0));
-		}
-
+			int i, Template tmpl) {
 		// target.fi = ((Integer)_$$_tmpls[i].unpack(_$$_pk)).intValue();
 		Class<?> returnType = field.getType();
 		boolean isPrim = returnType.isPrimitive();
@@ -440,19 +425,22 @@ class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 				i,
 				isPrim ? ")." + getPrimTypeValueMethodName(returnType) + "()"
 						: "" };
-		sb.append(String.format(STATEMENT_TMPL_UNPACKERMETHODBODY_03, args));
-
-		if(isOptional) {
-			// }
-			sb.append(CHAR_NAME_RIGHT_CURLY_BRACKET);
+		String callExpr = String.format(STATEMENT_TMPL_UNPACKERMETHODBODY_03, args);
+		if (tmpl instanceof OptionalTemplate) {
+			Object[] args0 = new Object[] { i, callExpr };
+			// if (_$$_len > i && !unpacker.tryUnpackNull()) { ... }
+			sb.append(String.format(STATEMENT_TMPL_UNPACKERMETHODBODY_08, args0));
+		} else {
+			// if (_$$_len <= i) { throw new MessageTypeException(); }
+			Object[] args0 = new Object[] { i };
+			sb.append(String.format(STATEMENT_TMPL_UNPACKERMETHODBODY_07, args0));
+			sb.append(callExpr);
 		}
 	}
 
-	private void insertCodeOfUnpackTrails(StringBuilder sb, int length) {
-		// for(int _$$_n = length; _$$_n < _$$_L; _$$_n++) {
-		//     $1.unpackObject();
-		// }
-		Object[] args0 = new Object[] { length };
+	private void insertCodeOfUnpackTrails(StringBuilder sb, int len) {
+		// for (int _$$_i = len; _$$_i < _$$_len; _$$_i++) { $1.unpackObject(); }
+		Object[] args0 = new Object[] { len };
 		sb.append(String.format(STATEMENT_TMPL_UNPACKERMETHODBODY_09, args0));
 	}
 
@@ -519,20 +507,25 @@ class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 		// MessagePackObject[] _$$_ary = $1.asArray();
 		Object[] args1 = new Object[] { classToString(MessagePackObject[].class) };
 		sb.append(String.format(STATEMENT_TMPL_CONVERTMETHODBODY_01, args1));
-		insertCodeOfConvertMethodCalls(sb, fields);
+		sb.append(STATEMENT_TMPL_CONVERTMETHODBODY_04);
+		Template[] tmpls = getTemplates(type);
+		insertCodeOfConvertMethodCalls(sb, fields, tmpls);
 		// return _$$_t;
 		Object[] args2 = new Object[0];
 		sb.append(String.format(STATEMENT_TMPL_UNPACKERMETHODBODY_04, args2));
 		sb.append(CHAR_NAME_RIGHT_CURLY_BRACKET);
 	}
 
-	private void insertCodeOfConvertMethodCalls(StringBuilder sb, Field[] fields) {
+	private void insertCodeOfConvertMethodCalls(StringBuilder sb, Field[] fields,
+			Template[] tmpls) {
 		for (int i = 0; i < fields.length; ++i) {
-			insertCodeOfConvMethodCall(sb, fields[i], i);
+			insertCodeOfConvMethodCall(sb, fields[i], i, tmpls[i]);
 		}
+		insertCodeOfConvertTrails(sb, fields.length);
 	}
 
-	private void insertCodeOfConvMethodCall(StringBuilder sb, Field field, int i) {
+	private void insertCodeOfConvMethodCall(StringBuilder sb, Field field,
+			int i, Template tmpl) {
 		// target.fi = ((Object)_$$_tmpls[i].convert(_$$_ary[i])).intValue();
 		Class<?> returnType = field.getType();
 		boolean isPrim = returnType.isPrimitive();
@@ -545,7 +538,21 @@ class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 				i,
 				isPrim ? ")." + getPrimTypeValueMethodName(returnType) + "()"
 						: "" };
-		sb.append(String.format(STATEMENT_TMPL_CONVERTMETHODBODY_02, args));
+		String callExpr = String.format(STATEMENT_TMPL_CONVERTMETHODBODY_02, args);
+		if (tmpl instanceof OptionalTemplate) {
+			Object[] args0 = new Object[] { i, i, callExpr };
+			// if (_$$_len > i && !_$$_ary[i].isNull()) { ... }
+			sb.append(String.format(STATEMENT_TMPL_CONVERTMETHODBODY_05, args0));
+		} else {
+			// if (_$$_len <= i) { throw new MessageTypeException(); }
+			Object[] args0 = new Object[] { i };
+			sb.append(String.format(STATEMENT_TMPL_UNPACKERMETHODBODY_07, args0));
+			sb.append(callExpr);
+		}
+	}
+
+	private void insertCodeOfConvertTrails(StringBuilder sb, int len) {
+		// TODO
 	}
 
 	private void insertOrdinalEnumConvertMethodBody(StringBuilder sb,
