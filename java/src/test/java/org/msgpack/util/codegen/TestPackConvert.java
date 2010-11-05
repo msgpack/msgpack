@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -210,6 +211,7 @@ public class TestPackConvert extends TestCase {
 		src.f7 = new BigInteger("7");
 		src.f8 = "8";
 		src.f9 = new byte[] { 0x01, 0x02 };
+		src.f10 = ByteBuffer.wrap("muga".getBytes());
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		MessagePacker packer = DynamicPacker
 				.create(GeneralReferenceTypeFieldsClass.class);
@@ -234,6 +236,7 @@ public class TestPackConvert extends TestCase {
 		assertEquals(src.f8, dst.f8);
 		assertEquals(src.f9[0], dst.f9[0]);
 		assertEquals(src.f9[1], dst.f9[1]);
+		assertEquals(src.f10, dst.f10);
 		assertFalse(it.hasNext());
 	}
 
@@ -268,6 +271,7 @@ public class TestPackConvert extends TestCase {
 		public BigInteger f7;
 		public String f8;
 		public byte[] f9;
+		public ByteBuffer f10;
 
 		public GeneralReferenceTypeFieldsClass() {
 		}
@@ -287,6 +291,7 @@ public class TestPackConvert extends TestCase {
 		src.f7 = new BigInteger("7");
 		src.f8 = "8";
 		src.f9 = new byte[] { 0x01, 0x02 };
+		src.f10 = ByteBuffer.wrap("muga".getBytes());
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		MessagePacker packer = DynamicPacker
 				.create(OptionalGeneralReferenceTypeFieldsClass.class);
@@ -311,6 +316,7 @@ public class TestPackConvert extends TestCase {
 		assertEquals(src.f8, dst.f8);
 		assertEquals(src.f9[0], dst.f9[0]);
 		assertEquals(src.f9[1], dst.f9[1]);
+		assertEquals(src.f10, dst.f10);
 		assertFalse(it.hasNext());
 	}
 
@@ -328,6 +334,7 @@ public class TestPackConvert extends TestCase {
 		src.f7 = null;
 		src.f8 = null;
 		src.f9 = null;
+		src.f10 = null;
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		MessagePacker packer = DynamicPacker
 				.create(OptionalGeneralReferenceTypeFieldsClass.class);
@@ -351,6 +358,7 @@ public class TestPackConvert extends TestCase {
 		assertEquals(src.f7, dst.f7);
 		assertEquals(src.f8, dst.f8);
 		assertEquals(src.f9, dst.f9);
+		assertEquals(src.f10, dst.f10);
 		assertFalse(it.hasNext());
 	}
 
@@ -396,6 +404,8 @@ public class TestPackConvert extends TestCase {
 		public String f8;
 		@MessagePackOptional
 		public byte[] f9;
+		@MessagePackOptional
+		public ByteBuffer f10;
 
 		public OptionalGeneralReferenceTypeFieldsClass() {
 		}
@@ -420,6 +430,10 @@ public class TestPackConvert extends TestCase {
 		slnt.f0 = new byte[] { 0x01, 0x02 };
 		slnt.f1 = "muga";
 		src.f4.add(slnt);
+		src.f5 = new ArrayList<ByteBuffer>();
+		src.f5.add(ByteBuffer.wrap("e1".getBytes()));
+		src.f5.add(ByteBuffer.wrap("e2".getBytes()));
+		src.f5.add(ByteBuffer.wrap("e3".getBytes()));
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		MessagePacker packer = DynamicPacker.create(SampleListTypes.class);
 		packer.pack(new Packer(out), src);
@@ -456,6 +470,12 @@ public class TestPackConvert extends TestCase {
 			assertEquals(s.f0[1], d.f0[1]);
 			assertEquals(s.f1, d.f1);
 		}
+		assertEquals(src.f5.size(), dst.f5.size());
+		for (int i = 0; i < src.f4.size(); ++i) {
+			ByteBuffer s = src.f5.get(i);
+			ByteBuffer d = dst.f5.get(i);
+			assertEquals(s, d);
+		}
 		assertFalse(it.hasNext());
 	}
 
@@ -484,6 +504,7 @@ public class TestPackConvert extends TestCase {
 		public List<String> f2;
 		public List<List<String>> f3;
 		public List<SampleListNestedType> f4;
+		public List<ByteBuffer> f5;
 
 		public SampleListTypes() {
 		}
@@ -517,6 +538,10 @@ public class TestPackConvert extends TestCase {
 		slnt.f0 = new byte[] { 0x01, 0x02 };
 		slnt.f1 = "muga";
 		src.f4.add(slnt);
+		src.f5 = new ArrayList<ByteBuffer>();
+		src.f5.add(ByteBuffer.wrap("e1".getBytes()));
+		src.f5.add(ByteBuffer.wrap("e2".getBytes()));
+		src.f5.add(ByteBuffer.wrap("e3".getBytes()));
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		MessagePacker packer = DynamicPacker
 				.create(SampleOptionalListTypes.class);
@@ -555,6 +580,12 @@ public class TestPackConvert extends TestCase {
 			assertEquals(s.f0[1], d.f0[1]);
 			assertEquals(s.f1, d.f1);
 		}
+		assertEquals(src.f5.size(), dst.f5.size());
+		for (int i = 0; i < src.f5.size(); ++i) {
+			ByteBuffer s = src.f5.get(i);
+			ByteBuffer d = dst.f5.get(i);
+			assertEquals(s, d);
+		}
 		assertFalse(it.hasNext());
 	}
 
@@ -566,6 +597,7 @@ public class TestPackConvert extends TestCase {
 		src.f2 = new ArrayList<String>();
 		src.f3 = null;
 		src.f4 = new ArrayList<SampleOptionalListNestedType>();
+		src.f5 = new ArrayList<ByteBuffer>();
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		MessagePacker packer = DynamicPacker
 				.create(SampleOptionalListTypes.class);
@@ -583,6 +615,7 @@ public class TestPackConvert extends TestCase {
 		assertEquals(src.f2.size(), dst.f2.size());
 		assertEquals(src.f3, dst.f3);
 		assertEquals(src.f4.size(), dst.f4.size());
+		assertEquals(src.f5.size(), dst.f5.size());
 		assertFalse(it.hasNext());
 	}
 
@@ -617,6 +650,8 @@ public class TestPackConvert extends TestCase {
 		public List<List<String>> f3;
 		@MessagePackOptional
 		public List<SampleOptionalListNestedType> f4;
+		@MessagePackOptional
+		public List<ByteBuffer> f5;
 
 		public SampleOptionalListTypes() {
 		}

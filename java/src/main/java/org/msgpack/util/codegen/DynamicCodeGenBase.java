@@ -24,6 +24,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -52,6 +53,7 @@ import org.msgpack.Unpacker;
 import org.msgpack.annotation.MessagePackDelegate;
 import org.msgpack.annotation.MessagePackMessage;
 import org.msgpack.annotation.MessagePackOrdinalEnum;
+import org.msgpack.template.ByteBufferTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -317,6 +319,8 @@ public class DynamicCodeGenBase implements Constants {
 				return Templates.tString();
 			} else if (c.equals(BigInteger.class)) {
 				return Templates.tBigInteger();
+			} else if (c.equals(ByteBuffer.class)) {// FIXME
+				return ByteBufferTemplate.getInstance();
 			} else if (CustomConverter.isRegistered(c)) {// FIXME
 				return (Template) CustomConverter.get(c);
 			} else if (CustomMessage.isAnnotated(c, MessagePackMessage.class)) {

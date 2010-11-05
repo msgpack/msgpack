@@ -331,6 +331,23 @@ public class Packer {
 		return packRawBody(b, off, length);
 	}
 
+	public Packer packByteBuffer(ByteBuffer bb) throws IOException {
+		byte[] bytes = byteBufferToByteArray(bb);
+		return packByteArray(bytes);
+	}
+
+	private static byte[] byteBufferToByteArray(ByteBuffer b) {
+		if (b.hasArray() && b.position() == 0 && b.arrayOffset() == 0
+				&& b.remaining() == b.capacity()) {
+			return b.array();
+		} else {
+			int len = b.remaining();
+			byte[] ret = new byte[len];
+			System.arraycopy(b.array(), b.arrayOffset() + b.position(), ret, 0, len);
+			return ret;
+		}
+	}
+
 	public Packer packString(String s) throws IOException {
 		byte[] b = ((String)s).getBytes("UTF-8");
 		packRaw(b.length);
@@ -402,6 +419,11 @@ public class Packer {
 	public Packer pack(BigInteger o) throws IOException {
 		if(o == null) { return packNil(); }
 		return packBigInteger(o);
+	}
+
+	public Packer pack(ByteBuffer o) throws IOException {
+		if (o == null) { return packNil(); }
+		return packByteBuffer(o);
 	}
 
 	public Packer pack(Float o) throws IOException {
