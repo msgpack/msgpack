@@ -3,7 +3,6 @@ package org.msgpack.template;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -271,76 +270,6 @@ public class TestPackUnpack extends TestCase {
 		unpacker.wrap(bytes);
 		tmpl = new OptionalTemplate(BooleanTemplate.getInstance());
 		dst = (Boolean) tmpl.unpack(unpacker);
-		assertEquals(src, dst);
-	}
-
-	@Test
-	public void testByteBuffer() throws Exception {
-		_testByteBuffer(ByteBuffer.wrap("".getBytes()));
-		_testByteBuffer(ByteBuffer.wrap("a".getBytes()));
-		_testByteBuffer(ByteBuffer.wrap("ab".getBytes()));
-		_testByteBuffer(ByteBuffer.wrap("abc".getBytes()));
-
-		// small size string
-		for (int i = 0; i < 100; i++) {
-			StringBuilder sb = new StringBuilder();
-			int len = (int) Math.random() % 31 + 1;
-			for (int j = 0; j < len; j++) {
-				sb.append('a' + ((int) Math.random()) & 26);
-			}
-			_testByteBuffer(ByteBuffer.wrap(sb.toString().getBytes()));
-		}
-
-		// medium size string
-		for (int i = 0; i < 100; i++) {
-			StringBuilder sb = new StringBuilder();
-			int len = (int) Math.random() % 100 + (1 << 15);
-			for (int j = 0; j < len; j++) {
-				sb.append('a' + ((int) Math.random()) & 26);
-			}
-			_testByteBuffer(ByteBuffer.wrap(sb.toString().getBytes()));
-		}
-
-		// large size string
-		for (int i = 0; i < 10; i++) {
-			StringBuilder sb = new StringBuilder();
-			int len = (int) Math.random() % 100 + (1 << 31);
-			for (int j = 0; j < len; j++) {
-				sb.append('a' + ((int) Math.random()) & 26);
-			}
-			_testByteBuffer(ByteBuffer.wrap(sb.toString().getBytes()));
-		}
-	}
-
-	static void _testByteBuffer(ByteBuffer src) throws Exception {
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		new Packer(out).pack(src);
-		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = ByteBufferTemplate.getInstance();
-		ByteBuffer dst = (ByteBuffer) tmpl.unpack(new Unpacker(in));
-		assertEquals(src, dst);
-	}
-
-	@Test
-	public void testNullByteBuffer() throws Exception {
-		ByteBuffer src = null;
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		new Packer(out).pack(src);
-		byte[] bytes = out.toByteArray();
-		Template tmpl = null;
-		Unpacker unpacker = new Unpacker();
-		ByteBuffer dst = null;
-		try {
-			tmpl = ByteBufferTemplate.getInstance();
-			unpacker.wrap(bytes);
-			dst = (ByteBuffer) tmpl.unpack(unpacker);
-			fail();
-		} catch (Exception e) {
-			assertTrue(e instanceof MessageTypeException);
-		}
-		unpacker.wrap(bytes);
-		tmpl = new OptionalTemplate(ByteBufferTemplate.getInstance());
-		dst = (ByteBuffer) tmpl.unpack(unpacker);
 		assertEquals(src, dst);
 	}
 

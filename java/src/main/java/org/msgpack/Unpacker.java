@@ -547,11 +547,6 @@ public class Unpacker implements Iterable<MessagePackObject> {
 		return impl.unpackByteArray();
 	}
 
-	public ByteBuffer unpackByteBuffer() throws IOException {
-		byte[] bytes = impl.unpackByteArray();
-		return ByteBuffer.wrap(bytes);
-	}
-
 	/**
 	 * Gets one {@code String} value from the buffer.
 	 * This method calls {@link fill()} method if needed.

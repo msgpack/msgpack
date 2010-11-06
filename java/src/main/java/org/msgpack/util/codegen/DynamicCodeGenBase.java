@@ -53,7 +53,6 @@ import org.msgpack.Unpacker;
 import org.msgpack.annotation.MessagePackDelegate;
 import org.msgpack.annotation.MessagePackMessage;
 import org.msgpack.annotation.MessagePackOrdinalEnum;
-import org.msgpack.template.ByteBufferTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
