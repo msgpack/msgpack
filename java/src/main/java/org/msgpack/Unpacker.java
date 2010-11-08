@@ -23,6 +23,8 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.nio.ByteBuffer;
 import java.math.BigInteger;
+import org.msgpack.template.ClassTemplate;
+import org.msgpack.template.NullableTemplate;
 
 /**
  * Unpacker enables you to deserialize objects from stream.
@@ -581,8 +583,8 @@ public class Unpacker implements Iterable<MessagePackObject> {
 	}
 
 	final public <T> T unpack(Class<T> klass) throws IOException, MessageTypeException {
-		// FIXME optional?
-		return (T)unpack(Templates.tOptional(Templates.tClass(klass)));
+		// FIXME nullable?
+		return (T)unpack(new NullableTemplate(new ClassTemplate(klass)));
 	}
 }
 
