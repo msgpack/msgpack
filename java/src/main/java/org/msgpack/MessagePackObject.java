@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.Map;
 import java.math.BigInteger;
+import org.msgpack.template.ClassTemplate;
+import org.msgpack.template.NullableTemplate;
 
 public abstract class MessagePackObject implements Cloneable, MessagePackable {
 	static {
@@ -139,6 +141,11 @@ public abstract class MessagePackObject implements Cloneable, MessagePackable {
 
 	public Object convert(Template tmpl) throws MessageTypeException {
 		return tmpl.convert(this);
+	}
+
+	public <T> T convert(Class<T> klass) throws MessageTypeException {
+		// FIXME nullable?
+		return (T)convert(new NullableTemplate(new ClassTemplate(klass)));
 	}
 }
 
