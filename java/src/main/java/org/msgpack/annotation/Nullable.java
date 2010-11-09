@@ -24,5 +24,5 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface MessagePackNullable {
+public @interface Nullable {
 }

@@ -22,6 +22,7 @@ import java.io.InputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import org.msgpack.util.codegen.DynamicTemplate;
+import org.msgpack.util.codegen.DynamicOrdinalEnumTemplate;
 import org.msgpack.util.codegen.FieldList;
 
 public class MessagePack {
@@ -146,17 +147,18 @@ public class MessagePack {
 	}
 
 	public static void register(Class<?> target) {  // auto-detect
-		// FIXME
-		//Template tmpl;
-		//if(List.isAssignableFrom(target)) {
+		Template tmpl;
+		if(target.isEnum()) {
+			tmpl = DynamicOrdinalEnumTemplate.create(target);
+		//} else if(List.isAssignableFrom(target)) {
 		//} else if(Set.isAssignableFrom(target)) {
 		//} else if(Map.isAssignableFrom(target)) {
 		//} else if(Collection.isAssignableFrom(target)) {
 		//} else if(BigInteger.isAssignableFrom(target)) {
-		//} else {
-		//}
+		} else {
+			tmpl = DynamicTemplate.create(target);
+		}
 
-		Template tmpl = DynamicTemplate.create(target);
 		CustomPacker.register(target, tmpl);
 		CustomConverter.register(target, tmpl);
 		CustomUnpacker.register(target, tmpl);

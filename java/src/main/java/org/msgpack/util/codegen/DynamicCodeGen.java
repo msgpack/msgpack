@@ -39,8 +39,8 @@ import org.msgpack.MessageTypeException;
 import org.msgpack.Packer;
 import org.msgpack.Template;
 import org.msgpack.Unpacker;
-import org.msgpack.annotation.MessagePackOptional;
-import org.msgpack.annotation.MessagePackNullable;
+import org.msgpack.annotation.Optional;
+import org.msgpack.annotation.Nullable;
 import org.msgpack.template.OptionalTemplate;
 import org.msgpack.template.NullableTemplate;
 import org.slf4j.Logger;
@@ -290,11 +290,11 @@ class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 		} else {
 			tmpl = createTemplate(c);
 		}
-		if (isAnnotated(field, MessagePackOptional.class)) {
+		if (isAnnotated(field, Optional.class)) {
 			// @Optional types
 			return new OptionalTemplate(tmpl);
 		}
-		if (!c.isPrimitive() && isAnnotated(field, MessagePackNullable.class)) {
+		if (!c.isPrimitive() && isAnnotated(field, Nullable.class)) {
 			// @Nullable reference types
 			return new NullableTemplate(tmpl);
 		}

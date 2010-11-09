@@ -20,7 +20,7 @@ public class TestAnnotations extends TestCase {
 		public String name;
 
 		// required and nullable field.
-		@MessagePackNullable
+		@Nullable
 		public String nickname;
 	}
 
@@ -29,11 +29,11 @@ public class TestAnnotations extends TestCase {
 	public static class MyClassVersion2 {
 		public String name;
 
-		@MessagePackNullable
+		@Nullable
 		public String nickname;
 
 		// adds an optional field on version 2.
-		@MessagePackOptional
+		@Optional
 		public int age = -1;
 	}
 
@@ -42,7 +42,7 @@ public class TestAnnotations extends TestCase {
 	public static class MyClassVersion3 {
 		public String name;
 
-		@MessagePackNullable
+		@Nullable
 		public String nickname;
 
 		// adds required fields on version 3, then
@@ -50,7 +50,7 @@ public class TestAnnotations extends TestCase {
 		public int age;
 
 		// optional field is nullable.
-		@MessagePackOptional
+		@Optional
 		public String school;
 	}
 

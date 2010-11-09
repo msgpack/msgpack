@@ -27,8 +27,8 @@ import org.msgpack.Packer;
 import org.msgpack.Template;
 import org.msgpack.Unpacker;
 import org.msgpack.annotation.MessagePackMessage;
-import org.msgpack.annotation.MessagePackOptional;
 import org.msgpack.annotation.MessagePackOrdinalEnum;
+import org.msgpack.annotation.Optional;
 import org.msgpack.packer.OptionalPacker;
 import org.msgpack.template.NullableTemplate;
 
@@ -179,19 +179,19 @@ public class TestPackConvert extends TestCase {
 	}
 
 	public static class OptionalPrimitiveTypeFieldsClass {
-		@MessagePackOptional
+		@Optional
 		public byte f0;
-		@MessagePackOptional
+		@Optional
 		public short f1;
-		@MessagePackOptional
+		@Optional
 		public int f2;
-		@MessagePackOptional
+		@Optional
 		public long f3;
-		@MessagePackOptional
+		@Optional
 		public float f4;
-		@MessagePackOptional
+		@Optional
 		public double f5;
-		@MessagePackOptional
+		@Optional
 		public boolean f6;
 
 		public OptionalPrimitiveTypeFieldsClass() {
@@ -384,27 +384,27 @@ public class TestPackConvert extends TestCase {
 	}
 
 	public static class OptionalGeneralReferenceTypeFieldsClass {
-		@MessagePackOptional
+		@Optional
 		public Byte f0;
-		@MessagePackOptional
+		@Optional
 		public Short f1;
-		@MessagePackOptional
+		@Optional
 		public Integer f2;
-		@MessagePackOptional
+		@Optional
 		public Long f3;
-		@MessagePackOptional
+		@Optional
 		public Float f4;
-		@MessagePackOptional
+		@Optional
 		public Double f5;
-		@MessagePackOptional
+		@Optional
 		public Boolean f6;
-		@MessagePackOptional
+		@Optional
 		public BigInteger f7;
-		@MessagePackOptional
+		@Optional
 		public String f8;
-		@MessagePackOptional
+		@Optional
 		public byte[] f9;
-		@MessagePackOptional
+		@Optional
 		public ByteBuffer f10;
 
 		public OptionalGeneralReferenceTypeFieldsClass() {
@@ -640,17 +640,17 @@ public class TestPackConvert extends TestCase {
 	}
 
 	public static class SampleOptionalListTypes {
-		@MessagePackOptional
+		@Optional
 		public List<Integer> f0;
-		@MessagePackOptional
+		@Optional
 		public List<Integer> f1;
-		@MessagePackOptional
+		@Optional
 		public List<String> f2;
-		@MessagePackOptional
+		@Optional
 		public List<List<String>> f3;
-		@MessagePackOptional
+		@Optional
 		public List<SampleOptionalListNestedType> f4;
-		@MessagePackOptional
+		@Optional
 		public List<ByteBuffer> f5;
 
 		public SampleOptionalListTypes() {
@@ -659,9 +659,9 @@ public class TestPackConvert extends TestCase {
 
 	@MessagePackMessage
 	public static class SampleOptionalListNestedType {
-		@MessagePackOptional
+		@Optional
 		public byte[] f0;
-		@MessagePackOptional
+		@Optional
 		public String f1;
 
 		public SampleOptionalListNestedType() {
@@ -828,11 +828,11 @@ public class TestPackConvert extends TestCase {
 	}
 
 	public static class SampleOptionalMapTypes {
-		@MessagePackOptional
+		@Optional
 		public Map<Integer, Integer> f0;
-		@MessagePackOptional
+		@Optional
 		public Map<Integer, Integer> f1;
-		@MessagePackOptional
+		@Optional
 		public Map<String, Integer> f2;
 
 		public SampleOptionalMapTypes() {
@@ -1176,9 +1176,9 @@ public class TestPackConvert extends TestCase {
 	}
 
 	public static class SampleOptionalEnumFieldClass {
-		@MessagePackOptional
+		@Optional
 		public int f0;
-		@MessagePackOptional
+		@Optional
 		public SampleOptionalEnum f1;
 
 		public SampleOptionalEnumFieldClass() {
@@ -1255,9 +1255,9 @@ public class TestPackConvert extends TestCase {
 	}
 
 	public static class OptionalFieldModifiersClass {
-		@MessagePackOptional
+		@Optional
 		public int f0;
-		@MessagePackOptional
+		@Optional
 		public final int f1 = 1;
 		private int f2;
 		protected int f3;
@@ -1396,9 +1396,9 @@ public class TestPackConvert extends TestCase {
 	}
 
 	public static class OptionalBaseClass {
-		@MessagePackOptional
+		@Optional
 		public int f0;
-		@MessagePackOptional
+		@Optional
 		public OptionalNestedClass f1;
 
 		public OptionalBaseClass() {
@@ -1406,7 +1406,7 @@ public class TestPackConvert extends TestCase {
 	}
 
 	public static class OptionalNestedClass {
-		@MessagePackOptional
+		@Optional
 		public int f2;
 
 		public OptionalNestedClass() {
@@ -1530,9 +1530,9 @@ public class TestPackConvert extends TestCase {
 	}
 
 	public static class OptionalBaseClass2 {
-		@MessagePackOptional
+		@Optional
 		public int f0;
-		@MessagePackOptional
+		@Optional
 		public OptionalMessagePackMessageClass2 f1;
 
 		public OptionalBaseClass2() {
@@ -1541,7 +1541,7 @@ public class TestPackConvert extends TestCase {
 
 	@MessagePackMessage
 	public static class OptionalMessagePackMessageClass2 {
-		@MessagePackOptional
+		@Optional
 		public int f2;
 
 		public OptionalMessagePackMessageClass2() {
@@ -1675,7 +1675,7 @@ public class TestPackConvert extends TestCase {
 	}
 
 	public static class SampleOptionalSubClass extends SampleOptionalSuperClass {
-		@MessagePackOptional
+		@Optional
 		public int f0;
 		public final int f1 = 1;
 		private int f2;
@@ -1687,7 +1687,7 @@ public class TestPackConvert extends TestCase {
 	}
 
 	public static class SampleOptionalSuperClass {
-		@MessagePackOptional
+		@Optional
 		public int f5;
 		public final int f6 = 2;
 		@SuppressWarnings("unused")
@@ -1867,12 +1867,12 @@ public class TestPackConvert extends TestCase {
 	}
 
 	public static class OptionalBaseMessagePackableConvertableClass {
-		@MessagePackOptional
+		@Optional
 		public OptionalMessagePackableConvertableClass f0;
-		@MessagePackOptional
+		@Optional
 		public int f1;
 
-		@MessagePackOptional
+		@Optional
 		public List<OptionalMessagePackableConvertableClass> f2;
 
 		public OptionalBaseMessagePackableConvertableClass() {
@@ -1881,9 +1881,9 @@ public class TestPackConvert extends TestCase {
 
 	public static class OptionalMessagePackableConvertableClass implements
 			MessagePackable, MessageConvertable {
-		@MessagePackOptional
+		@Optional
 		public int f0;
-		@MessagePackOptional
+		@Optional
 		public int f1;
 
 		public OptionalMessagePackableConvertableClass() {

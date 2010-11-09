@@ -22,9 +22,8 @@ import org.msgpack.*;
 import org.msgpack.annotation.MessagePackDelegate;
 import org.msgpack.annotation.MessagePackMessage;
 import org.msgpack.annotation.MessagePackOrdinalEnum;
-import org.msgpack.util.codegen.DynamicPacker;
-import org.msgpack.util.codegen.DynamicConverter;
-import org.msgpack.util.codegen.DynamicUnpacker;
+import org.msgpack.util.codegen.DynamicTemplate;
+import org.msgpack.util.codegen.DynamicOrdinalEnumTemplate;
 
 import java.util.*;
 import java.math.BigInteger;
@@ -131,18 +130,17 @@ public class ClassTemplate implements Template {
 		}
 
 		if (CustomMessage.isAnnotated(klass, MessagePackMessage.class)) {
-			packer = DynamicPacker.create(klass);
+			Template tmpl = DynamicTemplate.create(klass);
+			CustomMessage.register(klass, tmpl);
+			tmpl.pack(pk, o);
+			return;
 		} else if (CustomMessage.isAnnotated(klass, MessagePackDelegate.class)) {
 			// FIXME DelegatePacker
 			throw new UnsupportedOperationException("not supported yet. : " + klass.getName());
 		} else if (CustomMessage.isAnnotated(klass, MessagePackOrdinalEnum.class)) {
-			// FIXME OrdinalEnumPacker
-			throw new UnsupportedOperationException("not supported yet. : " + klass.getName());
-		}
-
-		if (packer != null) {
-			CustomPacker.register(klass, packer);
-			packer.pack(pk, o);
+			Template tmpl = DynamicOrdinalEnumTemplate.create(klass);
+			CustomMessage.register(klass, tmpl);
+			tmpl.pack(pk, o);
 			return;
 		}
 
@@ -169,38 +167,32 @@ public class ClassTemplate implements Template {
 			}
 
 			if (CustomMessage.isAnnotated(klass, MessagePackMessage.class)) {
-				unpacker = DynamicUnpacker.create(klass);
+				Template tmpl = DynamicTemplate.create(klass);
+				CustomMessage.register(klass, tmpl);
+				return tmpl.unpack(pac, to);
 			} else if (CustomMessage.isAnnotated(klass, MessagePackDelegate.class)) {
 				// TODO DelegateUnpacker
 				throw new UnsupportedOperationException("not supported yet. : " + klass.getName());
 			} else if (CustomMessage.isAnnotated(klass, MessagePackOrdinalEnum.class)) {
-				// TODO OrdinalEnumUnpacker
-				throw new UnsupportedOperationException("not supported yet. : " + klass.getName());
-			}
-
-			if (unpacker != null) {
-				CustomUnpacker.register(klass, unpacker);
-				return unpacker.unpack(pac, to);
+				Template tmpl = DynamicOrdinalEnumTemplate.create(klass);
+				CustomMessage.register(klass, tmpl);
+				return tmpl.unpack(pac, to);
 			}
 
 			// fallback
-			{
-				MessageConverter converter = null;
+			MessageConverter converter = null;
 
-				if (CustomMessage.isAnnotated(klass, MessagePackMessage.class)) {
-					converter = DynamicConverter.create(klass);
-				} else if (CustomMessage.isAnnotated(klass, MessagePackDelegate.class)) {
-					// TODO DelegateConverter
-					throw new UnsupportedOperationException("not supported yet. : " + klass.getName());
-				} else if (CustomMessage.isAnnotated(klass, MessagePackOrdinalEnum.class)) {
-					// TODO OrdinalEnumConverter
-					throw new UnsupportedOperationException("not supported yet. : " + klass.getName());
-				}
-
-				if (converter != null) {
-					CustomConverter.register(klass, converter);
-					return converter.convert(pac.unpackObject(), to);
-				}
+			if (CustomMessage.isAnnotated(klass, MessagePackMessage.class)) {
+				Template tmpl = DynamicTemplate.create(klass);
+				CustomMessage.register(klass, tmpl);
+				return tmpl.convert(pac.unpackObject(), to);
+			} else if (CustomMessage.isAnnotated(klass, MessagePackDelegate.class)) {
+				// TODO DelegateConverter
+				throw new UnsupportedOperationException("not supported yet. : " + klass.getName());
+			} else if (CustomMessage.isAnnotated(klass, MessagePackOrdinalEnum.class)) {
+				Template tmpl = DynamicOrdinalEnumTemplate.create(klass);
+				CustomMessage.register(klass, tmpl);
+				return tmpl.convert(pac.unpackObject(), to);
 			}
 
 			throw new MessageTypeException();
@@ -232,18 +224,16 @@ public class ClassTemplate implements Template {
 			}
 
 			if (CustomMessage.isAnnotated(klass, MessagePackMessage.class)) {
-				converter = DynamicConverter.create(klass);
+				Template tmpl = DynamicTemplate.create(klass);
+				CustomMessage.register(klass, tmpl);
+				return tmpl.convert(from, to);
 			} else if (CustomMessage.isAnnotated(klass, MessagePackDelegate.class)) {
 				// TODO DelegateConverter
 				throw new UnsupportedOperationException("not supported yet. : " + klass.getName());
 			} else if (CustomMessage.isAnnotated(klass, MessagePackOrdinalEnum.class)) {
-				// TODO OrdinalEnumConverter
-				throw new UnsupportedOperationException("not supported yet. : " + klass.getName());
-			}
-
-			if (converter != null) {
-				CustomConverter.register(klass, converter);
-				return converter.convert(from, to);
+				Template tmpl = DynamicOrdinalEnumTemplate.create(klass);
+				CustomMessage.register(klass, tmpl);
+				return tmpl.convert(from, to);
 			}
 
 			throw new MessageTypeException();
