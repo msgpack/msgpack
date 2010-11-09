@@ -21,10 +21,8 @@ import java.io.OutputStream;
 import java.io.InputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-//import org.msgpack.util.codegen.DynamicTemplate;  // FIXME
-import org.msgpack.util.codegen.DynamicPacker;
-import org.msgpack.util.codegen.DynamicConverter;
-import org.msgpack.util.codegen.DynamicUnpacker;
+import org.msgpack.util.codegen.DynamicTemplate;
+import org.msgpack.util.codegen.FieldList;
 
 public class MessagePack {
 	public static byte[] pack(Object obj) {
@@ -158,14 +156,17 @@ public class MessagePack {
 		//} else {
 		//}
 
-		// FIXME
-		//Template tmpl = DynamicTemplate.create(target);
-		//register(target, tmpl);
+		Template tmpl = DynamicTemplate.create(target);
+		CustomPacker.register(target, tmpl);
+		CustomConverter.register(target, tmpl);
+		CustomUnpacker.register(target, tmpl);
+	}
 
-		// FIXME
-		CustomPacker.register(target, DynamicPacker.create(target));
-		CustomConverter.register(target, DynamicConverter.create(target));
-		CustomUnpacker.register(target, DynamicUnpacker.create(target));
+	public static void register(Class<?> target, FieldList opts) {
+		Template tmpl = DynamicTemplate.create(target, opts);
+		CustomPacker.register(target, tmpl);
+		CustomConverter.register(target, tmpl);
+		CustomUnpacker.register(target, tmpl);
 	}
 
 	public static void register(Class<?> target, Template tmpl) {
