@@ -47,14 +47,14 @@ public class TestPackConvertWithFieldOption extends TestCase {
 		src.f5 = 5;
 		src.f6 = false;
 
-		List<FieldOption> opts = new ArrayList<FieldOption>();
-		opts.add(new FieldOption("f0", tByte()));
-		opts.add(new FieldOption("f1", tShort()));
-		opts.add(new FieldOption("f2", tInteger()));
-		opts.add(new FieldOption("f3", tLong()));
-		opts.add(new FieldOption("f4", tFloat()));
-		opts.add(new FieldOption("f5", tDouble()));
-		opts.add(new FieldOption("f6", tBoolean()));
+		FieldList opts = new FieldList();
+		opts.add("f0");
+		opts.add("f1");
+		opts.add("f2");
+		opts.add("f3");
+		opts.add("f4");
+		opts.add("f5");
+		opts.add("f6");
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		MessagePacker packer = DynamicPacker.create(
 				PrimitiveTypeFieldsClass.class, opts);
@@ -80,14 +80,14 @@ public class TestPackConvertWithFieldOption extends TestCase {
 	public void testPrimitiveTypeFieldsClass01() throws Exception {
 		PrimitiveTypeFieldsClass src = new PrimitiveTypeFieldsClass();
 
-		List<FieldOption> opts = new ArrayList<FieldOption>();
-		opts.add(new FieldOption("f0", new OptionalTemplate(tByte())));
-		opts.add(new FieldOption("f1", new OptionalTemplate(tShort())));
-		opts.add(new FieldOption("f2", new OptionalTemplate(tInteger())));
-		opts.add(new FieldOption("f3", new OptionalTemplate(tLong())));
-		opts.add(new FieldOption("f4", new OptionalTemplate(tFloat())));
-		opts.add(new FieldOption("f5", new OptionalTemplate(tDouble())));
-		opts.add(new FieldOption("f6", new OptionalTemplate(tBoolean())));
+		FieldList opts = new FieldList();
+		opts.add("f0", FieldOption.OPTIONAL);
+		opts.add("f1", FieldOption.OPTIONAL);
+		opts.add("f2", FieldOption.OPTIONAL);
+		opts.add("f3", FieldOption.OPTIONAL);
+		opts.add("f4", FieldOption.OPTIONAL);
+		opts.add("f5", FieldOption.OPTIONAL);
+		opts.add("f6", FieldOption.OPTIONAL);
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		MessagePacker packer = DynamicPacker.create(
 				PrimitiveTypeFieldsClass.class, opts);
@@ -113,14 +113,14 @@ public class TestPackConvertWithFieldOption extends TestCase {
 	public void testPrimitiveTypeFieldsClass02() throws Exception {
 		PrimitiveTypeFieldsClass src = null;
 
-		List<FieldOption> opts = new ArrayList<FieldOption>();
-		opts.add(new FieldOption("f0", tByte()));
-		opts.add(new FieldOption("f1", tShort()));
-		opts.add(new FieldOption("f2", tInteger()));
-		opts.add(new FieldOption("f3", tLong()));
-		opts.add(new FieldOption("f4", tFloat()));
-		opts.add(new FieldOption("f5", tDouble()));
-		opts.add(new FieldOption("f6", tBoolean()));
+		FieldList opts = new FieldList();
+		opts.add("f0");
+		opts.add("f1");
+		opts.add("f2");
+		opts.add("f3");
+		opts.add("f4");
+		opts.add("f5");
+		opts.add("f6");
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		MessagePacker packer = new OptionalPacker(DynamicPacker.create(
 				PrimitiveTypeFieldsClass.class, opts));
@@ -163,17 +163,17 @@ public class TestPackConvertWithFieldOption extends TestCase {
 		src.f8 = "8";
 		src.f9 = new byte[] { 0x01, 0x02 };
 
-		List<FieldOption> opts = new ArrayList<FieldOption>();
-		opts.add(new FieldOption("f0", tByte()));
-		opts.add(new FieldOption("f1", tShort()));
-		opts.add(new FieldOption("f2", tInteger()));
-		opts.add(new FieldOption("f3", tLong()));
-		opts.add(new FieldOption("f4", tFloat()));
-		opts.add(new FieldOption("f5", tDouble()));
-		opts.add(new FieldOption("f6", tBoolean()));
-		opts.add(new FieldOption("f7", tBigInteger()));
-		opts.add(new FieldOption("f8", tString()));
-		opts.add(new FieldOption("f9", tByteArray()));
+		FieldList opts = new FieldList();
+		opts.add("f0");
+		opts.add("f1");
+		opts.add("f2");
+		opts.add("f3");
+		opts.add("f4");
+		opts.add("f5");
+		opts.add("f6");
+		opts.add("f7");
+		opts.add("f8");
+		opts.add("f9");
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		MessagePacker packer = DynamicPacker
 				.create(GeneralReferenceTypeFieldsClass.class, opts);
@@ -213,17 +213,17 @@ public class TestPackConvertWithFieldOption extends TestCase {
 		src.f8 = null;
 		src.f9 = null;
 
-		List<FieldOption> opts = new ArrayList<FieldOption>();
-		opts.add(new FieldOption("f0", new OptionalTemplate(tByte())));
-		opts.add(new FieldOption("f1", new OptionalTemplate(tShort())));
-		opts.add(new FieldOption("f2", new OptionalTemplate(tInteger())));
-		opts.add(new FieldOption("f3", new OptionalTemplate(tLong())));
-		opts.add(new FieldOption("f4", new OptionalTemplate(tFloat())));
-		opts.add(new FieldOption("f5", new OptionalTemplate(tDouble())));
-		opts.add(new FieldOption("f6", new OptionalTemplate(tBoolean())));
-		opts.add(new FieldOption("f7", new OptionalTemplate(tBigInteger())));
-		opts.add(new FieldOption("f8", new OptionalTemplate(tString())));
-		opts.add(new FieldOption("f9", new OptionalTemplate(tByteArray())));
+		FieldList opts = new FieldList();
+		opts.add("f0", FieldOption.OPTIONAL);
+		opts.add("f1", FieldOption.OPTIONAL);
+		opts.add("f2", FieldOption.OPTIONAL);
+		opts.add("f3", FieldOption.OPTIONAL);
+		opts.add("f4", FieldOption.OPTIONAL);
+		opts.add("f5", FieldOption.OPTIONAL);
+		opts.add("f6", FieldOption.OPTIONAL);
+		opts.add("f7", FieldOption.OPTIONAL);
+		opts.add("f8", FieldOption.OPTIONAL);
+		opts.add("f9", FieldOption.OPTIONAL);
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		MessagePacker packer = DynamicPacker
 				.create(GeneralReferenceTypeFieldsClass.class, opts);
@@ -253,17 +253,17 @@ public class TestPackConvertWithFieldOption extends TestCase {
 			throws Exception {
 		GeneralReferenceTypeFieldsClass src = null;
 
-		List<FieldOption> opts = new ArrayList<FieldOption>();
-		opts.add(new FieldOption("f0", new OptionalTemplate(tByte())));
-		opts.add(new FieldOption("f1", new OptionalTemplate(tShort())));
-		opts.add(new FieldOption("f2", new OptionalTemplate(tInteger())));
-		opts.add(new FieldOption("f3", new OptionalTemplate(tLong())));
-		opts.add(new FieldOption("f4", new OptionalTemplate(tFloat())));
-		opts.add(new FieldOption("f5", new OptionalTemplate(tDouble())));
-		opts.add(new FieldOption("f6", new OptionalTemplate(tBoolean())));
-		opts.add(new FieldOption("f7", new OptionalTemplate(tBigInteger())));
-		opts.add(new FieldOption("f8", new OptionalTemplate(tString())));
-		opts.add(new FieldOption("f9", new OptionalTemplate(tByteArray())));
+		FieldList opts = new FieldList();
+		opts.add("f0", FieldOption.OPTIONAL);
+		opts.add("f1", FieldOption.OPTIONAL);
+		opts.add("f2", FieldOption.OPTIONAL);
+		opts.add("f3", FieldOption.OPTIONAL);
+		opts.add("f4", FieldOption.OPTIONAL);
+		opts.add("f5", FieldOption.OPTIONAL);
+		opts.add("f6", FieldOption.OPTIONAL);
+		opts.add("f7", FieldOption.OPTIONAL);
+		opts.add("f8", FieldOption.OPTIONAL);
+		opts.add("f9", FieldOption.OPTIONAL);
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		MessagePacker packer = new OptionalPacker(DynamicPacker
 				.create(GeneralReferenceTypeFieldsClass.class, opts));
@@ -316,12 +316,12 @@ public class TestPackConvertWithFieldOption extends TestCase {
 		slnt.f1 = "muga";
 		src.f4.add(slnt);
 
-		List<FieldOption> opts = new ArrayList<FieldOption>();
-		opts.add(new FieldOption("f0", new ListTemplate(tInteger())));
-		opts.add(new FieldOption("f1", new ListTemplate(tInteger())));
-		opts.add(new FieldOption("f2", new ListTemplate(tString())));
-		opts.add(new FieldOption("f3", new ListTemplate(new ListTemplate(tString()))));
-		opts.add(new FieldOption("f4", new ListTemplate(DynamicTemplate.create(SampleListNestedType.class))));
+		FieldList opts = new FieldList();
+		opts.add("f0");
+		opts.add("f1");
+		opts.add("f2");
+		opts.add("f3");
+		opts.add("f4");
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		MessagePacker packer = DynamicPacker
 				.create(SampleListTypes.class, opts);
@@ -371,12 +371,12 @@ public class TestPackConvertWithFieldOption extends TestCase {
 		src.f3 = new ArrayList<List<String>>();
 		src.f4 = null;
 
-		List<FieldOption> opts = new ArrayList<FieldOption>();
-		opts.add(new FieldOption("f0", new OptionalTemplate(new ListTemplate(tInteger()))));
-		opts.add(new FieldOption("f1", new OptionalTemplate(new ListTemplate(tInteger()))));
-		opts.add(new FieldOption("f2", new OptionalTemplate(new ListTemplate(tString()))));
-		opts.add(new FieldOption("f3", new OptionalTemplate(new ListTemplate(new ListTemplate(tString())))));
-		opts.add(new FieldOption("f4", new OptionalTemplate(new ListTemplate(DynamicTemplate.create(SampleListNestedType.class)))));
+		FieldList opts = new FieldList();
+		opts.add("f0", FieldOption.OPTIONAL);
+		opts.add("f1", FieldOption.OPTIONAL);
+		opts.add("f2", FieldOption.OPTIONAL);
+		opts.add("f3", FieldOption.OPTIONAL);
+		opts.add("f4", FieldOption.OPTIONAL);
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		MessagePacker packer = DynamicPacker
 				.create(SampleListTypes.class, opts);
@@ -400,12 +400,12 @@ public class TestPackConvertWithFieldOption extends TestCase {
 	public void testListTypes02() throws Exception {
 		SampleListTypes src = null;
 
-		List<FieldOption> opts = new ArrayList<FieldOption>();
-		opts.add(new FieldOption("f0", new OptionalTemplate(new ListTemplate(tInteger()))));
-		opts.add(new FieldOption("f1", new OptionalTemplate(new ListTemplate(tInteger()))));
-		opts.add(new FieldOption("f2", new OptionalTemplate(new ListTemplate(tString()))));
-		opts.add(new FieldOption("f3", new OptionalTemplate(new ListTemplate(new ListTemplate(tString())))));
-		opts.add(new FieldOption("f4", new OptionalTemplate(new ListTemplate(DynamicTemplate.create(SampleListNestedType.class)))));
+		FieldList opts = new FieldList();
+		opts.add("f0", FieldOption.OPTIONAL);
+		opts.add("f1", FieldOption.OPTIONAL);
+		opts.add("f2", FieldOption.OPTIONAL);
+		opts.add("f3", FieldOption.OPTIONAL);
+		opts.add("f4", FieldOption.OPTIONAL);
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		MessagePacker packer = new OptionalPacker(DynamicPacker
 				.create(SampleListTypes.class));
@@ -455,10 +455,10 @@ public class TestPackConvertWithFieldOption extends TestCase {
 		src.f2.put("k2", 2);
 		src.f2.put("k3", 3);
 
-		List<FieldOption> opts = new ArrayList<FieldOption>();
-		opts.add(new FieldOption("f0", new MapTemplate(tInteger(), tInteger())));
-		opts.add(new FieldOption("f1", new MapTemplate(tInteger(), tInteger())));
-		opts.add(new FieldOption("f2", new MapTemplate(tString(), tInteger())));
+		FieldList opts = new FieldList();
+		opts.add("f0");
+		opts.add("f1");
+		opts.add("f2");
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		MessagePacker packer = DynamicPacker
 				.create(SampleMapTypes.class, opts);
@@ -499,10 +499,10 @@ public class TestPackConvertWithFieldOption extends TestCase {
 		src.f1 = null;
 		src.f2 = new HashMap<String, Integer>();
 
-		List<FieldOption> opts = new ArrayList<FieldOption>();
-		opts.add(new FieldOption("f0", new OptionalTemplate(new MapTemplate(tInteger(), tInteger()))));
-		opts.add(new FieldOption("f1", new OptionalTemplate(new MapTemplate(tInteger(), tInteger()))));
-		opts.add(new FieldOption("f2", new OptionalTemplate(new MapTemplate(tString(), tInteger()))));
+		FieldList opts = new FieldList();
+		opts.add("f0", FieldOption.OPTIONAL);
+		opts.add("f1", FieldOption.OPTIONAL);
+		opts.add("f2", FieldOption.OPTIONAL);
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		MessagePacker packer = DynamicPacker
 				.create(SampleMapTypes.class, opts);
@@ -524,10 +524,10 @@ public class TestPackConvertWithFieldOption extends TestCase {
 	public void testMapTypes02() throws Exception {
 		SampleMapTypes src = null;
 
-		List<FieldOption> opts = new ArrayList<FieldOption>();
-		opts.add(new FieldOption("f0", new OptionalTemplate(new MapTemplate(tInteger(), tInteger()))));
-		opts.add(new FieldOption("f1", new OptionalTemplate(new MapTemplate(tInteger(), tInteger()))));
-		opts.add(new FieldOption("f2", new OptionalTemplate(new MapTemplate(tString(), tInteger()))));
+		FieldList opts = new FieldList();
+		opts.add("f0", FieldOption.OPTIONAL);
+		opts.add("f1", FieldOption.OPTIONAL);
+		opts.add("f2", FieldOption.OPTIONAL);
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		MessagePacker packer = new OptionalPacker(DynamicPacker
 				.create(SampleMapTypes.class, opts));

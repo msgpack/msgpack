@@ -77,7 +77,7 @@ class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 	}
 
 	public Class<?> generateTemplateClass(Class<?> origClass,
-			List<FieldOption> fieldOpts) {
+			FieldList fieldList) {
 		try {
 			LOG.debug("start generating a template class for "
 					+ origClass.getName());
@@ -91,9 +91,8 @@ class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 			addClassTypeConstructor(tmplCtClass);
 			Field[] fields = getDeclaredFields(origClass);
 			Template[] tmpls = null;
-			if (fieldOpts != null) {
-				fields = sortFields(fields, fieldOpts);
-				tmpls = createTemplates(fieldOpts);
+			if (fieldList != null) {
+				tmpls = createTemplates(fields, fieldList);
 			} else {
 				tmpls = createTemplates(fields);
 			}
@@ -212,18 +211,19 @@ class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 		}
 	}
 
-	Field[] sortFields(Field[] fields, List<FieldOption> fieldOpts) {
-		if (fields.length != fieldOpts.size()) {
+	Field[] sortFields(Field[] fields, FieldList fieldList) {
+		List<FieldList.Entry> list = fieldList.getList();
+		if (fields.length != list.size()) {
 			throwFieldSortingException(String.format(
 					"Mismatch: public field num: %d, option num: %d",
-					new Object[] { fields.length, fieldOpts.size() }));
+					new Object[] { fields.length, list.size() }));
 		}
 		Field[] sorted = new Field[fields.length];
 		for (int i = 0; i < sorted.length; ++i) {
-			FieldOption opt = fieldOpts.get(i);
+			FieldList.Entry e = list.get(i);
 			Field match = null;
 			for (Field f : fields) {
-				if (opt.name.equals(f.getName())) {
+				if (e.getName().equals(f.getName())) {
 					match = f;
 					break;
 				}
@@ -233,16 +233,42 @@ class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 			} else {
 				throwFieldSortingException(String.format(
 						"Mismatch: a %s field option is not declared",
-						new Object[] { opt.name }));
+						new Object[] { e.getName() }));
 			}
 		}
 		return sorted;
 	}
 
-	Template[] createTemplates(List<FieldOption> fieldOpts) {
-		Template[] tmpls = new Template[fieldOpts.size()];
-		for (int i = 0; i < tmpls.length; ++i) {
-			tmpls[i] = fieldOpts.get(i).tmpl;
+	Template[] createTemplates(Field[] fields, FieldList fieldList) {
+		List<FieldList.Entry> list = fieldList.getList();
+		//if (fields.length != list.size()) {
+		//	throwFieldSortingException(String.format(
+		//			"Mismatch: public field num: %d, option num: %d",
+		//			new Object[] { fields.length, list.size() }));
+		//}
+		Template[] tmpls = new Template[list.size()];
+		for(int i = 0; i < list.size(); ++i) {
+			FieldList.Entry e = list.get(i);
+			Field match = null;
+			// FIXME if(!e.isAvailable())
+			for (Field f : fields) {
+				if (e.getName().equals(f.getName())) {
+					match = f;
+					break;
+				}
+			}
+			if (match == null) {
+				throwFieldSortingException(String.format(
+						"Mismatch: a %s field option is not declared",
+						new Object[] { e.getName() }));
+			}
+			Template tmpl = createTemplate(match);
+			if(e.isOptional()) {
+				tmpl = new OptionalTemplate(tmpl);
+			} else if(e.isNullable()) {
+				tmpl = new NullableTemplate(tmpl);
+			}
+			tmpls[i] = tmpl;
 		}
 		return tmpls;
 	}

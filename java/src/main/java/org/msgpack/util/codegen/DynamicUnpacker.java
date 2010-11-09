@@ -26,7 +26,7 @@ public class DynamicUnpacker {
 		return create(c, null);
 	}
 
-	public static MessageUnpacker create(Class<?> c, List<FieldOption> fieldOpts) {
-		return DynamicTemplate.create(c, fieldOpts);
+	public static MessageUnpacker create(Class<?> c, FieldList fieldList) {
+		return DynamicTemplate.create(c, fieldList);
 	}
 }

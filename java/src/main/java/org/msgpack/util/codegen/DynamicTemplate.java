@@ -29,10 +29,10 @@ public class DynamicTemplate {
 		return create(c, null);
 	}
 
-	public static Template create(Class<?> c, List<FieldOption> fieldOpts) {
+	public static Template create(Class<?> c, FieldList fieldList) {
 		try {
 			DynamicCodeGen gen = DynamicCodeGen.getInstance();
-			Class<?> tmplClass = gen.generateTemplateClass(c, fieldOpts);
+			Class<?> tmplClass = gen.generateTemplateClass(c, fieldList);
 			Constructor<?> cons = tmplClass
 					.getDeclaredConstructor(new Class[] { Class.class });
 			Object obj = cons.newInstance(new Object[] { c });

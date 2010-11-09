@@ -27,7 +27,7 @@ public class DynamicConverter {
 	}
 
 	public static MessageConverter create(Class<?> c,
-			List<FieldOption> fieldOpts) {
-		return DynamicTemplate.create(c, fieldOpts);
+			FieldList fieldList) {
+		return DynamicTemplate.create(c, fieldList);
 	}
 }

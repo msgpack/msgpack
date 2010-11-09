@@ -27,7 +27,7 @@ public class DynamicPacker {
 		return create(c, null);
 	}
 
-	public static MessagePacker create(Class<?> c, List<FieldOption> fieldOpts) {
-		return DynamicTemplate.create(c, fieldOpts);
+	public static MessagePacker create(Class<?> c, FieldList fieldList) {
+		return DynamicTemplate.create(c, fieldList);
 	}
 }
