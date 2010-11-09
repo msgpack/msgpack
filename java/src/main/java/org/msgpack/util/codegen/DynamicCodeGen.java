@@ -525,7 +525,6 @@ class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 		for (int i = 0; i < fields.length; ++i) {
 			insertCodeOfConvMethodCall(sb, fields[i], i, tmpls[i]);
 		}
-		insertCodeOfConvertTrails(sb, fields.length);
 	}
 
 	private void insertCodeOfConvMethodCall(StringBuilder sb, Field field,
@@ -553,10 +552,6 @@ class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 			sb.append(String.format(STATEMENT_TMPL_UNPACKERMETHODBODY_07, args0));
 			sb.append(callExpr);
 		}
-	}
-
-	private void insertCodeOfConvertTrails(StringBuilder sb, int len) {
-		// TODO
 	}
 
 	private void insertOrdinalEnumConvertMethodBody(StringBuilder sb,
