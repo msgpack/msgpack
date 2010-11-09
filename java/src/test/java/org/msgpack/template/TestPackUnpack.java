@@ -58,7 +58,7 @@ public class TestPackUnpack extends TestCase {
 			assertTrue(e instanceof MessageTypeException);
 		}
 		unpacker.wrap(bytes);
-		tmpl = new OptionalTemplate(IntegerTemplate.getInstance());
+		tmpl = new NullableTemplate(IntegerTemplate.getInstance());
 		dst = (Integer) tmpl.unpack(unpacker);
 		assertEquals(src, dst);
 	}
@@ -105,7 +105,7 @@ public class TestPackUnpack extends TestCase {
 			assertTrue(e instanceof MessageTypeException);
 		}
 		unpacker.wrap(bytes);
-		tmpl = new OptionalTemplate(LongTemplate.getInstance());
+		tmpl = new NullableTemplate(LongTemplate.getInstance());
 		dst = (Long) tmpl.unpack(unpacker);
 		assertEquals(src, dst);
 	}
@@ -155,7 +155,7 @@ public class TestPackUnpack extends TestCase {
 			assertTrue(e instanceof MessageTypeException);
 		}
 		unpacker.wrap(bytes);
-		tmpl = new OptionalTemplate(BigIntegerTemplate.getInstance());
+		tmpl = new NullableTemplate(BigIntegerTemplate.getInstance());
 		dst = (BigInteger) tmpl.unpack(unpacker);
 		assertEquals(src, dst);
 	}
@@ -230,7 +230,7 @@ public class TestPackUnpack extends TestCase {
 			assertTrue(e instanceof MessageTypeException);
 		}
 		unpacker.wrap(bytes);
-		tmpl = new OptionalTemplate(DoubleTemplate.getInstance());
+		tmpl = new NullableTemplate(DoubleTemplate.getInstance());
 		dst = (Double) tmpl.unpack(unpacker);
 		assertEquals(src, dst);
 	}
@@ -268,7 +268,7 @@ public class TestPackUnpack extends TestCase {
 			assertTrue(e instanceof MessageTypeException);
 		}
 		unpacker.wrap(bytes);
-		tmpl = new OptionalTemplate(BooleanTemplate.getInstance());
+		tmpl = new NullableTemplate(BooleanTemplate.getInstance());
 		dst = (Boolean) tmpl.unpack(unpacker);
 		assertEquals(src, dst);
 	}
@@ -338,7 +338,7 @@ public class TestPackUnpack extends TestCase {
 			assertTrue(e instanceof MessageTypeException);
 		}
 		unpacker.wrap(bytes);
-		tmpl = new OptionalTemplate(StringTemplate.getInstance());
+		tmpl = new NullableTemplate(StringTemplate.getInstance());
 		dst = (String) tmpl.unpack(unpacker);
 		assertEquals(src, dst);
 	}
@@ -412,7 +412,7 @@ public class TestPackUnpack extends TestCase {
 			assertTrue(e instanceof MessageTypeException);
 		}
 		unpacker.wrap(bytes);
-		tmpl = new OptionalTemplate(new ListTemplate(StringTemplate
+		tmpl = new NullableTemplate(new ListTemplate(StringTemplate
 				.getInstance()));
 		dst = (List<String>) tmpl.unpack(unpacker);
 		assertEquals(src, dst);
@@ -499,7 +499,7 @@ public class TestPackUnpack extends TestCase {
 			assertTrue(e instanceof MessageTypeException);
 		}
 		unpacker.wrap(bytes);
-		tmpl = new OptionalTemplate(new MapTemplate(StringTemplate
+		tmpl = new NullableTemplate(new MapTemplate(StringTemplate
 				.getInstance(), StringTemplate.getInstance()));
 		dst = (Map<String, String>) tmpl.unpack(unpacker);
 		assertEquals(src, dst);

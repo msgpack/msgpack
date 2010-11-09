@@ -75,16 +75,14 @@ public class TestMessagePackStaticMethods extends TestCase {
 		{
 			Object aobj = MessagePack.unpack(a, TString);
 			Object bobj = MessagePack.unpack(b, TInteger);
-			Object cobj_any = MessagePack.unpack(c, TAny);
-			Object cobj_obj = MessagePack.unpack(c, tOptional(TAny));
+			Object cobj = MessagePack.unpack(c, tNullable(TAny));
 			Object dobj = MessagePack.unpack(d, tList(TString));
 			Object eobj = MessagePack.unpack(e, tClass(ProvidedClass.class));
 			Object fobj = MessagePack.unpack(f, tClass(UserDefinedClass.class));
 
 			assertEquals(aobj, "msgpack");
 			assertEquals(bobj, 1);
-			assertEquals(cobj_any, NilType.create());
-			assertEquals(cobj_obj, null);
+			assertEquals(cobj, null);
 			assertEquals(dobj, createStringList());
 			assertEquals(eobj, createProvidedClass());
 			assertEquals(fobj, createUserDefinedClass());
@@ -94,6 +92,7 @@ public class TestMessagePackStaticMethods extends TestCase {
 			String  aobj = MessagePack.unpack(a, String.class);
 			Integer bobj = MessagePack.unpack(b, Integer.class);
 			Object  cobj = MessagePack.unpack(c, Object.class);
+			// Generics are not supported on unpack(Class<?> klass) interface
 			ProvidedClass eobj = MessagePack.unpack(e, ProvidedClass.class);
 			UserDefinedClass fobj = MessagePack.unpack(f, UserDefinedClass.class);
 
@@ -108,38 +107,37 @@ public class TestMessagePackStaticMethods extends TestCase {
 	@Test
 	public void testCheckedPackToStream() throws Exception {
 		ByteArrayOutputStream aout = new ByteArrayOutputStream();
-		MessagePack.pack(aout, "msgpack");
 		ByteArrayOutputStream bout = new ByteArrayOutputStream();
-		MessagePack.pack(bout, (Object)1);
 		ByteArrayOutputStream cout = new ByteArrayOutputStream();
-		MessagePack.pack(cout, (Object)null);
 		ByteArrayOutputStream dout = new ByteArrayOutputStream();
-		MessagePack.pack(dout, createStringList());
 		ByteArrayOutputStream eout = new ByteArrayOutputStream();
-		MessagePack.pack(eout, createProvidedClass());
 		ByteArrayOutputStream fout = new ByteArrayOutputStream();
+
+		MessagePack.pack(aout, "msgpack");
+		MessagePack.pack(bout, (Object)1);
+		MessagePack.pack(cout, (Object)null);
+		MessagePack.pack(dout, createStringList());
+		MessagePack.pack(eout, createProvidedClass());
 		MessagePack.pack(fout, createUserDefinedClass());
 
 		{
 			InputStream ain = new ByteArrayInputStream(aout.toByteArray());
-			Object aobj = MessagePack.unpack(ain, TString);
 			InputStream bin = new ByteArrayInputStream(bout.toByteArray());
-			Object bobj = MessagePack.unpack(bin, TInteger);
-			InputStream cin_any = new ByteArrayInputStream(cout.toByteArray());
-			Object cobj_any = MessagePack.unpack(cin_any, TAny);
-			InputStream cin_obj = new ByteArrayInputStream(cout.toByteArray());
-			Object cobj_obj = MessagePack.unpack(cin_obj, tOptional(TAny));
+			InputStream cin = new ByteArrayInputStream(cout.toByteArray());
 			InputStream din = new ByteArrayInputStream(dout.toByteArray());
-			Object dobj = MessagePack.unpack(din, tList(TString));
 			InputStream ein = new ByteArrayInputStream(eout.toByteArray());
-			Object eobj = MessagePack.unpack(ein, tClass(ProvidedClass.class));
 			InputStream fin = new ByteArrayInputStream(fout.toByteArray());
+
+			Object aobj = MessagePack.unpack(ain, TString);
+			Object bobj = MessagePack.unpack(bin, TInteger);
+			Object cobj = MessagePack.unpack(cin, tNullable(TAny));
+			Object dobj = MessagePack.unpack(din, tList(TString));
+			Object eobj = MessagePack.unpack(ein, tClass(ProvidedClass.class));
 			Object fobj = MessagePack.unpack(fin, tClass(UserDefinedClass.class));
 
 			assertEquals(aobj, "msgpack");
 			assertEquals(bobj, 1);
-			assertEquals(cobj_any, NilType.create());
-			assertEquals(cobj_obj, null);
+			assertEquals(cobj, null);
 			assertEquals(dobj, createStringList());
 			assertEquals(eobj, createProvidedClass());
 			assertEquals(fobj, createUserDefinedClass());
@@ -147,14 +145,17 @@ public class TestMessagePackStaticMethods extends TestCase {
 
 		{
 			InputStream ain = new ByteArrayInputStream(aout.toByteArray());
-			String  aobj = MessagePack.unpack(ain, String.class);
 			InputStream bin = new ByteArrayInputStream(bout.toByteArray());
-			Integer bobj = MessagePack.unpack(bin, Integer.class);
 			InputStream cin = new ByteArrayInputStream(cout.toByteArray());
-			Object  cobj = MessagePack.unpack(cin, Object.class);
 			InputStream ein = new ByteArrayInputStream(eout.toByteArray());
-			ProvidedClass eobj = MessagePack.unpack(ein, ProvidedClass.class);
+			//
 			InputStream fin = new ByteArrayInputStream(fout.toByteArray());
+
+			String  aobj = MessagePack.unpack(ain, String.class);
+			Integer bobj = MessagePack.unpack(bin, Integer.class);
+			Object  cobj = MessagePack.unpack(cin, Object.class);
+			// Generics are not supported on unpack(Class<?> klass) interface
+			ProvidedClass eobj = MessagePack.unpack(ein, ProvidedClass.class);
 			UserDefinedClass fobj = MessagePack.unpack(fin, UserDefinedClass.class);
 
 			assertEquals(aobj, "msgpack");
@@ -194,30 +195,32 @@ public class TestMessagePackStaticMethods extends TestCase {
 	@Test
 	public void testPackToStream() throws Exception {
 		ByteArrayOutputStream aout = new ByteArrayOutputStream();
-		MessagePack.pack(aout, "msgpack");
 		ByteArrayOutputStream bout = new ByteArrayOutputStream();
-		MessagePack.pack(bout, (Object)1);
 		ByteArrayOutputStream cout = new ByteArrayOutputStream();
-		MessagePack.pack(cout, (Object)null);
 		ByteArrayOutputStream dout = new ByteArrayOutputStream();
-		MessagePack.pack(dout, createStringList());
 		ByteArrayOutputStream eout = new ByteArrayOutputStream();
-		MessagePack.pack(eout, createProvidedClass());
 		ByteArrayOutputStream fout = new ByteArrayOutputStream();
+
+		MessagePack.pack(aout, "msgpack");
+		MessagePack.pack(bout, (Object)1);
+		MessagePack.pack(cout, (Object)null);
+		MessagePack.pack(dout, createStringList());
+		MessagePack.pack(eout, createProvidedClass());
 		MessagePack.pack(fout, createUserDefinedClass());
 
 		{
 			InputStream ain = new ByteArrayInputStream(aout.toByteArray());
-			MessagePackObject aobj = MessagePack.unpack(ain);
 			InputStream bin = new ByteArrayInputStream(bout.toByteArray());
-			MessagePackObject bobj = MessagePack.unpack(bin);
 			InputStream cin = new ByteArrayInputStream(cout.toByteArray());
-			MessagePackObject cobj = MessagePack.unpack(cin);
 			InputStream din = new ByteArrayInputStream(dout.toByteArray());
-			MessagePackObject dobj = MessagePack.unpack(din);
 			InputStream ein = new ByteArrayInputStream(eout.toByteArray());
-			MessagePackObject eobj = MessagePack.unpack(ein);
 			InputStream fin = new ByteArrayInputStream(fout.toByteArray());
+
+			MessagePackObject aobj = MessagePack.unpack(ain);
+			MessagePackObject bobj = MessagePack.unpack(bin);
+			MessagePackObject cobj = MessagePack.unpack(cin);
+			MessagePackObject dobj = MessagePack.unpack(din);
+			MessagePackObject eobj = MessagePack.unpack(ein);
 			MessagePackObject fobj = MessagePack.unpack(fin);
 
 			assertEquals(aobj, RawType.create("msgpack"));

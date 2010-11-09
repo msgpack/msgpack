@@ -39,7 +39,9 @@ import org.msgpack.Packer;
 import org.msgpack.Template;
 import org.msgpack.Unpacker;
 import org.msgpack.annotation.MessagePackOptional;
+import org.msgpack.annotation.MessagePackNullable;
 import org.msgpack.template.OptionalTemplate;
+import org.msgpack.template.NullableTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -253,7 +255,6 @@ class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 	}
 
 	Template createTemplate(Field field) {
-		boolean isOptional = isAnnotated(field, MessagePackOptional.class);
 		Class<?> c = field.getType();
 		Template tmpl = null;
 		if (List.class.isAssignableFrom(c) || Map.class.isAssignableFrom(c)) {
@@ -261,12 +262,15 @@ class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 		} else {
 			tmpl = createTemplate(c);
 		}
-		if (isOptional) {
-			// for pack
+		if (isAnnotated(field, MessagePackOptional.class)) {
+			// @Optional types
 			return new OptionalTemplate(tmpl);
-		} else {
-			return tmpl;
 		}
+		if (!c.isPrimitive() && isAnnotated(field, MessagePackNullable.class)) {
+			// @Nullable reference types
+			return new NullableTemplate(tmpl);
+		}
+		return tmpl;
 	}
 
 	private boolean isAnnotated(Field field, Class<? extends Annotation> with) {

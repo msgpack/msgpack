@@ -23,17 +23,14 @@ public class Templates {
 	public static void load() { }
 
 
+	public static Template tNullable(Template elementTemplate) {
+		return new NullableTemplate(elementTemplate);
+	}
+
+
 	public static final Template TAny = AnyTemplate.getInstance();
 	public static Template tAny() {
 		return TAny;
-	}
-
-	public static Template tOptional(Template elementTemplate) {
-		return new OptionalTemplate(elementTemplate);
-	}
-
-	public static Template tOptional(Template elementTemplate, Object defaultObject) {
-		return new OptionalTemplate(elementTemplate, defaultObject);
 	}
 
 

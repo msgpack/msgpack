@@ -20,6 +20,7 @@ import org.msgpack.packer.OptionalPacker;
 import org.msgpack.template.ListTemplate;
 import org.msgpack.template.MapTemplate;
 import org.msgpack.template.OptionalTemplate;
+import org.msgpack.template.NullableTemplate;
 import static org.msgpack.Templates.tBigInteger;
 import static org.msgpack.Templates.tBoolean;
 import static org.msgpack.Templates.tByte;
@@ -125,7 +126,7 @@ public class TestPackConvertWithFieldOption extends TestCase {
 				PrimitiveTypeFieldsClass.class, opts));
 		packer.pack(new Packer(out), src);
 		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = new OptionalTemplate(DynamicTemplate.create(PrimitiveTypeFieldsClass.class, opts));
+		Template tmpl = new NullableTemplate(DynamicTemplate.create(PrimitiveTypeFieldsClass.class, opts));
 		Unpacker pac = new Unpacker(in);
 		Iterator<MessagePackObject> it = pac.iterator();
 		assertTrue(it.hasNext());
@@ -268,7 +269,7 @@ public class TestPackConvertWithFieldOption extends TestCase {
 				.create(GeneralReferenceTypeFieldsClass.class, opts));
 		packer.pack(new Packer(out), src);
 		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = new OptionalTemplate(DynamicTemplate
+		Template tmpl = new NullableTemplate(DynamicTemplate
 				.create(GeneralReferenceTypeFieldsClass.class, opts));
 		Unpacker pac = new Unpacker(in);
 		Iterator<MessagePackObject> it = pac.iterator();
@@ -410,7 +411,7 @@ public class TestPackConvertWithFieldOption extends TestCase {
 				.create(SampleListTypes.class));
 		packer.pack(new Packer(out), src);
 		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = new OptionalTemplate(DynamicTemplate
+		Template tmpl = new NullableTemplate(DynamicTemplate
 				.create(SampleListTypes.class, opts));
 		Unpacker pac = new Unpacker(in);
 		Iterator<MessagePackObject> it = pac.iterator();
@@ -532,7 +533,7 @@ public class TestPackConvertWithFieldOption extends TestCase {
 				.create(SampleMapTypes.class, opts));
 		packer.pack(new Packer(out), src);
 		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = new OptionalTemplate(DynamicTemplate.create(SampleMapTypes.class, opts));
+		Template tmpl = new NullableTemplate(DynamicTemplate.create(SampleMapTypes.class, opts));
 		Unpacker pac = new Unpacker(in);
 		Iterator<MessagePackObject> it = pac.iterator();
 		assertTrue(it.hasNext());

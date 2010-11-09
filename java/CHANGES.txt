@@ -1,3 +1,39 @@
+
+Release 0.4.2 - 2010/11/09
+  NEW FEATURES
+    Added MessagePackNullable annotation and Tempalte.tNullable(Template)
+    method.
+
+    Added <T> T MessagePackObject.unpack(Class<T>) method.
+
+
+Release 0.4.1 - 2010/11/05
+  BUG FIXES
+    Fixed dynamic code generation of unpack methods
+
+
+Release 0.4.0 - 2010/10/25
+  NEW FEATURES
+    Added MessagePackObject class and org.msgpack.object package that
+    represent unpacked (=dynamically typed) objects.
+    Unpacker.unpack method returns MessagePackObject instead of Object.
+
+    Added Templates class and org.msgpack.template package that provide
+    type conversion feature.
+
+    User-defined classes annotated with MessagePackMessage can be
+    pack/unpack/converted.
+
+    User-defined classes registered with MessagePack.register(Class) can be
+    pack/unpack/converted.
+
+    Added dynamic code generation feature for user-defined classes.
+
+    Added MessagePackOptional annotation.
+
+    Added MessagePack class that implements typical useful methods.
+
+
 Release 0.3 - 2010/05/23
   NEW FEATURES
     Added Unbuffered API + Direct Conversion API to the Unpacker.

@@ -24,7 +24,7 @@ import org.msgpack.annotation.MessagePackMessage;
 import org.msgpack.annotation.MessagePackOptional;
 import org.msgpack.annotation.MessagePackOrdinalEnum;
 import org.msgpack.packer.OptionalPacker;
-import org.msgpack.template.OptionalTemplate;
+import org.msgpack.template.NullableTemplate;
 
 import junit.framework.TestCase;
 
@@ -85,7 +85,7 @@ public class TestPackUnpack extends TestCase {
 				.create(PrimitiveTypeFieldsClass.class));
 		packer.pack(new Packer(out), src);
 		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = new OptionalTemplate(DynamicTemplate
+		Template tmpl = new NullableTemplate(DynamicTemplate
 				.create(PrimitiveTypeFieldsClass.class));
 		PrimitiveTypeFieldsClass dst = (PrimitiveTypeFieldsClass) tmpl
 				.unpack(new Unpacker(in));
@@ -162,7 +162,7 @@ public class TestPackUnpack extends TestCase {
 				.create(OptionalPrimitiveTypeFieldsClass.class));
 		packer.pack(new Packer(out), src);
 		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = new OptionalTemplate(DynamicTemplate
+		Template tmpl = new NullableTemplate(DynamicTemplate
 				.create(OptionalPrimitiveTypeFieldsClass.class));
 		OptionalPrimitiveTypeFieldsClass dst = (OptionalPrimitiveTypeFieldsClass) tmpl
 				.unpack(new Unpacker(in));
@@ -234,7 +234,7 @@ public class TestPackUnpack extends TestCase {
 				.create(GeneralReferenceTypeFieldsClass.class));
 		packer.pack(new Packer(out), src);
 		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = new OptionalTemplate(DynamicTemplate
+		Template tmpl = new NullableTemplate(DynamicTemplate
 				.create(GeneralReferenceTypeFieldsClass.class));
 		GeneralReferenceTypeFieldsClass dst = (GeneralReferenceTypeFieldsClass) tmpl
 				.unpack(new Unpacker(in));
@@ -342,7 +342,7 @@ public class TestPackUnpack extends TestCase {
 				.create(GeneralOptionalReferenceTypeFieldsClass.class));
 		packer.pack(new Packer(out), src);
 		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = new OptionalTemplate(DynamicTemplate
+		Template tmpl = new NullableTemplate(DynamicTemplate
 				.create(GeneralOptionalReferenceTypeFieldsClass.class));
 		GeneralOptionalReferenceTypeFieldsClass dst = (GeneralOptionalReferenceTypeFieldsClass) tmpl
 				.unpack(new Unpacker(in));
@@ -448,7 +448,7 @@ public class TestPackUnpack extends TestCase {
 				.create(SampleListTypes.class));
 		packer.pack(new Packer(out), src);
 		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = new OptionalTemplate(DynamicTemplate
+		Template tmpl = new NullableTemplate(DynamicTemplate
 				.create(SampleListTypes.class));
 		SampleListTypes dst = (SampleListTypes) tmpl.unpack(new Unpacker(in));
 		assertEquals(src, dst);
@@ -573,7 +573,7 @@ public class TestPackUnpack extends TestCase {
 				.create(SampleOptionalListTypes.class));
 		packer.pack(new Packer(out), src);
 		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = new OptionalTemplate(DynamicTemplate
+		Template tmpl = new NullableTemplate(DynamicTemplate
 				.create(SampleOptionalListTypes.class));
 		SampleListTypes dst = (SampleListTypes) tmpl.unpack(new Unpacker(in));
 		assertEquals(src, dst);
@@ -655,7 +655,7 @@ public class TestPackUnpack extends TestCase {
 				.create(SampleMapTypes.class));
 		packer.pack(new Packer(out), src);
 		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = new OptionalTemplate(DynamicTemplate
+		Template tmpl = new NullableTemplate(DynamicTemplate
 				.create(SampleMapTypes.class));
 		SampleMapTypes dst = (SampleMapTypes) tmpl.unpack(new Unpacker(in));
 		assertEquals(src, dst);
@@ -738,7 +738,7 @@ public class TestPackUnpack extends TestCase {
 				.create(SampleOptionalMapTypes.class));
 		packer.pack(new Packer(out), src);
 		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = new OptionalTemplate(DynamicTemplate
+		Template tmpl = new NullableTemplate(DynamicTemplate
 				.create(SampleOptionalMapTypes.class));
 		SampleOptionalMapTypes dst = (SampleOptionalMapTypes) tmpl
 				.unpack(new Unpacker(in));
@@ -993,7 +993,7 @@ public class TestPackUnpack extends TestCase {
 				.create(SampleEnumFieldClass.class));
 		packer.pack(new Packer(out), src);
 		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = new OptionalTemplate(DynamicTemplate
+		Template tmpl = new NullableTemplate(DynamicTemplate
 				.create(SampleEnumFieldClass.class));
 		SampleEnumFieldClass dst = (SampleEnumFieldClass) tmpl
 				.unpack(new Unpacker(in));
@@ -1057,7 +1057,7 @@ public class TestPackUnpack extends TestCase {
 				.create(SampleEnumFieldClass.class));
 		packer.pack(new Packer(out), src);
 		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = new OptionalTemplate(DynamicTemplate
+		Template tmpl = new NullableTemplate(DynamicTemplate
 				.create(SampleEnumFieldClass.class));
 		SampleEnumFieldClass dst = (SampleEnumFieldClass) tmpl
 				.unpack(new Unpacker(in));
@@ -1171,7 +1171,7 @@ public class TestPackUnpack extends TestCase {
 	public void testNestedFieldClass01() throws Exception {
 		Template tmpl2 = DynamicTemplate.create(NestedClass.class);
 		CustomMessage.register(NestedClass.class, tmpl2);
-		Template tmpl = new OptionalTemplate(DynamicTemplate.create(BaseClass.class));
+		Template tmpl = new NullableTemplate(DynamicTemplate.create(BaseClass.class));
 		BaseClass src = null;
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		tmpl.pack(new Packer(out), src);
@@ -1233,7 +1233,7 @@ public class TestPackUnpack extends TestCase {
 	public void testOptionalNestedFieldClass02() throws Exception {
 		Template tmpl2 = DynamicTemplate.create(OptionalNestedClass.class);
 		CustomMessage.register(OptionalNestedClass.class, tmpl2);
-		Template tmpl = new OptionalTemplate(DynamicTemplate.create(OptionalBaseClass.class));
+		Template tmpl = new NullableTemplate(DynamicTemplate.create(OptionalBaseClass.class));
 		CustomMessage.register(OptionalBaseClass.class, tmpl);
 		OptionalBaseClass src = null;
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -1287,7 +1287,7 @@ public class TestPackUnpack extends TestCase {
 				.create(BaseClass2.class));
 		packer.pack(new Packer(out), src);
 		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = new OptionalTemplate(DynamicTemplate
+		Template tmpl = new NullableTemplate(DynamicTemplate
 				.create(BaseClass2.class));
 		BaseClass2 dst = (BaseClass2) tmpl.unpack(new Unpacker(in));
 		assertEquals(src, dst);
@@ -1350,7 +1350,7 @@ public class TestPackUnpack extends TestCase {
 				.create(OptionalBaseClass2.class));
 		packer.pack(new Packer(out), src);
 		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = new OptionalTemplate(DynamicTemplate
+		Template tmpl = new NullableTemplate(DynamicTemplate
 				.create(OptionalBaseClass2.class));
 		OptionalBaseClass2 dst = (OptionalBaseClass2) tmpl.unpack(new Unpacker(
 				in));
@@ -1411,7 +1411,7 @@ public class TestPackUnpack extends TestCase {
 				.create(SampleSubClass.class));
 		packer.pack(new Packer(out), src);
 		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = new OptionalTemplate(DynamicTemplate
+		Template tmpl = new NullableTemplate(DynamicTemplate
 				.create(SampleSubClass.class));
 		SampleSubClass dst = (SampleSubClass) tmpl.unpack(new Unpacker(in));
 		assertEquals(src, dst);
@@ -1477,7 +1477,7 @@ public class TestPackUnpack extends TestCase {
 				.create(SampleOptionalSubClass.class));
 		packer.pack(new Packer(out), src);
 		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = new OptionalTemplate(DynamicTemplate
+		Template tmpl = new NullableTemplate(DynamicTemplate
 				.create(SampleOptionalSubClass.class));
 		SampleOptionalSubClass dst = (SampleOptionalSubClass) tmpl
 				.unpack(new Unpacker(in));
@@ -1545,7 +1545,7 @@ public class TestPackUnpack extends TestCase {
 				.create(BaseMessagePackableUnpackableClass.class));
 		packer.pack(new Packer(out), src);
 		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = new OptionalTemplate(DynamicTemplate
+		Template tmpl = new NullableTemplate(DynamicTemplate
 				.create(BaseMessagePackableUnpackableClass.class));
 		BaseMessagePackableUnpackableClass dst = (BaseMessagePackableUnpackableClass) tmpl
 				.unpack(new Unpacker(in));
@@ -1644,7 +1644,7 @@ public class TestPackUnpack extends TestCase {
 				.create(OptionalBaseMessagePackableUnpackableClass.class));
 		packer.pack(new Packer(out), src);
 		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = new OptionalTemplate(DynamicTemplate
+		Template tmpl = new NullableTemplate(DynamicTemplate
 				.create(OptionalBaseMessagePackableUnpackableClass.class));
 		OptionalBaseMessagePackableUnpackableClass dst = (OptionalBaseMessagePackableUnpackableClass) tmpl
 				.unpack(new Unpacker(in));

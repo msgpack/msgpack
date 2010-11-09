@@ -51,7 +51,7 @@ public class MessagePack {
 		return out.toByteArray();
 	}
 
-	public static void pack(OutputStream out, Object obj, Template tmpl) throws IOException {
+	public static void pack(OutputStream out, Object obj, Template tmpl) throws IOException, MessageTypeException {
 		new Packer(out).pack(obj, tmpl);
 	}
 
@@ -86,13 +86,9 @@ public class MessagePack {
 		}
 	}
 
-	public static MessagePackObject unpack(InputStream in) {
+	public static MessagePackObject unpack(InputStream in) throws IOException {
 		Unpacker pac = new Unpacker(in);
-		try {
-			return pac.unpackObject();
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
+		return pac.unpackObject();
 	}
 
 	public static Object unpack(InputStream in, Template tmpl) throws IOException, MessageTypeException {
