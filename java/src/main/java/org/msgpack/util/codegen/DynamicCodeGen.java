@@ -23,6 +23,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -257,7 +258,8 @@ class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 	Template createTemplate(Field field) {
 		Class<?> c = field.getType();
 		Template tmpl = null;
-		if (List.class.isAssignableFrom(c) || Map.class.isAssignableFrom(c)) {
+		if (List.class.isAssignableFrom(c) || Map.class.isAssignableFrom(c)
+				|| Collection.class.isAssignableFrom(c)) {
 			tmpl = createTemplate(field.getGenericType());
 		} else {
 			tmpl = createTemplate(c);

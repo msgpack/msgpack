@@ -25,6 +25,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -318,8 +319,8 @@ public class DynamicCodeGenBase implements Constants {
 				return Templates.tString();
 			} else if (c.equals(BigInteger.class)) {
 				return Templates.tBigInteger();
-			} else if (c.equals(ByteBuffer.class)) {// FIXME
-				return ByteBufferTemplate.getInstance();
+			} else if (c.equals(ByteBuffer.class)) {
+				return Templates.tByteBuffer();
 			} else if (CustomConverter.isRegistered(c)) {// FIXME
 				return (Template) CustomConverter.get(c);
 			} else if (CustomMessage.isAnnotated(c, MessagePackMessage.class)) {
@@ -363,8 +364,10 @@ public class DynamicCodeGenBase implements Constants {
 				return Templates.tList(createTemplate(ats[0]));
 			} else if (rawType.equals(Map.class)) {
 				Type[] ats = pt.getActualTypeArguments();
-				return Templates.tMap(createTemplate(ats[0]),
-						createTemplate(ats[1]));
+				return Templates.tMap(createTemplate(ats[0]), createTemplate(ats[1]));
+			} else if (rawType.equals(Collection.class)) {
+				Type[] ats = pt.getActualTypeArguments();
+				return Templates.tCollection(createTemplate(ats[0]));
 			} else {
 				throw new DynamicCodeGenException("Type error: "
 						+ t.getClass().getName());
