@@ -27,11 +27,11 @@ public class StringTemplate implements Template {
 		pk.packString((String)target);
 	}
 
-	public Object unpack(Unpacker pac) throws IOException, MessageTypeException {
+	public Object unpack(Unpacker pac, Object to) throws IOException, MessageTypeException {
 		return pac.unpackString();
 	}
 
-	public Object convert(MessagePackObject from) throws MessageTypeException {
+	public Object convert(MessagePackObject from, Object to) throws MessageTypeException {
 		return from.asString();
 	}
 

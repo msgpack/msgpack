@@ -55,7 +55,7 @@ public class TestPackConvert extends TestCase {
 		assertTrue(it.hasNext());
 		MessagePackObject mpo = it.next();
 		PrimitiveTypeFieldsClass dst = (PrimitiveTypeFieldsClass) tmpl
-				.convert(mpo);
+				.convert(mpo, null);
 		assertEquals(src.f0, dst.f0);
 		assertEquals(src.f1, dst.f1);
 		assertEquals(src.f2, dst.f2);
@@ -81,7 +81,7 @@ public class TestPackConvert extends TestCase {
 		assertTrue(it.hasNext());
 		MessagePackObject mpo = it.next();
 		PrimitiveTypeFieldsClass dst = (PrimitiveTypeFieldsClass) tmpl
-				.convert(mpo);
+				.convert(mpo, null);
 		assertEquals(src, dst);
 		assertFalse(it.hasNext());
 	}
@@ -121,7 +121,7 @@ public class TestPackConvert extends TestCase {
 		assertTrue(it.hasNext());
 		MessagePackObject mpo = it.next();
 		OptionalPrimitiveTypeFieldsClass dst = (OptionalPrimitiveTypeFieldsClass) tmpl
-				.convert(mpo);
+				.convert(mpo, null);
 		assertEquals(src.f0, dst.f0);
 		assertEquals(src.f1, dst.f1);
 		assertEquals(src.f2, dst.f2);
@@ -147,7 +147,7 @@ public class TestPackConvert extends TestCase {
 		assertTrue(it.hasNext());
 		MessagePackObject mpo = it.next();
 		OptionalPrimitiveTypeFieldsClass dst = (OptionalPrimitiveTypeFieldsClass) tmpl
-				.convert(mpo);
+				.convert(mpo, null);
 		assertEquals(src.f0, dst.f0);
 		assertEquals(src.f1, dst.f1);
 		assertEquals(src.f2, dst.f2);
@@ -173,7 +173,7 @@ public class TestPackConvert extends TestCase {
 		assertTrue(it.hasNext());
 		MessagePackObject mpo = it.next();
 		OptionalPrimitiveTypeFieldsClass dst = (OptionalPrimitiveTypeFieldsClass) tmpl
-				.convert(mpo);
+				.convert(mpo, null);
 		assertEquals(src, dst);
 		assertFalse(it.hasNext());
 	}
@@ -224,7 +224,7 @@ public class TestPackConvert extends TestCase {
 		assertTrue(it.hasNext());
 		MessagePackObject mpo = it.next();
 		GeneralReferenceTypeFieldsClass dst = (GeneralReferenceTypeFieldsClass) tmpl
-				.convert(mpo);
+				.convert(mpo, null);
 		assertEquals(src.f0, dst.f0);
 		assertEquals(src.f1, dst.f1);
 		assertEquals(src.f2, dst.f2);
@@ -255,7 +255,7 @@ public class TestPackConvert extends TestCase {
 		assertTrue(it.hasNext());
 		MessagePackObject mpo = it.next();
 		GeneralReferenceTypeFieldsClass dst = (GeneralReferenceTypeFieldsClass) tmpl
-				.convert(mpo);
+				.convert(mpo, null);
 		assertEquals(src, dst);
 		assertFalse(it.hasNext());
 	}
@@ -304,7 +304,7 @@ public class TestPackConvert extends TestCase {
 		assertTrue(it.hasNext());
 		MessagePackObject mpo = it.next();
 		OptionalGeneralReferenceTypeFieldsClass dst = (OptionalGeneralReferenceTypeFieldsClass) tmpl
-				.convert(mpo);
+				.convert(mpo, null);
 		assertEquals(src.f0, dst.f0);
 		assertEquals(src.f1, dst.f1);
 		assertEquals(src.f2, dst.f2);
@@ -347,7 +347,7 @@ public class TestPackConvert extends TestCase {
 		assertTrue(it.hasNext());
 		MessagePackObject mpo = it.next();
 		OptionalGeneralReferenceTypeFieldsClass dst = (OptionalGeneralReferenceTypeFieldsClass) tmpl
-				.convert(mpo);
+				.convert(mpo, null);
 		assertEquals(src.f0, dst.f0);
 		assertEquals(src.f1, dst.f1);
 		assertEquals(src.f2, dst.f2);
@@ -378,7 +378,7 @@ public class TestPackConvert extends TestCase {
 		assertTrue(it.hasNext());
 		MessagePackObject mpo = it.next();
 		OptionalGeneralReferenceTypeFieldsClass dst = (OptionalGeneralReferenceTypeFieldsClass) tmpl
-				.convert(mpo);
+				.convert(mpo, null);
 		assertEquals(src, dst);
 		assertFalse(it.hasNext());
 	}
@@ -443,7 +443,7 @@ public class TestPackConvert extends TestCase {
 		Iterator<MessagePackObject> it = pac.iterator();
 		assertTrue(it.hasNext());
 		MessagePackObject mpo = it.next();
-		SampleListTypes dst = (SampleListTypes) tmpl.convert(mpo);
+		SampleListTypes dst = (SampleListTypes) tmpl.convert(mpo, null);
 		assertEquals(src.f0.size(), dst.f0.size());
 		assertEquals(src.f1.size(), dst.f1.size());
 		for (int i = 0; i < src.f1.size(); ++i) {
@@ -493,7 +493,7 @@ public class TestPackConvert extends TestCase {
 		Iterator<MessagePackObject> it = pac.iterator();
 		assertTrue(it.hasNext());
 		MessagePackObject mpo = it.next();
-		SampleListTypes dst = (SampleListTypes) tmpl.convert(mpo);
+		SampleListTypes dst = (SampleListTypes) tmpl.convert(mpo, null);
 		assertEquals(src, dst);
 		assertFalse(it.hasNext());
 	}
@@ -553,7 +553,7 @@ public class TestPackConvert extends TestCase {
 		assertTrue(it.hasNext());
 		MessagePackObject mpo = it.next();
 		SampleOptionalListTypes dst = (SampleOptionalListTypes) tmpl
-				.convert(mpo);
+				.convert(mpo, null);
 		assertEquals(src.f0.size(), dst.f0.size());
 		assertEquals(src.f1.size(), dst.f1.size());
 		for (int i = 0; i < src.f1.size(); ++i) {
@@ -609,7 +609,7 @@ public class TestPackConvert extends TestCase {
 		assertTrue(it.hasNext());
 		MessagePackObject mpo = it.next();
 		SampleOptionalListTypes dst = (SampleOptionalListTypes) tmpl
-				.convert(mpo);
+				.convert(mpo, null);
 		assertEquals(src.f0.size(), dst.f0.size());
 		assertEquals(src.f1, dst.f1);
 		assertEquals(src.f2.size(), dst.f2.size());
@@ -634,7 +634,7 @@ public class TestPackConvert extends TestCase {
 		assertTrue(it.hasNext());
 		MessagePackObject mpo = it.next();
 		SampleOptionalListTypes dst = (SampleOptionalListTypes) tmpl
-				.convert(mpo);
+				.convert(mpo, null);
 		assertEquals(src, dst);
 		assertFalse(it.hasNext());
 	}
@@ -689,7 +689,7 @@ public class TestPackConvert extends TestCase {
 		Iterator<MessagePackObject> it = pac.iterator();
 		assertTrue(it.hasNext());
 		MessagePackObject mpo = it.next();
-		SampleMapTypes dst = (SampleMapTypes) tmpl.convert(mpo);
+		SampleMapTypes dst = (SampleMapTypes) tmpl.convert(mpo, null);
 		assertEquals(src.f0.size(), dst.f0.size());
 		assertEquals(src.f1.size(), dst.f1.size());
 		Iterator<Integer> srcf1 = src.f1.keySet().iterator();
@@ -726,7 +726,7 @@ public class TestPackConvert extends TestCase {
 		Iterator<MessagePackObject> it = pac.iterator();
 		assertTrue(it.hasNext());
 		MessagePackObject mpo = it.next();
-		SampleMapTypes dst = (SampleMapTypes) tmpl.convert(mpo);
+		SampleMapTypes dst = (SampleMapTypes) tmpl.convert(mpo, null);
 		assertEquals(src, dst);
 		assertFalse(it.hasNext());
 	}
@@ -762,7 +762,7 @@ public class TestPackConvert extends TestCase {
 		Iterator<MessagePackObject> it = pac.iterator();
 		assertTrue(it.hasNext());
 		MessagePackObject mpo = it.next();
-		SampleOptionalMapTypes dst = (SampleOptionalMapTypes) tmpl.convert(mpo);
+		SampleOptionalMapTypes dst = (SampleOptionalMapTypes) tmpl.convert(mpo, null);
 		assertEquals(src.f0.size(), dst.f0.size());
 		assertEquals(src.f1.size(), dst.f1.size());
 		Iterator<Integer> srcf1 = src.f1.keySet().iterator();
@@ -801,7 +801,7 @@ public class TestPackConvert extends TestCase {
 		Iterator<MessagePackObject> it = pac.iterator();
 		assertTrue(it.hasNext());
 		MessagePackObject mpo = it.next();
-		SampleOptionalMapTypes dst = (SampleOptionalMapTypes) tmpl.convert(mpo);
+		SampleOptionalMapTypes dst = (SampleOptionalMapTypes) tmpl.convert(mpo, null);
 		assertEquals(src.f0.size(), dst.f0.size());
 		assertEquals(src.f1, dst.f1);
 		assertEquals(src.f2.size(), dst.f2.size());
@@ -822,7 +822,7 @@ public class TestPackConvert extends TestCase {
 		Iterator<MessagePackObject> it = pac.iterator();
 		assertTrue(it.hasNext());
 		MessagePackObject mpo = it.next();
-		SampleOptionalMapTypes dst = (SampleOptionalMapTypes) tmpl.convert(mpo);
+		SampleOptionalMapTypes dst = (SampleOptionalMapTypes) tmpl.convert(mpo, null);
 		assertEquals(src, dst);
 		assertFalse(it.hasNext());
 	}
@@ -1072,7 +1072,7 @@ public class TestPackConvert extends TestCase {
 		Iterator<MessagePackObject> it = pac.iterator();
 		assertTrue(it.hasNext());
 		MessagePackObject mpo = it.next();
-		SampleEnumFieldClass dst = (SampleEnumFieldClass) tmpl.convert(mpo);
+		SampleEnumFieldClass dst = (SampleEnumFieldClass) tmpl.convert(mpo, null);
 		assertTrue(src.f0 == dst.f0);
 		assertTrue(src.f1 == dst.f1);
 		assertFalse(it.hasNext());
@@ -1092,7 +1092,7 @@ public class TestPackConvert extends TestCase {
 		Iterator<MessagePackObject> it = pac.iterator();
 		assertTrue(it.hasNext());
 		MessagePackObject mpo = it.next();
-		SampleEnumFieldClass dst = (SampleEnumFieldClass) tmpl.convert(mpo);
+		SampleEnumFieldClass dst = (SampleEnumFieldClass) tmpl.convert(mpo, null);
 		assertEquals(src, dst);
 		assertFalse(it.hasNext());
 	}
@@ -1127,7 +1127,7 @@ public class TestPackConvert extends TestCase {
 		assertTrue(it.hasNext());
 		MessagePackObject mpo = it.next();
 		SampleOptionalEnumFieldClass dst = (SampleOptionalEnumFieldClass) tmpl
-				.convert(mpo);
+				.convert(mpo, null);
 		assertTrue(src.f0 == dst.f0);
 		assertTrue(src.f1 == dst.f1);
 		assertFalse(it.hasNext());
@@ -1149,7 +1149,7 @@ public class TestPackConvert extends TestCase {
 		assertTrue(it.hasNext());
 		MessagePackObject mpo = it.next();
 		SampleOptionalEnumFieldClass dst = (SampleOptionalEnumFieldClass) tmpl
-				.convert(mpo);
+				.convert(mpo, null);
 		assertEquals(src.f0, dst.f0);
 		assertEquals(src.f1, dst.f1);
 		assertFalse(it.hasNext());
@@ -1170,7 +1170,7 @@ public class TestPackConvert extends TestCase {
 		assertTrue(it.hasNext());
 		MessagePackObject mpo = it.next();
 		SampleOptionalEnumFieldClass dst = (SampleOptionalEnumFieldClass) tmpl
-				.convert(mpo);
+				.convert(mpo, null);
 		assertEquals(src, dst);
 		assertFalse(it.hasNext());
 	}
@@ -1206,7 +1206,7 @@ public class TestPackConvert extends TestCase {
 		Iterator<MessagePackObject> it = pac.iterator();
 		assertTrue(it.hasNext());
 		MessagePackObject mpo = it.next();
-		FieldModifiersClass dst = (FieldModifiersClass) tmpl.convert(mpo);
+		FieldModifiersClass dst = (FieldModifiersClass) tmpl.convert(mpo, null);
 		assertTrue(src.f0 == dst.f0);
 		assertTrue(src.f1 == dst.f1);
 		assertTrue(src.f2 != dst.f2);
@@ -1245,7 +1245,7 @@ public class TestPackConvert extends TestCase {
 		assertTrue(it.hasNext());
 		MessagePackObject mpo = it.next();
 		OptionalFieldModifiersClass dst = (OptionalFieldModifiersClass) tmpl
-				.convert(mpo);
+				.convert(mpo, null);
 		assertTrue(src.f0 == dst.f0);
 		assertTrue(src.f1 == dst.f1);
 		assertTrue(src.f2 != dst.f2);
@@ -1429,7 +1429,7 @@ public class TestPackConvert extends TestCase {
 		assertTrue(it.hasNext());
 		MessagePackObject mpo = it.next();
 		Template tmpl = DynamicTemplate.create(BaseClass2.class);
-		BaseClass2 dst = (BaseClass2) tmpl.convert(mpo);
+		BaseClass2 dst = (BaseClass2) tmpl.convert(mpo, null);
 		assertTrue(src.f0 == dst.f0);
 		assertTrue(src.f1.f2 == dst.f1.f2);
 		assertFalse(it.hasNext());
@@ -1449,7 +1449,7 @@ public class TestPackConvert extends TestCase {
 		MessagePackObject mpo = it.next();
 		Template tmpl = new NullableTemplate(DynamicTemplate
 				.create(BaseClass2.class));
-		BaseClass2 dst = (BaseClass2) tmpl.convert(mpo);
+		BaseClass2 dst = (BaseClass2) tmpl.convert(mpo, null);
 		assertEquals(src, dst);
 		assertFalse(it.hasNext());
 	}
@@ -1486,7 +1486,7 @@ public class TestPackConvert extends TestCase {
 		assertTrue(it.hasNext());
 		MessagePackObject mpo = it.next();
 		Template tmpl = DynamicTemplate.create(OptionalBaseClass2.class);
-		OptionalBaseClass2 dst = (OptionalBaseClass2) tmpl.convert(mpo);
+		OptionalBaseClass2 dst = (OptionalBaseClass2) tmpl.convert(mpo, null);
 		assertTrue(src.f0 == dst.f0);
 		assertTrue(src.f1.f2 == dst.f1.f2);
 		assertFalse(it.hasNext());
@@ -1504,7 +1504,7 @@ public class TestPackConvert extends TestCase {
 		assertTrue(it.hasNext());
 		MessagePackObject mpo = it.next();
 		Template tmpl = DynamicTemplate.create(OptionalBaseClass2.class);
-		OptionalBaseClass2 dst = (OptionalBaseClass2) tmpl.convert(mpo);
+		OptionalBaseClass2 dst = (OptionalBaseClass2) tmpl.convert(mpo, null);
 		assertTrue(src.f0 == dst.f0);
 		assertEquals(src.f1, dst.f1);
 		assertFalse(it.hasNext());
@@ -1524,7 +1524,7 @@ public class TestPackConvert extends TestCase {
 		MessagePackObject mpo = it.next();
 		Template tmpl = new NullableTemplate(DynamicTemplate
 				.create(OptionalBaseClass2.class));
-		OptionalBaseClass2 dst = (OptionalBaseClass2) tmpl.convert(mpo);
+		OptionalBaseClass2 dst = (OptionalBaseClass2) tmpl.convert(mpo, null);
 		assertEquals(src, dst);
 		assertFalse(it.hasNext());
 	}
@@ -1567,7 +1567,7 @@ public class TestPackConvert extends TestCase {
 		Iterator<MessagePackObject> it = pac.iterator();
 		assertTrue(it.hasNext());
 		MessagePackObject mpo = it.next();
-		SampleSubClass dst = (SampleSubClass) tmpl.convert(mpo);
+		SampleSubClass dst = (SampleSubClass) tmpl.convert(mpo, null);
 		assertTrue(src.f0 == dst.f0);
 		assertTrue(src.f1 == dst.f1);
 		assertTrue(src.f2 != dst.f2);
@@ -1594,7 +1594,7 @@ public class TestPackConvert extends TestCase {
 		Iterator<MessagePackObject> it = pac.iterator();
 		assertTrue(it.hasNext());
 		MessagePackObject mpo = it.next();
-		SampleSubClass dst = (SampleSubClass) tmpl.convert(mpo);
+		SampleSubClass dst = (SampleSubClass) tmpl.convert(mpo, null);
 		assertEquals(src, dst);
 		assertFalse(it.hasNext());
 	}
@@ -1642,7 +1642,7 @@ public class TestPackConvert extends TestCase {
 		Iterator<MessagePackObject> it = pac.iterator();
 		assertTrue(it.hasNext());
 		MessagePackObject mpo = it.next();
-		SampleOptionalSubClass dst = (SampleOptionalSubClass) tmpl.convert(mpo);
+		SampleOptionalSubClass dst = (SampleOptionalSubClass) tmpl.convert(mpo, null);
 		assertTrue(src.f0 == dst.f0);
 		assertTrue(src.f1 == dst.f1);
 		assertTrue(src.f2 != dst.f2);
@@ -1669,7 +1669,7 @@ public class TestPackConvert extends TestCase {
 		Iterator<MessagePackObject> it = pac.iterator();
 		assertTrue(it.hasNext());
 		MessagePackObject mpo = it.next();
-		SampleOptionalSubClass dst = (SampleOptionalSubClass) tmpl.convert(mpo);
+		SampleOptionalSubClass dst = (SampleOptionalSubClass) tmpl.convert(mpo, null);
 		assertEquals(src, dst);
 		assertFalse(it.hasNext());
 	}
@@ -1722,7 +1722,7 @@ public class TestPackConvert extends TestCase {
 		assertTrue(it.hasNext());
 		MessagePackObject mpo = it.next();
 		BaseMessagePackableConvertableClass dst = (BaseMessagePackableConvertableClass) tmpl
-				.convert(mpo);
+				.convert(mpo, null);
 		assertEquals(src.f0.f0, dst.f0.f0);
 		assertEquals(src.f0.f1, dst.f0.f1);
 		assertEquals(src.f1, dst.f1);
@@ -1747,7 +1747,7 @@ public class TestPackConvert extends TestCase {
 		assertTrue(it.hasNext());
 		MessagePackObject mpo = it.next();
 		BaseMessagePackableConvertableClass dst = (BaseMessagePackableConvertableClass) tmpl
-				.convert(mpo);
+				.convert(mpo, null);
 		assertEquals(src, dst);
 		assertFalse(it.hasNext());
 	}
@@ -1811,7 +1811,7 @@ public class TestPackConvert extends TestCase {
 		assertTrue(it.hasNext());
 		MessagePackObject mpo = it.next();
 		OptionalBaseMessagePackableConvertableClass dst = (OptionalBaseMessagePackableConvertableClass) tmpl
-				.convert(mpo);
+				.convert(mpo, null);
 		assertEquals(src.f0.f0, dst.f0.f0);
 		assertEquals(src.f0.f1, dst.f0.f1);
 		assertEquals(src.f1, dst.f1);
@@ -1839,7 +1839,7 @@ public class TestPackConvert extends TestCase {
 		assertTrue(it.hasNext());
 		MessagePackObject mpo = it.next();
 		OptionalBaseMessagePackableConvertableClass dst = (OptionalBaseMessagePackableConvertableClass) tmpl
-				.convert(mpo);
+				.convert(mpo, null);
 		assertEquals(src.f0, dst.f0);
 		assertEquals(src.f1, dst.f1);
 		assertEquals(src.f2, dst.f2);
@@ -1861,7 +1861,7 @@ public class TestPackConvert extends TestCase {
 		assertTrue(it.hasNext());
 		MessagePackObject mpo = it.next();
 		OptionalBaseMessagePackableConvertableClass dst = (OptionalBaseMessagePackableConvertableClass) tmpl
-				.convert(mpo);
+				.convert(mpo, null);
 		assertEquals(src, dst);
 		assertFalse(it.hasNext());
 	}

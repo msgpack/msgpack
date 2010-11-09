@@ -52,24 +52,36 @@ public class MapTemplate implements Template {
 		}
 	}
 
-	public Object unpack(Unpacker pac) throws IOException, MessageTypeException {
+	public Object unpack(Unpacker pac, Object to) throws IOException, MessageTypeException {
 		int length = pac.unpackMap();
-		Map<Object,Object> map = new HashMap<Object,Object>(length);
+		Map<Object,Object> map;
+		if(to == null) {
+			map = new HashMap<Object,Object>(length);
+		} else {
+			map = (Map<Object,Object>)to;
+			map.clear();
+		}
 		for(; length > 0; length--) {
-			Object key = keyTemplate.unpack(pac);
-			Object value = valueTemplate.unpack(pac);
+			Object key = keyTemplate.unpack(pac, null);
+			Object value = valueTemplate.unpack(pac, null);
 			map.put(key, value);
 		}
 		return map;
 	}
 
 	@SuppressWarnings("unchecked")
-	public Object convert(MessagePackObject from) throws MessageTypeException {
+	public Object convert(MessagePackObject from, Object to) throws MessageTypeException {
 		Map<MessagePackObject,MessagePackObject> src = from.asMap();
-		Map<Object,Object> map = new HashMap();
+		Map<Object,Object> map;
+		if(to == null) {
+			map = new HashMap<Object,Object>(src.size());
+		} else {
+			map = (Map<Object,Object>)to;
+			map.clear();
+		}
 		for(Map.Entry<MessagePackObject,MessagePackObject> pair : src.entrySet()) {
-			Object key = keyTemplate.convert(pair.getKey());
-			Object value = valueTemplate.convert(pair.getValue());
+			Object key = keyTemplate.convert(pair.getKey(), null);
+			Object value = valueTemplate.convert(pair.getValue(), null);
 			map.put(key, value);
 		}
 		return map;

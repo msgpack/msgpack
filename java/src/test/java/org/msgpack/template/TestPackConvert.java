@@ -37,7 +37,7 @@ public class TestPackConvert extends TestCase {
 		new Packer(out).pack(src);
 		MessagePackObject obj = Util.unpackOne(out.toByteArray());
 		Template tmpl = IntegerTemplate.getInstance();
-		Integer dst = (Integer) tmpl.convert(obj);
+		Integer dst = (Integer) tmpl.convert(obj, null);
 		assertEquals(src, dst);
 	}
 
@@ -50,14 +50,14 @@ public class TestPackConvert extends TestCase {
 		Template tmpl = IntegerTemplate.getInstance();
 		Integer dst = null;
 		try {
-			dst = (Integer) tmpl.convert(obj);
+			dst = (Integer) tmpl.convert(obj, null);
 			fail();
 		} catch (Exception e) {
 			assertTrue(e instanceof MessageTypeException);
 		}
 		obj = Util.unpackOne(out.toByteArray());
 		tmpl = new NullableTemplate(IntegerTemplate.getInstance());
-		dst = (Integer) tmpl.convert(obj);
+		dst = (Integer) tmpl.convert(obj, null);
 		assertEquals(src, dst);
 	}
 
@@ -81,7 +81,7 @@ public class TestPackConvert extends TestCase {
 		new Packer(out).pack(src);
 		MessagePackObject obj = Util.unpackOne(out.toByteArray());
 		Template tmpl = LongTemplate.getInstance();
-		Long dst = (Long) tmpl.convert(obj);
+		Long dst = (Long) tmpl.convert(obj, null);
 		assertEquals(src, dst);
 	}
 
@@ -94,14 +94,14 @@ public class TestPackConvert extends TestCase {
 		Template tmpl = LongTemplate.getInstance();
 		Long dst = null;
 		try {
-			dst = (Long) tmpl.convert(obj);
+			dst = (Long) tmpl.convert(obj, null);
 			fail();
 		} catch (Exception e) {
 			assertTrue(e instanceof MessageTypeException);
 		}
 		obj = Util.unpackOne(out.toByteArray());
 		tmpl = new NullableTemplate(LongTemplate.getInstance());
-		dst = (Long) tmpl.convert(obj);
+		dst = (Long) tmpl.convert(obj, null);
 		assertEquals(src, dst);
 	}
 
@@ -128,7 +128,7 @@ public class TestPackConvert extends TestCase {
 		new Packer(out).pack(src);
 		MessagePackObject obj = Util.unpackOne(out.toByteArray());
 		Template tmpl = BigIntegerTemplate.getInstance();
-		BigInteger dst = (BigInteger) tmpl.convert(obj);
+		BigInteger dst = (BigInteger) tmpl.convert(obj, null);
 		assertEquals(src, dst);
 	}
 
@@ -141,14 +141,14 @@ public class TestPackConvert extends TestCase {
 		Template tmpl = BigIntegerTemplate.getInstance();
 		BigInteger dst = null;
 		try {
-			dst = (BigInteger) tmpl.convert(obj);
+			dst = (BigInteger) tmpl.convert(obj, null);
 			fail();
 		} catch (Exception e) {
 			assertTrue(e instanceof MessageTypeException);
 		}
 		obj = Util.unpackOne(out.toByteArray());
 		tmpl = new NullableTemplate(BigIntegerTemplate.getInstance());
-		dst = (BigInteger) tmpl.convert(obj);
+		dst = (BigInteger) tmpl.convert(obj, null);
 		assertEquals(src, dst);
 	}
 
@@ -174,7 +174,7 @@ public class TestPackConvert extends TestCase {
 		new Packer(out).pack(src);
 		MessagePackObject obj = Util.unpackOne(out.toByteArray());
 		Template tmpl = FloatTemplate.getInstance();
-		Float dst = (Float) tmpl.convert(obj);
+		Float dst = (Float) tmpl.convert(obj, null);
 		assertEquals(src, dst, 10e-10);
 	}
 
@@ -187,14 +187,14 @@ public class TestPackConvert extends TestCase {
 		Template tmpl = FloatTemplate.getInstance();
 		Float dst = null;
 		try {
-			dst = (Float) tmpl.convert(obj);
+			dst = (Float) tmpl.convert(obj, null);
 			fail();
 		} catch (Exception e) {
 			assertTrue(e instanceof MessageTypeException);
 		}
 		obj = Util.unpackOne(out.toByteArray());
 		tmpl = new NullableTemplate(FloatTemplate.getInstance());
-		dst = (Float) tmpl.convert(obj);
+		dst = (Float) tmpl.convert(obj, null);
 		assertEquals(src, dst);
 	}
 
@@ -220,7 +220,7 @@ public class TestPackConvert extends TestCase {
 		new Packer(out).pack(src);
 		MessagePackObject obj = Util.unpackOne(out.toByteArray());
 		Template tmpl = DoubleTemplate.getInstance();
-		Double dst = (Double) tmpl.convert(obj);
+		Double dst = (Double) tmpl.convert(obj, null);
 		assertEquals(src, dst, 10e-10);
 	}
 
@@ -233,14 +233,14 @@ public class TestPackConvert extends TestCase {
 		Template tmpl = DoubleTemplate.getInstance();
 		Double dst = null;
 		try {
-			dst = (Double) tmpl.convert(obj);
+			dst = (Double) tmpl.convert(obj, null);
 			fail();
 		} catch (Exception e) {
 			assertTrue(e instanceof MessageTypeException);
 		}
 		obj = Util.unpackOne(out.toByteArray());
 		tmpl = new NullableTemplate(DoubleTemplate.getInstance());
-		dst = (Double) tmpl.convert(obj);
+		dst = (Double) tmpl.convert(obj, null);
 		assertEquals(src, dst);
 	}
 
@@ -255,7 +255,7 @@ public class TestPackConvert extends TestCase {
 		new Packer(out).pack(src);
 		MessagePackObject obj = Util.unpackOne(out.toByteArray());
 		Template tmpl = BooleanTemplate.getInstance();
-		Boolean dst = (Boolean) tmpl.convert(obj);
+		Boolean dst = (Boolean) tmpl.convert(obj, null);
 		assertEquals(src, dst);
 	}
 
@@ -268,14 +268,14 @@ public class TestPackConvert extends TestCase {
 		Template tmpl = BooleanTemplate.getInstance();
 		Boolean dst = null;
 		try {
-			dst = (Boolean) tmpl.convert(obj);
+			dst = (Boolean) tmpl.convert(obj, null);
 			fail();
 		} catch (Exception e) {
 			assertTrue(e instanceof MessageTypeException);
 		}
 		obj = Util.unpackOne(out.toByteArray());
 		tmpl = new NullableTemplate(BooleanTemplate.getInstance());
-		dst = (Boolean) tmpl.convert(obj);
+		dst = (Boolean) tmpl.convert(obj, null);
 		assertEquals(src, dst);
 	}
 
@@ -322,7 +322,7 @@ public class TestPackConvert extends TestCase {
 		new Packer(out).pack(src);
 		MessagePackObject obj = Util.unpackOne(out.toByteArray());
 		Template tmpl = StringTemplate.getInstance();
-		String dst = (String) tmpl.convert(obj);
+		String dst = (String) tmpl.convert(obj, null);
 		assertEquals(src, dst);
 	}
 
@@ -335,14 +335,14 @@ public class TestPackConvert extends TestCase {
 		Template tmpl = StringTemplate.getInstance();
 		String dst = null;
 		try {
-			dst = (String) tmpl.convert(obj);
+			dst = (String) tmpl.convert(obj, null);
 			fail();
 		} catch (Exception e) {
 			assertTrue(e instanceof MessageTypeException);
 		}
 		obj = Util.unpackOne(out.toByteArray());
 		tmpl = new NullableTemplate(StringTemplate.getInstance());
-		dst = (String) tmpl.convert(obj);
+		dst = (String) tmpl.convert(obj, null);
 		assertEquals(src, dst);
 	}
 
@@ -355,7 +355,7 @@ public class TestPackConvert extends TestCase {
 			new Packer(out).pack(emptyList);
 			MessagePackObject obj = Util.unpackOne(out.toByteArray());
 			Template tmpl = new ListTemplate(IntegerTemplate.getInstance());
-			List<Integer> dst = (List<Integer>) tmpl.convert(obj);
+			List<Integer> dst = (List<Integer>) tmpl.convert(obj, null);
 			assertEquals(emptyList, dst);
 		}
 
@@ -369,7 +369,7 @@ public class TestPackConvert extends TestCase {
 			new Packer(out).pack(l);
 			MessagePackObject obj = Util.unpackOne(out.toByteArray());
 			Template tmpl = new ListTemplate(IntegerTemplate.getInstance());
-			List<Integer> dst = (List<Integer>) tmpl.convert(obj);
+			List<Integer> dst = (List<Integer>) tmpl.convert(obj, null);
 			assertEquals(l.size(), dst.size());
 			for (int j = 0; j < len; j++) {
 				assertEquals(l.get(j), dst.get(j));
@@ -386,7 +386,7 @@ public class TestPackConvert extends TestCase {
 			new Packer(out).pack(l);
 			MessagePackObject obj = Util.unpackOne(out.toByteArray());
 			Template tmpl = new ListTemplate(StringTemplate.getInstance());
-			List<String> dst = (List<String>) tmpl.convert(obj);
+			List<String> dst = (List<String>) tmpl.convert(obj, null);
 			assertEquals(l.size(), dst.size());
 			for (int j = 0; j < len; j++) {
 				assertEquals(l.get(j), dst.get(j));
@@ -404,7 +404,7 @@ public class TestPackConvert extends TestCase {
 		Template tmpl = new ListTemplate(StringTemplate.getInstance());
 		List<String> dst = null;
 		try {
-			dst = (List<String>) tmpl.convert(obj);
+			dst = (List<String>) tmpl.convert(obj, null);
 			fail();
 		} catch (Exception e) {
 			assertTrue(e instanceof MessageTypeException);
@@ -412,7 +412,7 @@ public class TestPackConvert extends TestCase {
 		obj = Util.unpackOne(out.toByteArray());
 		tmpl = new NullableTemplate(new ListTemplate(StringTemplate
 				.getInstance()));
-		dst = (List<String>) tmpl.convert(obj);
+		dst = (List<String>) tmpl.convert(obj, null);
 		assertEquals(src, dst);
 	}
 
@@ -427,7 +427,7 @@ public class TestPackConvert extends TestCase {
 			Template tmpl = new MapTemplate(IntegerTemplate.getInstance(),
 					IntegerTemplate.getInstance());
 			Map<Integer, Integer> dst = (Map<Integer, Integer>) tmpl
-					.convert(obj);
+					.convert(obj, null);
 			assertEquals(emptyMap, dst);
 		}
 
@@ -443,7 +443,7 @@ public class TestPackConvert extends TestCase {
 			Template tmpl = new MapTemplate(IntegerTemplate.getInstance(),
 					IntegerTemplate.getInstance());
 			Map<Integer, Integer> map = (Map<Integer, Integer>) tmpl
-					.convert(obj);
+					.convert(obj, null);
 			assertEquals(m.size(), map.size());
 			for (Map.Entry<Integer, Integer> pair : map.entrySet()) {
 				Integer val = m.get(pair.getKey());
@@ -462,7 +462,7 @@ public class TestPackConvert extends TestCase {
 			MessagePackObject obj = Util.unpackOne(out.toByteArray());
 			Template tmpl = new MapTemplate(StringTemplate.getInstance(),
 					IntegerTemplate.getInstance());
-			Map<String, Integer> map = (Map<String, Integer>) tmpl.convert(obj);
+			Map<String, Integer> map = (Map<String, Integer>) tmpl.convert(obj, null);
 			assertEquals(m.size(), map.size());
 			for (Map.Entry<String, Integer> pair : map.entrySet()) {
 				Integer val = m.get(pair.getKey());
@@ -483,7 +483,7 @@ public class TestPackConvert extends TestCase {
 				StringTemplate.getInstance());
 		Map<String, String> dst = null;
 		try {
-			dst = (Map<String, String>) tmpl.convert(obj);
+			dst = (Map<String, String>) tmpl.convert(obj, null);
 			fail();
 		} catch (Exception e) {
 			assertTrue(e instanceof MessageTypeException);
@@ -491,7 +491,7 @@ public class TestPackConvert extends TestCase {
 		obj = Util.unpackOne(out.toByteArray());
 		tmpl = new NullableTemplate(new MapTemplate(StringTemplate
 				.getInstance(), StringTemplate.getInstance()));
-		dst = (Map<String, String>) tmpl.convert(obj);
+		dst = (Map<String, String>) tmpl.convert(obj, null);
 		assertEquals(src, dst);
 	}
 }

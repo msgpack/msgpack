@@ -41,20 +41,34 @@ public class CollectionTemplate implements Template {
 		}
 	}
 
-	public Object unpack(Unpacker pac) throws IOException, MessageTypeException {
+	public Object unpack(Unpacker pac, Object to) throws IOException, MessageTypeException {
 		int length = pac.unpackArray();
-		List<Object> list = new LinkedList<Object>();
+		List<Object> list;
+		if(to == null) {
+			list = new LinkedList<Object>();
+		} else {
+			// TODO: optimize if list is instanceof ArrayList
+			list = (List<Object>)to;
+			list.clear();
+		}
 		for(; length > 0; length--) {
-			list.add( elementTemplate.unpack(pac) );
+			list.add( elementTemplate.unpack(pac, null) );
 		}
 		return list;
 	}
 
-	public Object convert(MessagePackObject from) throws MessageTypeException {
+	public Object convert(MessagePackObject from, Object to) throws MessageTypeException {
 		MessagePackObject[] array = from.asArray();
-		List<Object> list = new LinkedList<Object>();
+		List<Object> list;
+		if(to == null) {
+			list = new LinkedList<Object>();
+		} else {
+			// TODO: optimize if list is instanceof ArrayList
+			list = (List<Object>)to;
+			list.clear();
+		}
 		for(MessagePackObject element : array) {
-			list.add( elementTemplate.convert(element) );
+			list.add( elementTemplate.convert(element, null) );
 		}
 		return list;
 	}

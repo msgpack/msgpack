@@ -62,7 +62,7 @@ public class TestPackUnpackWithFieldOption extends TestCase {
 		Template tmpl = DynamicTemplate.create(PrimitiveTypeFieldsClass.class,
 				opts);
 		PrimitiveTypeFieldsClass dst = (PrimitiveTypeFieldsClass) tmpl
-				.unpack(new Unpacker(in));
+				.unpack(new Unpacker(in), null);
 		assertEquals(src.f0, dst.f0);
 		assertEquals(src.f1, dst.f1);
 		assertEquals(src.f2, dst.f2);
@@ -92,7 +92,7 @@ public class TestPackUnpackWithFieldOption extends TestCase {
 		Template tmpl = DynamicTemplate.create(PrimitiveTypeFieldsClass.class,
 				opts);
 		PrimitiveTypeFieldsClass dst = (PrimitiveTypeFieldsClass) tmpl
-				.unpack(new Unpacker(in));
+				.unpack(new Unpacker(in), null);
 		assertEquals(src.f0, dst.f0);
 		assertEquals(src.f1, dst.f1);
 		assertEquals(src.f2, dst.f2);
@@ -122,7 +122,7 @@ public class TestPackUnpackWithFieldOption extends TestCase {
 		Template tmpl = new NullableTemplate(DynamicTemplate.create(
 				PrimitiveTypeFieldsClass.class, opts));
 		PrimitiveTypeFieldsClass dst = (PrimitiveTypeFieldsClass) tmpl
-				.unpack(new Unpacker(in));
+				.unpack(new Unpacker(in), null);
 		assertEquals(src, dst);
 	}
 
@@ -172,7 +172,7 @@ public class TestPackUnpackWithFieldOption extends TestCase {
 		Template tmpl = DynamicTemplate
 				.create(GeneralReferenceTypeFieldsClass.class, opts);
 		GeneralReferenceTypeFieldsClass dst = (GeneralReferenceTypeFieldsClass) tmpl
-				.unpack(new Unpacker(in));
+				.unpack(new Unpacker(in), null);
 		assertEquals(src.f0, dst.f0);
 		assertEquals(src.f1, dst.f1);
 		assertEquals(src.f2, dst.f2);
@@ -219,7 +219,7 @@ public class TestPackUnpackWithFieldOption extends TestCase {
 		Template tmpl = DynamicTemplate
 				.create(GeneralReferenceTypeFieldsClass.class, opts);
 		GeneralReferenceTypeFieldsClass dst = (GeneralReferenceTypeFieldsClass) tmpl
-				.unpack(new Unpacker(in));
+				.unpack(new Unpacker(in), null);
 		assertEquals(src.f0, dst.f0);
 		assertEquals(src.f1, dst.f1);
 		assertEquals(src.f2, dst.f2);
@@ -256,7 +256,7 @@ public class TestPackUnpackWithFieldOption extends TestCase {
 		Template tmpl = new NullableTemplate(DynamicTemplate
 				.create(GeneralReferenceTypeFieldsClass.class, opts));
 		GeneralReferenceTypeFieldsClass dst = (GeneralReferenceTypeFieldsClass) tmpl
-				.unpack(new Unpacker(in));
+				.unpack(new Unpacker(in), null);
 		assertEquals(src, dst);
 	}
 
@@ -309,7 +309,7 @@ public class TestPackUnpackWithFieldOption extends TestCase {
 		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
 		Template tmpl = DynamicTemplate.create(SampleListTypes.class, opts);
 		SampleListTypes dst = (SampleListTypes) tmpl
-				.unpack(new Unpacker(in));
+				.unpack(new Unpacker(in), null);
 		assertEquals(src.f0.size(), dst.f0.size());
 		assertEquals(src.f1.size(), dst.f1.size());
 		for (int i = 0; i < src.f1.size(); ++i) {
@@ -360,7 +360,7 @@ public class TestPackUnpackWithFieldOption extends TestCase {
 		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
 		Template tmpl = DynamicTemplate.create(SampleListTypes.class, opts);
 		SampleListTypes dst = (SampleListTypes) tmpl
-				.unpack(new Unpacker(in));
+				.unpack(new Unpacker(in), null);
 		assertEquals(src.f0.size(), dst.f0.size());
 		assertEquals(src.f1, dst.f1);
 		assertEquals(src.f2.size(), dst.f2.size());
@@ -385,7 +385,7 @@ public class TestPackUnpackWithFieldOption extends TestCase {
 		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
 		Template tmpl = new NullableTemplate(DynamicTemplate
 				.create(SampleListTypes.class));
-		SampleListTypes dst = (SampleListTypes) tmpl.unpack(new Unpacker(in));
+		SampleListTypes dst = (SampleListTypes) tmpl.unpack(new Unpacker(in), null);
 		assertEquals(src, dst);
 	}
 
@@ -433,7 +433,7 @@ public class TestPackUnpackWithFieldOption extends TestCase {
 		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
 		Template tmpl = DynamicTemplate.create(SampleMapTypes.class, opts);
 		SampleMapTypes dst = (SampleMapTypes) tmpl
-				.unpack(new Unpacker(in));
+				.unpack(new Unpacker(in), null);
 		assertEquals(src.f0.size(), dst.f0.size());
 		assertEquals(src.f1.size(), dst.f1.size());
 		Iterator<Integer> srcf1 = src.f1.keySet().iterator();
@@ -473,7 +473,7 @@ public class TestPackUnpackWithFieldOption extends TestCase {
 		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
 		Template tmpl = DynamicTemplate.create(SampleMapTypes.class, opts);
 		SampleMapTypes dst = (SampleMapTypes) tmpl
-				.unpack(new Unpacker(in));
+				.unpack(new Unpacker(in), null);
 		assertEquals(src.f0.size(), dst.f0.size());
 		assertEquals(src.f1, dst.f1);
 		assertEquals(src.f2.size(), dst.f2.size());
@@ -495,7 +495,7 @@ public class TestPackUnpackWithFieldOption extends TestCase {
 		Template tmpl = new NullableTemplate(DynamicTemplate
 				.create(SampleMapTypes.class, opts));
 		SampleMapTypes dst = (SampleMapTypes) tmpl
-				.unpack(new Unpacker(in));
+				.unpack(new Unpacker(in), null);
 		assertEquals(src, dst);
 	}
 

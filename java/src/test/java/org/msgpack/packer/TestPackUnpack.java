@@ -61,14 +61,14 @@ public class TestPackUnpack extends TestCase {
 		try {
 			tmpl = ByteTemplate.getInstance();
 			unpacker.wrap(bytes);
-			dst = (Byte) tmpl.unpack(unpacker);
+			dst = (Byte) tmpl.unpack(unpacker, null);
 			fail();
 		} catch (Exception e) {
 			assertTrue(e instanceof MessageTypeException);
 		}
 		unpacker.wrap(bytes);
 		tmpl = new NullableTemplate(ByteTemplate.getInstance());
-		dst = (Byte) tmpl.unpack(unpacker);
+		dst = (Byte) tmpl.unpack(unpacker, null);
 		assertEquals(src, dst);
 	}
 
@@ -107,14 +107,14 @@ public class TestPackUnpack extends TestCase {
 		try {
 			tmpl = ShortTemplate.getInstance();
 			unpacker.wrap(bytes);
-			dst = (Short) tmpl.unpack(unpacker);
+			dst = (Short) tmpl.unpack(unpacker, null);
 			fail();
 		} catch (Exception e) {
 			assertTrue(e instanceof MessageTypeException);
 		}
 		unpacker.wrap(bytes);
 		tmpl = new NullableTemplate(ShortTemplate.getInstance());
-		dst = (Short) tmpl.unpack(unpacker);
+		dst = (Short) tmpl.unpack(unpacker, null);
 		assertEquals(src, dst);
 	}
 
@@ -153,14 +153,14 @@ public class TestPackUnpack extends TestCase {
 		try {
 			tmpl = IntegerTemplate.getInstance();
 			unpacker.wrap(bytes);
-			dst = (Integer) tmpl.unpack(unpacker);
+			dst = (Integer) tmpl.unpack(unpacker, null);
 			fail();
 		} catch (Exception e) {
 			assertTrue(e instanceof MessageTypeException);
 		}
 		unpacker.wrap(bytes);
 		tmpl = new NullableTemplate(IntegerTemplate.getInstance());
-		dst = (Integer) tmpl.unpack(unpacker);
+		dst = (Integer) tmpl.unpack(unpacker, null);
 		assertEquals(src, dst);
 	}
 
@@ -201,14 +201,14 @@ public class TestPackUnpack extends TestCase {
 		try {
 			tmpl = LongTemplate.getInstance();
 			unpacker.wrap(bytes);
-			dst = (Long) tmpl.unpack(unpacker);
+			dst = (Long) tmpl.unpack(unpacker, null);
 			fail();
 		} catch (Exception e) {
 			assertTrue(e instanceof MessageTypeException);
 		}
 		unpacker.wrap(bytes);
 		tmpl = new NullableTemplate(LongTemplate.getInstance());
-		dst = (Long) tmpl.unpack(unpacker);
+		dst = (Long) tmpl.unpack(unpacker, null);
 		assertEquals(src, dst);
 	}
 
@@ -253,14 +253,14 @@ public class TestPackUnpack extends TestCase {
 		try {
 			tmpl = BigIntegerTemplate.getInstance();
 			unpacker.wrap(bytes);
-			dst = (BigInteger) tmpl.unpack(unpacker);
+			dst = (BigInteger) tmpl.unpack(unpacker, null);
 			fail();
 		} catch (Exception e) {
 			assertTrue(e instanceof MessageTypeException);
 		}
 		unpacker.wrap(bytes);
 		tmpl = new NullableTemplate(BigIntegerTemplate.getInstance());
-		dst = (BigInteger) tmpl.unpack(unpacker);
+		dst = (BigInteger) tmpl.unpack(unpacker, null);
 		assertEquals(src, dst);
 	}
 
@@ -303,14 +303,14 @@ public class TestPackUnpack extends TestCase {
 		try {
 			tmpl = FloatTemplate.getInstance();
 			unpacker.wrap(bytes);
-			dst = (Float) tmpl.unpack(unpacker);
+			dst = (Float) tmpl.unpack(unpacker, null);
 			fail();
 		} catch (Exception e) {
 			assertTrue(e instanceof MessageTypeException);
 		}
 		unpacker.wrap(bytes);
 		tmpl = new NullableTemplate(FloatTemplate.getInstance());
-		dst = (Float) tmpl.unpack(unpacker);
+		dst = (Float) tmpl.unpack(unpacker, null);
 		assertEquals(src, dst);
 	}
 
@@ -352,14 +352,14 @@ public class TestPackUnpack extends TestCase {
 		try {
 			tmpl = DoubleTemplate.getInstance();
 			unpacker.wrap(bytes);
-			dst = (Double) tmpl.unpack(unpacker);
+			dst = (Double) tmpl.unpack(unpacker, null);
 			fail();
 		} catch (Exception e) {
 			assertTrue(e instanceof MessageTypeException);
 		}
 		unpacker.wrap(bytes);
 		tmpl = new NullableTemplate(DoubleTemplate.getInstance());
-		dst = (Double) tmpl.unpack(unpacker);
+		dst = (Double) tmpl.unpack(unpacker, null);
 		assertEquals(src, dst);
 	}
 
@@ -391,14 +391,14 @@ public class TestPackUnpack extends TestCase {
 		try {
 			tmpl = BooleanTemplate.getInstance();
 			unpacker.wrap(bytes);
-			dst = (Boolean) tmpl.unpack(unpacker);
+			dst = (Boolean) tmpl.unpack(unpacker, null);
 			fail();
 		} catch (Exception e) {
 			assertTrue(e instanceof MessageTypeException);
 		}
 		unpacker.wrap(bytes);
 		tmpl = new NullableTemplate(BooleanTemplate.getInstance());
-		dst = (Boolean) tmpl.unpack(unpacker);
+		dst = (Boolean) tmpl.unpack(unpacker, null);
 		assertEquals(src, dst);
 	}
 
@@ -462,14 +462,14 @@ public class TestPackUnpack extends TestCase {
 		try {
 			tmpl = StringTemplate.getInstance();
 			unpacker.wrap(bytes);
-			dst = (String) tmpl.unpack(unpacker);
+			dst = (String) tmpl.unpack(unpacker, null);
 			fail();
 		} catch (Exception e) {
 			assertTrue(e instanceof MessageTypeException);
 		}
 		unpacker.wrap(bytes);
 		tmpl = new NullableTemplate(StringTemplate.getInstance());
-		dst = (String) tmpl.unpack(unpacker);
+		dst = (String) tmpl.unpack(unpacker, null);
 		assertEquals(src, dst);
 	}
 }

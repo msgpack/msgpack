@@ -36,7 +36,7 @@ public class TestPackUnpack extends TestCase {
 		new Packer(out).pack(src);
 		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
 		Template tmpl = IntegerTemplate.getInstance();
-		Integer dst = (Integer) tmpl.unpack(new Unpacker(in));
+		Integer dst = (Integer) tmpl.unpack(new Unpacker(in), null);
 		assertEquals(src, dst);
 	}
 
@@ -52,14 +52,14 @@ public class TestPackUnpack extends TestCase {
 		try {
 			tmpl = IntegerTemplate.getInstance();
 			unpacker.wrap(bytes);
-			dst = (Integer) tmpl.unpack(unpacker);
+			dst = (Integer) tmpl.unpack(unpacker, null);
 			fail();
 		} catch (Exception e) {
 			assertTrue(e instanceof MessageTypeException);
 		}
 		unpacker.wrap(bytes);
 		tmpl = new NullableTemplate(IntegerTemplate.getInstance());
-		dst = (Integer) tmpl.unpack(unpacker);
+		dst = (Integer) tmpl.unpack(unpacker, null);
 		assertEquals(src, dst);
 	}
 
@@ -83,7 +83,7 @@ public class TestPackUnpack extends TestCase {
 		new Packer(out).pack(src);
 		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
 		Template tmpl = LongTemplate.getInstance();
-		Long dst = (Long) tmpl.unpack(new Unpacker(in));
+		Long dst = (Long) tmpl.unpack(new Unpacker(in), null);
 		assertEquals(src, dst);
 	}
 
@@ -99,14 +99,14 @@ public class TestPackUnpack extends TestCase {
 		try {
 			tmpl = LongTemplate.getInstance();
 			unpacker.wrap(bytes);
-			dst = (Long) tmpl.unpack(unpacker);
+			dst = (Long) tmpl.unpack(unpacker, null);
 			fail();
 		} catch (Exception e) {
 			assertTrue(e instanceof MessageTypeException);
 		}
 		unpacker.wrap(bytes);
 		tmpl = new NullableTemplate(LongTemplate.getInstance());
-		dst = (Long) tmpl.unpack(unpacker);
+		dst = (Long) tmpl.unpack(unpacker, null);
 		assertEquals(src, dst);
 	}
 
@@ -133,7 +133,7 @@ public class TestPackUnpack extends TestCase {
 		new Packer(out).pack((Object) src);
 		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
 		Template tmpl = BigIntegerTemplate.getInstance();
-		BigInteger dst = (BigInteger) tmpl.unpack(new Unpacker(in));
+		BigInteger dst = (BigInteger) tmpl.unpack(new Unpacker(in), null);
 		assertEquals(src, dst);
 	}
 
@@ -149,14 +149,14 @@ public class TestPackUnpack extends TestCase {
 		try {
 			tmpl = BigIntegerTemplate.getInstance();
 			unpacker.wrap(bytes);
-			dst = (BigInteger) tmpl.unpack(unpacker);
+			dst = (BigInteger) tmpl.unpack(unpacker, null);
 			fail();
 		} catch (Exception e) {
 			assertTrue(e instanceof MessageTypeException);
 		}
 		unpacker.wrap(bytes);
 		tmpl = new NullableTemplate(BigIntegerTemplate.getInstance());
-		dst = (BigInteger) tmpl.unpack(unpacker);
+		dst = (BigInteger) tmpl.unpack(unpacker, null);
 		assertEquals(src, dst);
 	}
 
@@ -182,7 +182,7 @@ public class TestPackUnpack extends TestCase {
 		new Packer(out).pack(src);
 		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
 		Template tmpl = FloatTemplate.getInstance();
-		Float dst = (Float) tmpl.unpack(new Unpacker(in));
+		Float dst = (Float) tmpl.unpack(new Unpacker(in), null);
 		assertEquals(src, dst, 10e-10);
 	}
 
@@ -208,7 +208,7 @@ public class TestPackUnpack extends TestCase {
 		new Packer(out).pack(src);
 		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
 		Template tmpl = DoubleTemplate.getInstance();
-		Double dst = (Double) tmpl.unpack(new Unpacker(in));
+		Double dst = (Double) tmpl.unpack(new Unpacker(in), null);
 		assertEquals(src, dst, 10e-10);
 	}
 
@@ -224,14 +224,14 @@ public class TestPackUnpack extends TestCase {
 		try {
 			tmpl = DoubleTemplate.getInstance();
 			unpacker.wrap(bytes);
-			dst = (Double) tmpl.unpack(unpacker);
+			dst = (Double) tmpl.unpack(unpacker, null);
 			fail();
 		} catch (Exception e) {
 			assertTrue(e instanceof MessageTypeException);
 		}
 		unpacker.wrap(bytes);
 		tmpl = new NullableTemplate(DoubleTemplate.getInstance());
-		dst = (Double) tmpl.unpack(unpacker);
+		dst = (Double) tmpl.unpack(unpacker, null);
 		assertEquals(src, dst);
 	}
 
@@ -246,7 +246,7 @@ public class TestPackUnpack extends TestCase {
 		new Packer(out).pack(src);
 		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
 		Template tmpl = BooleanTemplate.getInstance();
-		Boolean dst = (Boolean) tmpl.unpack(new Unpacker(in));
+		Boolean dst = (Boolean) tmpl.unpack(new Unpacker(in), null);
 		assertEquals(src, dst);
 	}
 
@@ -262,14 +262,14 @@ public class TestPackUnpack extends TestCase {
 		try {
 			tmpl = BooleanTemplate.getInstance();
 			unpacker.wrap(bytes);
-			dst = (Boolean) tmpl.unpack(unpacker);
+			dst = (Boolean) tmpl.unpack(unpacker, null);
 			fail();
 		} catch (Exception e) {
 			assertTrue(e instanceof MessageTypeException);
 		}
 		unpacker.wrap(bytes);
 		tmpl = new NullableTemplate(BooleanTemplate.getInstance());
-		dst = (Boolean) tmpl.unpack(unpacker);
+		dst = (Boolean) tmpl.unpack(unpacker, null);
 		assertEquals(src, dst);
 	}
 
@@ -316,7 +316,7 @@ public class TestPackUnpack extends TestCase {
 		new Packer(out).pack(src);
 		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
 		Template tmpl = StringTemplate.getInstance();
-		String dst = (String) tmpl.unpack(new Unpacker(in));
+		String dst = (String) tmpl.unpack(new Unpacker(in), null);
 		assertEquals(src, dst);
 	}
 
@@ -332,14 +332,14 @@ public class TestPackUnpack extends TestCase {
 		try {
 			tmpl = StringTemplate.getInstance();
 			unpacker.wrap(bytes);
-			dst = (String) tmpl.unpack(unpacker);
+			dst = (String) tmpl.unpack(unpacker, null);
 			fail();
 		} catch (Exception e) {
 			assertTrue(e instanceof MessageTypeException);
 		}
 		unpacker.wrap(bytes);
 		tmpl = new NullableTemplate(StringTemplate.getInstance());
-		dst = (String) tmpl.unpack(unpacker);
+		dst = (String) tmpl.unpack(unpacker, null);
 		assertEquals(src, dst);
 	}
 
@@ -353,7 +353,7 @@ public class TestPackUnpack extends TestCase {
 			ByteArrayInputStream in = new ByteArrayInputStream(out
 					.toByteArray());
 			Template tmpl = new ListTemplate(IntegerTemplate.getInstance());
-			List<Integer> dst = (List<Integer>) tmpl.unpack(new Unpacker(in));
+			List<Integer> dst = (List<Integer>) tmpl.unpack(new Unpacker(in), null);
 			assertEquals(emptyList, dst);
 		}
 
@@ -368,7 +368,7 @@ public class TestPackUnpack extends TestCase {
 			ByteArrayInputStream in = new ByteArrayInputStream(out
 					.toByteArray());
 			Template tmpl = new ListTemplate(IntegerTemplate.getInstance());
-			List<Integer> dst = (List<Integer>) tmpl.unpack(new Unpacker(in));
+			List<Integer> dst = (List<Integer>) tmpl.unpack(new Unpacker(in), null);
 			assertEquals(len, dst.size());
 			for (int j = 0; j < len; j++) {
 				assertEquals(l.get(j), dst.get(j));
@@ -385,7 +385,7 @@ public class TestPackUnpack extends TestCase {
 			ByteArrayInputStream in = new ByteArrayInputStream(out
 					.toByteArray());
 			Template tmpl = new ListTemplate(StringTemplate.getInstance());
-			List<String> dst = (List<String>) tmpl.unpack(new Unpacker(in));
+			List<String> dst = (List<String>) tmpl.unpack(new Unpacker(in), null);
 			assertEquals(len, dst.size());
 			for (int j = 0; j < len; j++) {
 				assertEquals(l.get(j), dst.get(j));
@@ -406,7 +406,7 @@ public class TestPackUnpack extends TestCase {
 		try {
 			tmpl = new ListTemplate(StringTemplate.getInstance());
 			unpacker.wrap(bytes);
-			dst = (List<String>) tmpl.unpack(unpacker);
+			dst = (List<String>) tmpl.unpack(unpacker, null);
 			fail();
 		} catch (Exception e) {
 			assertTrue(e instanceof MessageTypeException);
@@ -414,7 +414,7 @@ public class TestPackUnpack extends TestCase {
 		unpacker.wrap(bytes);
 		tmpl = new NullableTemplate(new ListTemplate(StringTemplate
 				.getInstance()));
-		dst = (List<String>) tmpl.unpack(unpacker);
+		dst = (List<String>) tmpl.unpack(unpacker, null);
 		assertEquals(src, dst);
 	}
 
@@ -430,7 +430,7 @@ public class TestPackUnpack extends TestCase {
 			Template tmpl = new MapTemplate(IntegerTemplate.getInstance(),
 					IntegerTemplate.getInstance());
 			Map<Integer, Integer> dst = (Map<Integer, Integer>) tmpl
-					.unpack(new Unpacker(in));
+					.unpack(new Unpacker(in), null);
 			assertEquals(emptyMap, dst);
 		}
 
@@ -447,7 +447,7 @@ public class TestPackUnpack extends TestCase {
 			Template tmpl = new MapTemplate(IntegerTemplate.getInstance(),
 					IntegerTemplate.getInstance());
 			Map<Integer, Integer> map = (Map<Integer, Integer>) tmpl
-					.unpack(new Unpacker(in));
+					.unpack(new Unpacker(in), null);
 			assertEquals(len, map.size());
 			for (Map.Entry<Integer, Integer> pair : map.entrySet()) {
 				Integer val = m.get(pair.getKey());
@@ -469,7 +469,7 @@ public class TestPackUnpack extends TestCase {
 			Template tmpl = new MapTemplate(StringTemplate.getInstance(),
 					IntegerTemplate.getInstance());
 			Map<String, Integer> map = (Map<String, Integer>) tmpl
-					.unpack(new Unpacker(in));
+					.unpack(new Unpacker(in), null);
 			assertEquals(m.size(), map.size());
 			for (Map.Entry<String, Integer> pair : map.entrySet()) {
 				Integer val = m.get(pair.getKey());
@@ -493,7 +493,7 @@ public class TestPackUnpack extends TestCase {
 			tmpl = new MapTemplate(StringTemplate.getInstance(), StringTemplate
 					.getInstance());
 			unpacker.wrap(bytes);
-			dst = (Map<String, String>) tmpl.unpack(unpacker);
+			dst = (Map<String, String>) tmpl.unpack(unpacker, null);
 			fail();
 		} catch (Exception e) {
 			assertTrue(e instanceof MessageTypeException);
@@ -501,7 +501,7 @@ public class TestPackUnpack extends TestCase {
 		unpacker.wrap(bytes);
 		tmpl = new NullableTemplate(new MapTemplate(StringTemplate
 				.getInstance(), StringTemplate.getInstance()));
-		dst = (Map<String, String>) tmpl.unpack(unpacker);
+		dst = (Map<String, String>) tmpl.unpack(unpacker, null);
 		assertEquals(src, dst);
 	}
 }

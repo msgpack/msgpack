@@ -76,10 +76,15 @@ public class DynamicCodeGenBase implements Constants {
 		}
 
 		@Override
-		public Object unpack(Unpacker unpacker) throws IOException,
+		public Object unpack(Unpacker unpacker, Object to) throws IOException,
 				MessageTypeException {
 			try {
-				MessageUnpackable obj = (MessageUnpackable) type.newInstance();
+				MessageUnpackable obj;
+				if(to == null) {
+					obj = (MessageUnpackable) type.newInstance();
+				} else {
+					obj = (MessageUnpackable) to;
+				}
 				obj.messageUnpack(unpacker);
 				return obj;
 			} catch (ClassCastException e) {
@@ -92,11 +97,15 @@ public class DynamicCodeGenBase implements Constants {
 		}
 
 		@Override
-		public Object convert(MessagePackObject from)
+		public Object convert(MessagePackObject from, Object to)
 				throws MessageTypeException {
 			try {
-				MessageConvertable obj = (MessageConvertable) type
-						.newInstance();
+				MessageConvertable obj;
+				if(to == null) {
+					obj = (MessageConvertable) type.newInstance();
+				} else {
+					obj = (MessageConvertable) to;
+				}
 				obj.messageConvert(from);
 				return obj;
 			} catch (ClassCastException e) {

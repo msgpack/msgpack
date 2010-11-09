@@ -76,11 +76,31 @@ public class MessagePack {
 		}
 	}
 
+	public static <T> T unpack(byte[] buffer, Template tmpl, T to) throws MessageTypeException {
+		Unpacker pac = new Unpacker();
+		pac.wrap(buffer);
+		try {
+			return pac.unpack(tmpl, to);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	public static <T> T unpack(byte[] buffer, Class<T> klass) throws MessageTypeException {
 		Unpacker pac = new Unpacker();
 		pac.wrap(buffer);
 		try {
 			return pac.unpack(klass);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public static <T> T unpack(byte[] buffer, T to) throws MessageTypeException {
+		Unpacker pac = new Unpacker();
+		pac.wrap(buffer);
+		try {
+			return pac.unpack(to);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
@@ -100,6 +120,15 @@ public class MessagePack {
 		}
 	}
 
+	public static <T> T unpack(InputStream in, Template tmpl, T to) throws IOException, MessageTypeException {
+		Unpacker pac = new Unpacker(in);
+		try {
+			return pac.unpack(tmpl, to);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	public static <T> T unpack(InputStream in, Class<T> klass) throws IOException, MessageTypeException {
 		Unpacker pac = new Unpacker(in);
 		try {
@@ -107,7 +136,15 @@ public class MessagePack {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
+	}
 
+	public static <T> T unpack(InputStream in, T to) throws IOException, MessageTypeException {
+		Unpacker pac = new Unpacker(in);
+		try {
+			return pac.unpack(to);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	public static void register(Class<?> target) {  // auto-detect

@@ -65,7 +65,7 @@ public class TestPackConvertWithFieldOption extends TestCase {
 		Iterator<MessagePackObject> it = pac.iterator();
 		assertTrue(it.hasNext());
 		MessagePackObject mpo = it.next();
-		PrimitiveTypeFieldsClass dst = (PrimitiveTypeFieldsClass) tmpl.convert(mpo);
+		PrimitiveTypeFieldsClass dst = (PrimitiveTypeFieldsClass) tmpl.convert(mpo, null);
 		assertEquals(src.f0, dst.f0);
 		assertEquals(src.f1, dst.f1);
 		assertEquals(src.f2, dst.f2);
@@ -98,7 +98,7 @@ public class TestPackConvertWithFieldOption extends TestCase {
 		Iterator<MessagePackObject> it = pac.iterator();
 		assertTrue(it.hasNext());
 		MessagePackObject mpo = it.next();
-		PrimitiveTypeFieldsClass dst = (PrimitiveTypeFieldsClass) tmpl.convert(mpo);
+		PrimitiveTypeFieldsClass dst = (PrimitiveTypeFieldsClass) tmpl.convert(mpo, null);
 		assertEquals(src.f0, dst.f0);
 		assertEquals(src.f1, dst.f1);
 		assertEquals(src.f2, dst.f2);
@@ -131,7 +131,7 @@ public class TestPackConvertWithFieldOption extends TestCase {
 		Iterator<MessagePackObject> it = pac.iterator();
 		assertTrue(it.hasNext());
 		MessagePackObject mpo = it.next();
-		PrimitiveTypeFieldsClass dst = (PrimitiveTypeFieldsClass) tmpl.convert(mpo);
+		PrimitiveTypeFieldsClass dst = (PrimitiveTypeFieldsClass) tmpl.convert(mpo, null);
 		assertEquals(src, dst);
 		assertFalse(it.hasNext());
 	}
@@ -184,7 +184,7 @@ public class TestPackConvertWithFieldOption extends TestCase {
 		Iterator<MessagePackObject> it = pac.iterator();
 		assertTrue(it.hasNext());
 		MessagePackObject mpo = it.next();
-		GeneralReferenceTypeFieldsClass dst = (GeneralReferenceTypeFieldsClass) tmpl.convert(mpo);
+		GeneralReferenceTypeFieldsClass dst = (GeneralReferenceTypeFieldsClass) tmpl.convert(mpo, null);
 		assertEquals(src.f0, dst.f0);
 		assertEquals(src.f1, dst.f1);
 		assertEquals(src.f2, dst.f2);
@@ -234,7 +234,7 @@ public class TestPackConvertWithFieldOption extends TestCase {
 		Iterator<MessagePackObject> it = pac.iterator();
 		assertTrue(it.hasNext());
 		MessagePackObject mpo = it.next();
-		GeneralReferenceTypeFieldsClass dst = (GeneralReferenceTypeFieldsClass) tmpl.convert(mpo);
+		GeneralReferenceTypeFieldsClass dst = (GeneralReferenceTypeFieldsClass) tmpl.convert(mpo, null);
 		assertEquals(src.f0, dst.f0);
 		assertEquals(src.f1, dst.f1);
 		assertEquals(src.f2, dst.f2);
@@ -275,7 +275,7 @@ public class TestPackConvertWithFieldOption extends TestCase {
 		Iterator<MessagePackObject> it = pac.iterator();
 		assertTrue(it.hasNext());
 		MessagePackObject mpo = it.next();
-		GeneralReferenceTypeFieldsClass dst = (GeneralReferenceTypeFieldsClass) tmpl.convert(mpo);
+		GeneralReferenceTypeFieldsClass dst = (GeneralReferenceTypeFieldsClass) tmpl.convert(mpo, null);
 		assertEquals(src, dst);
 		assertFalse(it.hasNext());
 	}
@@ -332,7 +332,7 @@ public class TestPackConvertWithFieldOption extends TestCase {
 		Iterator<MessagePackObject> it = pac.iterator();
 		assertTrue(it.hasNext());
 		MessagePackObject mpo = it.next();
-		SampleListTypes dst = (SampleListTypes) tmpl.convert(mpo);
+		SampleListTypes dst = (SampleListTypes) tmpl.convert(mpo, null);
 		assertEquals(src.f0.size(), dst.f0.size());
 		assertEquals(src.f1.size(), dst.f1.size());
 		for (int i = 0; i < src.f1.size(); ++i) {
@@ -387,7 +387,7 @@ public class TestPackConvertWithFieldOption extends TestCase {
 		Iterator<MessagePackObject> it = pac.iterator();
 		assertTrue(it.hasNext());
 		MessagePackObject mpo = it.next();
-		SampleListTypes dst = (SampleListTypes) tmpl.convert(mpo);
+		SampleListTypes dst = (SampleListTypes) tmpl.convert(mpo, null);
 		assertEquals(src.f0.size(), dst.f0.size());
 		assertEquals(src.f1, dst.f1);
 		assertEquals(src.f2.size(), dst.f2.size());
@@ -417,7 +417,7 @@ public class TestPackConvertWithFieldOption extends TestCase {
 		Iterator<MessagePackObject> it = pac.iterator();
 		assertTrue(it.hasNext());
 		MessagePackObject mpo = it.next();
-		SampleListTypes dst = (SampleListTypes) tmpl.convert(mpo);
+		SampleListTypes dst = (SampleListTypes) tmpl.convert(mpo, null);
 		assertEquals(src, dst);
 		assertFalse(it.hasNext());
 	}
@@ -469,7 +469,7 @@ public class TestPackConvertWithFieldOption extends TestCase {
 		Iterator<MessagePackObject> it = pac.iterator();
 		assertTrue(it.hasNext());
 		MessagePackObject mpo = it.next();
-		SampleMapTypes dst = (SampleMapTypes) tmpl.convert(mpo);
+		SampleMapTypes dst = (SampleMapTypes) tmpl.convert(mpo, null);
 		assertEquals(src.f0.size(), dst.f0.size());
 		assertEquals(src.f1.size(), dst.f1.size());
 		Iterator<Integer> srcf1 = src.f1.keySet().iterator();
@@ -513,7 +513,7 @@ public class TestPackConvertWithFieldOption extends TestCase {
 		Iterator<MessagePackObject> it = pac.iterator();
 		assertTrue(it.hasNext());
 		MessagePackObject mpo = it.next();
-		SampleMapTypes dst = (SampleMapTypes) tmpl.convert(mpo);
+		SampleMapTypes dst = (SampleMapTypes) tmpl.convert(mpo, null);
 		assertEquals(src.f0.size(), dst.f0.size());
 		assertEquals(src.f1, dst.f1);
 		assertEquals(src.f2.size(), dst.f2.size());
@@ -538,7 +538,7 @@ public class TestPackConvertWithFieldOption extends TestCase {
 		Iterator<MessagePackObject> it = pac.iterator();
 		assertTrue(it.hasNext());
 		MessagePackObject mpo = it.next();
-		SampleMapTypes dst = (SampleMapTypes) tmpl.convert(mpo);
+		SampleMapTypes dst = (SampleMapTypes) tmpl.convert(mpo, null);
 		assertEquals(src, dst);
 		assertFalse(it.hasNext());
 	}

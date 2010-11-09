@@ -27,11 +27,11 @@ public class BooleanTemplate implements Template {
 		pk.packBoolean((Boolean)target);
 	}
 
-	public Object unpack(Unpacker pac) throws IOException, MessageTypeException {
+	public Object unpack(Unpacker pac, Object to) throws IOException, MessageTypeException {
 		return pac.unpackBoolean();
 	}
 
-	public Object convert(MessagePackObject from) throws MessageTypeException {
+	public Object convert(MessagePackObject from, Object to) throws MessageTypeException {
 		return from.asBoolean();
 	}
 

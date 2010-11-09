@@ -27,11 +27,11 @@ public class ShortTemplate implements Template {
 		pk.packShort((Short)target);
 	}
 
-	public Object unpack(Unpacker pac) throws IOException, MessageTypeException {
+	public Object unpack(Unpacker pac, Object to) throws IOException, MessageTypeException {
 		return pac.unpackShort();
 	}
 
-	public Object convert(MessagePackObject from) throws MessageTypeException {
+	public Object convert(MessagePackObject from, Object to) throws MessageTypeException {
 		return from.asShort();
 	}
 

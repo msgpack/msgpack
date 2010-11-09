@@ -102,6 +102,14 @@ public class TestMessagePackStaticMethods extends TestCase {
 			assertEquals(eobj, createProvidedClass());
 			assertEquals(fobj, createUserDefinedClass());
 		}
+
+		{
+			ProvidedClass eobj = MessagePack.unpack(e, createProvidedClass());
+			UserDefinedClass fobj = MessagePack.unpack(f, createUserDefinedClass());
+
+			assertEquals(eobj, createProvidedClass());
+			assertEquals(fobj, createUserDefinedClass());
+		}
 	}
 
 	@Test
@@ -161,6 +169,17 @@ public class TestMessagePackStaticMethods extends TestCase {
 			assertEquals(aobj, "msgpack");
 			assertEquals(bobj, (Integer)1);
 			assertEquals(cobj, null);
+			assertEquals(eobj, createProvidedClass());
+			assertEquals(fobj, createUserDefinedClass());
+		}
+
+		{
+			InputStream ein = new ByteArrayInputStream(eout.toByteArray());
+			InputStream fin = new ByteArrayInputStream(fout.toByteArray());
+
+			ProvidedClass eobj = MessagePack.unpack(ein, createProvidedClass());
+			UserDefinedClass fobj = MessagePack.unpack(fin, createUserDefinedClass());
+
 			assertEquals(eobj, createProvidedClass());
 			assertEquals(fobj, createUserDefinedClass());
 		}

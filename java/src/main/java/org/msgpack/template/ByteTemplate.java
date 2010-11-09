@@ -27,11 +27,11 @@ public class ByteTemplate implements Template {
 		pk.packByte((Byte)target);
 	}
 
-	public Object unpack(Unpacker pac) throws IOException, MessageTypeException {
+	public Object unpack(Unpacker pac, Object to) throws IOException, MessageTypeException {
 		return pac.unpackByte();
 	}
 
-	public Object convert(MessagePackObject from) throws MessageTypeException {
+	public Object convert(MessagePackObject from, Object to) throws MessageTypeException {
 		return from.asByte();
 	}
 

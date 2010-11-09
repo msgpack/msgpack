@@ -41,12 +41,12 @@ public class ByteBufferTemplate implements Template {
 		}
 	}
 
-	public Object unpack(Unpacker pac) throws IOException, MessageTypeException {
+	public Object unpack(Unpacker pac, Object to) throws IOException, MessageTypeException {
 		byte[] bytes = pac.unpackByteArray();
 		return ByteBuffer.wrap(bytes);
 	}
 
-	public Object convert(MessagePackObject from) throws MessageTypeException {
+	public Object convert(MessagePackObject from, Object to) throws MessageTypeException {
 		byte[] bytes = from.asByteArray();
 		return ByteBuffer.wrap(bytes);
 	}

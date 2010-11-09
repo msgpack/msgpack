@@ -395,7 +395,7 @@ class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 			int mod = javassist.Modifier.PUBLIC;
 			CtClass returnType = classToCtClass(Object.class);
 			String mname = METHOD_NAME_UNPACK;
-			CtClass[] paramTypes = new CtClass[] { classToCtClass(Unpacker.class) };
+			CtClass[] paramTypes = new CtClass[] { classToCtClass(Unpacker.class), classToCtClass(Object.class) };
 			CtClass[] exceptTypes = new CtClass[] {
 					classToCtClass(IOException.class),
 					classToCtClass(MessageTypeException.class) };
@@ -424,7 +424,7 @@ class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 		sb.append(CHAR_NAME_SPACE);
 		// Foo _$$_t = new Foo();
 		String typeName = classToString(type);
-		Object[] args0 = new Object[] { typeName, typeName };
+		Object[] args0 = new Object[] { typeName, typeName, typeName };
 		sb.append(String.format(STATEMENT_TMPL_UNPACKERMETHODBODY_01, args0));
 		// int _$$_L = $1.unpackArray();
 		Object[] args1 = new Object[0];
@@ -449,15 +449,25 @@ class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 		// target.fi = ((Integer)_$$_tmpls[i].unpack(_$$_pk)).intValue();
 		Class<?> returnType = field.getType();
 		boolean isPrim = returnType.isPrimitive();
-		Object[] args = new Object[] {
+		String callExpr;
+		if(isPrim) {
+			Object[] args = new Object[] {
 				field.getName(),
-				isPrim ? "(" : "",
-				isPrim ? getPrimToWrapperType(returnType).getName()
-						: classToString(returnType),
-				i,
-				isPrim ? ")." + getPrimTypeValueMethodName(returnType) + "()"
-						: "" };
-		String callExpr = String.format(STATEMENT_TMPL_UNPACKERMETHODBODY_03, args);
+					"(",
+					getPrimToWrapperType(returnType).getName(),
+					i,
+					")." + getPrimTypeValueMethodName(returnType) + "()" };
+			callExpr = String.format(STATEMENT_TMPL_UNPACKERMETHODBODY_03_NULL, args);
+		} else {
+			Object[] args = new Object[] {
+				field.getName(),
+					"",
+					classToString(returnType),
+					i,
+					field.getName(),
+					"" };
+			callExpr = String.format(STATEMENT_TMPL_UNPACKERMETHODBODY_03, args);
+		}
 		if (tmpl instanceof OptionalTemplate) {
 			Object[] args0 = new Object[] { i, callExpr };
 			// if (_$$_len > i && !unpacker.tryUnpackNull()) { ... }
@@ -507,7 +517,7 @@ class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 			int mod = javassist.Modifier.PUBLIC;
 			CtClass returnType = classToCtClass(Object.class);
 			String mname = METHOD_NAME_CONVERT;
-			CtClass[] paramTypes = new CtClass[] { classToCtClass(MessagePackObject.class) };
+			CtClass[] paramTypes = new CtClass[] { classToCtClass(MessagePackObject.class), classToCtClass(Object.class) };
 			CtClass[] exceptTypes = new CtClass[] { classToCtClass(MessageTypeException.class) };
 			CtMethod newCtMethod = CtNewMethod.make(mod, returnType, mname,
 					paramTypes, exceptTypes, sb.toString(), tmplCtClass);
@@ -534,7 +544,7 @@ class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 		sb.append(CHAR_NAME_SPACE);
 		// Foo _$$_t = new Foo();
 		String typeName = classToString(type);
-		Object[] args0 = new Object[] { typeName, typeName };
+		Object[] args0 = new Object[] { typeName, typeName, typeName };
 		sb.append(String.format(STATEMENT_TMPL_UNPACKERMETHODBODY_01, args0));
 		// MessagePackObject[] _$$_ary = $1.asArray();
 		Object[] args1 = new Object[] { classToString(MessagePackObject[].class) };
@@ -560,16 +570,27 @@ class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 		// target.fi = ((Object)_$$_tmpls[i].convert(_$$_ary[i])).intValue();
 		Class<?> returnType = field.getType();
 		boolean isPrim = returnType.isPrimitive();
-		Object[] args = new Object[] {
+		String callExpr;
+		if(isPrim) {
+			Object[] args = new Object[] {
 				field.getName(),
-				isPrim ? "(" : "",
-				isPrim ? getPrimToWrapperType(returnType).getName()
-						: classToString(returnType),
-				i,
-				i,
-				isPrim ? ")." + getPrimTypeValueMethodName(returnType) + "()"
-						: "" };
-		String callExpr = String.format(STATEMENT_TMPL_CONVERTMETHODBODY_02, args);
+					"(",
+					getPrimToWrapperType(returnType).getName(),
+					i,
+					i,
+					")." + getPrimTypeValueMethodName(returnType) + "()" };
+			callExpr = String.format(STATEMENT_TMPL_CONVERTMETHODBODY_02_NULL, args);
+		} else {
+			Object[] args = new Object[] {
+				field.getName(),
+					"",
+					classToString(returnType),
+					i,
+					i,
+					field.getName(),
+					"" };
+			callExpr = String.format(STATEMENT_TMPL_CONVERTMETHODBODY_02, args);
+		}
 		if (tmpl instanceof OptionalTemplate) {
 			Object[] args0 = new Object[] { i, i, callExpr };
 			// if (_$$_len > i && !_$$_ary[i].isNull()) { ... }

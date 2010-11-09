@@ -140,12 +140,24 @@ public abstract class MessagePackObject implements Cloneable, MessagePackable {
 	abstract public Object clone();
 
 	public Object convert(Template tmpl) throws MessageTypeException {
-		return tmpl.convert(this);
+		return convert(tmpl, null);
+	}
+
+	public Object convert(Template tmpl, Object to) throws MessageTypeException {
+		return tmpl.convert(this, to);
 	}
 
 	public <T> T convert(Class<T> klass) throws MessageTypeException {
+		return convert(klass, null);
+	}
+
+	public <T> T convert(T to) throws MessageTypeException {
+		return convert((Class<T>)to.getClass(), to);
+	}
+
+	public <T> T convert(Class<T> klass, Object to) throws MessageTypeException {
 		// FIXME nullable?
-		return (T)convert(new NullableTemplate(new ClassTemplate(klass)));
+		return (T)convert(new NullableTemplate(new ClassTemplate(klass)), to);
 	}
 }
 

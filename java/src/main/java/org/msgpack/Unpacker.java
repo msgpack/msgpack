@@ -579,12 +579,24 @@ public class Unpacker implements Iterable<MessagePackObject> {
 	//}
 
 	final public Object unpack(Template tmpl) throws IOException, MessageTypeException {
-		return tmpl.unpack(this);
+		return unpack(tmpl, null);
+	}
+
+	final public <T> T unpack(Template tmpl, T to) throws IOException, MessageTypeException {
+		return (T)tmpl.unpack(this, to);
 	}
 
 	final public <T> T unpack(Class<T> klass) throws IOException, MessageTypeException {
+		return unpack(klass, null);
+	}
+
+	final public <T> T unpack(T to) throws IOException, MessageTypeException {
+		return unpack((Class<T>)to.getClass(), to);
+	}
+
+	final public <T> T unpack(Class<T> klass, T to) throws IOException, MessageTypeException {
 		// FIXME nullable?
-		return (T)unpack(new NullableTemplate(new ClassTemplate(klass)));
+		return (T)unpack(new NullableTemplate(new ClassTemplate(klass)), to);
 	}
 }
 

@@ -76,11 +76,12 @@ public interface Constants {
 
 	String STATEMENT_PACKER_PACKERMETHODBODY_04 = "$1.pack(((java.lang.Enum)_$$_t).ordinal()); ";
 
-	String STATEMENT_TMPL_UNPACKERMETHODBODY_01 = "%s _$$_t = new %s(); ";
+	String STATEMENT_TMPL_UNPACKERMETHODBODY_01 = "%s _$$_t; if($2 == null) { _$$_t = new %s(); } else { _$$_t = (%s)$2; } ";
 
 	String STATEMENT_TMPL_UNPACKERMETHODBODY_02 = "int _$$_len = $1.unpackArray(); ";
 
-	String STATEMENT_TMPL_UNPACKERMETHODBODY_03 = "_$$_t.%s = %s(%s)_$$_templates[%d].unpack($1)%s; ";
+	String STATEMENT_TMPL_UNPACKERMETHODBODY_03_NULL = "_$$_t.%s = %s(%s)_$$_templates[%d].unpack($1, null)%s; ";
+	String STATEMENT_TMPL_UNPACKERMETHODBODY_03 = "_$$_t.%s = %s(%s)_$$_templates[%d].unpack($1, _$$_t.%s)%s; ";
 
 	String STATEMENT_TMPL_UNPACKERMETHODBODY_04 = "return _$$_t; ";
 
@@ -96,7 +97,8 @@ public interface Constants {
 
 	String STATEMENT_TMPL_CONVERTMETHODBODY_01 = "%s _$$_ary = $1.asArray(); ";
 
-	String STATEMENT_TMPL_CONVERTMETHODBODY_02 = "_$$_t.%s = %s(%s)_$$_templates[%d].convert(_$$_ary[%d])%s; ";
+	String STATEMENT_TMPL_CONVERTMETHODBODY_02_NULL = "_$$_t.%s = %s(%s)_$$_templates[%d].convert(_$$_ary[%d], null)%s; ";
+	String STATEMENT_TMPL_CONVERTMETHODBODY_02 = "_$$_t.%s = %s(%s)_$$_templates[%d].convert(_$$_ary[%d], _$$_t.%s)%s; ";
 
 	String STATEMENT_TMPL_CONVERTMETHODBODY_03 = "int i = _$$_ary[0].asInt(); ";
 

@@ -149,16 +149,22 @@ public class ClassTemplate implements Template {
 		throw new MessageTypeException("unknown object "+o+" ("+o.getClass()+")");
 	}
 
-	public Object unpack(Unpacker pac) throws IOException, MessageTypeException {
+	@Override
+	public Object unpack(Unpacker pac, Object to) throws IOException, MessageTypeException {
 		try {
 			MessageUnpacker unpacker = CustomUnpacker.get(klass);
 			if(unpacker != null) {
-				return unpacker.unpack(pac);
+				return unpacker.unpack(pac, to);
 			}
 
 			if(MessageUnpackable.class.isAssignableFrom(klass)) {
-				Object obj = klass.newInstance();
-				((MessageUnpackable)obj).messageUnpack(pac);
+				MessageUnpackable obj;
+				if(to == null) {
+					obj = (MessageUnpackable)klass.newInstance();
+				} else {
+					obj = (MessageUnpackable)to;
+				}
+				obj.messageUnpack(pac);
 				return obj;
 			}
 
@@ -174,7 +180,7 @@ public class ClassTemplate implements Template {
 
 			if (unpacker != null) {
 				CustomUnpacker.register(klass, unpacker);
-				return unpacker.unpack(pac);
+				return unpacker.unpack(pac, to);
 			}
 
 			// fallback
@@ -193,7 +199,7 @@ public class ClassTemplate implements Template {
 
 				if (converter != null) {
 					CustomConverter.register(klass, converter);
-					return converter.convert(pac.unpackObject());
+					return converter.convert(pac.unpackObject(), to);
 				}
 			}
 
@@ -206,16 +212,22 @@ public class ClassTemplate implements Template {
 		}
 	}
 
-	public Object convert(MessagePackObject from) throws MessageTypeException {
+	@Override
+	public Object convert(MessagePackObject from, Object to) throws MessageTypeException {
 		try {
 			MessageConverter converter = CustomConverter.get(klass);
 			if(converter != null) {
-				return converter.convert(from);
+				return converter.convert(from, to);
 			}
 
 			if(MessageConvertable.class.isAssignableFrom(klass)) {
-				Object obj = klass.newInstance();
-				((MessageConvertable)obj).messageConvert(from);
+				MessageConvertable obj;
+				if(to == null) {
+					obj = (MessageConvertable)klass.newInstance();
+				} else {
+					obj = (MessageConvertable)to;
+				}
+				obj.messageConvert(from);
 				return obj;
 			}
 
@@ -231,7 +243,7 @@ public class ClassTemplate implements Template {
 
 			if (converter != null) {
 				CustomConverter.register(klass, converter);
-				return converter.convert(from);
+				return converter.convert(from, to);
 			}
 
 			throw new MessageTypeException();

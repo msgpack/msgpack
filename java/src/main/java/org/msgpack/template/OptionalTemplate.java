@@ -45,18 +45,18 @@ public class OptionalTemplate implements Template {
 		}
 	}
 
-	public Object unpack(Unpacker pac) throws IOException, MessageTypeException {
+	public Object unpack(Unpacker pac, Object to) throws IOException, MessageTypeException {
 		if(pac.tryUnpackNull()) {
-			return defaultObject;
+			return defaultObject;  // FIXME return to?
 		}
-		return elementTemplate.unpack(pac);
+		return elementTemplate.unpack(pac, to);
 	}
 
-	public Object convert(MessagePackObject from) throws MessageTypeException {
+	public Object convert(MessagePackObject from, Object to) throws MessageTypeException {
 		if(from.isNil()) {
-			return defaultObject;
+			return defaultObject;  // FIXME return to?
 		}
-		return elementTemplate.convert(from);
+		return elementTemplate.convert(from, to);
 	}
 }
 
