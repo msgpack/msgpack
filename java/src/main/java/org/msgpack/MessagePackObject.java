@@ -143,8 +143,8 @@ public abstract class MessagePackObject implements Cloneable, MessagePackable {
 		return convert(tmpl, null);
 	}
 
-	public Object convert(Template tmpl, Object to) throws MessageTypeException {
-		return tmpl.convert(this, to);
+	public <T> T convert(Template tmpl, T to) throws MessageTypeException {
+		return (T)tmpl.convert(this, to);
 	}
 
 	public <T> T convert(Class<T> klass) throws MessageTypeException {
@@ -155,7 +155,7 @@ public abstract class MessagePackObject implements Cloneable, MessagePackable {
 		return convert((Class<T>)to.getClass(), to);
 	}
 
-	public <T> T convert(Class<T> klass, Object to) throws MessageTypeException {
+	private <T> T convert(Class<T> klass, T to) throws MessageTypeException {
 		// FIXME nullable?
 		return (T)convert(new NullableTemplate(new ClassTemplate(klass)), to);
 	}
