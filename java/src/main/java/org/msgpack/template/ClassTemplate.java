@@ -27,6 +27,7 @@ import org.msgpack.util.codegen.DynamicOrdinalEnumTemplate;
 
 import java.util.*;
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
 
 public class ClassTemplate implements Template {
 	static {
@@ -120,6 +121,10 @@ public class ClassTemplate implements Template {
 		//}
 		if(o instanceof BigInteger) {
 			pk.packBigInteger((BigInteger)o);
+			return;
+		}
+		if (o instanceof ByteBuffer) { // FIXME
+			Templates.tByteBuffer().pack(pk, o);
 			return;
 		}
 
