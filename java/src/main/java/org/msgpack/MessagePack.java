@@ -161,20 +161,10 @@ public class MessagePack {
 		} else {
 			if (MessagePackTemplateProvider.class.isAssignableFrom(target)) {
 				try {
-					Method m = target.getMethod("getTemplate", new Class[0]);
-					tmpl = (Template)m.invoke(null, new Object[0]);
 					tmpl = ((MessagePackTemplateProvider) target.newInstance()).getTemplate();
 				} catch (InstantiationException e) {
 					throw new RuntimeException(e);
 				} catch (IllegalAccessException e) {
-					throw new RuntimeException(e);
-				} catch (IllegalArgumentException e) {
-					throw new RuntimeException(e);
-				} catch (InvocationTargetException e) {
-					throw new RuntimeException(e);
-				} catch (SecurityException e) {
-					throw new RuntimeException(e);
-				} catch (NoSuchMethodException e) {
 					throw new RuntimeException(e);
 				}
 			} else {
@@ -185,6 +175,22 @@ public class MessagePack {
 		CustomPacker.register(target, tmpl);
 		CustomConverter.register(target, tmpl);
 		CustomUnpacker.register(target, tmpl);
+	}
+	
+	public static class Foo implements MessagePackTemplateProvider {
+		public int f1;
+		
+		public int f2;
+		
+		public Foo() {}
+		
+		public Template getTemplate() {
+			return DynamicTemplate.create(Foo.class);
+		}
+	}
+	
+	public static void main(String[] args) throws Exception {
+		MessagePack.register(Foo.class);
 	}
 
 	public static void register(Class<?> target, FieldList opts) {
