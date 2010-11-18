@@ -156,7 +156,17 @@ public class MessagePack {
 		//} else if(Collection.isAssignableFrom(target)) {
 		//} else if(BigInteger.isAssignableFrom(target)) {
 		} else {
-			tmpl = DynamicTemplate.create(target);
+			if (MessagePackTemplateProvider.class.isAssignableFrom(target)) {
+				try {
+					tmpl = ((MessagePackTemplateProvider) target.newInstance()).getTemplate();
+				} catch (InstantiationException e) {
+					throw new RuntimeException(e);
+				} catch (IllegalAccessException e) {
+					throw new RuntimeException(e);
+				}
+			} else {
+				tmpl = DynamicTemplate.create(target);
+			}
 		}
 
 		CustomPacker.register(target, tmpl);
