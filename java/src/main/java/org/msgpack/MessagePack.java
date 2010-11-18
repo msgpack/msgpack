@@ -21,6 +21,9 @@ import java.io.OutputStream;
 import java.io.InputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
 import org.msgpack.util.codegen.DynamicTemplate;
 import org.msgpack.util.codegen.DynamicOrdinalEnumTemplate;
 import org.msgpack.util.codegen.FieldList;
@@ -158,10 +161,20 @@ public class MessagePack {
 		} else {
 			if (MessagePackTemplateProvider.class.isAssignableFrom(target)) {
 				try {
+					Method m = target.getMethod("getTemplate", new Class[0]);
+					tmpl = (Template)m.invoke(null, new Object[0]);
 					tmpl = ((MessagePackTemplateProvider) target.newInstance()).getTemplate();
 				} catch (InstantiationException e) {
 					throw new RuntimeException(e);
 				} catch (IllegalAccessException e) {
+					throw new RuntimeException(e);
+				} catch (IllegalArgumentException e) {
+					throw new RuntimeException(e);
+				} catch (InvocationTargetException e) {
+					throw new RuntimeException(e);
+				} catch (SecurityException e) {
+					throw new RuntimeException(e);
+				} catch (NoSuchMethodException e) {
 					throw new RuntimeException(e);
 				}
 			} else {
