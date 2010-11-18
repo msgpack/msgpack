@@ -38,6 +38,7 @@ import javassist.CtField;
 import javassist.CtMethod;
 import javassist.CtNewConstructor;
 import javassist.CtNewMethod;
+import javassist.LoaderClassPath;
 import javassist.NotFoundException;
 
 import org.msgpack.CustomConverter;
@@ -149,6 +150,10 @@ public class DynamicCodeGenBase implements Constants {
 
 	protected DynamicCodeGenBase() {
 		pool = ClassPool.getDefault();
+	}
+
+	protected void setClassLoader(ClassLoader cl) {
+		pool.appendClassPath(new LoaderClassPath(cl));
 	}
 
 	protected void checkTypeValidation(Class<?> type) {

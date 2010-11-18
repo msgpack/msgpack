@@ -46,21 +46,29 @@ import org.msgpack.template.NullableTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
+public class DynamicCodeGen extends DynamicCodeGenBase implements Constants {
 
 	private static Logger LOG = LoggerFactory.getLogger(DynamicCodeGen.class);
 
 	private static DynamicCodeGen INSTANCE;
 
 	public static DynamicCodeGen getInstance() {
+		return getInstance(null);
+
+	}
+
+	public static DynamicCodeGen getInstance(ClassLoader cl) {
 		if (INSTANCE == null) {
 			LOG.info("create an instance of the type: "
 					+ DynamicCodeGen.class.getName());
 			INSTANCE = new DynamicCodeGen();
+			if (cl != null) {
+				INSTANCE.setClassLoader(cl);
+			}
 		}
-		return INSTANCE;
+		return INSTANCE;		
 	}
-
+	
 	private ConcurrentHashMap<String, Template[]> tmplCache;
 
 	DynamicCodeGen() {
