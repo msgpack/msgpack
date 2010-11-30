@@ -55,7 +55,7 @@ public class Packer {
 	public static void load() { }
 
 	protected byte[] castBytes = new byte[9];
-	protected ByteBuffer castBuffer = ByteBuffer.wrap(castBytes);
+	//protected ByteBuffer castBuffer = ByteBuffer.wrap(castBytes);
 	protected OutputStream out;
 
 	public Packer(OutputStream out) {
@@ -78,7 +78,9 @@ public class Packer {
 			if(d < -(1<<7)) {
 				// signed 16
 				castBytes[0] = (byte)0xd1;
-				castBuffer.putShort(1, d);
+//				castBuffer.putShort(1, d);
+				castBytes[1] = (byte)(d >>  8);
+				castBytes[2] = (byte)(d >>  0);
 				out.write(castBytes, 0, 3);
 			} else {
 				// signed 8
@@ -98,7 +100,9 @@ public class Packer {
 			} else {
 				// unsigned 16
 				castBytes[0] = (byte)0xcd;
-				castBuffer.putShort(1, d);
+//				castBuffer.putShort(1, d);
+				castBytes[1] = (byte)(d >>  8);
+				castBytes[2] = (byte)(d >>  0);
 				out.write(castBytes, 0, 3);
 			}
 		}
@@ -110,12 +114,18 @@ public class Packer {
 			if(d < -(1<<15)) {
 				// signed 32
 				castBytes[0] = (byte)0xd2;
-				castBuffer.putInt(1, d);
+//				castBuffer.putInt(1, d);
+				castBytes[1] = (byte)(d >> 24);
+				castBytes[2] = (byte)(d >> 16);
+				castBytes[3] = (byte)(d >>  8);
+				castBytes[4] = (byte)(d >>  0);
 				out.write(castBytes, 0, 5);
 			} else if(d < -(1<<7)) {
 				// signed 16
 				castBytes[0] = (byte)0xd1;
-				castBuffer.putShort(1, (short)d);
+//				castBuffer.putShort(1, (short)d);
+				castBytes[1] = (byte)(d >>  8);
+				castBytes[2] = (byte)(d >>  0);
 				out.write(castBytes, 0, 3);
 			} else {
 				// signed 8
@@ -135,12 +145,18 @@ public class Packer {
 			} else if(d < (1<<16)) {
 				// unsigned 16
 				castBytes[0] = (byte)0xcd;
-				castBuffer.putShort(1, (short)d);
+//				castBuffer.putShort(1, (short)d);
+				castBytes[1] = (byte)(d >>  8);
+				castBytes[2] = (byte)(d >>  0);
 				out.write(castBytes, 0, 3);
 			} else {
 				// unsigned 32
 				castBytes[0] = (byte)0xce;
-				castBuffer.putInt(1, d);
+//				castBuffer.putInt(1, d);
+				castBytes[1] = (byte)(d >> 24);
+				castBytes[2] = (byte)(d >> 16);
+				castBytes[3] = (byte)(d >>  8);
+				castBytes[4] = (byte)(d >>  0);
 				out.write(castBytes, 0, 5);
 			}
 		}
@@ -153,19 +169,33 @@ public class Packer {
 				if(d < -(1L<<31)) {
 					// signed 64
 					castBytes[0] = (byte)0xd3;
-					castBuffer.putLong(1, d);
+//					castBuffer.putLong(1, d);
+					castBytes[1] = (byte)(d >> 56);
+					castBytes[2] = (byte)(d >> 48);
+					castBytes[3] = (byte)(d >> 40);
+					castBytes[4] = (byte)(d >> 32);
+					castBytes[5] = (byte)(d >> 24);
+					castBytes[6] = (byte)(d >> 16);
+					castBytes[7] = (byte)(d >>  8);
+					castBytes[8] = (byte)(d >>  0);
 					out.write(castBytes, 0, 9);
 				} else {
 					// signed 32
 					castBytes[0] = (byte)0xd2;
-					castBuffer.putInt(1, (int)d);
+//					castBuffer.putInt(1, (int)d);
+					castBytes[1] = (byte)(d >> 24);
+					castBytes[2] = (byte)(d >> 16);
+					castBytes[3] = (byte)(d >>  8);
+					castBytes[4] = (byte)(d >>  0);
 					out.write(castBytes, 0, 5);
 				}
 			} else {
 				if(d < -(1<<7)) {
 					// signed 16
 					castBytes[0] = (byte)0xd1;
-					castBuffer.putShort(1, (short)d);
+//					castBuffer.putShort(1, (short)d);
+					castBytes[1] = (byte)(d >>  8);
+					castBytes[2] = (byte)(d >>  0);
 					out.write(castBytes, 0, 3);
 				} else {
 					// signed 8
@@ -187,7 +217,9 @@ public class Packer {
 				} else {
 					// unsigned 16
 					castBytes[0] = (byte)0xcd;
-					castBuffer.putShort(1, (short)d);
+//					castBuffer.putShort(1, (short)d);
+					castBytes[1] = (byte)((d & 0x0000ff00) >>  8);
+					castBytes[2] = (byte)((d & 0x000000ff) >>  0);
 					out.write(castBytes, 0, 3);
 					//System.out.println("pack uint 16 "+(short)d);
 				}
@@ -195,12 +227,24 @@ public class Packer {
 				if(d < (1L<<32)) {
 					// unsigned 32
 					castBytes[0] = (byte)0xce;
-					castBuffer.putInt(1, (int)d);
+//					castBuffer.putInt(1, (int)d);
+					castBytes[1] = (byte)((d & 0xff000000) >> 24);
+					castBytes[2] = (byte)((d & 0x00ff0000) >> 16);
+					castBytes[3] = (byte)((d & 0x0000ff00) >>  8);
+					castBytes[4] = (byte)((d & 0x000000ff) >>  0);
 					out.write(castBytes, 0, 5);
 				} else {
 					// unsigned 64
 					castBytes[0] = (byte)0xcf;
-					castBuffer.putLong(1, d);
+//					castBuffer.putLong(1, d);
+					castBytes[1] = (byte)(d >> 56);
+					castBytes[2] = (byte)(d >> 48);
+					castBytes[3] = (byte)(d >> 40);
+					castBytes[4] = (byte)(d >> 32);
+					castBytes[5] = (byte)(d >> 24);
+					castBytes[6] = (byte)(d >> 16);
+					castBytes[7] = (byte)(d >>  8);
+					castBytes[8] = (byte)(d >>  0);
 					out.write(castBytes, 0, 9);
 				}
 			}
@@ -222,7 +266,7 @@ public class Packer {
 			castBytes[6] = barray[barray.length-3];
 			castBytes[7] = barray[barray.length-2];
 			castBytes[8] = barray[barray.length-1];
-			out.write(castBytes);
+			out.write(castBytes, 0, 9);
 			return this;
 		} else {
 			throw new MessageTypeException("can't pack BigInteger larger than 0xffffffffffffffff");
@@ -231,14 +275,28 @@ public class Packer {
 
 	public Packer packFloat(float d) throws IOException {
 		castBytes[0] = (byte)0xca;
-		castBuffer.putFloat(1, d);
+//		castBuffer.putFloat(1, d);
+		int f = Float.floatToRawIntBits(d);
+		castBytes[1] = (byte)(f >> 24);
+		castBytes[2] = (byte)(f >> 16);
+		castBytes[3] = (byte)(f >>  8);
+		castBytes[4] = (byte)(f >>  0);
 		out.write(castBytes, 0, 5);
 		return this;
 	}
 
 	public Packer packDouble(double d) throws IOException {
 		castBytes[0] = (byte)0xcb;
-		castBuffer.putDouble(1, d);
+//		castBuffer.putDouble(1, d);
+		long f = Double.doubleToRawLongBits(d);
+		castBytes[1] = (byte)(f >> 56);
+		castBytes[2] = (byte)(f >> 48);
+		castBytes[3] = (byte)(f >> 40);
+		castBytes[4] = (byte)(f >> 32);
+		castBytes[5] = (byte)(f >> 24);
+		castBytes[6] = (byte)(f >> 16);
+		castBytes[7] = (byte)(f >>  8);
+		castBytes[8] = (byte)(f >>  0);
 		out.write(castBytes, 0, 9);
 		return this;
 	}
@@ -268,11 +326,17 @@ public class Packer {
 			out.write((byte)d);
 		} else if(n < 65536) {
 			castBytes[0] = (byte)0xdc;
-			castBuffer.putShort(1, (short)n);
+//			castBuffer.putShort(1, (short)n);
+			castBytes[1] = (byte)(n >>  8);
+			castBytes[2] = (byte)(n >>  0);
 			out.write(castBytes, 0, 3);
 		} else {
 			castBytes[0] = (byte)0xdd;
-			castBuffer.putInt(1, n);
+//			castBuffer.putInt(1, n);
+			castBytes[1] = (byte)(n >> 24);
+			castBytes[2] = (byte)(n >> 16);
+			castBytes[3] = (byte)(n >>  8);
+			castBytes[4] = (byte)(n >>  0);
 			out.write(castBytes, 0, 5);
 		}
 		return this;
@@ -284,11 +348,17 @@ public class Packer {
 			out.write((byte)d);
 		} else if(n < 65536) {
 			castBytes[0] = (byte)0xde;
-			castBuffer.putShort(1, (short)n);
+//			castBuffer.putShort(1, (short)n);
+			castBytes[1] = (byte)(n >>  8);
+			castBytes[2] = (byte)(n >>  0);
 			out.write(castBytes, 0, 3);
 		} else {
 			castBytes[0] = (byte)0xdf;
-			castBuffer.putInt(1, n);
+//			castBuffer.putInt(1, n);
+			castBytes[1] = (byte)(n >> 24);
+			castBytes[2] = (byte)(n >> 16);
+			castBytes[3] = (byte)(n >>  8);
+			castBytes[4] = (byte)(n >>  0);
 			out.write(castBytes, 0, 5);
 		}
 		return this;
@@ -300,11 +370,17 @@ public class Packer {
 			out.write((byte)d);
 		} else if(n < 65536) {
 			castBytes[0] = (byte)0xda;
-			castBuffer.putShort(1, (short)n);
+//			castBuffer.putShort(1, (short)n);
+			castBytes[1] = (byte)(n >>  8);
+			castBytes[2] = (byte)(n >>  0);
 			out.write(castBytes, 0, 3);
 		} else {
 			castBytes[0] = (byte)0xdb;
-			castBuffer.putInt(1, n);
+//			castBuffer.putInt(1, n);
+			castBytes[1] = (byte)(n >> 24);
+			castBytes[2] = (byte)(n >> 16);
+			castBytes[3] = (byte)(n >>  8);
+			castBytes[4] = (byte)(n >>  0);
 			out.write(castBytes, 0, 5);
 		}
 		return this;
