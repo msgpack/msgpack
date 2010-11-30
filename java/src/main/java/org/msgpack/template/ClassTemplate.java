@@ -200,7 +200,7 @@ public class ClassTemplate implements Template {
 				return tmpl.convert(pac.unpackObject(), to);
 			}
 
-			throw new MessageTypeException();
+			throw new MessageTypeException("unknown type: "+klass);
 
 		} catch (IllegalAccessException e) {
 			throw new MessageTypeException(e.getMessage());  // FIXME

@@ -155,7 +155,7 @@ public abstract class MessagePackObject implements Cloneable, MessagePackable {
 		return convert((Class<T>)to.getClass(), to);
 	}
 
-	private <T> T convert(Class<T> klass, T to) throws MessageTypeException {
+	public <T> T convert(Class<T> klass, T to) throws MessageTypeException {
 		// FIXME nullable?
 		return (T)convert(new NullableTemplate(new ClassTemplate(klass)), to);
 	}

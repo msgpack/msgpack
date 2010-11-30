@@ -143,12 +143,8 @@ public class VectoredByteBuffer implements GatheringByteChannel, ScatteringByteC
 			// optimization: concatenates to the last buffer instead
 			//               of adding new reference
 			ByteBuffer dup = vec.get(vec.size()-1);
-			int dpos = dup.position();
 			internalBuffer.put(b, off, len);
-			ByteBuffer dup2 = internalBuffer.duplicate();
-			dup2.position(dpos);
-			dup2.limit(ipos + len);
-			vec.set(vec.size()-1, dup2);
+			dup.limit(ipos + len);
 			return;
 		}
 		internalBuffer.put(b, off, len);

@@ -21,6 +21,7 @@ import java.io.OutputStream;
 import java.io.InputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import org.msgpack.buffer.VectoredByteBuffer;
 import org.msgpack.util.codegen.DynamicTemplate;
 import org.msgpack.util.codegen.DynamicOrdinalEnumTemplate;
 import org.msgpack.util.codegen.FieldList;
