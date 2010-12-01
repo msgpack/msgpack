@@ -46,6 +46,10 @@ public class JavassistTemplateBuilder extends TemplateBuilder {
 		return instance;
 	}
 
+	public static void addClassLoader(ClassLoader cl) {
+		instance.pool.appendClassPath(new LoaderClassPath(cl));
+	}
+
 	private JavassistTemplateBuilder() {
 		this.pool = ClassPool.getDefault();
 	}
