@@ -24,6 +24,8 @@ import java.io.IOException;
 import org.msgpack.*;
 
 public class CollectionTemplate implements Template {
+	public static void load() { }
+
 	private Template elementTemplate;
 
 	public CollectionTemplate(Template elementTemplate) {
@@ -71,6 +73,11 @@ public class CollectionTemplate implements Template {
 			list.add( elementTemplate.convert(element, null) );
 		}
 		return list;
+	}
+
+	static {
+		TemplateRegistry.registerGeneric(Collection.class, new GenericTemplate1(CollectionTemplate.class));
+		TemplateRegistry.register(Collection.class, new CollectionTemplate(AnyTemplate.getInstance()));
 	}
 }
 

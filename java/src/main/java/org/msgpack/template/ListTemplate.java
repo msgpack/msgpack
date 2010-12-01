@@ -23,6 +23,8 @@ import java.io.IOException;
 import org.msgpack.*;
 
 public class ListTemplate implements Template {
+	static void load() { }
+
 	private Template elementTemplate;
 
 	public ListTemplate(Template elementTemplate) {
@@ -74,6 +76,11 @@ public class ListTemplate implements Template {
 			list.add( elementTemplate.convert(element, null) );
 		}
 		return list;
+	}
+
+	static {
+		TemplateRegistry.registerGeneric(List.class, new GenericTemplate1(ListTemplate.class));
+		TemplateRegistry.register(List.class, new ListTemplate(AnyTemplate.getInstance()));
 	}
 }
 
