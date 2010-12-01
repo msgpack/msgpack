@@ -22,65 +22,58 @@ import java.util.ArrayList;
 import java.io.IOException;
 import org.msgpack.*;
 
-public class ListTemplate implements Template {
+public class ObjectArrayTemplate implements Template {
 	static void load() { }
 
-	private Template elementTemplate;
+	private Template componentTemplate;
 
-	public ListTemplate(Template elementTemplate) {
-		this.elementTemplate = elementTemplate;
+	public ObjectArrayTemplate(Template componentTemplate) {
+		this.componentTemplate = componentTemplate;
 	}
 
-	public Template getElementTemplate() {
-		return elementTemplate;
+	public Template getcomponentTemplate() {
+		return componentTemplate;
 	}
 
 	@SuppressWarnings("unchecked")
 	public void pack(Packer pk, Object target) throws IOException {
-		if(!(target instanceof List)) {
+		if(!(target instanceof Object[])) {
 			throw new MessageTypeException();
 		}
-		List<Object> list = (List<Object>)target;
-		pk.packArray(list.size());
-		for(Object element : list) {
-			elementTemplate.pack(pk, element);
+		Object[] array = (Object[])target;
+		pk.packArray(array.length);
+		for(Object a : array) {
+			componentTemplate.pack(pk, a);
 		}
 	}
 
 	public Object unpack(Unpacker pac, Object to) throws IOException, MessageTypeException {
 		int length = pac.unpackArray();
-		List<Object> list;
-		if(to == null) {
-			list = new ArrayList<Object>(length);
+		Object[] array;
+		if(to != null && to instanceof Object[] && ((Object[])to).length == length) {
+			array = (Object[])to;
 		} else {
-			list = (List<Object>)to;
-			list.clear();
+			array = new Object[length];
 		}
-		for(; length > 0; length--) {
-			list.add( elementTemplate.unpack(pac, null) );
+		for(int i=0; i < length; i++) {
+			array[i] = componentTemplate.unpack(pac, null);
 		}
-		return list;
+		return array;
 	}
 
 	public Object convert(MessagePackObject from, Object to) throws MessageTypeException {
-		MessagePackObject[] array = from.asArray();
-		List<Object> list;
-		if(to == null) {
-			list = new ArrayList<Object>(array.length);
+		MessagePackObject[] src = from.asArray();
+		Object[] array;
+		if(to != null && to instanceof Object[] && ((Object[])to).length == src.length) {
+			array = (Object[])to;
 		} else {
-			// TODO: optimize if list is instanceof ArrayList
-			list = (List<Object>)to;
-			list.clear();
+			array = new Object[src.length];
 		}
-		for(MessagePackObject element : array) {
-			list.add( elementTemplate.convert(element, null) );
+		for(int i=0; i < src.length; i++) {
+			MessagePackObject s = src[i];
+			array[i] = componentTemplate.convert(s, array[i]);
 		}
-		return list;
-	}
-
-	static {
-		TemplateRegistry.registerGeneric(List.class, new GenericTemplate1(ListTemplate.class));
-		TemplateRegistry.register(List.class, new ListTemplate(AnyTemplate.getInstance()));
+		return array;
 	}
 }
 

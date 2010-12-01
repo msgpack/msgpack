@@ -15,36 +15,37 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 //
-package org.msgpack.template;
+package org.msgpack.type;
 
 import java.io.IOException;
 import org.msgpack.*;
+import org.msgpack.template.TemplateRegistry;
 
-public class LongTemplate implements Template {
-	private LongTemplate() { }
+public class RawTemplate implements Template {
+	static void load() { }
+
+	private RawTemplate() { }
 
 	public void pack(Packer pk, Object target) throws IOException {
-		pk.packLong((Long)target);
+		pk.packByteArray(((Raw)target).toByteArray());
 	}
 
 	public Object unpack(Unpacker pac, Object to) throws IOException, MessageTypeException {
-		return pac.unpackLong();
+		return new Raw(pac.unpackByteArray());
 	}
 
 	public Object convert(MessagePackObject from, Object to) throws MessageTypeException {
-		return from.asLong();
+		return new Raw(from.asByteArray());
 	}
 
-	static public LongTemplate getInstance() {
+	static public RawTemplate getInstance() {
 		return instance;
 	}
 
-	static final LongTemplate instance = new LongTemplate();
+	static final RawTemplate instance = new RawTemplate();
 
 	static {
-		CustomMessage.register(Long.class, instance);
-		TemplateRegistry.register(Long.class, instance);
-		TemplateRegistry.register(long.class, instance);
+		TemplateRegistry.register(Raw.class, instance);
 	}
 }
 

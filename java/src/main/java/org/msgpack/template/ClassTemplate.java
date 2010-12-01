@@ -18,6 +18,8 @@
 package org.msgpack.template;
 
 import java.io.IOException;
+import java.lang.reflect.AccessibleObject;
+import java.lang.annotation.Annotation;
 import org.msgpack.*;
 import org.msgpack.annotation.MessagePackDelegate;
 import org.msgpack.annotation.MessagePackMessage;
@@ -30,10 +32,6 @@ import java.math.BigInteger;
 import java.nio.ByteBuffer;
 
 public class ClassTemplate implements Template {
-	static {
-		Templates.load();
-	}
-
 	private Class<?> klass;
 
 	public ClassTemplate(Class<?> klass) {
@@ -119,14 +117,14 @@ public class ClassTemplate implements Template {
 		//	pk.packDouble((Double)o);
 		//	return;
 		//}
-		if(o instanceof BigInteger) {
-			pk.packBigInteger((BigInteger)o);
-			return;
-		}
-		if (o instanceof ByteBuffer) { // FIXME
-			Templates.tByteBuffer().pack(pk, o);
-			return;
-		}
+		//if(o instanceof BigInteger) {
+		//	pk.packBigInteger((BigInteger)o);
+		//	return;
+		//}
+		//if (o instanceof ByteBuffer) {
+		//	Templates.tByteBuffer().pack(pk, o);
+		//	return;
+		//}
 
 		MessagePacker packer = CustomPacker.get(klass);
 		if(packer != null) {
@@ -134,15 +132,15 @@ public class ClassTemplate implements Template {
 			return;
 		}
 
-		if (CustomMessage.isAnnotated(klass, MessagePackMessage.class)) {
+		if (isAnnotated(klass, MessagePackMessage.class)) {
 			Template tmpl = DynamicTemplate.create(klass);
 			CustomMessage.register(klass, tmpl);
 			tmpl.pack(pk, o);
 			return;
-		} else if (CustomMessage.isAnnotated(klass, MessagePackDelegate.class)) {
+		} else if (isAnnotated(klass, MessagePackDelegate.class)) {
 			// FIXME DelegatePacker
 			throw new UnsupportedOperationException("not supported yet. : " + klass.getName());
-		} else if (CustomMessage.isAnnotated(klass, MessagePackOrdinalEnum.class)) {
+		} else if (isAnnotated(klass, MessagePackOrdinalEnum.class)) {
 			Template tmpl = DynamicOrdinalEnumTemplate.create(klass);
 			CustomMessage.register(klass, tmpl);
 			tmpl.pack(pk, o);
@@ -171,14 +169,14 @@ public class ClassTemplate implements Template {
 				return obj;
 			}
 
-			if (CustomMessage.isAnnotated(klass, MessagePackMessage.class)) {
+			if (isAnnotated(klass, MessagePackMessage.class)) {
 				Template tmpl = DynamicTemplate.create(klass);
 				CustomMessage.register(klass, tmpl);
 				return tmpl.unpack(pac, to);
-			} else if (CustomMessage.isAnnotated(klass, MessagePackDelegate.class)) {
+			} else if (isAnnotated(klass, MessagePackDelegate.class)) {
 				// TODO DelegateUnpacker
 				throw new UnsupportedOperationException("not supported yet. : " + klass.getName());
-			} else if (CustomMessage.isAnnotated(klass, MessagePackOrdinalEnum.class)) {
+			} else if (isAnnotated(klass, MessagePackOrdinalEnum.class)) {
 				Template tmpl = DynamicOrdinalEnumTemplate.create(klass);
 				CustomMessage.register(klass, tmpl);
 				return tmpl.unpack(pac, to);
@@ -187,20 +185,20 @@ public class ClassTemplate implements Template {
 			// fallback
 			MessageConverter converter = null;
 
-			if (CustomMessage.isAnnotated(klass, MessagePackMessage.class)) {
+			if (isAnnotated(klass, MessagePackMessage.class)) {
 				Template tmpl = DynamicTemplate.create(klass);
 				CustomMessage.register(klass, tmpl);
 				return tmpl.convert(pac.unpackObject(), to);
-			} else if (CustomMessage.isAnnotated(klass, MessagePackDelegate.class)) {
+			} else if (isAnnotated(klass, MessagePackDelegate.class)) {
 				// TODO DelegateConverter
 				throw new UnsupportedOperationException("not supported yet. : " + klass.getName());
-			} else if (CustomMessage.isAnnotated(klass, MessagePackOrdinalEnum.class)) {
+			} else if (isAnnotated(klass, MessagePackOrdinalEnum.class)) {
 				Template tmpl = DynamicOrdinalEnumTemplate.create(klass);
 				CustomMessage.register(klass, tmpl);
 				return tmpl.convert(pac.unpackObject(), to);
 			}
 
-			throw new MessageTypeException();
+			throw new MessageTypeException("unknown type: "+klass);
 
 		} catch (IllegalAccessException e) {
 			throw new MessageTypeException(e.getMessage());  // FIXME
@@ -228,14 +226,14 @@ public class ClassTemplate implements Template {
 				return obj;
 			}
 
-			if (CustomMessage.isAnnotated(klass, MessagePackMessage.class)) {
+			if (isAnnotated(klass, MessagePackMessage.class)) {
 				Template tmpl = DynamicTemplate.create(klass);
 				CustomMessage.register(klass, tmpl);
 				return tmpl.convert(from, to);
-			} else if (CustomMessage.isAnnotated(klass, MessagePackDelegate.class)) {
+			} else if (isAnnotated(klass, MessagePackDelegate.class)) {
 				// TODO DelegateConverter
 				throw new UnsupportedOperationException("not supported yet. : " + klass.getName());
-			} else if (CustomMessage.isAnnotated(klass, MessagePackOrdinalEnum.class)) {
+			} else if (isAnnotated(klass, MessagePackOrdinalEnum.class)) {
 				Template tmpl = DynamicOrdinalEnumTemplate.create(klass);
 				CustomMessage.register(klass, tmpl);
 				return tmpl.convert(from, to);
@@ -248,6 +246,10 @@ public class ClassTemplate implements Template {
 		} catch (InstantiationException e) {
 			throw new MessageTypeException(e.getMessage());  // FIXME
 		}
+	}
+
+	private boolean isAnnotated(Class<?> ao, Class<? extends Annotation> with) {
+		return ao.getAnnotation(with) != null;
 	}
 }
 

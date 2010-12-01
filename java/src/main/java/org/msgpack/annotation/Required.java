@@ -21,10 +21,8 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import org.msgpack.template.FieldOption;
 
-@Target(ElementType.TYPE)
+@Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface MessagePackMessage {
-	FieldOption value() default FieldOption.DEFAULT;
+public @interface Required {
 }

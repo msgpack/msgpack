@@ -20,37 +20,57 @@ package org.msgpack.template;
 import java.io.IOException;
 import org.msgpack.*;
 
-public class AnyTemplate implements Template {
-	private AnyTemplate() { }
+public class LongArrayTemplate implements Template {
+	private LongArrayTemplate() { }
 
 	public void pack(Packer pk, Object target) throws IOException {
-		if(target instanceof MessagePackObject) {
-			pk.pack((MessagePackObject)target);
-		} else if(target == null) {
-			pk.packNil();
-		} else {
-			TemplateRegistry.lookup(target.getClass()).pack(pk, target);
-			//new ClassTemplate(target.getClass()).pack(pk, target);
+		if(!(target instanceof long[])) {
+			throw new MessageTypeException();
+		}
+		long[] array = (long[])target;
+		pk.packArray(array.length);
+		for(long a : array) {
+			pk.pack(a);
 		}
 	}
 
 	public Object unpack(Unpacker pac, Object to) throws IOException, MessageTypeException {
-		return pac.unpackObject();
+		int length = pac.unpackArray();
+		long[] array;
+		if(to != null && to instanceof long[] && ((long[])to).length == length) {
+			array = (long[])to;
+		} else {
+			array = new long[length];
+		}
+		for(int i=0; i < length; i++) {
+			array[i] = pac.unpackLong();
+		}
+		return array;
 	}
 
 	public Object convert(MessagePackObject from, Object to) throws MessageTypeException {
-		return from;
+		MessagePackObject[] src = from.asArray();
+		long[] array;
+		if(to != null && to instanceof long[] && ((long[])to).length == src.length) {
+			array = (long[])to;
+		} else {
+			array = new long[src.length];
+		}
+		for(int i=0; i < src.length; i++) {
+			MessagePackObject s = src[i];
+			array[i] = s.asLong();
+		}
+		return array;
 	}
 
-	static public AnyTemplate getInstance() {
+	static public LongArrayTemplate getInstance() {
 		return instance;
 	}
 
-	static final AnyTemplate instance = new AnyTemplate();
+	static final LongArrayTemplate instance = new LongArrayTemplate();
 
 	static {
-		CustomMessage.register(MessagePackObject.class, instance);
-		TemplateRegistry.register(MessagePackObject.class, instance);
+		TemplateRegistry.register(long[].class, instance);
 	}
 }
 

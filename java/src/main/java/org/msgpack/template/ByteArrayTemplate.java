@@ -43,6 +43,7 @@ public class ByteArrayTemplate implements Template {
 
 	static {
 		CustomMessage.register(byte[].class, instance);
+		TemplateRegistry.register(byte[].class, instance);
 	}
 }
 

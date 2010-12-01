@@ -21,6 +21,8 @@ import java.io.IOException;
 import org.msgpack.*;
 
 public class NullableTemplate implements Template {
+	static void load() { }
+
 	private Template elementTemplate;
 
 	public NullableTemplate(Template elementTemplate) {

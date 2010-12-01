@@ -27,6 +27,8 @@ import java.lang.reflect.Method;
 import org.msgpack.util.codegen.DynamicTemplate;
 import org.msgpack.util.codegen.DynamicOrdinalEnumTemplate;
 import org.msgpack.util.codegen.FieldList;
+import org.msgpack.template.TemplateRegistry;
+import org.msgpack.template.TemplateBuilder;
 
 public class MessagePack {
 	public static byte[] pack(Object obj) {
@@ -150,6 +152,8 @@ public class MessagePack {
 	}
 
 	public static void register(Class<?> target) {  // auto-detect
+		TemplateRegistry.register(target);
+
 		Template tmpl;
 		if(target.isEnum()) {
 			tmpl = DynamicOrdinalEnumTemplate.create(target);
@@ -194,6 +198,7 @@ public class MessagePack {
 	}
 
 	public static void register(Class<?> target, FieldList opts) {
+		TemplateRegistry.register(target); // FIXME FieldList
 		Template tmpl = DynamicTemplate.create(target, opts);
 		CustomPacker.register(target, tmpl);
 		CustomConverter.register(target, tmpl);
@@ -201,6 +206,7 @@ public class MessagePack {
 	}
 
 	public static void register(Class<?> target, Template tmpl) {
+		TemplateRegistry.register(target, tmpl);
 		CustomPacker.register(target, tmpl);
 		CustomConverter.register(target, tmpl);
 		CustomUnpacker.register(target, tmpl);

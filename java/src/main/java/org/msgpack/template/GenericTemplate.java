@@ -15,16 +15,11 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 //
-package org.msgpack.annotation;
+package org.msgpack.template;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-import org.msgpack.template.FieldOption;
+import org.msgpack.Template;
 
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface MessagePackMessage {
-	FieldOption value() default FieldOption.DEFAULT;
+public interface GenericTemplate {
+	public Template build(Template[] params);
 }
+

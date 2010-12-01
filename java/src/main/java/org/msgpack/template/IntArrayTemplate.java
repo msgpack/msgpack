@@ -20,31 +20,57 @@ package org.msgpack.template;
 import java.io.IOException;
 import org.msgpack.*;
 
-public class LongTemplate implements Template {
-	private LongTemplate() { }
+public class IntArrayTemplate implements Template {
+	private IntArrayTemplate() { }
 
 	public void pack(Packer pk, Object target) throws IOException {
-		pk.packLong((Long)target);
+		if(!(target instanceof int[])) {
+			throw new MessageTypeException();
+		}
+		int[] array = (int[])target;
+		pk.packArray(array.length);
+		for(int a : array) {
+			pk.pack(a);
+		}
 	}
 
 	public Object unpack(Unpacker pac, Object to) throws IOException, MessageTypeException {
-		return pac.unpackLong();
+		int length = pac.unpackArray();
+		int[] array;
+		if(to != null && to instanceof int[] && ((int[])to).length == length) {
+			array = (int[])to;
+		} else {
+			array = new int[length];
+		}
+		for(int i=0; i < length; i++) {
+			array[i] = pac.unpackInt();
+		}
+		return array;
 	}
 
 	public Object convert(MessagePackObject from, Object to) throws MessageTypeException {
-		return from.asLong();
+		MessagePackObject[] src = from.asArray();
+		int[] array;
+		if(to != null && to instanceof int[] && ((int[])to).length == src.length) {
+			array = (int[])to;
+		} else {
+			array = new int[src.length];
+		}
+		for(int i=0; i < src.length; i++) {
+			MessagePackObject s = src[i];
+			array[i] = s.asInt();
+		}
+		return array;
 	}
 
-	static public LongTemplate getInstance() {
+	static public IntArrayTemplate getInstance() {
 		return instance;
 	}
 
-	static final LongTemplate instance = new LongTemplate();
+	static final IntArrayTemplate instance = new IntArrayTemplate();
 
 	static {
-		CustomMessage.register(Long.class, instance);
-		TemplateRegistry.register(Long.class, instance);
-		TemplateRegistry.register(long.class, instance);
+		TemplateRegistry.register(int[].class, instance);
 	}
 }
 

@@ -23,6 +23,8 @@ import java.io.IOException;
 import org.msgpack.*;
 
 public class MapTemplate implements Template {
+	static void load() { }
+
 	private Template keyTemplate;
 	private Template valueTemplate;
 
@@ -85,6 +87,11 @@ public class MapTemplate implements Template {
 			map.put(key, value);
 		}
 		return map;
+	}
+
+	static {
+		TemplateRegistry.registerGeneric(Map.class, new GenericTemplate2(MapTemplate.class));
+		TemplateRegistry.register(Map.class, new MapTemplate(AnyTemplate.getInstance(), AnyTemplate.getInstance()));
 	}
 }
 

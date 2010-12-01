@@ -333,6 +333,8 @@ public class DynamicCodeGenBase implements Constants {
 				return Templates.tString();
 			} else if (c.equals(BigInteger.class)) {
 				return Templates.tBigInteger();
+			} else if (c.equals(byte[].class)) {
+				return Templates.tByteArray();
 			} else if (c.equals(ByteBuffer.class)) {
 				return Templates.tByteBuffer();
 			} else if (CustomConverter.isRegistered(c)) {// FIXME

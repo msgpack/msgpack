@@ -43,6 +43,8 @@ public class ByteTemplate implements Template {
 
 	static {
 		CustomMessage.register(Byte.class, instance);
+		TemplateRegistry.register(Byte.class, instance);
+		TemplateRegistry.register(byte.class, instance);
 	}
 }
 
