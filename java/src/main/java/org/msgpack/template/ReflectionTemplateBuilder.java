@@ -255,7 +255,7 @@ public class ReflectionTemplateBuilder extends TemplateBuilder {
 
 					if(pac.tryUnpackNull()) {
 						if(e.isRequired()) {
-							// Requred + nil => exception
+							// Required + nil => exception
 							throw new MessageTypeException();
 						} else if(e.isOptional()) {
 							// Optional + nil => keep default value
@@ -323,7 +323,7 @@ public class ReflectionTemplateBuilder extends TemplateBuilder {
 					MessagePackObject obj = array[i];
 					if(obj.isNil()) {
 						if(e.isRequired()) {
-							// Requred + nil => exception
+							// Required + nil => exception
 							throw new MessageTypeException();
 						} else if(e.isOptional()) {
 							// Optional + nil => keep default value

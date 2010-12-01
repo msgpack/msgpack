@@ -332,7 +332,7 @@ public class JavassistTemplateBuilder extends TemplateBuilder {
 
 				buildString("if($1.tryUnpackNull()) {");
 					if(e.isRequired()) {
-						// Requred + nil => exception
+						// Required + nil => exception
 						buildString("throw new %s();", MessageTypeException.class.getName());
 					} else if(e.isOptional()) {
 						// Optional + nil => keep default value
@@ -360,6 +360,8 @@ public class JavassistTemplateBuilder extends TemplateBuilder {
 				}
 
 				buildString("if($1.tryUnpackNull()) {");
+					// this is Optional field becaue i >= minimumArrayLength
+					// Optional + nil => keep default value
 				buildString("} else {");
 					Class<?> type = e.getType();
 					if(type.isPrimitive()) {
@@ -369,6 +371,8 @@ public class JavassistTemplateBuilder extends TemplateBuilder {
 					}
 				buildString("}");
 			}
+
+			// latter entries are all Optional + nil => keep default value
 
 			buildString("for(int i=%d; i < length; i++) {", i);
 			buildString("  $1.unpackObject();");
@@ -409,7 +413,7 @@ public class JavassistTemplateBuilder extends TemplateBuilder {
 				buildString("obj = array[%d];", i);
 				buildString("if(obj.isNil()) {");
 					if(e.isRequired()) {
-						// Requred + nil => exception
+						// Required + nil => exception
 						buildString("throw new %s();", MessageTypeException.class.getName());
 					} else if(e.isOptional()) {
 						// Optional + nil => keep default value
@@ -437,6 +441,8 @@ public class JavassistTemplateBuilder extends TemplateBuilder {
 
 				buildString("obj = array[%d];", i);
 				buildString("if(obj.isNil()) {");
+					// this is Optional field becaue i >= minimumArrayLength
+					// Optional + nil => keep default value
 				buildString("} else {");
 					Class<?> type = e.getType();
 					if(type.isPrimitive()) {
@@ -446,6 +452,8 @@ public class JavassistTemplateBuilder extends TemplateBuilder {
 					}
 				buildString("}");
 			}
+
+			// latter entries are all Optional + nil => keep default value
 
 			buildString("return _$$_t;");
 
