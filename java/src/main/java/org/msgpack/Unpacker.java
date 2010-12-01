@@ -23,8 +23,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.nio.ByteBuffer;
 import java.math.BigInteger;
-import org.msgpack.template.ClassTemplate;
-import org.msgpack.template.NullableTemplate;
+import org.msgpack.template.TemplateRegistry;
 
 /**
  * Unpacker enables you to deserialize objects from stream.
@@ -105,10 +104,6 @@ import org.msgpack.template.NullableTemplate;
  * </pre>
  */
 public class Unpacker implements Iterable<MessagePackObject> {
-	static {
-		Templates.load();
-	}
-
 	// buffer:
 	// +---------------------------------------------+
 	// | [object] | [obje| unparsed ... | unused  ...|
@@ -578,25 +573,25 @@ public class Unpacker implements Iterable<MessagePackObject> {
 	//	return unpackObject();
 	//}
 
-	final public Object unpack(Template tmpl) throws IOException, MessageTypeException {
-		return unpack(tmpl, null);
-	}
-
-	final public <T> T unpack(Template tmpl, T to) throws IOException, MessageTypeException {
-		return (T)tmpl.unpack(this, to);
+	final public <T> T unpack(T to) throws IOException, MessageTypeException {
+		return unpack((Class<T>)to.getClass(), to);
 	}
 
 	final public <T> T unpack(Class<T> klass) throws IOException, MessageTypeException {
 		return unpack(klass, null);
 	}
 
-	final public <T> T unpack(T to) throws IOException, MessageTypeException {
-		return unpack((Class<T>)to.getClass(), to);
+	final public <T> T unpack(Class<T> klass, T to) throws IOException, MessageTypeException {
+		if(tryUnpackNull()) { return null; }
+		return (T)TemplateRegistry.lookup(klass).unpack(this, to);
 	}
 
-	final public <T> T unpack(Class<T> klass, T to) throws IOException, MessageTypeException {
-		// FIXME nullable?
-		return (T)unpack(new NullableTemplate(new ClassTemplate(klass)), to);
+	final public Object unpack(Template tmpl) throws IOException, MessageTypeException {
+		return unpack(tmpl, null);
+	}
+
+	final public <T> T unpack(Template tmpl, T to) throws IOException, MessageTypeException {
+		return (T)tmpl.unpack(this, to);
 	}
 }
 

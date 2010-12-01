@@ -21,14 +21,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.Map;
 import java.math.BigInteger;
-import org.msgpack.template.ClassTemplate;
-import org.msgpack.template.NullableTemplate;
+import org.msgpack.template.TemplateRegistry;
 
 public abstract class MessagePackObject implements Cloneable, MessagePackable {
-	static {
-		Templates.load();
-	}
-
 	public boolean isNil() {
 		return false;
 	}
@@ -156,8 +151,10 @@ public abstract class MessagePackObject implements Cloneable, MessagePackable {
 	}
 
 	public <T> T convert(Class<T> klass, T to) throws MessageTypeException {
-		// FIXME nullable?
-		return (T)convert(new NullableTemplate(new ClassTemplate(klass)), to);
+		if(isNil()) {
+			return null;
+		}
+		return (T)convert(TemplateRegistry.lookup(klass), to);
 	}
 }
 

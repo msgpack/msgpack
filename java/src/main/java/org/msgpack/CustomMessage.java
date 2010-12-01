@@ -18,6 +18,7 @@
 package org.msgpack;
 
 import java.lang.annotation.Annotation;
+import org.msgpack.template.TemplateRegistry;
 
 public class CustomMessage {
 	public static void registerPacker(Class<?> target, MessagePacker packer) {
@@ -33,6 +34,7 @@ public class CustomMessage {
 	}
 
 	public static void register(Class<?> target, Template tmpl) {
+		TemplateRegistry.register(target, tmpl);
 		CustomPacker.register(target, tmpl);
 		CustomConverter.register(target, tmpl);
 		CustomUnpacker.register(target, tmpl);

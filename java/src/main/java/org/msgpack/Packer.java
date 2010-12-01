@@ -25,11 +25,7 @@ import java.util.Set;
 import java.util.Map;
 import java.util.Collection;
 import java.math.BigInteger;
-
-import org.msgpack.annotation.MessagePackDelegate;
-import org.msgpack.annotation.MessagePackMessage;
-import org.msgpack.annotation.MessagePackOrdinalEnum;
-import org.msgpack.util.codegen.DynamicTemplate;
+import org.msgpack.template.TemplateRegistry;
 
 /**
  * Packer enables you to serialize objects into OutputStream.
@@ -48,10 +44,6 @@ import org.msgpack.util.codegen.DynamicTemplate;
  * You can serialize objects that implements {@link MessagePackable} interface.
  */
 public class Packer {
-	static {
-		Templates.load();
-	}
-
 	public static void load() { }
 
 	protected byte[] castBytes = new byte[9];
@@ -525,7 +517,8 @@ public class Packer {
 	}
 
 	public Packer pack(Object o) throws IOException {
-		Templates.TAny.pack(this, o);
+		if(o == null) { return packNil(); }
+		TemplateRegistry.lookup(o.getClass()).pack(this, o);
 		return this;
 	}
 

@@ -20,8 +20,6 @@ package org.msgpack;
 import org.msgpack.template.*;
 
 public class Templates {
-	public static void load() { }
-
 	public static Template tNullable(Template elementTemplate) {
 		return new NullableTemplate(elementTemplate);
 	}
@@ -46,7 +44,11 @@ public class Templates {
 	}
 
 	public static Template tClass(Class target) {
-		return new ClassTemplate(target);
+		Template tmpl = TemplateRegistry.lookup(target);
+		if(tmpl == null) {
+			// FIXME
+		}
+		return tmpl;
 	}
 
 	public static final Template TByte = ByteTemplate.getInstance();
