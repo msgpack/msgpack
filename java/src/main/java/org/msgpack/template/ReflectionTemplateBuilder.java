@@ -19,13 +19,23 @@ package org.msgpack.template;
 
 import java.io.IOException;
 import java.lang.reflect.*;
+import java.util.Map;
+import java.util.HashMap;
 import org.msgpack.*;
 
 public class ReflectionTemplateBuilder extends TemplateBuilder {
-	public ReflectionTemplateBuilder() {
+	private static ReflectionTemplateBuilder instance;
+	public synchronized static ReflectionTemplateBuilder getInstance() {
+		if(instance == null) {
+			instance = new ReflectionTemplateBuilder();
+		}
+		return instance;
 	}
 
-	public static abstract class ReflectionFieldEntry extends FieldEntry {
+	private ReflectionTemplateBuilder() {
+	}
+
+	static abstract class ReflectionFieldEntry extends FieldEntry {
 		public ReflectionFieldEntry(FieldEntry e) {
 			super(e.getField(), e.getOption());
 		}
@@ -41,41 +51,41 @@ public class ReflectionTemplateBuilder extends TemplateBuilder {
 		}
 	}
 
-	public static class ObjectFieldEntry extends ReflectionFieldEntry {
-		public ObjectFieldEntry(FieldEntry e) {
+	static class ObjectFieldEntry extends ReflectionFieldEntry {
+		private Template template;
+
+		ObjectFieldEntry(FieldEntry e, Template template) {
 			super(e);
+			this.template = template;
 		}
 
 		public void pack(Object target, Packer pac) throws IOException {
-			// TODO: call template
-			pac.pack(target);
+			template.pack(pac, target);
 		}
 
 		public void convert(Object target, MessagePackObject obj) throws MessageTypeException, IllegalAccessException {
-			// TODO: call template
 			Field f = getField();
 			Class<Object> type = (Class<Object>)f.getType();
 			Object fieldReference = f.get(target);
-			Object valueReference = obj.convert(type, fieldReference);
+			Object valueReference = template.convert(obj, fieldReference);
 			if(valueReference != fieldReference) {
 				f.set(target, valueReference);
 			}
 		}
 
 		public void unpack(Object target, Unpacker pac) throws IOException, MessageTypeException, IllegalAccessException {
-			// TODO: call template
 			Field f = getField();
 			Class<Object> type = (Class<Object>)f.getType();
 			Object fieldReference = f.get(target);
-			Object valueReference = pac.unpack(type, fieldReference);
+			Object valueReference = template.unpack(pac, fieldReference);
 			if(valueReference != fieldReference) {
 				f.set(target, valueReference);
 			}
 		}
 	}
 
-	public static class BooleanFieldEntry extends ReflectionFieldEntry {
-		public BooleanFieldEntry(FieldEntry e) {
+	static class BooleanFieldEntry extends ReflectionFieldEntry {
+		BooleanFieldEntry(FieldEntry e) {
 			super(e);
 		}
 		public void pack(Object target, Packer pac) throws IOException {
@@ -89,8 +99,8 @@ public class ReflectionTemplateBuilder extends TemplateBuilder {
 		}
 	}
 
-	public static class ByteFieldEntry extends ReflectionFieldEntry {
-		public ByteFieldEntry(FieldEntry e) {
+	static class ByteFieldEntry extends ReflectionFieldEntry {
+		ByteFieldEntry(FieldEntry e) {
 			super(e);
 		}
 		public void pack(Object target, Packer pac) throws IOException {
@@ -104,8 +114,8 @@ public class ReflectionTemplateBuilder extends TemplateBuilder {
 		}
 	}
 
-	public static class ShortFieldEntry extends ReflectionFieldEntry {
-		public ShortFieldEntry(FieldEntry e) {
+	static class ShortFieldEntry extends ReflectionFieldEntry {
+		ShortFieldEntry(FieldEntry e) {
 			super(e);
 		}
 		public void pack(Object target, Packer pac) throws IOException {
@@ -119,8 +129,8 @@ public class ReflectionTemplateBuilder extends TemplateBuilder {
 		}
 	}
 
-	public static class IntFieldEntry extends ReflectionFieldEntry {
-		public IntFieldEntry(FieldEntry e) {
+	static class IntFieldEntry extends ReflectionFieldEntry {
+		IntFieldEntry(FieldEntry e) {
 			super(e);
 		}
 		public void pack(Object target, Packer pac) throws IOException {
@@ -134,8 +144,8 @@ public class ReflectionTemplateBuilder extends TemplateBuilder {
 		}
 	}
 
-	public static class LongFieldEntry extends ReflectionFieldEntry {
-		public LongFieldEntry(FieldEntry e) {
+	static class LongFieldEntry extends ReflectionFieldEntry {
+		LongFieldEntry(FieldEntry e) {
 			super(e);
 		}
 		public void pack(Object target, Packer pac) throws IOException {
@@ -149,8 +159,8 @@ public class ReflectionTemplateBuilder extends TemplateBuilder {
 		}
 	}
 
-	public static class FloatFieldEntry extends ReflectionFieldEntry {
-		public FloatFieldEntry(FieldEntry e) {
+	static class FloatFieldEntry extends ReflectionFieldEntry {
+		FloatFieldEntry(FieldEntry e) {
 			super(e);
 		}
 		public void pack(Object target, Packer pac) throws IOException {
@@ -164,8 +174,8 @@ public class ReflectionTemplateBuilder extends TemplateBuilder {
 		}
 	}
 
-	public static class DoubleFieldEntry extends ReflectionFieldEntry {
-		public DoubleFieldEntry(FieldEntry e) {
+	static class DoubleFieldEntry extends ReflectionFieldEntry {
+		DoubleFieldEntry(FieldEntry e) {
 			super(e);
 		}
 		public void pack(Object target, Packer pac) throws IOException {
@@ -179,17 +189,19 @@ public class ReflectionTemplateBuilder extends TemplateBuilder {
 		}
 	}
 
-	private static class ReflectionTemplate extends AbstractTemplate {
-		private Class<?> targetClass;
-		private ReflectionFieldEntry[] entries;
-		private int minimumArrayLength;
+	static class ReflectionTemplate extends AbstractTemplate {
+		protected Class<?> targetClass;
+		protected ReflectionFieldEntry[] entries;
+		protected int minimumArrayLength;
 
-		public ReflectionTemplate(Class<?> targetClass, ReflectionFieldEntry[] entries) {
+		ReflectionTemplate(Class<?> targetClass, ReflectionFieldEntry[] entries) {
 			this.targetClass = targetClass;
 			this.entries = entries;
+			this.minimumArrayLength = 0;
 			for(int i=0; i < entries.length; i++) {
-				if(entries[i].isRequired() || entries[i].isNullable()) {
-					minimumArrayLength = i+1;
+				ReflectionFieldEntry e = entries[i];
+				if(e.isRequired() || e.isNullable()) {
+					this.minimumArrayLength = i+1;
 				}
 			}
 		}
@@ -209,9 +221,12 @@ public class ReflectionTemplateBuilder extends TemplateBuilder {
 						}
 						pk.packNil();
 					} else {
-						pk.pack(obj);  // TODO: call template
+						e.pack(obj, pk);
 					}
 				}
+
+			} catch (MessageTypeException e) {
+				throw e;
 			} catch (IOException e) {
 				throw e;
 			} catch (Exception e) {
@@ -233,31 +248,40 @@ public class ReflectionTemplateBuilder extends TemplateBuilder {
 				int i;
 				for(i=0; i < minimumArrayLength; i++) {
 					ReflectionFieldEntry e = entries[i];
+					if(!e.isAvailable()) {
+						pac.unpackObject();
+						continue;
+					}
+
 					if(pac.tryUnpackNull()) {
 						if(e.isRequired()) {
 							// Requred + nil => exception
 							throw new MessageTypeException();
 						} else if(e.isOptional()) {
 							// Optional + nil => keep default value
-							continue;
 						} else {  // Nullable
 							// Nullable + nil => set null
 							e.setNull(to);
-							continue;
 						}
+					} else {
+						e.unpack(to, pac);
 					}
-					e.unpack(to, pac);
 				}
 
 				int max = length < entries.length ? length : entries.length;
 				for(; i < max; i++) {
 					ReflectionFieldEntry e = entries[i];
+					if(!e.isAvailable()) {
+						pac.unpackObject();
+						continue;
+					}
+
 					if(pac.tryUnpackNull()) {
 						// this is Optional field becaue i >= minimumArrayLength
 						// Optional + nil => keep default value
-						continue;
+					} else {
+						e.unpack(to, pac);
 					}
-					e.unpack(to, pac);
 				}
 
 				// latter entries are all Optional + nil => keep default value
@@ -268,6 +292,8 @@ public class ReflectionTemplateBuilder extends TemplateBuilder {
 
 				return to;
 
+			} catch (MessageTypeException e) {
+				throw e;
 			} catch (IOException e) {
 				throw e;
 			} catch (Exception e) {
@@ -290,6 +316,10 @@ public class ReflectionTemplateBuilder extends TemplateBuilder {
 				int i;
 				for(i=0; i < minimumArrayLength; i++) {
 					ReflectionFieldEntry e = entries[i];
+					if(!e.isAvailable()) {
+						continue;
+					}
+
 					MessagePackObject obj = array[i];
 					if(obj.isNil()) {
 						if(e.isRequired()) {
@@ -297,32 +327,37 @@ public class ReflectionTemplateBuilder extends TemplateBuilder {
 							throw new MessageTypeException();
 						} else if(e.isOptional()) {
 							// Optional + nil => keep default value
-							continue;
 						} else {  // Nullable
 							// Nullable + nil => set null
 							e.setNull(to);
-							continue;
 						}
+					} else {
+						e.convert(to, obj);
 					}
-					e.convert(to, obj);
 				}
 
 				int max = length < entries.length ? length : entries.length;
 				for(; i < max; i++) {
 					ReflectionFieldEntry e = entries[i];
+					if(!e.isAvailable()) {
+						continue;
+					}
+
 					MessagePackObject obj = array[i];
 					if(obj.isNil()) {
 						// this is Optional field becaue i >= minimumArrayLength
 						// Optional + nil => keep default value
-						continue;
+					} else {
+						e.convert(to, obj);
 					}
-					e.convert(to, obj);
 				}
 
 				// latter entries are all Optional + nil => keep default value
 
 				return to;
 
+			} catch (MessageTypeException e) {
+				throw e;
 			} catch (Exception e) {
 				throw new MessageTypeException(e);
 			}
@@ -342,7 +377,6 @@ public class ReflectionTemplateBuilder extends TemplateBuilder {
 		for(int i=0; i < entries.length; i++) {
 			FieldEntry e = entries[i];
 			Class<?> type = e.getType();
-			System.out.println(type);
 			if(type.equals(boolean.class)) {
 				res[i] = new BooleanFieldEntry(e);
 			} else if(type.equals(byte.class)) {
@@ -358,11 +392,53 @@ public class ReflectionTemplateBuilder extends TemplateBuilder {
 			} else if(type.equals(double.class)) {
 				res[i] = new DoubleFieldEntry(e);
 			} else {
-				res[i] = new ObjectFieldEntry(e);
+				Template tmpl = TemplateRegistry.lookup(e.getGenericType(), true);
+				res[i] = new ObjectFieldEntry(e, tmpl);
 			}
 		}
 
 		return new ReflectionTemplate(targetClass, res);
+	}
+
+	static class ReflectionOrdinalEnumTemplate extends AbstractTemplate {
+		protected Enum<?>[] entries;
+		protected Map<Enum<?>, Integer> reverse;
+
+		ReflectionOrdinalEnumTemplate(Enum<?>[] entries) {
+			this.entries = entries;
+			this.reverse = new HashMap<Enum<?>, Integer>();
+			for(int i=0; i < entries.length; i++) {
+				this.reverse.put(entries[i], i);
+			}
+		}
+
+		public void pack(Packer pk, Object target) throws IOException {
+			Integer ord = reverse.get(target);
+			if(ord == null) {
+				throw new MessageTypeException();
+			}
+			pk.pack((int)ord);
+		}
+
+		public Object unpack(Unpacker pac, Object to) throws IOException, MessageTypeException {
+			int ord = pac.unpackInt();
+			if(entries.length <= ord) {
+				throw new MessageTypeException();
+			}
+			return entries[ord];
+		}
+
+		public Object convert(MessagePackObject from, Object to) throws MessageTypeException {
+			int ord = from.asInt();
+			if(entries.length <= ord) {
+				throw new MessageTypeException();
+			}
+			return entries[ord];
+		}
+	}
+
+	public Template buildOrdinalEnumTemplate(Class<?> targetClass, Enum<?>[] entries) {
+		return new ReflectionOrdinalEnumTemplate(entries);
 	}
 }
 

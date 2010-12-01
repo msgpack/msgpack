@@ -22,6 +22,7 @@ import java.lang.reflect.*;
 import java.lang.annotation.*;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import org.msgpack.*;
 import org.msgpack.annotation.*;
 
@@ -50,6 +51,19 @@ public abstract class TemplateBuilder {
 			return field.getType();
 		}
 
+		public String getJavaTypeName() {
+			Class<?> type = field.getType();
+			if(type.isArray()) {
+				return arrayTypeToString(type);
+			} else {
+				return type.getName();
+			}
+		}
+
+		public Type getGenericType() {
+			return field.getGenericType();
+		}
+
 		public FieldOption getOption() {
 			return option;
 		}
@@ -73,10 +87,29 @@ public abstract class TemplateBuilder {
 		public boolean isAnnotated(Class<? extends Annotation> with) {
 			return field.getAnnotation(with) != null;
 		}
+
+		static String arrayTypeToString(Class<?> type) {
+			int dim = 1;
+			Class<?> baseType = type.getComponentType();
+			while(baseType.isArray()) {
+				baseType = baseType.getComponentType();
+				dim += 1;
+			}
+			StringBuilder sb = new StringBuilder();
+			sb.append(baseType.getName());
+			for (int i = 0; i < dim; ++i) {
+				sb.append("[]");
+			}
+			return sb.toString();
+		}
 	}
 
 	// Override this method
 	public abstract Template buildTemplate(Class<?> targetClass, FieldEntry[] entries);
+
+	// Override this method
+	public abstract Template buildOrdinalEnumTemplate(Class<?> targetClass, Enum<?>[] entries);
+
 
 	public Template buildTemplate(Class<?> targetClass) {
 		return buildTemplate(targetClass, readFieldEntries(targetClass));
@@ -90,14 +123,21 @@ public abstract class TemplateBuilder {
 		return buildTemplate(targetClass, convertFieldEntries(targetClass, flist));
 	}
 
-
-	private static TemplateBuilder instance;
-
-	static {
-		// FIXME
-		instance = new ReflectionTemplateBuilder();
+	public Template buildOrdinalEnumTemplate(Class<?> targetClass) {
+		Enum<?>[] entries = (Enum<?>[])targetClass.getEnumConstants();
+		return buildOrdinalEnumTemplate(targetClass, entries);
 	}
 
+
+	private static TemplateBuilder instance;
+	static {
+		// FIXME
+		instance = JavassistTemplateBuilder.getInstance();
+	}
+
+	public synchronized static void setTemplateBuilder(TemplateBuilder builder) {
+		instance = builder;
+	}
 
 	public static Template build(Class<?> targetClass) {
 		return instance.buildTemplate(targetClass);
@@ -109,6 +149,10 @@ public abstract class TemplateBuilder {
 
 	public static Template build(Class<?> targetClass, FieldList flist) throws NoSuchFieldException {
 		return instance.buildTemplate(targetClass, flist);
+	}
+
+	public static Template buildOrdinalEnum(Class<?> targetClass) {
+		return instance.buildOrdinalEnumTemplate(targetClass);
 	}
 
 
@@ -195,7 +239,7 @@ public abstract class TemplateBuilder {
 		Field[] result = new Field[total];
 		int off = 0;
 		for(int i=succ.size()-1; i >= 0; i--) {
-			Field[] fields = succ.get(0);
+			Field[] fields = succ.get(i);
 			System.arraycopy(fields, 0, result, off, fields.length);
 			off += fields.length;
 		}
@@ -236,12 +280,12 @@ public abstract class TemplateBuilder {
 
 		// default mode:
 		//   transient : Ignore
-		//   public    : Nullable
+		//   public    : Required
 		//   others    : Ignore
 		if(Modifier.isTransient(mod)) {
 			return FieldOption.IGNORE;
 		} else if(Modifier.isPublic(mod)) {
-			return FieldOption.NULLABLE;
+			return FieldOption.REQUIRED;
 		} else {
 			return FieldOption.IGNORE;
 		}
