@@ -135,8 +135,18 @@ public abstract class TemplateBuilder {
 
 	private static TemplateBuilder instance;
 	static {
-		// FIXME TemplateBuilder auto selection
-		instance = JavassistTemplateBuilder.getInstance();
+		instance = selectDefaultTemplateBuilder();
+	}
+
+	private static TemplateBuilder selectDefaultTemplateBuilder() {
+		try {
+			// FIXME JavassistTemplateBuilder doesn't work on DalvikVM
+			if(System.getProperty("java.vm.name").equals("Dalvik")) {
+				return ReflectionTemplateBuilder.getInstance();
+			}
+		} catch (Exception e) {
+		}
+		return JavassistTemplateBuilder.getInstance();
 	}
 
 	synchronized static void setInstance(TemplateBuilder builder) {
