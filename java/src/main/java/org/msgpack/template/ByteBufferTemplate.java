@@ -25,20 +25,9 @@ public class ByteBufferTemplate implements Template {
 	private ByteBufferTemplate() { }
 
 	public void pack(Packer pk, Object target) throws IOException {
-		byte[] bytes = byteBufferToByteArray((ByteBuffer)target);
-		pk.packByteArray(bytes);
-	}
-
-	private static byte[] byteBufferToByteArray(ByteBuffer b) {
-		if (b.hasArray() && b.position() == 0 && b.arrayOffset() == 0
-				&& b.remaining() == b.capacity()) {
-			return b.array();
-		} else {
-			int size = b.remaining();
-			byte[] bytes = new byte[size];
-			System.arraycopy(b.array(), b.arrayOffset() + b.position(), bytes, 0, size);
-			return bytes;
-		}
+		ByteBuffer buf = (ByteBuffer) target;
+		pk.packRaw(buf.remaining());
+		pk.packRawBody(buf.array(), buf.arrayOffset() + buf.position(), buf.remaining());
 	}
 
 	public Object unpack(Unpacker pac, Object to) throws IOException, MessageTypeException {
