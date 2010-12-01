@@ -44,6 +44,7 @@ public class BigIntegerTemplate implements Template {
 
 	static {
 		CustomMessage.register(BigInteger.class, instance);
+		TemplateRegistry.register(BigInteger.class, instance);
 	}
 }
 

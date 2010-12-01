@@ -43,6 +43,8 @@ public class LongTemplate implements Template {
 
 	static {
 		CustomMessage.register(Long.class, instance);
+		TemplateRegistry.register(Long.class, instance);
+		TemplateRegistry.register(long.class, instance);
 	}
 }
 

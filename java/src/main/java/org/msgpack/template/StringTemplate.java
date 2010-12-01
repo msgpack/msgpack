@@ -43,6 +43,7 @@ public class StringTemplate implements Template {
 
 	static {
 		CustomMessage.register(String.class, instance);
+		TemplateRegistry.register(String.class, instance);
 	}
 }
 

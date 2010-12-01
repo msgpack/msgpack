@@ -43,6 +43,8 @@ public class BooleanTemplate implements Template {
 
 	static {
 		CustomMessage.register(Boolean.class, instance);
+		TemplateRegistry.register(Boolean.class, instance);
+		TemplateRegistry.register(boolean.class, instance);
 	}
 }
 
