@@ -208,5 +208,9 @@ public class TemplateRegistry {
 	private static boolean isAnnotated(Class<?> ao, Class<? extends Annotation> with) {
 		return ao.getAnnotation(with) != null;
 	}
+
+	public static void setTemplateBuilder(TemplateBuilder builder) {
+		TemplateBuilder.setInstance(builder);
+	}
 }
 

@@ -139,7 +139,7 @@ public abstract class TemplateBuilder {
 		instance = JavassistTemplateBuilder.getInstance();
 	}
 
-	public synchronized static void setTemplateBuilder(TemplateBuilder builder) {
+	synchronized static void setInstance(TemplateBuilder builder) {
 		instance = builder;
 	}
 
