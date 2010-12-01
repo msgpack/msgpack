@@ -30,7 +30,6 @@ public class AnyTemplate implements Template {
 			pk.packNil();
 		} else {
 			TemplateRegistry.lookup(target.getClass()).pack(pk, target);
-			//new ClassTemplate(target.getClass()).pack(pk, target);
 		}
 	}
 
@@ -49,7 +48,6 @@ public class AnyTemplate implements Template {
 	static final AnyTemplate instance = new AnyTemplate();
 
 	static {
-		CustomMessage.register(MessagePackObject.class, instance);
 		TemplateRegistry.register(MessagePackObject.class, instance);
 	}
 }

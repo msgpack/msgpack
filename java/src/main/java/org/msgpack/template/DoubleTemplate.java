@@ -42,7 +42,6 @@ public class DoubleTemplate implements Template {
 	static final DoubleTemplate instance = new DoubleTemplate();
 
 	static {
-		CustomMessage.register(Double.class, instance);
 		TemplateRegistry.register(Double.class, instance);
 		TemplateRegistry.register(double.class, instance);
 	}

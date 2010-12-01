@@ -42,7 +42,6 @@ public class ShortTemplate implements Template {
 	static final ShortTemplate instance = new ShortTemplate();
 
 	static {
-		CustomMessage.register(Short.class, instance);
 		TemplateRegistry.register(Short.class, instance);
 		TemplateRegistry.register(short.class, instance);
 	}

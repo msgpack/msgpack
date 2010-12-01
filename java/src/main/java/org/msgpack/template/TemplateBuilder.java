@@ -112,18 +112,22 @@ public abstract class TemplateBuilder {
 
 
 	public Template buildTemplate(Class<?> targetClass) {
+		checkTypeValidation(targetClass);
 		return buildTemplate(targetClass, readFieldEntries(targetClass));
 	}
 
 	public Template buildTemplate(Class<?> targetClass, FieldOption implicitOption) {
+		checkTypeValidation(targetClass);
 		return buildTemplate(targetClass, readFieldEntries(targetClass, implicitOption));
 	}
 
 	public Template buildTemplate(Class<?> targetClass, FieldList flist) throws NoSuchFieldException {
+		checkTypeValidation(targetClass);
 		return buildTemplate(targetClass, convertFieldEntries(targetClass, flist));
 	}
 
 	public Template buildOrdinalEnumTemplate(Class<?> targetClass) {
+		checkOrdinalEnumValidation(targetClass);
 		Enum<?>[] entries = (Enum<?>[])targetClass.getEnumConstants();
 		return buildOrdinalEnumTemplate(targetClass, entries);
 	}
@@ -131,7 +135,7 @@ public abstract class TemplateBuilder {
 
 	private static TemplateBuilder instance;
 	static {
-		// FIXME
+		// FIXME TemplateBuilder auto selection
 		instance = JavassistTemplateBuilder.getInstance();
 	}
 
@@ -153,6 +157,25 @@ public abstract class TemplateBuilder {
 
 	public static Template buildOrdinalEnum(Class<?> targetClass) {
 		return instance.buildOrdinalEnumTemplate(targetClass);
+	}
+
+
+	protected void checkTypeValidation(Class<?> targetClass) {
+		if(targetClass.isInterface()) {
+			throw new TemplateBuildException("cannot build template of interface");
+		}
+		if(targetClass.isArray()) {
+			throw new TemplateBuildException("cannot build template of array class");
+		}
+		if(targetClass.isPrimitive()) {
+			throw new TemplateBuildException("cannot build template of primitive type");
+		}
+	}
+
+	protected void checkOrdinalEnumValidation(Class<?> targetClass) {
+		if(!targetClass.isEnum()) {
+			throw new TemplateBuildException("tried to build ordinal enum template of non-enum class");
+		}
 	}
 
 

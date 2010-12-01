@@ -108,10 +108,15 @@ public class JavassistTemplateBuilder extends TemplateBuilder {
 				buildConvertMethod();
 				return buildInstance(createClass());
 			} catch (Exception e) {
-				if(this.stringBuilder != null) {
+				String code = getBuiltString();
+				if(code != null) {
 					LOG.error("builder: "+this.stringBuilder.toString());
 				}
-				throw new MessageTypeException(e);
+				if(code != null) {
+					throw new TemplateBuildException("cannot compile: "+code, e);
+				} else {
+					throw new TemplateBuildException(e);
+				}
 			}
 		}
 
@@ -204,6 +209,9 @@ public class JavassistTemplateBuilder extends TemplateBuilder {
 		}
 
 		protected String getBuiltString() {
+			if(this.stringBuilder == null) {
+				return null;
+			}
 			return this.stringBuilder.toString();
 		}
 	}
@@ -385,6 +393,8 @@ public class JavassistTemplateBuilder extends TemplateBuilder {
 			buildString("  throw new %s();", MessageTypeException.class.getName());
 			buildString("}");
 
+			buildString("%s obj;", MessagePackObject.class.getName());
+
 			int i;
 			for(i=0; i < this.minimumArrayLength; i++) {
 				FieldEntry e = entries[i];
@@ -392,7 +402,7 @@ public class JavassistTemplateBuilder extends TemplateBuilder {
 					continue;
 				}
 
-				buildString("%s obj = array[%d];", MessagePackObject.class.getName(), i);
+				buildString("obj = array[%d];", i);
 				buildString("if(obj.isNil()) {");
 					if(e.isRequired()) {
 						// Requred + nil => exception
@@ -421,12 +431,12 @@ public class JavassistTemplateBuilder extends TemplateBuilder {
 					continue;
 				}
 
-				buildString("%s obj = array[%d];", MessagePackObject.class.getName(), i);
+				buildString("obj = array[%d];", i);
 				buildString("if(obj.isNil()) {");
 				buildString("} else {");
 					Class<?> type = e.getType();
 					if(type.isPrimitive()) {
-						buildString("_$$_t.%s = $1.%s();", e.getName(), primitiveConvertName(type));
+						buildString("_$$_t.%s = obj.%s();", e.getName(), primitiveConvertName(type));
 					} else {
 						buildString("_$$_t.%s = (%s)this.templates[%d].convert(obj, _$$_t.%s);", e.getName(), e.getJavaTypeName(), i, e.getName());
 					}
