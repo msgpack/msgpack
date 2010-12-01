@@ -15,26 +15,21 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 //
-package org.msgpack.packer;
+package org.msgpack.template;
 
-import java.io.IOException;
-import org.msgpack.*;
+@SuppressWarnings("serial")
+public class TemplateBuildException extends RuntimeException {
 
-public class ByteArrayPacker implements MessagePacker {
-	private ByteArrayPacker() { }
-
-	public void pack(Packer pk, Object target) throws IOException {
-		pk.packByteArray((byte[])target);
+	public TemplateBuildException(String reason) {
+		super(reason);
 	}
 
-	static public ByteArrayPacker getInstance() {
-		return instance;
+	public TemplateBuildException(String reason, Throwable t) {
+		super(reason, t);
 	}
 
-	static final ByteArrayPacker instance = new ByteArrayPacker();
-
-	static {
-		CustomMessage.registerPacker(byte[].class, instance);
+	public TemplateBuildException(Throwable t) {
+		super(t);
 	}
 }
 

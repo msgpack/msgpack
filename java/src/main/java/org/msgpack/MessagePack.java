@@ -21,14 +21,9 @@ import java.io.OutputStream;
 import java.io.InputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-
-import org.msgpack.util.codegen.DynamicTemplate;
-import org.msgpack.util.codegen.DynamicOrdinalEnumTemplate;
-import org.msgpack.util.codegen.FieldList;
 import org.msgpack.template.TemplateRegistry;
 import org.msgpack.template.TemplateBuilder;
+import org.msgpack.template.FieldList;
 
 public class MessagePack {
 	public static byte[] pack(Object obj) {
@@ -151,77 +146,16 @@ public class MessagePack {
 		}
 	}
 
-	public static void register(Class<?> target) {  // auto-detect
+	public static void register(Class<?> target) {
 		TemplateRegistry.register(target);
-
-		Template tmpl;
-		if(target.isEnum()) {
-			tmpl = DynamicOrdinalEnumTemplate.create(target);
-		//} else if(List.isAssignableFrom(target)) {
-		//} else if(Set.isAssignableFrom(target)) {
-		//} else if(Map.isAssignableFrom(target)) {
-		//} else if(Collection.isAssignableFrom(target)) {
-		//} else if(BigInteger.isAssignableFrom(target)) {
-		} else {
-			if (MessagePackTemplateProvider.class.isAssignableFrom(target)) {
-				try {
-					tmpl = ((MessagePackTemplateProvider) target.newInstance()).getTemplate();
-				} catch (InstantiationException e) {
-					throw new RuntimeException(e);
-				} catch (IllegalAccessException e) {
-					throw new RuntimeException(e);
-				}
-			} else {
-				tmpl = DynamicTemplate.create(target);
-			}
-		}
-
-		CustomPacker.register(target, tmpl);
-		CustomConverter.register(target, tmpl);
-		CustomUnpacker.register(target, tmpl);
-	}
-	
-	public static class Foo implements MessagePackTemplateProvider {
-		public int f1;
-		
-		public int f2;
-		
-		public Foo() {}
-		
-		public Template getTemplate() {
-			return DynamicTemplate.create(Foo.class);
-		}
-	}
-	
-	public static void main(String[] args) throws Exception {
-		MessagePack.register(Foo.class);
 	}
 
-	public static void register(Class<?> target, FieldList opts) {
-		TemplateRegistry.register(target); // FIXME FieldList
-		Template tmpl = DynamicTemplate.create(target, opts);
-		CustomPacker.register(target, tmpl);
-		CustomConverter.register(target, tmpl);
-		CustomUnpacker.register(target, tmpl);
+	public static void register(Class<?> target, FieldList flist) throws NoSuchFieldException {
+		TemplateRegistry.register(target, flist);
 	}
 
 	public static void register(Class<?> target, Template tmpl) {
 		TemplateRegistry.register(target, tmpl);
-		CustomPacker.register(target, tmpl);
-		CustomConverter.register(target, tmpl);
-		CustomUnpacker.register(target, tmpl);
-	}
-
-	public static void registerPacker(Class<?> target, MessagePacker packer) {
-		CustomPacker.register(target, packer);
-	}
-
-	public static void registerConverter(Class<?> target, MessageConverter converter) {
-		CustomConverter.register(target, converter);
-	}
-
-	public static void registerUnpacker(Class<?> target, MessageUnpacker unpacker) {
-		CustomUnpacker.register(target, unpacker);
 	}
 }
 

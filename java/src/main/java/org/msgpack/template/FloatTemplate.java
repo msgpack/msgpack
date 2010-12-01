@@ -42,7 +42,6 @@ public class FloatTemplate implements Template {
 	static final FloatTemplate instance = new FloatTemplate();
 
 	static {
-		CustomMessage.register(Float.class, instance);
 		TemplateRegistry.register(Float.class, instance);
 		TemplateRegistry.register(float.class, instance);
 	}

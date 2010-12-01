@@ -112,18 +112,22 @@ public abstract class TemplateBuilder {
 
 
 	public Template buildTemplate(Class<?> targetClass) {
+		checkTypeValidation(targetClass);
 		return buildTemplate(targetClass, readFieldEntries(targetClass));
 	}
 
 	public Template buildTemplate(Class<?> targetClass, FieldOption implicitOption) {
+		checkTypeValidation(targetClass);
 		return buildTemplate(targetClass, readFieldEntries(targetClass, implicitOption));
 	}
 
 	public Template buildTemplate(Class<?> targetClass, FieldList flist) throws NoSuchFieldException {
+		checkTypeValidation(targetClass);
 		return buildTemplate(targetClass, convertFieldEntries(targetClass, flist));
 	}
 
 	public Template buildOrdinalEnumTemplate(Class<?> targetClass) {
+		checkOrdinalEnumValidation(targetClass);
 		Enum<?>[] entries = (Enum<?>[])targetClass.getEnumConstants();
 		return buildOrdinalEnumTemplate(targetClass, entries);
 	}
@@ -131,11 +135,21 @@ public abstract class TemplateBuilder {
 
 	private static TemplateBuilder instance;
 	static {
-		// FIXME
-		instance = JavassistTemplateBuilder.getInstance();
+		instance = selectDefaultTemplateBuilder();
 	}
 
-	public synchronized static void setTemplateBuilder(TemplateBuilder builder) {
+	private static TemplateBuilder selectDefaultTemplateBuilder() {
+		try {
+			// FIXME JavassistTemplateBuilder doesn't work on DalvikVM
+			if(System.getProperty("java.vm.name").equals("Dalvik")) {
+				return ReflectionTemplateBuilder.getInstance();
+			}
+		} catch (Exception e) {
+		}
+		return JavassistTemplateBuilder.getInstance();
+	}
+
+	synchronized static void setInstance(TemplateBuilder builder) {
 		instance = builder;
 	}
 
@@ -153,6 +167,25 @@ public abstract class TemplateBuilder {
 
 	public static Template buildOrdinalEnum(Class<?> targetClass) {
 		return instance.buildOrdinalEnumTemplate(targetClass);
+	}
+
+
+	protected void checkTypeValidation(Class<?> targetClass) {
+		if(targetClass.isInterface()) {
+			throw new TemplateBuildException("cannot build template of interface");
+		}
+		if(targetClass.isArray()) {
+			throw new TemplateBuildException("cannot build template of array class");
+		}
+		if(targetClass.isPrimitive()) {
+			throw new TemplateBuildException("cannot build template of primitive type");
+		}
+	}
+
+	protected void checkOrdinalEnumValidation(Class<?> targetClass) {
+		if(!targetClass.isEnum()) {
+			throw new TemplateBuildException("tried to build ordinal enum template of non-enum class");
+		}
 	}
 
 

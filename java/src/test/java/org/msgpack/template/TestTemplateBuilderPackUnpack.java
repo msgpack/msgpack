@@ -1,4 +1,4 @@
-package org.msgpack.util.codegen;
+package org.msgpack.template;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -12,7 +12,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.junit.Test;
-import org.msgpack.CustomMessage;
+
+import org.msgpack.MessagePack;
 import org.msgpack.MessagePackable;
 import org.msgpack.MessagePacker;
 import org.msgpack.MessageTypeException;
@@ -23,12 +24,38 @@ import org.msgpack.Unpacker;
 import org.msgpack.annotation.MessagePackMessage;
 import org.msgpack.annotation.MessagePackOrdinalEnum;
 import org.msgpack.annotation.Optional;
-import org.msgpack.packer.OptionalPacker;
-import org.msgpack.template.NullableTemplate;
 
 import junit.framework.TestCase;
 
-public class TestPackUnpack extends TestCase {
+public class TestTemplateBuilderPackUnpack extends TestCase {
+	static {
+		MessagePack.register(PrimitiveTypeFieldsClass.class);
+		MessagePack.register(OptionalPrimitiveTypeFieldsClass.class);
+		MessagePack.register(GeneralReferenceTypeFieldsClass.class);
+		MessagePack.register(GeneralOptionalReferenceTypeFieldsClass.class);
+		MessagePack.register(SampleListTypes.class);
+		MessagePack.register(SampleOptionalListTypes.class);
+		MessagePack.register(SampleMapTypes.class);
+		MessagePack.register(SampleOptionalMapTypes.class);
+		MessagePack.register(SampleEnumFieldClass.class);
+		MessagePack.register(SampleOptionalEnumFieldClass.class);
+		MessagePack.register(FieldModifiersClass.class);
+		MessagePack.register(OptionalFieldModifiersClass.class);
+		MessagePack.register(BaseClass.class);
+		MessagePack.register(NestedClass.class);
+		MessagePack.register(BaseClass2.class);
+		MessagePack.register(OptionalBaseClass.class);
+		MessagePack.register(OptionalNestedClass.class);
+		MessagePack.register(OptionalBaseClass2.class);
+		MessagePack.register(SampleSubClass.class);
+		MessagePack.register(SampleSuperClass.class);
+		MessagePack.register(SampleOptionalSubClass.class);
+		MessagePack.register(SampleOptionalSuperClass.class);
+		MessagePack.register(BaseMessagePackableUnpackableClass.class);
+		MessagePack.register(MessagePackableUnpackableClass.class);
+		MessagePack.register(OptionalBaseMessagePackableUnpackableClass.class);
+		MessagePack.register(OptionalMessagePackableUnpackableClass.class);
+	}
 
 	@Test
 	public void testPrimitiveTypeFields00() throws Exception {
@@ -40,14 +67,11 @@ public class TestPackUnpack extends TestCase {
 		src.f4 = 4;
 		src.f5 = 5;
 		src.f6 = false;
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		MessagePacker packer = DynamicPacker
-				.create(PrimitiveTypeFieldsClass.class);
-		packer.pack(new Packer(out), src);
-		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = DynamicTemplate.create(PrimitiveTypeFieldsClass.class);
-		PrimitiveTypeFieldsClass dst = (PrimitiveTypeFieldsClass) tmpl
-				.unpack(new Unpacker(in), null);
+
+		byte[] raw = MessagePack.pack(src);
+
+		PrimitiveTypeFieldsClass dst =
+			MessagePack.unpack(raw, PrimitiveTypeFieldsClass.class);
 		assertEquals(src.f0, dst.f0);
 		assertEquals(src.f1, dst.f1);
 		assertEquals(src.f2, dst.f2);
@@ -60,14 +84,11 @@ public class TestPackUnpack extends TestCase {
 	@Test
 	public void testPrimitiveTypeFields01() throws Exception {
 		PrimitiveTypeFieldsClass src = new PrimitiveTypeFieldsClass();
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		MessagePacker packer = DynamicPacker
-				.create(PrimitiveTypeFieldsClass.class);
-		packer.pack(new Packer(out), src);
-		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = DynamicTemplate.create(PrimitiveTypeFieldsClass.class);
-		PrimitiveTypeFieldsClass dst = (PrimitiveTypeFieldsClass) tmpl
-				.unpack(new Unpacker(in), null);
+
+		byte[] raw = MessagePack.pack(src);
+
+		PrimitiveTypeFieldsClass dst =
+			MessagePack.unpack(raw, PrimitiveTypeFieldsClass.class);
 		assertEquals(src.f0, dst.f0);
 		assertEquals(src.f1, dst.f1);
 		assertEquals(src.f2, dst.f2);
@@ -80,15 +101,11 @@ public class TestPackUnpack extends TestCase {
 	@Test
 	public void testPrimitiveTypeFields02() throws Exception {
 		PrimitiveTypeFieldsClass src = null;
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		MessagePacker packer = new OptionalPacker(DynamicPacker
-				.create(PrimitiveTypeFieldsClass.class));
-		packer.pack(new Packer(out), src);
-		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = new NullableTemplate(DynamicTemplate
-				.create(PrimitiveTypeFieldsClass.class));
-		PrimitiveTypeFieldsClass dst = (PrimitiveTypeFieldsClass) tmpl
-				.unpack(new Unpacker(in), null);
+
+		byte[] raw = MessagePack.pack(src);
+
+		PrimitiveTypeFieldsClass dst =
+			MessagePack.unpack(raw, PrimitiveTypeFieldsClass.class);
 		assertEquals(src, dst);
 	}
 
@@ -115,15 +132,11 @@ public class TestPackUnpack extends TestCase {
 		src.f4 = 4;
 		src.f5 = 5;
 		src.f6 = false;
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		MessagePacker packer = DynamicPacker
-				.create(OptionalPrimitiveTypeFieldsClass.class);
-		packer.pack(new Packer(out), src);
-		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = DynamicTemplate
-				.create(OptionalPrimitiveTypeFieldsClass.class);
-		OptionalPrimitiveTypeFieldsClass dst = (OptionalPrimitiveTypeFieldsClass) tmpl
-				.unpack(new Unpacker(in), null);
+
+		byte[] raw = MessagePack.pack(src);
+
+		PrimitiveTypeFieldsClass dst =
+			MessagePack.unpack(raw, PrimitiveTypeFieldsClass.class);
 		assertEquals(src.f0, dst.f0);
 		assertEquals(src.f1, dst.f1);
 		assertEquals(src.f2, dst.f2);
@@ -136,15 +149,11 @@ public class TestPackUnpack extends TestCase {
 	@Test
 	public void testOptionalPrimitiveTypeFields01() throws Exception {
 		OptionalPrimitiveTypeFieldsClass src = new OptionalPrimitiveTypeFieldsClass();
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		MessagePacker packer = DynamicPacker
-				.create(OptionalPrimitiveTypeFieldsClass.class);
-		packer.pack(new Packer(out), src);
-		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = DynamicTemplate
-				.create(OptionalPrimitiveTypeFieldsClass.class);
-		OptionalPrimitiveTypeFieldsClass dst = (OptionalPrimitiveTypeFieldsClass) tmpl
-				.unpack(new Unpacker(in), null);
+
+		byte[] raw = MessagePack.pack(src);
+
+		OptionalPrimitiveTypeFieldsClass dst =
+			MessagePack.unpack(raw, OptionalPrimitiveTypeFieldsClass.class);
 		assertEquals(src.f0, dst.f0);
 		assertEquals(src.f1, dst.f1);
 		assertEquals(src.f2, dst.f2);
@@ -157,15 +166,11 @@ public class TestPackUnpack extends TestCase {
 	@Test
 	public void testOptionalPrimitiveTypeFields02() throws Exception {
 		OptionalPrimitiveTypeFieldsClass src = null;
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		MessagePacker packer = new OptionalPacker(DynamicPacker
-				.create(OptionalPrimitiveTypeFieldsClass.class));
-		packer.pack(new Packer(out), src);
-		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = new NullableTemplate(DynamicTemplate
-				.create(OptionalPrimitiveTypeFieldsClass.class));
-		OptionalPrimitiveTypeFieldsClass dst = (OptionalPrimitiveTypeFieldsClass) tmpl
-				.unpack(new Unpacker(in), null);
+
+		byte[] raw = MessagePack.pack(src);
+
+		OptionalPrimitiveTypeFieldsClass dst =
+			MessagePack.unpack(raw, OptionalPrimitiveTypeFieldsClass.class);
 		assertEquals(src, dst);
 	}
 
@@ -203,15 +208,11 @@ public class TestPackUnpack extends TestCase {
 		src.f8 = "8";
 		src.f9 = new byte[] { 0x01, 0x02 };
 		src.f10 = ByteBuffer.wrap("muga".getBytes());
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		MessagePacker packer = DynamicPacker
-				.create(GeneralReferenceTypeFieldsClass.class);
-		packer.pack(new Packer(out), src);
-		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = DynamicTemplate
-				.create(GeneralReferenceTypeFieldsClass.class);
-		GeneralReferenceTypeFieldsClass dst = (GeneralReferenceTypeFieldsClass) tmpl
-				.unpack(new Unpacker(in), null);
+
+		byte[] raw = MessagePack.pack(src);
+
+		GeneralReferenceTypeFieldsClass dst =
+			MessagePack.unpack(raw, GeneralReferenceTypeFieldsClass.class);
 		assertEquals(src.f0, dst.f0);
 		assertEquals(src.f1, dst.f1);
 		assertEquals(src.f2, dst.f2);
@@ -229,15 +230,11 @@ public class TestPackUnpack extends TestCase {
 	@Test
 	public void testGeneralReferenceTypeFieldsClass01() throws Exception {
 		GeneralReferenceTypeFieldsClass src = null;
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		MessagePacker packer = new OptionalPacker(DynamicPacker
-				.create(GeneralReferenceTypeFieldsClass.class));
-		packer.pack(new Packer(out), src);
-		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = new NullableTemplate(DynamicTemplate
-				.create(GeneralReferenceTypeFieldsClass.class));
-		GeneralReferenceTypeFieldsClass dst = (GeneralReferenceTypeFieldsClass) tmpl
-				.unpack(new Unpacker(in), null);
+
+		byte[] raw = MessagePack.pack(src);
+
+		GeneralReferenceTypeFieldsClass dst =
+			MessagePack.unpack(raw, GeneralReferenceTypeFieldsClass.class);
 		assertEquals(src, dst);
 	}
 
@@ -273,15 +270,11 @@ public class TestPackUnpack extends TestCase {
 		src.f8 = "8";
 		src.f9 = new byte[] { 0x01, 0x02 };
 		src.f10 = ByteBuffer.wrap("muga".getBytes());
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		MessagePacker packer = DynamicPacker
-				.create(GeneralOptionalReferenceTypeFieldsClass.class);
-		packer.pack(new Packer(out), src);
-		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = DynamicTemplate
-				.create(GeneralOptionalReferenceTypeFieldsClass.class);
-		GeneralOptionalReferenceTypeFieldsClass dst = (GeneralOptionalReferenceTypeFieldsClass) tmpl
-				.unpack(new Unpacker(in), null);
+
+		byte[] raw = MessagePack.pack(src);
+
+		GeneralOptionalReferenceTypeFieldsClass dst =
+			MessagePack.unpack(raw, GeneralOptionalReferenceTypeFieldsClass.class);
 		assertEquals(src.f0, dst.f0);
 		assertEquals(src.f1, dst.f1);
 		assertEquals(src.f2, dst.f2);
@@ -311,15 +304,11 @@ public class TestPackUnpack extends TestCase {
 		src.f8 = null;
 		src.f9 = null;
 		src.f10 = null;
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		MessagePacker packer = DynamicPacker
-				.create(GeneralOptionalReferenceTypeFieldsClass.class);
-		packer.pack(new Packer(out), src);
-		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = DynamicTemplate
-				.create(GeneralOptionalReferenceTypeFieldsClass.class);
-		GeneralOptionalReferenceTypeFieldsClass dst = (GeneralOptionalReferenceTypeFieldsClass) tmpl
-				.unpack(new Unpacker(in), null);
+
+		byte[] raw = MessagePack.pack(src);
+
+		GeneralOptionalReferenceTypeFieldsClass dst =
+			MessagePack.unpack(raw, GeneralOptionalReferenceTypeFieldsClass.class);
 		assertEquals(src.f0, dst.f0);
 		assertEquals(src.f1, dst.f1);
 		assertEquals(src.f2, dst.f2);
@@ -337,15 +326,11 @@ public class TestPackUnpack extends TestCase {
 	public void testGeneralOptionalReferenceTypeFieldsClass02()
 			throws Exception {
 		GeneralOptionalReferenceTypeFieldsClass src = null;
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		MessagePacker packer = new OptionalPacker(DynamicPacker
-				.create(GeneralOptionalReferenceTypeFieldsClass.class));
-		packer.pack(new Packer(out), src);
-		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = new NullableTemplate(DynamicTemplate
-				.create(GeneralOptionalReferenceTypeFieldsClass.class));
-		GeneralOptionalReferenceTypeFieldsClass dst = (GeneralOptionalReferenceTypeFieldsClass) tmpl
-				.unpack(new Unpacker(in), null);
+
+		byte[] raw = MessagePack.pack(src);
+
+		GeneralOptionalReferenceTypeFieldsClass dst =
+			MessagePack.unpack(raw, GeneralOptionalReferenceTypeFieldsClass.class);
 		assertEquals(src, dst);
 	}
 
@@ -400,14 +385,11 @@ public class TestPackUnpack extends TestCase {
 		src.f5.add(ByteBuffer.wrap("e1".getBytes()));
 		src.f5.add(ByteBuffer.wrap("e2".getBytes()));
 		src.f5.add(ByteBuffer.wrap("e3".getBytes()));
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		MessagePacker packer = DynamicPacker.create(SampleListTypes.class);
-		packer.pack(new Packer(out), src);
-		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = DynamicTemplate.create(SampleListTypes.class);
-		SampleListTypes dst = (SampleListTypes) tmpl.unpack(new Unpacker(in), null);
-		assertEquals(src.f0.size(), dst.f0.size());
-		assertEquals(src.f1.size(), dst.f1.size());
+
+		byte[] raw = MessagePack.pack(src);
+
+		SampleListTypes dst =
+			MessagePack.unpack(raw, SampleListTypes.class);
 		for (int i = 0; i < src.f1.size(); ++i) {
 			assertEquals(src.f1.get(i), dst.f1.get(i));
 		}
@@ -443,14 +425,11 @@ public class TestPackUnpack extends TestCase {
 	@Test
 	public void testListTypes01() throws Exception {
 		SampleListTypes src = null;
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		MessagePacker packer = new OptionalPacker(DynamicPacker
-				.create(SampleListTypes.class));
-		packer.pack(new Packer(out), src);
-		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = new NullableTemplate(DynamicTemplate
-				.create(SampleListTypes.class));
-		SampleListTypes dst = (SampleListTypes) tmpl.unpack(new Unpacker(in), null);
+
+		byte[] raw = MessagePack.pack(src);
+
+		SampleListTypes dst =
+			MessagePack.unpack(raw, SampleListTypes.class);
 		assertEquals(src, dst);
 	}
 
@@ -498,14 +477,11 @@ public class TestPackUnpack extends TestCase {
 		src.f5.add(ByteBuffer.wrap("e1".getBytes()));
 		src.f5.add(ByteBuffer.wrap("e2".getBytes()));
 		src.f5.add(ByteBuffer.wrap("e3".getBytes()));
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		MessagePacker packer = DynamicPacker
-				.create(SampleOptionalListTypes.class);
-		packer.pack(new Packer(out), src);
-		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = DynamicTemplate.create(SampleOptionalListTypes.class);
-		SampleOptionalListTypes dst = (SampleOptionalListTypes) tmpl
-				.unpack(new Unpacker(in), null);
+
+		byte[] raw = MessagePack.pack(src);
+
+		SampleOptionalListTypes dst =
+			MessagePack.unpack(raw, SampleOptionalListTypes.class);
 		assertEquals(src.f0.size(), dst.f0.size());
 		assertEquals(src.f1.size(), dst.f1.size());
 		for (int i = 0; i < src.f1.size(); ++i) {
@@ -549,14 +525,11 @@ public class TestPackUnpack extends TestCase {
 		src.f3 = new ArrayList<List<String>>();
 		src.f4 = null;
 		src.f5 = new ArrayList<ByteBuffer>();
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		MessagePacker packer = DynamicPacker
-				.create(SampleOptionalListTypes.class);
-		packer.pack(new Packer(out), src);
-		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = DynamicTemplate.create(SampleOptionalListTypes.class);
-		SampleOptionalListTypes dst = (SampleOptionalListTypes) tmpl
-				.unpack(new Unpacker(in), null);
+
+		byte[] raw = MessagePack.pack(src);
+
+		SampleOptionalListTypes dst =
+			MessagePack.unpack(raw, SampleOptionalListTypes.class);
 		assertEquals(src.f0.size(), dst.f0.size());
 		assertEquals(src.f1, dst.f1);
 		assertEquals(src.f2.size(), dst.f2.size());
@@ -568,14 +541,11 @@ public class TestPackUnpack extends TestCase {
 	@Test
 	public void testOptionalListTypes02() throws Exception {
 		SampleListTypes src = null;
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		MessagePacker packer = new OptionalPacker(DynamicPacker
-				.create(SampleOptionalListTypes.class));
-		packer.pack(new Packer(out), src);
-		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = new NullableTemplate(DynamicTemplate
-				.create(SampleOptionalListTypes.class));
-		SampleListTypes dst = (SampleListTypes) tmpl.unpack(new Unpacker(in), null);
+
+		byte[] raw = MessagePack.pack(src);
+
+		SampleListTypes dst =
+			MessagePack.unpack(raw, SampleListTypes.class);
 		assertEquals(src, dst);
 	}
 
@@ -620,14 +590,11 @@ public class TestPackUnpack extends TestCase {
 		src.f2.put("k1", 1);
 		src.f2.put("k2", 2);
 		src.f2.put("k3", 3);
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		MessagePacker packer = DynamicPacker.create(SampleMapTypes.class);
-		packer.pack(new Packer(out), src);
-		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = DynamicTemplate.create(SampleMapTypes.class);
-		SampleMapTypes dst = (SampleMapTypes) tmpl.unpack(new Unpacker(in), null);
-		assertEquals(src.f0.size(), dst.f0.size());
-		assertEquals(src.f1.size(), dst.f1.size());
+
+		byte[] raw = MessagePack.pack(src);
+
+		SampleMapTypes dst =
+			MessagePack.unpack(raw, SampleMapTypes.class);
 		Iterator<Integer> srcf1 = src.f1.keySet().iterator();
 		Iterator<Integer> dstf1 = dst.f1.keySet().iterator();
 		while (srcf1.hasNext()) {
@@ -650,14 +617,11 @@ public class TestPackUnpack extends TestCase {
 	@Test
 	public void testMapTypes01() throws Exception {
 		SampleMapTypes src = null;
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		MessagePacker packer = new OptionalPacker(DynamicPacker
-				.create(SampleMapTypes.class));
-		packer.pack(new Packer(out), src);
-		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = new NullableTemplate(DynamicTemplate
-				.create(SampleMapTypes.class));
-		SampleMapTypes dst = (SampleMapTypes) tmpl.unpack(new Unpacker(in), null);
+
+		byte[] raw = MessagePack.pack(src);
+
+		SampleMapTypes dst =
+			MessagePack.unpack(raw, SampleMapTypes.class);
 		assertEquals(src, dst);
 	}
 
@@ -682,14 +646,11 @@ public class TestPackUnpack extends TestCase {
 		src.f2.put("k1", 1);
 		src.f2.put("k2", 2);
 		src.f2.put("k3", 3);
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		MessagePacker packer = DynamicPacker
-				.create(SampleOptionalMapTypes.class);
-		packer.pack(new Packer(out), src);
-		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = DynamicTemplate.create(SampleOptionalMapTypes.class);
-		SampleOptionalMapTypes dst = (SampleOptionalMapTypes) tmpl
-				.unpack(new Unpacker(in), null);
+
+		byte[] raw = MessagePack.pack(src);
+
+		SampleOptionalMapTypes dst =
+			MessagePack.unpack(raw, SampleOptionalMapTypes.class);
 		assertEquals(src.f0.size(), dst.f0.size());
 		assertEquals(src.f1.size(), dst.f1.size());
 		Iterator<Integer> srcf1 = src.f1.keySet().iterator();
@@ -717,14 +678,11 @@ public class TestPackUnpack extends TestCase {
 		src.f0 = new HashMap<Integer, Integer>();
 		src.f1 = null;
 		src.f2 = new HashMap<String, Integer>();
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		MessagePacker packer = DynamicPacker
-				.create(SampleOptionalMapTypes.class);
-		packer.pack(new Packer(out), src);
-		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = DynamicTemplate.create(SampleOptionalMapTypes.class);
-		SampleOptionalMapTypes dst = (SampleOptionalMapTypes) tmpl
-				.unpack(new Unpacker(in), null);
+
+		byte[] raw = MessagePack.pack(src);
+
+		SampleOptionalMapTypes dst =
+			MessagePack.unpack(raw, SampleOptionalMapTypes.class);
 		assertEquals(src.f0.size(), dst.f0.size());
 		assertEquals(src.f1, dst.f1);
 		assertEquals(src.f2.size(), dst.f2.size());
@@ -733,15 +691,11 @@ public class TestPackUnpack extends TestCase {
 	@Test
 	public void testOptionalMapTypes02() throws Exception {
 		SampleOptionalMapTypes src = null;
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		MessagePacker packer = new OptionalPacker(DynamicPacker
-				.create(SampleOptionalMapTypes.class));
-		packer.pack(new Packer(out), src);
-		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = new NullableTemplate(DynamicTemplate
-				.create(SampleOptionalMapTypes.class));
-		SampleOptionalMapTypes dst = (SampleOptionalMapTypes) tmpl
-				.unpack(new Unpacker(in), null);
+
+		byte[] raw = MessagePack.pack(src);
+
+		SampleOptionalMapTypes dst =
+			MessagePack.unpack(raw, SampleOptionalMapTypes.class);
 		assertEquals(src, dst);
 	}
 
@@ -758,182 +712,12 @@ public class TestPackUnpack extends TestCase {
 	}
 
 	@Test
-	public void testDefaultConstructorModifiers00() throws Exception {
+	public void testFinalClass() throws Exception {
 		try {
-			DynamicPacker.create(NoDefaultConstructorClass.class);
-			fail();
-		} catch (DynamicCodeGenException e) {
+			TemplateBuilder.build(FinalModifierClass.class);
 			assertTrue(true);
-		}
-		assertTrue(true);
-		try {
-			DynamicPacker.create(PrivateDefaultConstructorClass.class);
+		} catch (TemplateBuildException e) {
 			fail();
-		} catch (DynamicCodeGenException e) {
-			assertTrue(true);
-		}
-		assertTrue(true);
-		try {
-			DynamicPacker.create(ProtectedDefaultConstructorClass.class);
-			fail();
-		} catch (DynamicCodeGenException e) {
-			assertTrue(true);
-		}
-		assertTrue(true);
-		try {
-			DynamicPacker.create(PackageDefaultConstructorClass.class);
-			fail();
-		} catch (DynamicCodeGenException e) {
-			assertTrue(true);
-		}
-		assertTrue(true);
-	}
-
-	@Test
-	public void testDefaultConstructorModifiers01() throws Exception {
-		try {
-			DynamicUnpacker.create(NoDefaultConstructorClass.class);
-			fail();
-		} catch (DynamicCodeGenException e) {
-			assertTrue(true);
-		}
-		assertTrue(true);
-		try {
-			DynamicUnpacker.create(PrivateDefaultConstructorClass.class);
-			fail();
-		} catch (DynamicCodeGenException e) {
-			assertTrue(true);
-		}
-		assertTrue(true);
-		try {
-			DynamicUnpacker.create(ProtectedDefaultConstructorClass.class);
-			fail();
-		} catch (DynamicCodeGenException e) {
-			assertTrue(true);
-		}
-		assertTrue(true);
-		try {
-			DynamicUnpacker.create(PackageDefaultConstructorClass.class);
-			fail();
-		} catch (DynamicCodeGenException e) {
-			assertTrue(true);
-		}
-		assertTrue(true);
-	}
-
-	public static class NoDefaultConstructorClass {
-		public NoDefaultConstructorClass(int i) {
-		}
-	}
-
-	public static class PrivateDefaultConstructorClass {
-		private PrivateDefaultConstructorClass() {
-		}
-	}
-
-	public static class ProtectedDefaultConstructorClass {
-		protected ProtectedDefaultConstructorClass() {
-		}
-	}
-
-	public static class PackageDefaultConstructorClass {
-		PackageDefaultConstructorClass() {
-		}
-	}
-
-	@Test
-	public void testClassModifiers00() throws Exception {
-		try {
-			DynamicPacker.create(PrivateModifierClass.class);
-			fail();
-		} catch (DynamicCodeGenException e) {
-			assertTrue(true);
-		}
-		assertTrue(true);
-		try {
-			DynamicPacker.create(ProtectedModifierClass.class);
-			fail();
-		} catch (DynamicCodeGenException e) {
-			assertTrue(true);
-		}
-		assertTrue(true);
-		try {
-			DynamicPacker.create(PackageModifierClass.class);
-			fail();
-		} catch (DynamicCodeGenException e) {
-			assertTrue(true);
-		}
-		assertTrue(true);
-	}
-
-	@Test
-	public void testClassModifiers01() throws Exception {
-		try {
-			DynamicUnpacker.create(PrivateModifierClass.class);
-			fail();
-		} catch (DynamicCodeGenException e) {
-			assertTrue(true);
-		}
-		assertTrue(true);
-		try {
-			DynamicUnpacker.create(ProtectedModifierClass.class);
-			fail();
-		} catch (DynamicCodeGenException e) {
-			assertTrue(true);
-		}
-		assertTrue(true);
-		try {
-			DynamicUnpacker.create(PackageModifierClass.class);
-			fail();
-		} catch (DynamicCodeGenException e) {
-			assertTrue(true);
-		}
-		assertTrue(true);
-	}
-
-	private static class PrivateModifierClass {
-	}
-
-	protected static class ProtectedModifierClass {
-		protected ProtectedModifierClass() {
-		}
-	}
-
-	static class PackageModifierClass {
-	}
-
-	@Test
-	public void testFinalClassAndAbstractClass00() throws Exception {
-		try {
-			DynamicPacker.create(FinalModifierClass.class);
-			assertTrue(true);
-		} catch (DynamicCodeGenException e) {
-			fail();
-		}
-		assertTrue(true);
-		try {
-			DynamicPacker.create(AbstractModifierClass.class);
-			fail();
-		} catch (DynamicCodeGenException e) {
-			assertTrue(true);
-		}
-		assertTrue(true);
-	}
-
-	@Test
-	public void testFinalClassAndAbstractClass01() throws Exception {
-		try {
-			DynamicUnpacker.create(FinalModifierClass.class);
-			assertTrue(true);
-		} catch (DynamicCodeGenException e) {
-			fail();
-		}
-		assertTrue(true);
-		try {
-			DynamicUnpacker.create(AbstractModifierClass.class);
-			fail();
-		} catch (DynamicCodeGenException e) {
-			assertTrue(true);
 		}
 		assertTrue(true);
 	}
@@ -947,9 +731,9 @@ public class TestPackUnpack extends TestCase {
 	@Test
 	public void testInterfaceType00() throws Exception {
 		try {
-			DynamicPacker.create(SampleInterface.class);
+			TemplateBuilder.build(SampleInterface.class);
 			fail();
-		} catch (DynamicCodeGenException e) {
+		} catch (TemplateBuildException e) {
 			assertTrue(true);
 		}
 		assertTrue(true);
@@ -958,9 +742,9 @@ public class TestPackUnpack extends TestCase {
 	@Test
 	public void testInterfaceType01() throws Exception {
 		try {
-			DynamicUnpacker.create(SampleInterface.class);
+			TemplateBuilder.build(SampleInterface.class);
 			fail();
-		} catch (DynamicCodeGenException e) {
+		} catch (TemplateBuildException e) {
 			assertTrue(true);
 		}
 		assertTrue(true);
@@ -974,29 +758,22 @@ public class TestPackUnpack extends TestCase {
 		SampleEnumFieldClass src = new SampleEnumFieldClass();
 		src.f0 = 0;
 		src.f1 = SampleEnum.ONE;
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		MessagePacker packer = DynamicPacker.create(SampleEnumFieldClass.class);
-		packer.pack(new Packer(out), src);
-		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = DynamicTemplate.create(SampleEnumFieldClass.class);
-		SampleEnumFieldClass dst = (SampleEnumFieldClass) tmpl
-				.unpack(new Unpacker(in), null);
-		assertTrue(src.f0 == dst.f0);
+
+		byte[] raw = MessagePack.pack(src);
+
+		SampleEnumFieldClass dst =
+			MessagePack.unpack(raw, SampleEnumFieldClass.class);
 		assertTrue(src.f1 == dst.f1);
 	}
 
 	@Test
 	public void testEnumTypeForOrdinal01() throws Exception {
 		SampleEnumFieldClass src = null;
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		MessagePacker packer = new OptionalPacker(DynamicPacker
-				.create(SampleEnumFieldClass.class));
-		packer.pack(new Packer(out), src);
-		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = new NullableTemplate(DynamicTemplate
-				.create(SampleEnumFieldClass.class));
-		SampleEnumFieldClass dst = (SampleEnumFieldClass) tmpl
-				.unpack(new Unpacker(in), null);
+
+		byte[] raw = MessagePack.pack(src);
+
+		SampleEnumFieldClass dst =
+			MessagePack.unpack(raw, SampleEnumFieldClass.class);
 		assertEquals(src, dst);
 	}
 
@@ -1019,15 +796,11 @@ public class TestPackUnpack extends TestCase {
 		SampleOptionalEnumFieldClass src = new SampleOptionalEnumFieldClass();
 		src.f0 = 0;
 		src.f1 = SampleOptionalEnum.ONE;
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		MessagePacker packer = DynamicPacker
-				.create(SampleOptionalEnumFieldClass.class);
-		packer.pack(new Packer(out), src);
-		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = DynamicTemplate
-				.create(SampleOptionalEnumFieldClass.class);
-		SampleOptionalEnumFieldClass dst = (SampleOptionalEnumFieldClass) tmpl
-				.unpack(new Unpacker(in), null);
+
+		byte[] raw = MessagePack.pack(src);
+
+		SampleOptionalEnumFieldClass dst =
+			MessagePack.unpack(raw, SampleOptionalEnumFieldClass.class);
 		assertTrue(src.f0 == dst.f0);
 		assertTrue(src.f1 == dst.f1);
 	}
@@ -1036,15 +809,11 @@ public class TestPackUnpack extends TestCase {
 	public void testOptionalEnumTypeForOrdinal01() throws Exception {
 		SampleOptionalEnumFieldClass src = new SampleOptionalEnumFieldClass();
 		src.f1 = null;
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		MessagePacker packer = DynamicPacker
-				.create(SampleOptionalEnumFieldClass.class);
-		packer.pack(new Packer(out), src);
-		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = DynamicTemplate
-				.create(SampleOptionalEnumFieldClass.class);
-		SampleOptionalEnumFieldClass dst = (SampleOptionalEnumFieldClass) tmpl
-				.unpack(new Unpacker(in), null);
+
+		byte[] raw = MessagePack.pack(src);
+
+		SampleOptionalEnumFieldClass dst =
+			MessagePack.unpack(raw, SampleOptionalEnumFieldClass.class);
 		assertTrue(src.f0 == dst.f0);
 		assertEquals(src.f1, dst.f1);
 	}
@@ -1052,15 +821,11 @@ public class TestPackUnpack extends TestCase {
 	@Test
 	public void testOptionalEnumTypeForOrdinal02() throws Exception {
 		SampleEnumFieldClass src = null;
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		MessagePacker packer = new OptionalPacker(DynamicPacker
-				.create(SampleEnumFieldClass.class));
-		packer.pack(new Packer(out), src);
-		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = new NullableTemplate(DynamicTemplate
-				.create(SampleEnumFieldClass.class));
-		SampleEnumFieldClass dst = (SampleEnumFieldClass) tmpl
-				.unpack(new Unpacker(in), null);
+
+		byte[] raw = MessagePack.pack(src);
+
+		SampleEnumFieldClass dst =
+			MessagePack.unpack(raw, SampleEnumFieldClass.class);
 		assertEquals(src, dst);
 	}
 
@@ -1087,14 +852,11 @@ public class TestPackUnpack extends TestCase {
 		src.f2 = 2;
 		src.f3 = 3;
 		src.f4 = 4;
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		MessagePacker packer = DynamicPacker.create(FieldModifiersClass.class);
-		packer.pack(new Packer(out), src);
-		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = DynamicTemplate.create(FieldModifiersClass.class);
-		FieldModifiersClass dst = (FieldModifiersClass) tmpl
-				.unpack(new Unpacker(in), null);
-		assertTrue(src.f0 == dst.f0);
+
+		byte[] raw = MessagePack.pack(src);
+
+		FieldModifiersClass dst =
+			MessagePack.unpack(raw, FieldModifiersClass.class);
 		assertTrue(src.f1 == dst.f1);
 		assertTrue(src.f2 != dst.f2);
 		assertTrue(src.f3 != dst.f3);
@@ -1119,15 +881,11 @@ public class TestPackUnpack extends TestCase {
 		src.f2 = 2;
 		src.f3 = 3;
 		src.f4 = 4;
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		MessagePacker packer = DynamicPacker
-				.create(OptionalFieldModifiersClass.class);
-		packer.pack(new Packer(out), src);
-		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = DynamicTemplate
-				.create(OptionalFieldModifiersClass.class);
-		OptionalFieldModifiersClass dst = (OptionalFieldModifiersClass) tmpl
-				.unpack(new Unpacker(in), null);
+
+		byte[] raw = MessagePack.pack(src);
+
+		OptionalFieldModifiersClass dst =
+			MessagePack.unpack(raw, OptionalFieldModifiersClass.class);
 		assertTrue(src.f0 == dst.f0);
 		assertTrue(src.f1 == dst.f1);
 		assertTrue(src.f2 != dst.f2);
@@ -1150,33 +908,28 @@ public class TestPackUnpack extends TestCase {
 
 	@Test
 	public void testNestedFieldClass00() throws Exception {
-		Template tmpl2 = DynamicTemplate.create(NestedClass.class);
-		CustomMessage.register(NestedClass.class, tmpl2);
-		Template tmpl = DynamicTemplate.create(BaseClass.class);
-		CustomMessage.register(BaseClass.class, tmpl);
 		BaseClass src = new BaseClass();
 		NestedClass src2 = new NestedClass();
 		src.f0 = 0;
 		src2.f2 = 2;
 		src.f1 = src2;
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		tmpl.pack(new Packer(out), src);
-		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		BaseClass dst = (BaseClass) tmpl.unpack(new Unpacker(in), null);
+
+		byte[] raw = MessagePack.pack(src);
+
+		BaseClass dst =
+			MessagePack.unpack(raw, BaseClass.class);
 		assertTrue(src.f0 == dst.f0);
 		assertTrue(src.f1.f2 == dst.f1.f2);
 	}
 
 	@Test
 	public void testNestedFieldClass01() throws Exception {
-		Template tmpl2 = DynamicTemplate.create(NestedClass.class);
-		CustomMessage.register(NestedClass.class, tmpl2);
-		Template tmpl = new NullableTemplate(DynamicTemplate.create(BaseClass.class));
 		BaseClass src = null;
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		tmpl.pack(new Packer(out), src);
-		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		BaseClass dst = (BaseClass) tmpl.unpack(new Unpacker(in), null);
+
+		byte[] raw = MessagePack.pack(src);
+
+		BaseClass dst =
+			MessagePack.unpack(raw, BaseClass.class);
 		assertEquals(src, dst);
 	}
 
@@ -1197,50 +950,41 @@ public class TestPackUnpack extends TestCase {
 
 	@Test
 	public void testOptionalNestedFieldClass00() throws Exception {
-		Template tmpl2 = DynamicTemplate.create(OptionalNestedClass.class);
-		CustomMessage.register(OptionalNestedClass.class, tmpl2);
-		Template tmpl = DynamicTemplate.create(OptionalBaseClass.class);
 		OptionalBaseClass src = new OptionalBaseClass();
 		OptionalNestedClass src2 = new OptionalNestedClass();
 		src.f0 = 0;
 		src2.f2 = 2;
 		src.f1 = src2;
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		tmpl.pack(new Packer(out), src);
-		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		OptionalBaseClass dst = (OptionalBaseClass) tmpl.unpack(new Unpacker(in), null);
+
+		byte[] raw = MessagePack.pack(src);
+
+		OptionalBaseClass dst =
+			MessagePack.unpack(raw, OptionalBaseClass.class);
 		assertTrue(src.f0 == dst.f0);
 		assertTrue(src.f1.f2 == dst.f1.f2);
 	}
 
 	@Test
 	public void testOptionalNestedFieldClass01() throws Exception {
-		Template tmpl2 = DynamicTemplate.create(OptionalNestedClass.class);
-		CustomMessage.register(OptionalNestedClass.class, tmpl2);
-		Template tmpl = DynamicTemplate.create(OptionalBaseClass.class);
-		CustomMessage.register(OptionalBaseClass.class, tmpl);
 		OptionalBaseClass src = new OptionalBaseClass();
 		src.f1 = null;
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		tmpl.pack(new Packer(out), src);
-		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		OptionalBaseClass dst = (OptionalBaseClass) tmpl.unpack(new Unpacker(in), null);
+
+		byte[] raw = MessagePack.pack(src);
+
+		OptionalBaseClass dst =
+			MessagePack.unpack(raw, OptionalBaseClass.class);
 		assertTrue(src.f0 == dst.f0);
 		assertTrue(src.f1 == dst.f1);
 	}
 
 	@Test
 	public void testOptionalNestedFieldClass02() throws Exception {
-		Template tmpl2 = DynamicTemplate.create(OptionalNestedClass.class);
-		CustomMessage.register(OptionalNestedClass.class, tmpl2);
-		Template tmpl = new NullableTemplate(DynamicTemplate.create(OptionalBaseClass.class));
-		CustomMessage.register(OptionalBaseClass.class, tmpl);
 		OptionalBaseClass src = null;
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		tmpl.pack(new Packer(out), src);
-		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		OptionalBaseClass dst = (OptionalBaseClass) tmpl
-				.unpack(new Unpacker(in), null);
+
+		byte[] raw = MessagePack.pack(src);
+
+		OptionalBaseClass dst =
+			MessagePack.unpack(raw, OptionalBaseClass.class);
 		assertEquals(src, dst);
 	}
 
@@ -1269,12 +1013,11 @@ public class TestPackUnpack extends TestCase {
 		src.f0 = 0;
 		src2.f2 = 2;
 		src.f1 = src2;
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		MessagePacker packer = DynamicPacker.create(BaseClass2.class);
-		packer.pack(new Packer(out), src);
-		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = DynamicTemplate.create(BaseClass2.class);
-		BaseClass2 dst = (BaseClass2) tmpl.unpack(new Unpacker(in), null);
+
+		byte[] raw = MessagePack.pack(src);
+
+		BaseClass2 dst =
+			MessagePack.unpack(raw, BaseClass2.class);
 		assertTrue(src.f0 == dst.f0);
 		assertTrue(src.f1.f2 == dst.f1.f2);
 	}
@@ -1282,14 +1025,11 @@ public class TestPackUnpack extends TestCase {
 	@Test
 	public void testMessagePackMessageFieldClass01() throws Exception {
 		BaseClass2 src = null;
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		MessagePacker packer = new OptionalPacker(DynamicPacker
-				.create(BaseClass2.class));
-		packer.pack(new Packer(out), src);
-		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = new NullableTemplate(DynamicTemplate
-				.create(BaseClass2.class));
-		BaseClass2 dst = (BaseClass2) tmpl.unpack(new Unpacker(in), null);
+
+		byte[] raw = MessagePack.pack(src);
+
+		BaseClass2 dst =
+			MessagePack.unpack(raw, BaseClass2.class);
 		assertEquals(src, dst);
 	}
 
@@ -1316,12 +1056,11 @@ public class TestPackUnpack extends TestCase {
 		src.f0 = 0;
 		src2.f2 = 2;
 		src.f1 = src2;
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		MessagePacker packer = DynamicPacker.create(OptionalBaseClass2.class);
-		packer.pack(new Packer(out), src);
-		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = DynamicTemplate.create(OptionalBaseClass2.class);
-		OptionalBaseClass2 dst = (OptionalBaseClass2) tmpl.unpack(new Unpacker(in), null);
+
+		byte[] raw = MessagePack.pack(src);
+
+		OptionalBaseClass2 dst =
+			MessagePack.unpack(raw, OptionalBaseClass2.class);
 		assertTrue(src.f0 == dst.f0);
 		assertTrue(src.f1.f2 == dst.f1.f2);
 	}
@@ -1330,12 +1069,11 @@ public class TestPackUnpack extends TestCase {
 	public void testOptionalMessagePackMessageFieldClass01() throws Exception {
 		OptionalBaseClass2 src = new OptionalBaseClass2();
 		src.f1 = null;
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		MessagePacker packer = DynamicPacker.create(OptionalBaseClass2.class);
-		packer.pack(new Packer(out), src);
-		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = DynamicTemplate.create(OptionalBaseClass2.class);
-		OptionalBaseClass2 dst = (OptionalBaseClass2) tmpl.unpack(new Unpacker(in), null);
+
+		byte[] raw = MessagePack.pack(src);
+
+		OptionalBaseClass2 dst =
+			MessagePack.unpack(raw, OptionalBaseClass2.class);
 		assertTrue(src.f0 == dst.f0);
 		assertEquals(src.f1, dst.f1);
 	}
@@ -1343,14 +1081,11 @@ public class TestPackUnpack extends TestCase {
 	@Test
 	public void testOptionalMessagePackMessageFieldClass02() throws Exception {
 		OptionalBaseClass2 src = null;
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		MessagePacker packer = new OptionalPacker(DynamicPacker
-				.create(OptionalBaseClass2.class));
-		packer.pack(new Packer(out), src);
-		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = new NullableTemplate(DynamicTemplate
-				.create(OptionalBaseClass2.class));
-		OptionalBaseClass2 dst = (OptionalBaseClass2) tmpl.unpack(new Unpacker(in), null);
+
+		byte[] raw = MessagePack.pack(src);
+
+		OptionalBaseClass2 dst =
+			MessagePack.unpack(raw, OptionalBaseClass2.class);
 		assertEquals(src, dst);
 	}
 
@@ -1383,12 +1118,11 @@ public class TestPackUnpack extends TestCase {
 		src.f5 = 5;
 		src.f8 = 8;
 		src.f9 = 9;
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		MessagePacker packer = DynamicPacker.create(SampleSubClass.class);
-		packer.pack(new Packer(out), src);
-		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = DynamicTemplate.create(SampleSubClass.class);
-		SampleSubClass dst = (SampleSubClass) tmpl.unpack(new Unpacker(in), null);
+
+		byte[] raw = MessagePack.pack(src);
+
+		SampleSubClass dst =
+			MessagePack.unpack(raw, SampleSubClass.class);
 		assertTrue(src.f0 == dst.f0);
 		assertTrue(src.f1 == dst.f1);
 		assertTrue(src.f2 != dst.f2);
@@ -1403,14 +1137,11 @@ public class TestPackUnpack extends TestCase {
 	@Test
 	public void testExtendedClass01() throws Exception {
 		SampleSubClass src = null;
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		MessagePacker packer = new OptionalPacker(DynamicPacker
-				.create(SampleSubClass.class));
-		packer.pack(new Packer(out), src);
-		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = new NullableTemplate(DynamicTemplate
-				.create(SampleSubClass.class));
-		SampleSubClass dst = (SampleSubClass) tmpl.unpack(new Unpacker(in), null);
+
+		byte[] raw = MessagePack.pack(src);
+
+		SampleSubClass dst =
+			MessagePack.unpack(raw, SampleSubClass.class);
 		assertEquals(src, dst);
 	}
 
@@ -1447,14 +1178,11 @@ public class TestPackUnpack extends TestCase {
 		src.f5 = 5;
 		src.f8 = 8;
 		src.f9 = 9;
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		MessagePacker packer = DynamicPacker
-				.create(SampleOptionalSubClass.class);
-		packer.pack(new Packer(out), src);
-		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = DynamicTemplate.create(SampleOptionalSubClass.class);
-		SampleOptionalSubClass dst = (SampleOptionalSubClass) tmpl
-				.unpack(new Unpacker(in), null);
+
+		byte[] raw = MessagePack.pack(src);
+
+		SampleOptionalSubClass dst =
+			MessagePack.unpack(raw, SampleOptionalSubClass.class);
 		assertTrue(src.f0 == dst.f0);
 		assertTrue(src.f1 == dst.f1);
 		assertTrue(src.f2 != dst.f2);
@@ -1469,15 +1197,11 @@ public class TestPackUnpack extends TestCase {
 	@Test
 	public void testOptionalExtendedClass01() throws Exception {
 		SampleOptionalSubClass src = null;
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		MessagePacker packer = new OptionalPacker(DynamicPacker
-				.create(SampleOptionalSubClass.class));
-		packer.pack(new Packer(out), src);
-		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = new NullableTemplate(DynamicTemplate
-				.create(SampleOptionalSubClass.class));
-		SampleOptionalSubClass dst = (SampleOptionalSubClass) tmpl
-				.unpack(new Unpacker(in), null);
+
+		byte[] raw = MessagePack.pack(src);
+
+		SampleOptionalSubClass dst =
+			MessagePack.unpack(raw, SampleOptionalSubClass.class);
 		assertEquals(src, dst);
 	}
 
@@ -1517,15 +1241,11 @@ public class TestPackUnpack extends TestCase {
 		src.f1 = 1;
 		src2.add(src1);
 		src.f2 = src2;
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		MessagePacker packer = DynamicPacker
-				.create(BaseMessagePackableUnpackableClass.class);
-		packer.pack(new Packer(out), src);
-		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = DynamicTemplate
-				.create(BaseMessagePackableUnpackableClass.class);
-		BaseMessagePackableUnpackableClass dst = (BaseMessagePackableUnpackableClass) tmpl
-				.unpack(new Unpacker(in), null);
+
+		byte[] raw = MessagePack.pack(src);
+
+		BaseMessagePackableUnpackableClass dst =
+			MessagePack.unpack(raw, BaseMessagePackableUnpackableClass.class);
 		assertEquals(src.f0.f0, dst.f0.f0);
 		assertEquals(src.f0.f1, dst.f0.f1);
 		assertEquals(src.f1, dst.f1);
@@ -1537,15 +1257,11 @@ public class TestPackUnpack extends TestCase {
 	@Test
 	public void testMessagePackableUnpackableClass01() throws Exception {
 		BaseMessagePackableUnpackableClass src = null;
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		MessagePacker packer = new OptionalPacker(DynamicPacker
-				.create(BaseMessagePackableUnpackableClass.class));
-		packer.pack(new Packer(out), src);
-		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = new NullableTemplate(DynamicTemplate
-				.create(BaseMessagePackableUnpackableClass.class));
-		BaseMessagePackableUnpackableClass dst = (BaseMessagePackableUnpackableClass) tmpl
-				.unpack(new Unpacker(in), null);
+
+		byte[] raw = MessagePack.pack(src);
+
+		BaseMessagePackableUnpackableClass dst =
+			MessagePack.unpack(raw, BaseMessagePackableUnpackableClass.class);
 		assertEquals(src, dst);
 	}
 
@@ -1596,15 +1312,11 @@ public class TestPackUnpack extends TestCase {
 		src.f1 = 1;
 		src2.add(src1);
 		src.f2 = src2;
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		MessagePacker packer = DynamicPacker
-				.create(OptionalBaseMessagePackableUnpackableClass.class);
-		packer.pack(new Packer(out), src);
-		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = DynamicTemplate
-				.create(OptionalBaseMessagePackableUnpackableClass.class);
-		OptionalBaseMessagePackableUnpackableClass dst = (OptionalBaseMessagePackableUnpackableClass) tmpl
-				.unpack(new Unpacker(in), null);
+
+		byte[] raw = MessagePack.pack(src);
+
+		OptionalBaseMessagePackableUnpackableClass dst =
+			MessagePack.unpack(raw, OptionalBaseMessagePackableUnpackableClass.class);
 		assertEquals(src.f0.f0, dst.f0.f0);
 		assertEquals(src.f0.f1, dst.f0.f1);
 		assertEquals(src.f1, dst.f1);
@@ -1619,15 +1331,11 @@ public class TestPackUnpack extends TestCase {
 		src.f0 = null;
 		src.f1 = 1;
 		src.f2 = null;
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		MessagePacker packer = DynamicPacker
-				.create(OptionalBaseMessagePackableUnpackableClass.class);
-		packer.pack(new Packer(out), src);
-		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = DynamicTemplate
-				.create(OptionalBaseMessagePackableUnpackableClass.class);
-		OptionalBaseMessagePackableUnpackableClass dst = (OptionalBaseMessagePackableUnpackableClass) tmpl
-				.unpack(new Unpacker(in), null);
+
+		byte[] raw = MessagePack.pack(src);
+
+		OptionalBaseMessagePackableUnpackableClass dst =
+			MessagePack.unpack(raw, OptionalBaseMessagePackableUnpackableClass.class);
 		assertEquals(src.f0, dst.f0);
 		assertEquals(src.f1, dst.f1);
 		assertEquals(src.f2, dst.f2);
@@ -1636,15 +1344,11 @@ public class TestPackUnpack extends TestCase {
 	@Test
 	public void testOptionalMessagePackableUnpackableClass02() throws Exception {
 		OptionalBaseMessagePackableUnpackableClass src = null;
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		MessagePacker packer = new OptionalPacker(DynamicPacker
-				.create(OptionalBaseMessagePackableUnpackableClass.class));
-		packer.pack(new Packer(out), src);
-		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-		Template tmpl = new NullableTemplate(DynamicTemplate
-				.create(OptionalBaseMessagePackableUnpackableClass.class));
-		OptionalBaseMessagePackableUnpackableClass dst = (OptionalBaseMessagePackableUnpackableClass) tmpl
-				.unpack(new Unpacker(in), null);
+
+		byte[] raw = MessagePack.pack(src);
+
+		OptionalBaseMessagePackableUnpackableClass dst =
+			MessagePack.unpack(raw, OptionalBaseMessagePackableUnpackableClass.class);
 		assertEquals(src, dst);
 	}
 
@@ -1689,3 +1393,4 @@ public class TestPackUnpack extends TestCase {
 		}
 	}
 }
+

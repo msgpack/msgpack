@@ -42,7 +42,6 @@ public class ByteTemplate implements Template {
 	static final ByteTemplate instance = new ByteTemplate();
 
 	static {
-		CustomMessage.register(Byte.class, instance);
 		TemplateRegistry.register(Byte.class, instance);
 		TemplateRegistry.register(byte.class, instance);
 	}

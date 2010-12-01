@@ -24,6 +24,7 @@ public class BuiltInTemplateLoader {
 		BooleanArrayTemplate.getInstance();
 		BooleanTemplate.getInstance();
 		ByteArrayTemplate.getInstance();
+		ByteBufferTemplate.getInstance();
 		ByteTemplate.getInstance();
 		DoubleArrayTemplate.getInstance();
 		DoubleTemplate.getInstance();
