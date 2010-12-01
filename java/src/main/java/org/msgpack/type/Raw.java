@@ -22,16 +22,9 @@ import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import org.msgpack.*;
 
-public final class Raw/* implements MessagePackable, MessageUnpackable, MessageConvertable*/ {
+public final class Raw {
 	private byte[] bytes;
 	private String string;
-
-	/*
-	public Raw() {
-		this.bytes = null;
-		this.string = "";
-	}
-	*/
 
 	public Raw(byte[] bytes) {
 		this.bytes = bytes;
@@ -69,22 +62,8 @@ public final class Raw/* implements MessagePackable, MessageUnpackable, MessageC
 		return ByteBuffer.wrap(toByteArray());
 	}
 
-	/*
-	public void messagePack(Packer pk) throws IOException {
-		pk.packByteArray(toByteArray());
+	static {
+		RawTemplate.load();
 	}
-
-	public void messageUnpack(Unpacker pac) throws IOException, MessageTypeException {
-		// FIXME immutable
-		this.bytes = pac.unpackByteArray();
-		this.string = null;
-	}
-
-	public void messageConvert(MessagePackObject obj) throws MessageTypeException {
-		// FIXME immutable
-		this.bytes = obj.asByteArray();
-		this.string = null;
-	}
-	*/
 }
 
