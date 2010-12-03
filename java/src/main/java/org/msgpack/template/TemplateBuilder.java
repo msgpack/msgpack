@@ -212,12 +212,12 @@ public abstract class TemplateBuilder {
 		Field[] allFields = readAllFields(targetClass);
 
 		/* index:
-		 *   @Index(0) int a;   // 0
-		 *             int b;   // 1
-		 *   @Index(3) int c;   // 3
-		 *             int e;   // 4
-		 *   @Index(2) int d;   // 2
-		 *             int e;   // 5
+		 *   @Index(0) int field_a;   // 0
+		 *             int field_b;   // 1
+		 *   @Index(3) int field_c;   // 3
+		 *             int field_d;   // 4
+		 *   @Index(2) int field_e;   // 2
+		 *             int field_f;   // 5
 		 */
 		List<FieldEntry> indexed = new ArrayList<FieldEntry>();
 		int maxIndex = -1;
@@ -231,10 +231,10 @@ public abstract class TemplateBuilder {
 			int index = readFieldIndex(f, maxIndex);
 
 			if(indexed.size() > index && indexed.get(index) != null) {
-				throw new RuntimeException("duplicated index: "+index);  // FIXME exception
+				throw new TemplateBuildException("duplicated index: "+index);
 			}
 			if(index < 0) {
-				throw new RuntimeException("invalid index: "+index);  // FIXME exception
+				throw new TemplateBuildException("invalid index: "+index);
 			}
 
 			while(indexed.size() <= index) {

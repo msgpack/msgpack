@@ -125,7 +125,7 @@ public class TemplateRegistry {
 		for(Class<?> i : target.getInterfaces()) {
 			tmpl = map.get(i);
 			if(tmpl != null) {
-				map.put(target, tmpl);
+				register(target, tmpl);
 				return tmpl;
 			}
 		}
@@ -135,7 +135,7 @@ public class TemplateRegistry {
 			for(; c != Object.class; c = c.getSuperclass()) {
 				tmpl = map.get(c);
 				if(tmpl != null) {
-					map.put(target, tmpl);
+					register(target, tmpl);
 					return tmpl;
 				}
 			}
