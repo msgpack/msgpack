@@ -309,6 +309,7 @@ public class UnpackerImpl {
 						cs = ACS_RAW_VALUE;
 						break _fixed_trail_again;
 					case ACS_RAW_VALUE: {
+							// TODO zero-copy buffer
 							byte[] raw = new byte[trail];
 							System.arraycopy(src, n, raw, 0, trail);
 							obj = RawType.create(raw);

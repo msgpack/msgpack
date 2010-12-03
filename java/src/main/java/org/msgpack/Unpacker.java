@@ -232,6 +232,7 @@ public class Unpacker implements Iterable<MessagePackObject> {
 		impl.buffer = buffer;
 		impl.offset = offset;
 		impl.filled = length;
+		impl.bufferReferenced = false;  // TODO zero-copy buffer
 	}
 
 	/**
@@ -276,13 +277,16 @@ public class Unpacker implements Iterable<MessagePackObject> {
 		if(impl.buffer == null) {
 			int nextSize = (bufferReserveSize < require) ? require : bufferReserveSize;
 			impl.buffer = new byte[nextSize];
+			impl.bufferReferenced = false;  // TODO zero-copy buffer
 			return;
 		}
 
-		if(impl.filled <= impl.offset) {
-			// rewind the buffer
-			impl.filled = 0;
-			impl.offset = 0;
+		if(!impl.bufferReferenced) {  // TODO zero-copy buffer
+			if(impl.filled <= impl.offset) {
+				// rewind the buffer
+				impl.filled = 0;
+				impl.offset = 0;
+			}
 		}
 
 		if(impl.buffer.length - impl.filled >= require) {
@@ -301,6 +305,7 @@ public class Unpacker implements Iterable<MessagePackObject> {
 		impl.buffer = tmp;
 		impl.filled = notParsed;
 		impl.offset = 0;
+		impl.bufferReferenced = false;  // TODO zero-copy buffer
 	}
 
 	/**
@@ -538,7 +543,7 @@ public class Unpacker implements Iterable<MessagePackObject> {
 
 
 	/**
-	 * Gets one raw bytes from the buffer.
+	 * Gets one raw object (header + body) from the buffer.
 	 * This method calls {@link fill()} method if needed.
 	 */
 	public byte[] unpackByteArray() throws IOException {
@@ -546,15 +551,7 @@ public class Unpacker implements Iterable<MessagePackObject> {
 	}
 
 	/**
-	 * Gets one raw body from the buffer.
-	 * This method calls {@link fill()} method if needed.
-	 */
-	public ByteBuffer unpackByteBuffer(int length) throws IOException {
-		return impl.unpackByteBuffer(length);
-	}
-
-	/**
-	 * Gets one raw body from the buffer.
+	 * Gets one raw object (header + body) from the buffer.
 	 * This method calls {@link fill()} method if needed.
 	 */
 	public ByteBuffer unpackByteBuffer() throws IOException {
