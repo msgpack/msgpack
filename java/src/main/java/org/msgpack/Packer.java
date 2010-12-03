@@ -493,6 +493,13 @@ public class Packer {
 		return packRawBody(o);
 	}
 
+	public Packer pack(ByteBuffer o) throws IOException {
+		if (o == null) { return packNil(); }
+		ByteBuffer buf = (ByteBuffer) o;
+		packRaw(buf.remaining());
+		return packRawBody(buf.array(), buf.arrayOffset() + buf.position(), buf.remaining());
+	}
+
 	public Packer pack(List o) throws IOException {
 		if(o == null) { return packNil(); }
 		packArray(o.size());

@@ -420,6 +420,18 @@ abstract class BufferedUnpackerImpl extends UnpackerImpl {
 		return unpackRawBody(length);
 	}
 
+	final ByteBuffer unpackByteBuffer(int length) throws IOException, MessageTypeException {
+		more(length);
+		ByteBuffer buf = ByteBuffer.wrap(buffer, offset, length);
+		advance(length);
+		return buf;
+	}
+
+	final ByteBuffer unpackByteBuffer() throws IOException, MessageTypeException {
+		int length = unpackRaw();
+		return unpackByteBuffer(length);
+	}
+
 	final String unpackString() throws IOException, MessageTypeException {
 		int length = unpackRaw();
 		more(length);

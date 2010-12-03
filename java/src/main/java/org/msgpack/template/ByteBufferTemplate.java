@@ -22,20 +22,21 @@ import java.io.IOException;
 import org.msgpack.*;
 
 public class ByteBufferTemplate implements Template {
-	private ByteBufferTemplate() { }
+	private ByteBufferTemplate() {
+	}
 
 	public void pack(Packer pk, Object target) throws IOException {
-		ByteBuffer buf = (ByteBuffer) target;
-		pk.packRaw(buf.remaining());
-		pk.packRawBody(buf.array(), buf.arrayOffset() + buf.position(), buf.remaining());
+		pk.pack((ByteBuffer) target);
 	}
 
-	public Object unpack(Unpacker pac, Object to) throws IOException, MessageTypeException {
-		byte[] bytes = pac.unpackByteArray();
-		return ByteBuffer.wrap(bytes);
+	public Object unpack(Unpacker pac, Object to) throws IOException,
+			MessageTypeException {
+		return pac.unpackByteBuffer();
 	}
 
-	public Object convert(MessagePackObject from, Object to) throws MessageTypeException {
+	public Object convert(MessagePackObject from, Object to)
+			throws MessageTypeException {
+		// FIXME
 		byte[] bytes = from.asByteArray();
 		return ByteBuffer.wrap(bytes);
 	}
@@ -50,4 +51,3 @@ public class ByteBufferTemplate implements Template {
 		TemplateRegistry.register(ByteBuffer.class, instance);
 	}
 }
-

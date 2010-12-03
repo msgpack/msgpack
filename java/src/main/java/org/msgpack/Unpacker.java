@@ -536,12 +536,29 @@ public class Unpacker implements Iterable<MessagePackObject> {
 		return impl.unpackRawBody(length);
 	}
 
+
 	/**
 	 * Gets one raw bytes from the buffer.
 	 * This method calls {@link fill()} method if needed.
 	 */
 	public byte[] unpackByteArray() throws IOException {
 		return impl.unpackByteArray();
+	}
+
+	/**
+	 * Gets one raw body from the buffer.
+	 * This method calls {@link fill()} method if needed.
+	 */
+	public ByteBuffer unpackByteBuffer(int length) throws IOException {
+		return impl.unpackByteBuffer(length);
+	}
+
+	/**
+	 * Gets one raw body from the buffer.
+	 * This method calls {@link fill()} method if needed.
+	 */
+	public ByteBuffer unpackByteBuffer() throws IOException {
+		return impl.unpackByteBuffer();
 	}
 
 	/**
