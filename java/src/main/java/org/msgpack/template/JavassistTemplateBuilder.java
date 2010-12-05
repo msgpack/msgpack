@@ -521,11 +521,24 @@ public class JavassistTemplateBuilder extends TemplateBuilder {
 	}
 
 	public Template buildTemplate(Class<?> targetClass, FieldEntry[] entries) {
+		// FIXME private / packagefields
+		//for(FieldEntry e : entries) {
+		//	Field f = e.getField();
+		//	int mod = f.getModifiers();
+		//	if(!Modifier.isPublic(mod)) {
+		//		f.setAccessible(true);
+		//	}
+		//}
+
 		Template[] tmpls = new Template[entries.length];
 		for(int i=0; i < entries.length; i++) {
 			FieldEntry e = entries[i];
-			Template tmpl = TemplateRegistry.lookup(e.getGenericType(), true);
-			tmpls[i] = tmpl;
+			if(!e.isAvailable()) {
+				tmpls[i] = null;
+			} else {
+				Template tmpl = TemplateRegistry.lookup(e.getGenericType(), true);
+				tmpls[i] = tmpl;
+			}
 		}
 
 		BuildContext bc = new BuildContext(this);

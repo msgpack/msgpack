@@ -90,8 +90,8 @@ public class TemplateRegistry {
 		Class<?> target;
 
 		// TODO
-		//if((Type)target instanceof GenericArrayType) {
-		//	return lookupArrayImpl((GenericArrayType)(Type)target);
+		//if(targetType instanceof GenericArrayType) {
+		//	return lookupGenericArray((GenericArrayType)targetType);
 		//}
 
 		if(targetType instanceof ParameterizedType) {
@@ -108,6 +108,16 @@ public class TemplateRegistry {
 		if(tmpl != null) {
 			return tmpl;
 		}
+
+		// TODO
+		//if(target.isArray()) {
+		//	// FIXME can't distinguish type-erased Object[T<>]?
+		//	Type componentType = target.getComponentType();
+		//	Template componentTemplate = lookup(componentType);
+		//	tmpl = new ObjectArrayTemplate(componentTemplate);
+		//	register(target, tmpl);
+		//	return tmpl;
+		//}
 
 		if(isAnnotated(target, MessagePackMessage.class)) {
 			tmpl = TemplateBuilder.build(target);
@@ -156,6 +166,22 @@ public class TemplateRegistry {
 		}
 	}
 
+	private static synchronized Template lookupGenericArray(GenericArrayType arrayType) {
+		Template tmpl = map.get(arrayType);
+		if(tmpl != null) {
+			// TODO primitive types are included?
+			return tmpl;
+		}
+
+		Type componentType = arrayType.getGenericComponentType();
+		Template componentTemplate = lookup(componentType);
+		tmpl = new ObjectArrayTemplate(componentTemplate);
+
+		register(arrayType, tmpl);
+
+		return tmpl;
+	}
+
 	public static synchronized Template lookupGeneric(Type targetType) {
 		if(targetType instanceof ParameterizedType) {
 			ParameterizedType parameterizedType = (ParameterizedType)targetType;
@@ -183,26 +209,6 @@ public class TemplateRegistry {
 		}
 
 		return gtmpl.build(tmpls);
-	}
-
-	public static synchronized Template lookupArray(Type targetType) {
-		if(targetType instanceof GenericArrayType) {
-			GenericArrayType arrayType = (GenericArrayType)targetType;
-			return lookupArrayImpl(arrayType);
-		} else {
-			throw new IllegalArgumentException("actual type of the array type is erased: "+targetType);
-		}
-	}
-
-	private static synchronized Template lookupArrayImpl(GenericArrayType arrayType) {
-		Template tmpl = map.get(arrayType);
-		if(tmpl != null) {
-			// TODO primitive types are included?
-			return tmpl;
-		}
-		Type component = arrayType.getGenericComponentType();
-		Template componentTemplate = lookup(component);
-		return new ObjectArrayTemplate(componentTemplate);
 	}
 
 	private static boolean isAnnotated(Class<?> ao, Class<? extends Annotation> with) {

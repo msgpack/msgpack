@@ -331,7 +331,7 @@ public class VectoredByteBuffer implements GatheringByteChannel, ScatteringByteC
 	}
 
 	public synchronized long read(GatheringByteChannel to) throws IOException {
-		long total = to.write((ByteBuffer[])vec.toArray());
+		long total = to.write(vec.toArray(new ByteBuffer[0]));
 		while(!vec.isEmpty()) {
 			ByteBuffer r = vec.get(0);
 			if(r.remaining() == 0) {

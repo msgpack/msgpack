@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.io.IOException;
 import org.msgpack.*;
 
+// FIXME
 public class ObjectArrayTemplate implements Template {
 	static void load() { }
 
@@ -40,7 +41,7 @@ public class ObjectArrayTemplate implements Template {
 		if(!(target instanceof Object[])) {
 			throw new MessageTypeException();
 		}
-		Object[] array = (Object[])target;
+		Object[] array = (Object[])target;  // FIXME
 		pk.packArray(array.length);
 		for(Object a : array) {
 			componentTemplate.pack(pk, a);
@@ -49,7 +50,7 @@ public class ObjectArrayTemplate implements Template {
 
 	public Object unpack(Unpacker pac, Object to) throws IOException, MessageTypeException {
 		int length = pac.unpackArray();
-		Object[] array;
+		Object[] array;  // FIXME
 		if(to != null && to instanceof Object[] && ((Object[])to).length == length) {
 			array = (Object[])to;
 		} else {
@@ -63,7 +64,7 @@ public class ObjectArrayTemplate implements Template {
 
 	public Object convert(MessagePackObject from, Object to) throws MessageTypeException {
 		MessagePackObject[] src = from.asArray();
-		Object[] array;
+		Object[] array;  // FIXME
 		if(to != null && to instanceof Object[] && ((Object[])to).length == src.length) {
 			array = (Object[])to;
 		} else {

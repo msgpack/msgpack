@@ -36,7 +36,7 @@ public class ReflectionTemplateBuilder extends TemplateBuilder {
 	}
 
 	static abstract class ReflectionFieldEntry extends FieldEntry {
-		public ReflectionFieldEntry(FieldEntry e) {
+		ReflectionFieldEntry(FieldEntry e) {
 			super(e.getField(), e.getOption());
 		}
 
@@ -49,6 +49,15 @@ public class ReflectionTemplateBuilder extends TemplateBuilder {
 		public void setNull(Object target) throws IllegalAccessException {
 			getField().set(target, null);
 		}
+	}
+
+	static class NullFieldEntry extends ReflectionFieldEntry {
+		NullFieldEntry(FieldEntry e) {
+			super(e);
+		}
+		public void pack(Object target, Packer pac) throws IOException { }
+		public void convert(Object target, MessagePackObject obj) throws MessageTypeException, IllegalAccessException { }
+		public void unpack(Object target, Unpacker pac) throws IOException, MessageTypeException, IllegalAccessException { }
 	}
 
 	static class ObjectFieldEntry extends ReflectionFieldEntry {
@@ -377,7 +386,9 @@ public class ReflectionTemplateBuilder extends TemplateBuilder {
 		for(int i=0; i < entries.length; i++) {
 			FieldEntry e = entries[i];
 			Class<?> type = e.getType();
-			if(type.equals(boolean.class)) {
+			if(!e.isAvailable()) {
+				res[i] = new NullFieldEntry(e);
+			} else if(type.equals(boolean.class)) {
 				res[i] = new BooleanFieldEntry(e);
 			} else if(type.equals(byte.class)) {
 				res[i] = new ByteFieldEntry(e);

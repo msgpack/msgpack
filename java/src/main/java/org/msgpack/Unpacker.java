@@ -372,8 +372,7 @@ public class Unpacker implements Iterable<MessagePackObject> {
 	 * @return offset position that is parsed.
 	 */
 	public int execute(byte[] buffer, int offset, int length) throws UnpackException {
-		int noffset = impl.execute(buffer, offset + impl.offset, length);
-		impl.offset = noffset - offset;
+		int noffset = impl.execute(buffer, offset, length);
 		if(impl.isFinished()) {
 			impl.resetState();
 		}

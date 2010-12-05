@@ -24,7 +24,7 @@ public class FieldList {
 	public static class Entry {
 		public Entry() {
 			this.name = null;
-			this.option = null;
+			this.option = FieldOption.IGNORE;
 		}
 
 		public Entry(String name, FieldOption option) {
@@ -44,7 +44,7 @@ public class FieldList {
 		}
 
 		boolean isAvailable() {
-			return this.name != null;
+			return this.option != FieldOption.IGNORE;
 		}
 
 		boolean isRequired() {

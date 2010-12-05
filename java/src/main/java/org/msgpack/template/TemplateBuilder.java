@@ -28,10 +28,17 @@ import org.msgpack.annotation.*;
 
 public abstract class TemplateBuilder {
 	public static class FieldEntry {
-		private Field field = null;
-		private FieldOption option = FieldOption.IGNORE;
+		private Field field;
+		private FieldOption option;
 
 		public FieldEntry() {
+			this.field = null;
+			this.option = FieldOption.IGNORE;
+		}
+
+		public FieldEntry(FieldEntry e) {
+			this.field = e.field;
+			this.option = e.option;
 		}
 
 		public FieldEntry(Field field, FieldOption option) {
@@ -84,10 +91,6 @@ public abstract class TemplateBuilder {
 			return option == FieldOption.NULLABLE;
 		}
 
-		public boolean isAnnotated(Class<? extends Annotation> with) {
-			return field.getAnnotation(with) != null;
-		}
-
 		static String arrayTypeToString(Class<?> type) {
 			int dim = 1;
 			Class<?> baseType = type.getComponentType();
@@ -111,19 +114,19 @@ public abstract class TemplateBuilder {
 	public abstract Template buildOrdinalEnumTemplate(Class<?> targetClass, Enum<?>[] entries);
 
 
-	public Template buildTemplate(Class<?> targetClass) {
-		checkTypeValidation(targetClass);
-		return buildTemplate(targetClass, readFieldEntries(targetClass));
+	public Template buildTemplate(Class<?> targetClass, FieldList flist) throws NoSuchFieldException {
+		checkValidation(targetClass);
+		return buildTemplate(targetClass, convertFieldEntries(targetClass, flist));
 	}
 
 	public Template buildTemplate(Class<?> targetClass, FieldOption implicitOption) {
-		checkTypeValidation(targetClass);
+		checkValidation(targetClass);
 		return buildTemplate(targetClass, readFieldEntries(targetClass, implicitOption));
 	}
 
-	public Template buildTemplate(Class<?> targetClass, FieldList flist) throws NoSuchFieldException {
-		checkTypeValidation(targetClass);
-		return buildTemplate(targetClass, convertFieldEntries(targetClass, flist));
+	public Template buildTemplate(Class<?> targetClass) {
+		FieldOption implicitOption = readImplicitFieldOption(targetClass);
+		return buildTemplate(targetClass, implicitOption);
 	}
 
 	public Template buildOrdinalEnumTemplate(Class<?> targetClass) {
@@ -170,7 +173,7 @@ public abstract class TemplateBuilder {
 	}
 
 
-	protected void checkTypeValidation(Class<?> targetClass) {
+	private static void checkValidation(Class<?> targetClass) {
 		if(targetClass.isInterface()) {
 			throw new TemplateBuildException("cannot build template of interface");
 		}
@@ -182,14 +185,14 @@ public abstract class TemplateBuilder {
 		}
 	}
 
-	protected void checkOrdinalEnumValidation(Class<?> targetClass) {
+	private static void checkOrdinalEnumValidation(Class<?> targetClass) {
 		if(!targetClass.isEnum()) {
 			throw new TemplateBuildException("tried to build ordinal enum template of non-enum class");
 		}
 	}
 
 
-	protected FieldEntry[] convertFieldEntries(Class<?> targetClass, FieldList flist) throws NoSuchFieldException {
+	static FieldEntry[] convertFieldEntries(Class<?> targetClass, FieldList flist) throws NoSuchFieldException {
 		List<FieldList.Entry> src = flist.getList();
 		FieldEntry[] result = new FieldEntry[src.size()];
 		for(int i=0; i < src.size(); i++) {
@@ -203,12 +206,7 @@ public abstract class TemplateBuilder {
 		return result;
 	}
 
-	protected FieldEntry[] readFieldEntries(Class<?> targetClass) {
-		FieldOption implicitOption = readImplicitFieldOption(targetClass);
-		return readFieldEntries(targetClass, implicitOption);
-	}
-
-	protected FieldEntry[] readFieldEntries(Class<?> targetClass, FieldOption implicitOption) {
+	static FieldEntry[] readFieldEntries(Class<?> targetClass, FieldOption implicitOption) {
 		Field[] allFields = readAllFields(targetClass);
 
 		/* index:
@@ -253,14 +251,14 @@ public abstract class TemplateBuilder {
 			if(e == null) {
 				result[i] = new FieldEntry();
 			} else {
-				result[i] = new FieldEntry(e.getField(), e.getOption());
+				result[i] = e;
 			}
 		}
 
 		return result;
 	}
 
-	private Field[] readAllFields(Class<?> targetClass) {
+	private static Field[] readAllFields(Class<?> targetClass) {
 		// order: [fields of super class, ..., fields of this class]
 		List<Field[]> succ = new ArrayList<Field[]>();
 		int total = 0;
@@ -279,7 +277,7 @@ public abstract class TemplateBuilder {
 		return result;
 	}
 
-	private FieldOption readImplicitFieldOption(Class<?> targetClass) {
+	private static FieldOption readImplicitFieldOption(Class<?> targetClass) {
 		MessagePackMessage a = targetClass.getAnnotation(MessagePackMessage.class);
 		if(a == null) {
 			return FieldOption.DEFAULT;
@@ -287,7 +285,7 @@ public abstract class TemplateBuilder {
 		return a.value();
 	}
 
-	private FieldOption readFieldOption(Field field, FieldOption implicitOption) {
+	private static FieldOption readFieldOption(Field field, FieldOption implicitOption) {
 		int mod = field.getModifiers();
 		if(Modifier.isStatic(mod) || Modifier.isFinal(mod)) {
 			return FieldOption.IGNORE;
@@ -324,7 +322,7 @@ public abstract class TemplateBuilder {
 		}
 	}
 
-	private int readFieldIndex(Field field, int maxIndex) {
+	private static int readFieldIndex(Field field, int maxIndex) {
 		Index a = field.getAnnotation(Index.class);
 		if(a == null) {
 			return maxIndex + 1;
@@ -333,7 +331,7 @@ public abstract class TemplateBuilder {
 		}
 	}
 
-	protected boolean isAnnotated(AccessibleObject ao, Class<? extends Annotation> with) {
+	private static boolean isAnnotated(AccessibleObject ao, Class<? extends Annotation> with) {
 		return ao.getAnnotation(with) != null;
 	}
 }
