@@ -113,6 +113,9 @@ public abstract class TemplateBuilder {
 	// Override this method
 	public abstract Template buildOrdinalEnumTemplate(Class<?> targetClass, Enum<?>[] entries);
 
+	// Override this method
+	public abstract Template buildArrayTemplate(Type arrayType, Type genericBaseType, Class<?> baseClass, int dim);
+
 
 	public Template buildTemplate(Class<?> targetClass, FieldList flist) throws NoSuchFieldException {
 		checkValidation(targetClass);
@@ -133,6 +136,38 @@ public abstract class TemplateBuilder {
 		checkOrdinalEnumValidation(targetClass);
 		Enum<?>[] entries = (Enum<?>[])targetClass.getEnumConstants();
 		return buildOrdinalEnumTemplate(targetClass, entries);
+	}
+
+	public Template buildArrayTemplate(Type arrayType) {
+		Type baseType;
+		Class<?> baseClass;
+		int dim = 1;
+		if(arrayType instanceof GenericArrayType) {
+			GenericArrayType type = (GenericArrayType)arrayType;
+			baseType = type.getGenericComponentType();
+			while(baseType instanceof GenericArrayType) {
+				baseType = ((GenericArrayType)baseType).getGenericComponentType();
+				dim += 1;
+			}
+			baseClass = (Class<?>)((ParameterizedType)baseType).getRawType();
+		} else {
+			Class<?> type = (Class<?>)arrayType;
+			baseClass = type.getComponentType();
+			while(baseClass.isArray()) {
+				baseClass = baseClass.getComponentType();
+				dim += 1;
+			}
+			baseType = baseClass;
+		}
+		return buildArrayTemplate(arrayType, baseType, baseClass, dim);
+	}
+
+	private static Type getComponentType(Type arrayType) {
+		if(arrayType instanceof GenericArrayType) {
+			return ((GenericArrayType)arrayType).getGenericComponentType();
+		} else {
+			return ((Class<?>)arrayType).getComponentType();
+		}
 	}
 
 
@@ -170,6 +205,10 @@ public abstract class TemplateBuilder {
 
 	public static Template buildOrdinalEnum(Class<?> targetClass) {
 		return instance.buildOrdinalEnumTemplate(targetClass);
+	}
+
+	public static Template buildArray(Type arrayType) {
+		return instance.buildArrayTemplate(arrayType);
 	}
 
 

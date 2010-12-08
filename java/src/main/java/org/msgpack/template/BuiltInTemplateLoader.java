@@ -42,7 +42,6 @@ public class BuiltInTemplateLoader {
 		ListTemplate.load();
 		MapTemplate.load();
 		NullableTemplate.load();
-		ObjectArrayTemplate.load();
 	}
 }
 

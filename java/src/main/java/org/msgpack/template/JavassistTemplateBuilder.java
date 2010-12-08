@@ -72,16 +72,6 @@ public class JavassistTemplateBuilder extends TemplateBuilder {
 		return seqId++;
 	}
 
-	public static abstract class JavassistTemplate extends AbstractTemplate {
-		public Class targetClass;
-		public Template[] templates;
-
-		public JavassistTemplate(Class targetClass, Template[] templates) {
-			this.targetClass = targetClass;
-			this.templates = templates;
-		}
-	}
-
 	private static abstract class BuildContextBase {
 		protected JavassistTemplateBuilder director;
 		protected Class<?> origClass;
@@ -101,9 +91,9 @@ public class JavassistTemplateBuilder extends TemplateBuilder {
 			this.director = director;
 		}
 
-		protected Template build(Class<?> targetClass) {
+		protected Template build(String className) {
 			try {
-				reset(targetClass);
+				reset(className);
 				buildClass();
 				buildConstructor();
 				buildMethodInit();
@@ -124,10 +114,8 @@ public class JavassistTemplateBuilder extends TemplateBuilder {
 			}
 		}
 
-		protected void reset(Class<?> targetClass) {
-			this.origClass = targetClass;
-			this.origName = this.origClass.getName();
-			this.tmplName = this.origName + "_$$_Template" + director.nextSeqId();
+		protected void reset(String className) {
+			this.tmplName = className + "_$$_Template" + director.nextSeqId();
 			this.tmplCtClass = director.makeCtClass(this.tmplName);
 		}
 
@@ -220,8 +208,20 @@ public class JavassistTemplateBuilder extends TemplateBuilder {
 		}
 	}
 
+	public static abstract class JavassistTemplate extends AbstractTemplate {
+		public Class targetClass;
+		public Template[] templates;
+
+		public JavassistTemplate(Class targetClass, Template[] templates) {
+			this.targetClass = targetClass;
+			this.templates = templates;
+		}
+	}
+
 	private static class BuildContext extends BuildContextBase {
 		protected FieldEntry[] entries;
+		protected Class<?> origClass;
+		protected String origName;
 		protected Template[] templates;
 		protected int minimumArrayLength;
 
@@ -232,7 +232,9 @@ public class JavassistTemplateBuilder extends TemplateBuilder {
 		public Template buildTemplate(Class<?> targetClass, FieldEntry[] entries, Template[] templates) {
 			this.entries = entries;
 			this.templates = templates;
-			return build(targetClass);
+			this.origClass = targetClass;
+			this.origName = this.origClass.getName();
+			return build(this.origName);
 		}
 
 		protected void setSuperClass() throws CannotCompileException, NotFoundException {
@@ -553,6 +555,39 @@ public class JavassistTemplateBuilder extends TemplateBuilder {
 
 	public Template buildOrdinalEnumTemplate(Class<?> targetClass, Enum<?>[] entries) {
 		return new JavassistOrdinalEnumTemplate(entries);
+	}
+
+	public Template buildArrayTemplate(Type arrayType, Type genericBaseType, Class<?> baseClass, int dim) {
+		if(dim == 1) {
+			if(baseClass == boolean.class) {
+				return BooleanArrayTemplate.getInstance();
+			} else if(baseClass == short.class) {
+				return ShortArrayTemplate.getInstance();
+			} else if(baseClass == int.class) {
+				return IntArrayTemplate.getInstance();
+			} else if(baseClass == long.class) {
+				return LongArrayTemplate.getInstance();
+			} else if(baseClass == float.class) {
+				return FloatArrayTemplate.getInstance();
+			} else if(baseClass == double.class) {
+				return DoubleArrayTemplate.getInstance();
+			} else {
+				// FIXME
+				Template baseTemplate = TemplateRegistry.lookup(genericBaseType);
+				return new ReflectionTemplateBuilder.ReflectionObjectArrayTemplate(baseClass, baseTemplate);
+			}
+		} else if(dim == 2) {
+			// FIXME
+			Class<?> componentClass = Array.newInstance(baseClass, 0).getClass();
+			Template componentTemplate = buildArrayTemplate(arrayType, genericBaseType, baseClass, dim-1);
+			return new ReflectionTemplateBuilder.ReflectionMultidimentionalArrayTemplate(componentClass, componentTemplate);
+		} else {
+			// FIXME
+			ReflectionTemplateBuilder.ReflectionMultidimentionalArrayTemplate componentTemplate = (ReflectionTemplateBuilder.ReflectionMultidimentionalArrayTemplate)
+				buildArrayTemplate(arrayType, genericBaseType, baseClass, dim-1);
+			Class<?> componentClass = Array.newInstance(componentTemplate.getComponentClass(), 0).getClass();
+			return new ReflectionTemplateBuilder.ReflectionMultidimentionalArrayTemplate(componentClass, componentTemplate);
+		}
 	}
 }
 

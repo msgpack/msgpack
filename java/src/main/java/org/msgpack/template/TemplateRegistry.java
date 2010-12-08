@@ -87,37 +87,36 @@ public class TemplateRegistry {
 
 	private static synchronized Template lookupImpl(Type targetType, boolean forceBuild, boolean fallbackDefault) {
 		Template tmpl;
-		Class<?> target;
-
-		// TODO
-		//if(targetType instanceof GenericArrayType) {
-		//	return lookupGenericArray((GenericArrayType)targetType);
-		//}
 
 		if(targetType instanceof ParameterizedType) {
+			// ParameterizedType is not a Class<?>?
 			tmpl = lookupGenericImpl((ParameterizedType)targetType);
 			if(tmpl != null) {
 				return tmpl;
 			}
-			target = (Class<?>)((ParameterizedType)targetType).getRawType();
-		} else {
-			target = (Class<?>)targetType;
+			targetType = ((ParameterizedType)targetType).getRawType();
 		}
 
-		tmpl = map.get(target);
+		tmpl = map.get(targetType);
 		if(tmpl != null) {
 			return tmpl;
 		}
 
-		// TODO
-		//if(target.isArray()) {
-		//	// FIXME can't distinguish type-erased Object[T<>]?
-		//	Type componentType = target.getComponentType();
-		//	Template componentTemplate = lookup(componentType);
-		//	tmpl = new ObjectArrayTemplate(componentTemplate);
-		//	register(target, tmpl);
-		//	return tmpl;
-		//}
+		if(targetType instanceof GenericArrayType) {
+			// GenericArrayType is not a Class<?>
+			tmpl = TemplateBuilder.buildArray(targetType);
+			register(targetType, tmpl);
+			return tmpl;
+		}
+
+		Class<?> target = (Class<?>)targetType;
+
+		if(target.isArray()) {
+			// FIXME can't distinguish type-erased T<>[]?
+			tmpl = TemplateBuilder.buildArray(target);
+			register(target, tmpl);
+			return tmpl;
+		}
 
 		if(isAnnotated(target, MessagePackMessage.class)) {
 			tmpl = TemplateBuilder.build(target);
@@ -164,22 +163,6 @@ public class TemplateRegistry {
 		} else {
 			return null;
 		}
-	}
-
-	private static synchronized Template lookupGenericArray(GenericArrayType arrayType) {
-		Template tmpl = map.get(arrayType);
-		if(tmpl != null) {
-			// TODO primitive types are included?
-			return tmpl;
-		}
-
-		Type componentType = arrayType.getGenericComponentType();
-		Template componentTemplate = lookup(componentType);
-		tmpl = new ObjectArrayTemplate(componentTemplate);
-
-		register(arrayType, tmpl);
-
-		return tmpl;
 	}
 
 	public static synchronized Template lookupGeneric(Type targetType) {
