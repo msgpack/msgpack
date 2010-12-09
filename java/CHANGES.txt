@@ -1,4 +1,20 @@
 
+Release 0.5.0 - 2010/12/09
+  NEW FEATURES
+    Dynamic template builder is rewritten. New ReflectionTemplateBuilder
+    supports DalvikVM.
+
+    Some optimization for dynamic code generator.
+
+    @MessagePackMessage accepts default filed option.
+    Added new field annotations: @Ignore, @Requred and @Index.
+
+    Supported pack/unpack/convertion of arrays including multidimensional arrays.
+
+    Added native pack/unpack routine of ByteBuffer. It will be zero-copy optimized
+    under a specific condition.
+
+
 Release 0.4.3 - 2010/11/10
   NEW FEATURES
     Added FieldList class and MessagePack.register(Class<T>, FieldList) method
