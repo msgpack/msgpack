@@ -314,7 +314,7 @@ public class JavassistTemplateBuilder extends TemplateBuilder {
 
 			buildString("%s _$$_t;", this.origName);
 			buildString("if($2 == null) {");
-			buildString("  _$$_t = (%s)this.targetClass.newInstance();", this.origName);
+			buildString("  _$$_t = new %s();", this.origName);
 			buildString("} else {");
 			buildString("  _$$_t = (%s)$2;", this.origName);
 			buildString("}");
@@ -392,7 +392,7 @@ public class JavassistTemplateBuilder extends TemplateBuilder {
 
 			buildString("%s _$$_t;", this.origName);
 			buildString("if($2 == null) {");
-			buildString("  _$$_t = (%s)this.targetClass.newInstance();", this.origName);
+			buildString("  _$$_t = new %s();", this.origName);
 			buildString("} else {");
 			buildString("  _$$_t = (%s)$2;", this.origName);
 			buildString("}");
