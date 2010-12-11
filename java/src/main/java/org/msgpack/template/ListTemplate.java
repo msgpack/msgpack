@@ -37,8 +37,11 @@ public class ListTemplate implements Template {
 
 	@SuppressWarnings("unchecked")
 	public void pack(Packer pk, Object target) throws IOException {
-		if(!(target instanceof List)) {
-			throw new MessageTypeException();
+		if (! (target instanceof List)) {
+			if (target == null) {
+				throw new MessageTypeException(new NullPointerException("target is null."));
+			}
+			throw new MessageTypeException("target is not List type: " + target.getClass());
 		}
 		List<Object> list = (List<Object>)target;
 		pk.packArray(list.size());
@@ -47,13 +50,14 @@ public class ListTemplate implements Template {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	public Object unpack(Unpacker pac, Object to) throws IOException, MessageTypeException {
 		int length = pac.unpackArray();
 		List<Object> list;
 		if(to == null) {
 			list = new ArrayList<Object>(length);
 		} else {
-			list = (List<Object>)to;
+			list = (List<Object>) to;
 			list.clear();
 		}
 		for(; length > 0; length--) {
@@ -62,6 +66,7 @@ public class ListTemplate implements Template {
 		return list;
 	}
 
+	@SuppressWarnings("unchecked")
 	public Object convert(MessagePackObject from, Object to) throws MessageTypeException {
 		MessagePackObject[] array = from.asArray();
 		List<Object> list;
@@ -69,7 +74,7 @@ public class ListTemplate implements Template {
 			list = new ArrayList<Object>(array.length);
 		} else {
 			// TODO: optimize if list is instanceof ArrayList
-			list = (List<Object>)to;
+			list = (List<Object>) to;
 			list.clear();
 		}
 		for(MessagePackObject element : array) {

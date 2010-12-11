@@ -44,9 +44,12 @@ public class MapTemplate implements Template {
 	@SuppressWarnings("unchecked")
 	public void pack(Packer pk, Object target) throws IOException {
 		if(!(target instanceof Map)) {
-			throw new MessageTypeException();
+			if (target == null) {
+				throw new MessageTypeException(new NullPointerException("target is null."));
+			}
+			throw new MessageTypeException("target is not Map type: " + target.getClass());
 		}
-		Map<Object,Object> map = (Map<Object,Object>)target;
+		Map<Object,Object> map = (Map<Object,Object>) target;
 		pk.packMap(map.size());
 		for(Map.Entry<Object,Object> pair : map.entrySet()) {
 			keyTemplate.pack(pk, pair.getKey());
@@ -54,13 +57,14 @@ public class MapTemplate implements Template {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	public Object unpack(Unpacker pac, Object to) throws IOException, MessageTypeException {
 		int length = pac.unpackMap();
 		Map<Object,Object> map;
 		if(to == null) {
 			map = new HashMap<Object,Object>(length);
 		} else {
-			map = (Map<Object,Object>)to;
+			map = (Map<Object,Object>) to;
 			map.clear();
 		}
 		for(; length > 0; length--) {
@@ -78,7 +82,7 @@ public class MapTemplate implements Template {
 		if(to == null) {
 			map = new HashMap<Object,Object>(src.size());
 		} else {
-			map = (Map<Object,Object>)to;
+			map = (Map<Object,Object>) to;
 			map.clear();
 		}
 		for(Map.Entry<MessagePackObject,MessagePackObject> pair : src.entrySet()) {
