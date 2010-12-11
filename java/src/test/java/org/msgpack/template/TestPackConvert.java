@@ -2,8 +2,12 @@ package org.msgpack.template;
 
 import java.io.ByteArrayOutputStream;
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -34,9 +38,9 @@ public class TestPackConvert extends TestCase {
 
 	static void _testInteger(Integer src) throws Exception {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		new Packer(out).pack(src);
-		MessagePackObject obj = Util.unpackOne(out.toByteArray());
 		Template tmpl = IntegerTemplate.getInstance();
+		tmpl.pack(new Packer(out), src);
+		MessagePackObject obj = Util.unpackOne(out.toByteArray());
 		Integer dst = (Integer) tmpl.convert(obj, null);
 		assertEquals(src, dst);
 	}
@@ -44,20 +48,26 @@ public class TestPackConvert extends TestCase {
 	@Test
 	public void testNullInteger() throws Exception {
 		Integer src = null;
+		Template tmpl = IntegerTemplate.getInstance();
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		Packer packer = new Packer(out);
+		try {
+			tmpl.pack(packer, src);
+			fail();
+		} catch (Exception e) {
+			assertTrue(e instanceof MessageTypeException);
+		}
 		new Packer(out).pack(src);
 		MessagePackObject obj = Util.unpackOne(out.toByteArray());
-		Template tmpl = IntegerTemplate.getInstance();
-		Integer dst = null;
 		try {
-			dst = (Integer) tmpl.convert(obj, null);
+			tmpl.convert(obj, null);
 			fail();
 		} catch (Exception e) {
 			assertTrue(e instanceof MessageTypeException);
 		}
 		obj = Util.unpackOne(out.toByteArray());
 		tmpl = new NullableTemplate(IntegerTemplate.getInstance());
-		dst = (Integer) tmpl.convert(obj, null);
+		Integer dst = (Integer) tmpl.convert(obj, null);
 		assertEquals(src, dst);
 	}
 
@@ -78,9 +88,9 @@ public class TestPackConvert extends TestCase {
 
 	public void _testLong(Long src) throws Exception {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		new Packer(out).pack(src);
-		MessagePackObject obj = Util.unpackOne(out.toByteArray());
 		Template tmpl = LongTemplate.getInstance();
+		tmpl.pack(new Packer(out), src);
+		MessagePackObject obj = Util.unpackOne(out.toByteArray());
 		Long dst = (Long) tmpl.convert(obj, null);
 		assertEquals(src, dst);
 	}
@@ -88,20 +98,26 @@ public class TestPackConvert extends TestCase {
 	@Test
 	public void testNullLong() throws Exception {
 		Long src = null;
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		new Packer(out).pack(src);
-		MessagePackObject obj = Util.unpackOne(out.toByteArray());
 		Template tmpl = LongTemplate.getInstance();
-		Long dst = null;
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		Packer packer = new Packer(out);
 		try {
-			dst = (Long) tmpl.convert(obj, null);
+			tmpl.pack(packer, src);
+			fail();
+		} catch (Exception e) {
+			assertTrue(e instanceof MessageTypeException);
+		}
+		packer.pack(src);
+		MessagePackObject obj = Util.unpackOne(out.toByteArray());
+		try {
+			tmpl.convert(obj, null);
 			fail();
 		} catch (Exception e) {
 			assertTrue(e instanceof MessageTypeException);
 		}
 		obj = Util.unpackOne(out.toByteArray());
 		tmpl = new NullableTemplate(LongTemplate.getInstance());
-		dst = (Long) tmpl.convert(obj, null);
+		Long dst = (Long) tmpl.convert(obj, null);
 		assertEquals(src, dst);
 	}
 
@@ -118,16 +134,15 @@ public class TestPackConvert extends TestCase {
 		_testBigInteger(max);
 		Random rand = new Random();
 		for (int i = 0; i < 1000; i++) {
-			_testBigInteger(max.subtract(BigInteger.valueOf(Math.abs(rand
-					.nextLong()))));
+			_testBigInteger(max.subtract(BigInteger.valueOf(Math.abs(rand.nextLong()))));
 		}
 	}
 
 	static void _testBigInteger(BigInteger src) throws Exception {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		new Packer(out).pack(src);
-		MessagePackObject obj = Util.unpackOne(out.toByteArray());
 		Template tmpl = BigIntegerTemplate.getInstance();
+		tmpl.pack(new Packer(out), src);
+		MessagePackObject obj = Util.unpackOne(out.toByteArray());
 		BigInteger dst = (BigInteger) tmpl.convert(obj, null);
 		assertEquals(src, dst);
 	}
@@ -135,20 +150,25 @@ public class TestPackConvert extends TestCase {
 	@Test
 	public void testNullBigInteger() throws Exception {
 		Long src = null;
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		new Packer(out).pack(src);
-		MessagePackObject obj = Util.unpackOne(out.toByteArray());
 		Template tmpl = BigIntegerTemplate.getInstance();
-		BigInteger dst = null;
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		Packer packer = new Packer(out);
 		try {
-			dst = (BigInteger) tmpl.convert(obj, null);
+			tmpl.pack(packer, src);
+		} catch (Exception e) {
+			assertTrue(e instanceof MessageTypeException);
+		}
+		packer.pack(src);
+		MessagePackObject obj = Util.unpackOne(out.toByteArray());
+		try {
+			tmpl.convert(obj, null);
 			fail();
 		} catch (Exception e) {
 			assertTrue(e instanceof MessageTypeException);
 		}
 		obj = Util.unpackOne(out.toByteArray());
 		tmpl = new NullableTemplate(BigIntegerTemplate.getInstance());
-		dst = (BigInteger) tmpl.convert(obj, null);
+		BigInteger dst = (BigInteger) tmpl.convert(obj, null);
 		assertEquals(src, dst);
 	}
 
@@ -171,9 +191,9 @@ public class TestPackConvert extends TestCase {
 
 	static void _testFloat(Float src) throws Exception {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		new Packer(out).pack(src);
-		MessagePackObject obj = Util.unpackOne(out.toByteArray());
 		Template tmpl = FloatTemplate.getInstance();
+		tmpl.pack(new Packer(out), src);
+		MessagePackObject obj = Util.unpackOne(out.toByteArray());
 		Float dst = (Float) tmpl.convert(obj, null);
 		assertEquals(src, dst, 10e-10);
 	}
@@ -181,20 +201,26 @@ public class TestPackConvert extends TestCase {
 	@Test
 	public void testNullFloat() throws Exception {
 		Long src = null;
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		new Packer(out).pack(src);
-		MessagePackObject obj = Util.unpackOne(out.toByteArray());
 		Template tmpl = FloatTemplate.getInstance();
-		Float dst = null;
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		Packer packer = new Packer(out);
 		try {
-			dst = (Float) tmpl.convert(obj, null);
+			tmpl.pack(packer, src);
+			fail();
+		} catch (Exception e) {
+			assertTrue(e instanceof MessageTypeException);
+		}
+		packer.pack(src);
+		MessagePackObject obj = Util.unpackOne(out.toByteArray());
+		try {
+			tmpl.convert(obj, null);
 			fail();
 		} catch (Exception e) {
 			assertTrue(e instanceof MessageTypeException);
 		}
 		obj = Util.unpackOne(out.toByteArray());
 		tmpl = new NullableTemplate(FloatTemplate.getInstance());
-		dst = (Float) tmpl.convert(obj, null);
+		Float dst = (Float) tmpl.convert(obj, null);
 		assertEquals(src, dst);
 	}
 
@@ -217,9 +243,9 @@ public class TestPackConvert extends TestCase {
 
 	static void _testDouble(Double src) throws Exception {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		new Packer(out).pack(src);
-		MessagePackObject obj = Util.unpackOne(out.toByteArray());
 		Template tmpl = DoubleTemplate.getInstance();
+		tmpl.pack(new Packer(out), src);
+		MessagePackObject obj = Util.unpackOne(out.toByteArray());
 		Double dst = (Double) tmpl.convert(obj, null);
 		assertEquals(src, dst, 10e-10);
 	}
@@ -227,20 +253,26 @@ public class TestPackConvert extends TestCase {
 	@Test
 	public void testNullDouble() throws Exception {
 		Long src = null;
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		new Packer(out).pack(src);
-		MessagePackObject obj = Util.unpackOne(out.toByteArray());
 		Template tmpl = DoubleTemplate.getInstance();
-		Double dst = null;
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		Packer packer = new Packer(out);
 		try {
-			dst = (Double) tmpl.convert(obj, null);
+			tmpl.pack(packer, src);
+			fail();
+		} catch (Exception e) {
+			assertTrue(e instanceof MessageTypeException);
+		}
+		packer.pack(src);
+		MessagePackObject obj = Util.unpackOne(out.toByteArray());
+		try {
+			tmpl.convert(obj, null);
 			fail();
 		} catch (Exception e) {
 			assertTrue(e instanceof MessageTypeException);
 		}
 		obj = Util.unpackOne(out.toByteArray());
 		tmpl = new NullableTemplate(DoubleTemplate.getInstance());
-		dst = (Double) tmpl.convert(obj, null);
+		Double dst = (Double) tmpl.convert(obj, null);
 		assertEquals(src, dst);
 	}
 
@@ -252,9 +284,9 @@ public class TestPackConvert extends TestCase {
 
 	static void _testBoolean(Boolean src) throws Exception {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		new Packer(out).pack(src);
-		MessagePackObject obj = Util.unpackOne(out.toByteArray());
 		Template tmpl = BooleanTemplate.getInstance();
+		tmpl.pack(new Packer(out), src);
+		MessagePackObject obj = Util.unpackOne(out.toByteArray());
 		Boolean dst = (Boolean) tmpl.convert(obj, null);
 		assertEquals(src, dst);
 	}
@@ -262,20 +294,136 @@ public class TestPackConvert extends TestCase {
 	@Test
 	public void testNullBoolean() throws Exception {
 		Long src = null;
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		new Packer(out).pack(src);
-		MessagePackObject obj = Util.unpackOne(out.toByteArray());
 		Template tmpl = BooleanTemplate.getInstance();
-		Boolean dst = null;
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		Packer packer = new Packer(out);
 		try {
-			dst = (Boolean) tmpl.convert(obj, null);
+			tmpl.pack(packer, src);
+			fail();
+		} catch (Exception e) {
+			assertTrue(e instanceof MessageTypeException);
+		}
+		packer.pack(src);
+		MessagePackObject obj = Util.unpackOne(out.toByteArray());
+		try {
+			tmpl.convert(obj, null);
 			fail();
 		} catch (Exception e) {
 			assertTrue(e instanceof MessageTypeException);
 		}
 		obj = Util.unpackOne(out.toByteArray());
 		tmpl = new NullableTemplate(BooleanTemplate.getInstance());
-		dst = (Boolean) tmpl.convert(obj, null);
+		Boolean dst = (Boolean) tmpl.convert(obj, null);
+		assertEquals(src, dst);
+	}
+
+	@Test
+	public void testByteArray() throws Exception {
+		Random rand = new Random(System.currentTimeMillis());
+		byte[] b0 = new byte[0];
+		_testByteArray(b0);
+		byte[] b1 = new byte[10];
+		rand.nextBytes(b1);
+		_testByteArray(b1);
+		byte[] b2 = new byte[1024];
+		rand.nextBytes(b2);
+		_testByteArray(b2);
+	}
+
+	static void _testByteArray(byte[] src) throws Exception {
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		Template tmpl = ByteArrayTemplate.getInstance();
+		tmpl.pack(new Packer(out), src);
+		MessagePackObject obj = Util.unpackOne(out.toByteArray());
+		byte[] dst = (byte[]) tmpl.convert(obj, null);
+		assertEquals(src.length, dst.length);
+		for (int i = 0; i < src.length; ++i) {
+			assertEquals(src[i], dst[i]);
+		}
+	}
+
+	@Test
+	public void testNullByteArray() throws Exception {
+		byte[] src = null;
+		Template tmpl = ByteArrayTemplate.getInstance();
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		Packer packer = new Packer(out);
+		try {
+			tmpl.pack(packer, src);
+			fail();
+		} catch (Exception e) {
+			assertTrue(e instanceof MessageTypeException);
+		}
+		packer.pack(src);
+		MessagePackObject obj = Util.unpackOne(out.toByteArray());
+		try {
+			tmpl.convert(obj, null);
+			fail();
+		} catch (Exception e) {
+			assertTrue(e instanceof MessageTypeException);
+		}
+		tmpl = new NullableTemplate(ByteArrayTemplate.getInstance());
+		obj = Util.unpackOne(out.toByteArray());
+		byte[] dst = (byte[]) tmpl.convert(obj, null);
+		assertEquals(null, dst);
+	}
+
+	@Test
+	public void testByteBuffer() throws Exception {// FIXME
+		Random rand = new Random(System.currentTimeMillis());
+		byte[] b0 = new byte[0];
+		ByteBuffer bb0 = ByteBuffer.wrap(b0);
+		_testByteBuffer(bb0);
+		bb0.clear();
+		byte[] b1 = new byte[10];
+		rand.nextBytes(b1);
+		ByteBuffer bb1 = ByteBuffer.wrap(b1);
+		_testByteBuffer(bb1);
+		bb1.clear();
+		byte[] b2 = new byte[2048];
+		rand.nextBytes(b2);
+		ByteBuffer bb2 = ByteBuffer.wrap(b2);
+		_testByteBuffer(bb2);
+		bb2.clear();
+	}
+
+	static void _testByteBuffer(ByteBuffer src) throws Exception {
+		Template tmpl = ByteBufferTemplate.getInstance();
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		tmpl.pack(new Packer(out), src);
+		MessagePackObject obj = Util.unpackOne(out.toByteArray());
+		ByteBuffer dst = (ByteBuffer) tmpl.convert(obj, null);
+		assertEquals(src.limit() - src.position(), dst.limit() - dst.position());
+		int dst_pos = dst.position();
+		for (int i = src.position(); i < src.limit(); ++i) {
+			assertEquals(src.get(i), dst.get(dst_pos));
+			dst_pos++;
+		}
+	}
+
+	@Test
+	public void testNullByteBuffer() throws Exception {
+		ByteBuffer src = null;
+		Template tmpl = ByteBufferTemplate.getInstance();
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		Packer packer = new Packer(out);
+		try {
+			tmpl.pack(packer, src);
+			fail();
+		} catch (Exception e) {
+			assertTrue(e instanceof MessageTypeException);
+		}
+		packer.pack(src);
+		MessagePackObject obj = Util.unpackOne(out.toByteArray());
+		try {
+			tmpl.convert(obj, null);
+			fail();
+		} catch (Exception e) {
+			assertTrue(e instanceof MessageTypeException);
+		}
+		obj = Util.unpackOne(out.toByteArray());
+		tmpl = new NullableTemplate(BooleanTemplate.getInstance());
+		ByteBuffer dst = (ByteBuffer) tmpl.convert(obj, null);
 		assertEquals(src, dst);
 	}
 
@@ -319,78 +467,76 @@ public class TestPackConvert extends TestCase {
 
 	static void _testString(String src) throws Exception {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		new Packer(out).pack(src);
-		MessagePackObject obj = Util.unpackOne(out.toByteArray());
 		Template tmpl = StringTemplate.getInstance();
+		tmpl.pack(new Packer(out), src);
+		MessagePackObject obj = Util.unpackOne(out.toByteArray());
 		String dst = (String) tmpl.convert(obj, null);
 		assertEquals(src, dst);
 	}
 
 	@Test
 	public void testNullString() throws Exception {
-		Long src = null;
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		new Packer(out).pack(src);
-		MessagePackObject obj = Util.unpackOne(out.toByteArray());
+		String src = null;
 		Template tmpl = StringTemplate.getInstance();
-		String dst = null;
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		Packer packer = new Packer(out);
 		try {
-			dst = (String) tmpl.convert(obj, null);
+			tmpl.pack(packer, src);
+			fail();
+		} catch (Exception e) {
+			assertTrue(e instanceof MessageTypeException);
+		}
+		packer.pack(src);
+		MessagePackObject obj = Util.unpackOne(out.toByteArray());
+		try {
+			tmpl.convert(obj, null);
 			fail();
 		} catch (Exception e) {
 			assertTrue(e instanceof MessageTypeException);
 		}
 		obj = Util.unpackOne(out.toByteArray());
 		tmpl = new NullableTemplate(StringTemplate.getInstance());
-		dst = (String) tmpl.convert(obj, null);
+		String dst = (String) tmpl.convert(obj, null);
 		assertEquals(src, dst);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testList() throws Exception {
-		List<Integer> emptyList = new ArrayList<Integer>();
+		List<Integer> src = new ArrayList<Integer>();
+		Template tmpl = new ListTemplate(IntegerTemplate.getInstance());
+		// size is zero
 		{
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
-			new Packer(out).pack(emptyList);
+			tmpl.pack(new Packer(out), src);
 			MessagePackObject obj = Util.unpackOne(out.toByteArray());
-			Template tmpl = new ListTemplate(IntegerTemplate.getInstance());
 			List<Integer> dst = (List<Integer>) tmpl.convert(obj, null);
-			assertEquals(emptyList, dst);
+			assertEquals(src.size(), dst.size());
+			Integer[] src_array = src.toArray(new Integer[0]);
+			Integer[] dst_array = dst.toArray(new Integer[0]);
+			for (int i = 0; i < src_array.length; ++i) {
+				assertEquals(src_array[i], dst_array[i]);
+			}
+			src.clear();
 		}
 
-		for (int i = 0; i < 1000; i++) {
-			List<Integer> l = new ArrayList<Integer>();
-			int len = (int) Math.random() % 1000 + 1;
-			for (int j = 0; j < len; j++) {
-				l.add(j);
+		// otherwise
+		{
+			int len = (int) (Math.random() * 1000);
+			for (int i = 0; i < len; i++) {
+				src.add(i);
 			}
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
-			new Packer(out).pack(l);
+			tmpl.pack(new Packer(out), src);
 			MessagePackObject obj = Util.unpackOne(out.toByteArray());
-			Template tmpl = new ListTemplate(IntegerTemplate.getInstance());
 			List<Integer> dst = (List<Integer>) tmpl.convert(obj, null);
-			assertEquals(l.size(), dst.size());
-			for (int j = 0; j < len; j++) {
-				assertEquals(l.get(j), dst.get(j));
+			assertEquals(src.size(), dst.size());
+			Integer[] src_array = src.toArray(new Integer[0]);
+			Integer[] dst_array = dst.toArray(new Integer[0]);
+			for (int i = 0; i < src_array.length; ++i) {
+				assertEquals(src_array[i], dst_array[i]);
 			}
-		}
-
-		for (int i = 0; i < 1000; i++) {
-			List<String> l = new ArrayList<String>();
-			int len = (int) Math.random() % 1000 + 1;
-			for (int j = 0; j < len; j++) {
-				l.add(Integer.toString(j));
-			}
-			ByteArrayOutputStream out = new ByteArrayOutputStream();
-			new Packer(out).pack(l);
-			MessagePackObject obj = Util.unpackOne(out.toByteArray());
-			Template tmpl = new ListTemplate(StringTemplate.getInstance());
-			List<String> dst = (List<String>) tmpl.convert(obj, null);
-			assertEquals(l.size(), dst.size());
-			for (int j = 0; j < len; j++) {
-				assertEquals(l.get(j), dst.get(j));
-			}
+			src.clear();
 		}
 	}
 
@@ -398,74 +544,64 @@ public class TestPackConvert extends TestCase {
 	@Test
 	public void testNullList() throws Exception {
 		List<String> src = null;
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		new Packer(out).pack(src);
-		MessagePackObject obj = Util.unpackOne(out.toByteArray());
 		Template tmpl = new ListTemplate(StringTemplate.getInstance());
-		List<String> dst = null;
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		Packer packer = new Packer(out);
 		try {
-			dst = (List<String>) tmpl.convert(obj, null);
+			tmpl.pack(packer, src);
+			fail();
+		} catch (Exception e) {
+			assertTrue(e instanceof MessageTypeException);
+		}
+		packer.pack(src);
+		MessagePackObject obj = Util.unpackOne(out.toByteArray());
+		try {
+			tmpl.convert(obj, null);
 			fail();
 		} catch (Exception e) {
 			assertTrue(e instanceof MessageTypeException);
 		}
 		obj = Util.unpackOne(out.toByteArray());
-		tmpl = new NullableTemplate(new ListTemplate(StringTemplate
-				.getInstance()));
-		dst = (List<String>) tmpl.convert(obj, null);
+		tmpl = new NullableTemplate(new ListTemplate(StringTemplate.getInstance()));
+		List<String> dst = (List<String>) tmpl.convert(obj, null);
 		assertEquals(src, dst);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testMap() throws Exception {
-		Map<Integer, Integer> emptyMap = new HashMap<Integer, Integer>();
+		Map<Integer, Integer> src = new HashMap<Integer, Integer>();
+		Template tmpl = new MapTemplate(
+				IntegerTemplate.getInstance(),
+				IntegerTemplate.getInstance());
+		// size is zero
 		{
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
-			new Packer(out).pack(emptyMap);
+			tmpl.pack(new Packer(out), src);
 			MessagePackObject obj = Util.unpackOne(out.toByteArray());
-			Template tmpl = new MapTemplate(IntegerTemplate.getInstance(),
-					IntegerTemplate.getInstance());
-			Map<Integer, Integer> dst = (Map<Integer, Integer>) tmpl
-					.convert(obj, null);
-			assertEquals(emptyMap, dst);
-		}
-
-		for (int i = 0; i < 1000; i++) {
-			Map<Integer, Integer> m = new HashMap<Integer, Integer>();
-			int len = (int) Math.random() % 1000 + 1;
-			for (int j = 0; j < len; j++) {
-				m.put(j, j);
-			}
-			ByteArrayOutputStream out = new ByteArrayOutputStream();
-			new Packer(out).pack(m);
-			MessagePackObject obj = Util.unpackOne(out.toByteArray());
-			Template tmpl = new MapTemplate(IntegerTemplate.getInstance(),
-					IntegerTemplate.getInstance());
-			Map<Integer, Integer> map = (Map<Integer, Integer>) tmpl
-					.convert(obj, null);
-			assertEquals(m.size(), map.size());
-			for (Map.Entry<Integer, Integer> pair : map.entrySet()) {
-				Integer val = m.get(pair.getKey());
+			Map<Integer, Integer> dst = (Map<Integer, Integer>) tmpl.convert(obj, null);
+			assertEquals(src.size(), src.size());
+			for (Map.Entry<Integer, Integer> pair : dst.entrySet()) {
+				Integer val = src.get(pair.getKey());
 				assertNotNull(val);
 				assertEquals(val, pair.getValue());
 			}
+			src.clear();
 		}
 
-		for (int i = 0; i < 1000; i++) {
-			Map<String, Integer> m = new HashMap<String, Integer>();
-			int len = (int) Math.random() % 1000 + 1;
-			for (int j = 0; j < len; j++)
-				m.put(Integer.toString(j), j);
+		// otherwise
+		{
+			int len = (int) (Math.random() * 1000);
+			for (int j = 0; j < len; j++) {
+				src.put(j, j);
+			}
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
-			new Packer(out).pack(m);
+			tmpl.pack(new Packer(out), src);
 			MessagePackObject obj = Util.unpackOne(out.toByteArray());
-			Template tmpl = new MapTemplate(StringTemplate.getInstance(),
-					IntegerTemplate.getInstance());
-			Map<String, Integer> map = (Map<String, Integer>) tmpl.convert(obj, null);
-			assertEquals(m.size(), map.size());
-			for (Map.Entry<String, Integer> pair : map.entrySet()) {
-				Integer val = m.get(pair.getKey());
+			Map<Integer, Integer> dst = (Map<Integer, Integer>) tmpl.convert(obj, null);
+			assertEquals(src.size(), dst.size());
+			for (Map.Entry<Integer, Integer> pair : dst.entrySet()) {
+				Integer val = src.get(pair.getKey());
 				assertNotNull(val);
 				assertEquals(val, pair.getValue());
 			}
@@ -476,22 +612,133 @@ public class TestPackConvert extends TestCase {
 	@Test
 	public void testNullMap() throws Exception {
 		Map<String, String> src = null;
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		new Packer(out).pack(src);
-		MessagePackObject obj = Util.unpackOne(out.toByteArray());
-		Template tmpl = new MapTemplate(StringTemplate.getInstance(),
+		Template tmpl = new MapTemplate(
+				StringTemplate.getInstance(),
 				StringTemplate.getInstance());
-		Map<String, String> dst = null;
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		Packer packer = new Packer(out);
 		try {
-			dst = (Map<String, String>) tmpl.convert(obj, null);
+			tmpl.pack(packer, src);
+			fail();
+		} catch (Exception e) {
+			assertTrue(e instanceof MessageTypeException);
+		}
+		packer.pack(src);
+		MessagePackObject obj = Util.unpackOne(out.toByteArray());
+		try {
+			tmpl.convert(obj, null);
 			fail();
 		} catch (Exception e) {
 			assertTrue(e instanceof MessageTypeException);
 		}
 		obj = Util.unpackOne(out.toByteArray());
-		tmpl = new NullableTemplate(new MapTemplate(StringTemplate
-				.getInstance(), StringTemplate.getInstance()));
-		dst = (Map<String, String>) tmpl.convert(obj, null);
+		tmpl = new NullableTemplate(new MapTemplate(
+				StringTemplate.getInstance(),
+				StringTemplate.getInstance()));
+		Map<String, String> dst = (Map<String, String>) tmpl.convert(obj, null);
+		assertEquals(src, dst);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testCollectionLinkedList() throws Exception {
+		LinkedList<Integer> src = new LinkedList<Integer>();
+		Template tmpl = new CollectionTemplate(IntegerTemplate.getInstance());
+		// size is zero
+		{
+			ByteArrayOutputStream out = new ByteArrayOutputStream();
+			tmpl.pack(new Packer(out), src);
+			MessagePackObject obj = Util.unpackOne(out.toByteArray());
+			LinkedList<Integer> dst = (LinkedList<Integer>)
+				tmpl.convert(obj, new LinkedList<Integer>());
+			assertEquals(src.getClass(), dst.getClass());
+			assertEquals(src.size(), dst.size());
+			src.clear();
+		}
+
+		// otherwise
+		{
+			int len = (int) Math.random() % 1000 + 1;
+			for (int j = 0; j < len; j++) {
+				src.add(j);
+			}
+			ByteArrayOutputStream out = new ByteArrayOutputStream();
+			tmpl.pack(new Packer(out), src);
+			MessagePackObject obj = Util.unpackOne(out.toByteArray());
+			LinkedList<Integer> dst = (LinkedList<Integer>)
+				tmpl.convert(obj, new LinkedList<Integer>());
+			assertEquals(src.getClass(), dst.getClass());
+			assertEquals(src.size(), dst.size());
+			for (int j = 0; j < len; j++) {
+				assertEquals(src.get(j), dst.get(j));
+			}
+			src.clear();
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testCollectionHashSet() throws Exception {
+		HashSet<Integer> src = new HashSet<Integer>();
+		Template tmpl = new CollectionTemplate(IntegerTemplate.getInstance());
+		// size is zero
+		{
+			ByteArrayOutputStream out = new ByteArrayOutputStream();
+			tmpl.pack(new Packer(out), src);
+			MessagePackObject obj = Util.unpackOne(out.toByteArray());
+			HashSet<Integer> dst = (HashSet<Integer>)
+				tmpl.convert(obj, new HashSet<Integer>());
+			assertEquals(src.getClass(), dst.getClass());
+			assertEquals(src.size(), dst.size());
+			src.clear();
+		}
+
+		// otherwise
+		{
+			int len = (int) Math.random() % 1000 + 1;
+			for (int j = 0; j < len; j++) {
+				src.add(j);
+			}
+			ByteArrayOutputStream out = new ByteArrayOutputStream();
+			tmpl.pack(new Packer(out), src);
+			MessagePackObject obj = Util.unpackOne(out.toByteArray());
+			HashSet<Integer> dst = (HashSet<Integer>)
+				tmpl.convert(obj, new HashSet<Integer>());
+			assertEquals(src.getClass(), dst.getClass());
+			assertEquals(src.size(), dst.size());
+			Integer[] src_array = src.toArray(new Integer[0]);
+			Integer[] dst_array = dst.toArray(new Integer[0]);
+			for (int j = 0; j < len; j++) {
+				assertEquals(src_array[j], dst_array[j]);
+			}
+			src.clear();
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testNullCollection() throws Exception {
+		Collection<String> src = null;
+		Template tmpl = new CollectionTemplate(StringTemplate.getInstance());
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		Packer packer = new Packer(out);
+		try {
+			tmpl.pack(packer, src);
+			fail();
+		} catch (Throwable t) {
+			assertTrue(t instanceof MessageTypeException);
+		}
+		packer.pack(src);
+		MessagePackObject obj = Util.unpackOne(out.toByteArray());
+		try {
+			tmpl.convert(obj, null);
+			fail();
+		} catch (Throwable t) {
+			assertTrue(t instanceof MessageTypeException);
+		}
+		obj = Util.unpackOne(out.toByteArray());
+		tmpl = new NullableTemplate(new CollectionTemplate(StringTemplate.getInstance()));
+		Collection<String> dst = (Collection<String>) tmpl.convert(obj, null);
 		assertEquals(src, dst);
 	}
 }
