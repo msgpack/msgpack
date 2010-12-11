@@ -399,6 +399,11 @@ public class Packer {
 		return packRawBody(b, off, length);
 	}
 
+	public Packer packByteBuffer(ByteBuffer buf) throws IOException {
+		packRaw(buf.remaining());
+		return packRawBody(buf.array(), buf.arrayOffset() + buf.position(), buf.remaining());
+	}
+
 	public Packer packString(String s) throws IOException {
 		byte[] b = ((String)s).getBytes("UTF-8");
 		packRaw(b.length);
@@ -495,9 +500,8 @@ public class Packer {
 
 	public Packer pack(ByteBuffer o) throws IOException {
 		if (o == null) { return packNil(); }
-		ByteBuffer buf = (ByteBuffer) o;
-		packRaw(buf.remaining());
-		return packRawBody(buf.array(), buf.arrayOffset() + buf.position(), buf.remaining());
+		packRaw(o.remaining());
+		return packRawBody(o.array(), o.arrayOffset() + o.position(), o.remaining());
 	}
 
 	public Packer pack(List o) throws IOException {
