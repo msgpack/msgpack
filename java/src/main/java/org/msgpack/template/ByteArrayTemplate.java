@@ -24,7 +24,11 @@ public class ByteArrayTemplate implements Template {
 	private ByteArrayTemplate() { }
 
 	public void pack(Packer pk, Object target) throws IOException {
-		pk.packByteArray((byte[])target);
+		try {
+			pk.packByteArray((byte[])target);
+		} catch (NullPointerException e) {
+			throw new MessageTypeException("target is null.", e);
+		}
 	}
 
 	public Object unpack(Unpacker pac, Object to) throws IOException, MessageTypeException {

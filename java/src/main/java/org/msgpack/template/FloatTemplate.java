@@ -24,7 +24,11 @@ public class FloatTemplate implements Template {
 	private FloatTemplate() { }
 
 	public void pack(Packer pk, Object target) throws IOException {
-		pk.packFloat((Float)target);
+		try {
+			pk.packFloat((Float)target);
+		} catch (NullPointerException e) {
+			throw new MessageTypeException("target is null.", e);
+		}
 	}
 
 	public Object unpack(Unpacker pac, Object to) throws IOException, MessageTypeException {

@@ -24,7 +24,11 @@ public class DoubleTemplate implements Template {
 	private DoubleTemplate() { }
 
 	public void pack(Packer pk, Object target) throws IOException {
-		pk.packDouble(((Double)target));
+		try {
+			pk.packDouble(((Double)target));
+		} catch (NullPointerException e) {
+			throw new MessageTypeException("target is null.", e);
+		}
 	}
 
 	public Object unpack(Unpacker pac, Object to) throws IOException, MessageTypeException {

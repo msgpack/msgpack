@@ -24,7 +24,11 @@ public class StringTemplate implements Template {
 	private StringTemplate() { }
 
 	public void pack(Packer pk, Object target) throws IOException {
-		pk.packString((String)target);
+		try {
+			pk.packString((String)target);
+		} catch (NullPointerException e) {
+			throw new MessageTypeException("target is null.", e);
+		}
 	}
 
 	public Object unpack(Unpacker pac, Object to) throws IOException, MessageTypeException {

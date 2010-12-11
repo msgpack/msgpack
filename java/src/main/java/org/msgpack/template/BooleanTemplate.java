@@ -24,7 +24,11 @@ public class BooleanTemplate implements Template {
 	private BooleanTemplate() { }
 
 	public void pack(Packer pk, Object target) throws IOException {
-		pk.packBoolean((Boolean)target);
+		try {
+			pk.packBoolean((Boolean)target);
+		} catch (NullPointerException e) {
+			throw new MessageTypeException("target is null.", e);
+		}
 	}
 
 	public Object unpack(Unpacker pac, Object to) throws IOException, MessageTypeException {

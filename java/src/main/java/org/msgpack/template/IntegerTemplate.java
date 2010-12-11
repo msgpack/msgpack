@@ -24,7 +24,11 @@ public class IntegerTemplate implements Template {
 	private IntegerTemplate() { }
 
 	public void pack(Packer pk, Object target) throws IOException {
-		pk.packInt((Integer)target);
+		try {
+			pk.packInt((Integer)target);
+		} catch (NullPointerException e) {
+			throw new MessageTypeException("target is null.", e);
+		}
 	}
 
 	public Object unpack(Unpacker pac, Object to) throws IOException, MessageTypeException {

@@ -24,7 +24,11 @@ public class LongTemplate implements Template {
 	private LongTemplate() { }
 
 	public void pack(Packer pk, Object target) throws IOException {
-		pk.packLong((Long)target);
+		try {
+			pk.packLong((Long)target);
+		} catch (NullPointerException e) {
+			throw new MessageTypeException("target is null.", e);
+		}
 	}
 
 	public Object unpack(Unpacker pac, Object to) throws IOException, MessageTypeException {

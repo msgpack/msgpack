@@ -26,11 +26,14 @@ public class ByteBufferTemplate implements Template {
 	}
 
 	public void pack(Packer pk, Object target) throws IOException {
-		pk.pack((ByteBuffer) target);
+		try {
+			pk.packByteBuffer((ByteBuffer) target);
+		} catch (NullPointerException e) {
+			throw new MessageTypeException("target is null.", e);
+		}
 	}
 
-	public Object unpack(Unpacker pac, Object to) throws IOException,
-			MessageTypeException {
+	public Object unpack(Unpacker pac, Object to) throws IOException, MessageTypeException {
 		return pac.unpackByteBuffer();
 	}
 

@@ -25,7 +25,11 @@ public class BigIntegerTemplate implements Template {
 	private BigIntegerTemplate() { }
 
 	public void pack(Packer pk, Object target) throws IOException {
-		pk.packBigInteger((BigInteger)target);
+		try {
+			pk.packBigInteger((BigInteger)target);
+		} catch (NullPointerException e) {
+			throw new MessageTypeException("target is null.", e);
+		}
 	}
 
 	public Object unpack(Unpacker pac, Object to) throws IOException, MessageTypeException {
