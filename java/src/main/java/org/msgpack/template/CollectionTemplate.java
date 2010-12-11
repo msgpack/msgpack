@@ -18,10 +18,14 @@
 package org.msgpack.template;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.LinkedList;
 import java.io.IOException;
-import org.msgpack.*;
+
+import org.msgpack.MessagePackObject;
+import org.msgpack.MessageTypeException;
+import org.msgpack.Packer;
+import org.msgpack.Template;
+import org.msgpack.Unpacker;
 
 public class CollectionTemplate implements Template {
 	public static void load() { }
@@ -32,47 +36,53 @@ public class CollectionTemplate implements Template {
 		this.elementTemplate = elementTemplate;
 	}
 
+	@SuppressWarnings("unchecked")
 	public void pack(Packer pk, Object target) throws IOException {
-		if(!(target instanceof Collection)) {
-			throw new MessageTypeException();
+		if (! (target instanceof Collection)) {
+			if (target == null) {
+				throw new MessageTypeException(new NullPointerException("target is null."));
+			}
+			throw new MessageTypeException("target is not Collection type: " + target.getClass());
 		}
-		Collection<Object> collection = (Collection<Object>)target;
+		Collection<Object> collection = (Collection<Object>) target;
 		pk.packArray(collection.size());
 		for(Object element : collection) {
 			elementTemplate.pack(pk, element);
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	public Object unpack(Unpacker pac, Object to) throws IOException, MessageTypeException {
 		int length = pac.unpackArray();
-		List<Object> list;
+		Collection<Object> c;
 		if(to == null) {
-			list = new LinkedList<Object>();
+			c = new LinkedList<Object>();
 		} else {
 			// TODO: optimize if list is instanceof ArrayList
-			list = (List<Object>)to;
-			list.clear();
+			c = (Collection<Object>) to;
+			c.clear();
 		}
 		for(; length > 0; length--) {
-			list.add( elementTemplate.unpack(pac, null) );
+			c.add(elementTemplate.unpack(pac, null));
 		}
-		return list;
+		return c;
 	}
 
+	@SuppressWarnings("unchecked")
 	public Object convert(MessagePackObject from, Object to) throws MessageTypeException {
 		MessagePackObject[] array = from.asArray();
-		List<Object> list;
+		Collection<Object> c;
 		if(to == null) {
-			list = new LinkedList<Object>();
+			c = new LinkedList<Object>();
 		} else {
 			// TODO: optimize if list is instanceof ArrayList
-			list = (List<Object>)to;
-			list.clear();
+			c = (Collection<Object>) to;
+			c.clear();
 		}
 		for(MessagePackObject element : array) {
-			list.add( elementTemplate.convert(element, null) );
+			c.add(elementTemplate.convert(element, null));
 		}
-		return list;
+		return c;
 	}
 
 	static {
