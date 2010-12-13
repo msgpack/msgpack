@@ -28,7 +28,11 @@ public class ShortArrayTemplate implements Template {
 			throw new MessageTypeException();
 		}
 		short[] array = (short[])target;
-		pk.packArray(array.length);
+		try {
+			pk.packArray(array.length);
+		} catch (NullPointerException e) {
+			throw new MessageTypeException("target is null.", e);
+		}
 		for(short a : array) {
 			pk.pack(a);
 		}

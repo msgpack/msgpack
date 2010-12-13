@@ -24,7 +24,11 @@ public class ShortTemplate implements Template {
 	private ShortTemplate() { }
 
 	public void pack(Packer pk, Object target) throws IOException {
-		pk.packShort((Short)target);
+		try {
+			pk.packShort((Short)target);
+		} catch (NullPointerException e) {
+			throw new MessageTypeException("target is null.", e);
+		}
 	}
 
 	public Object unpack(Unpacker pac, Object to) throws IOException, MessageTypeException {

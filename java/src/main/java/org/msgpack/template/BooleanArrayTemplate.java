@@ -28,7 +28,11 @@ public class BooleanArrayTemplate implements Template {
 			throw new MessageTypeException();
 		}
 		boolean[] array = (boolean[])target;
-		pk.packArray(array.length);
+		try {
+			pk.packArray(array.length);
+		} catch (NullPointerException e) {
+			throw new MessageTypeException("target is null.", e);
+		}
 		for(boolean a : array) {
 			pk.pack(a);
 		}

@@ -28,7 +28,11 @@ public class IntArrayTemplate implements Template {
 			throw new MessageTypeException();
 		}
 		int[] array = (int[])target;
-		pk.packArray(array.length);
+		try {
+			pk.packArray(array.length);
+		} catch (NullPointerException e) {
+			throw new MessageTypeException("target is null.", e);
+		}
 		for(int a : array) {
 			pk.pack(a);
 		}

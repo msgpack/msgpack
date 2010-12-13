@@ -28,7 +28,11 @@ public class LongArrayTemplate implements Template {
 			throw new MessageTypeException();
 		}
 		long[] array = (long[])target;
-		pk.packArray(array.length);
+		try {
+			pk.packArray(array.length);
+		} catch (NullPointerException e) {
+			throw new MessageTypeException("target is null.", e);
+		}
 		for(long a : array) {
 			pk.pack(a);
 		}

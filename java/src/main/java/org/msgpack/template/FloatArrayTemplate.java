@@ -28,7 +28,11 @@ public class FloatArrayTemplate implements Template {
 			throw new MessageTypeException();
 		}
 		float[] array = (float[])target;
-		pk.packArray(array.length);
+		try {
+			pk.packArray(array.length);
+		} catch (NullPointerException e) {
+			throw new MessageTypeException("target is null.", e);
+		}
 		for(float a : array) {
 			pk.pack(a);
 		}

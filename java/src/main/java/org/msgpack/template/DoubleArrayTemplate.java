@@ -28,7 +28,11 @@ public class DoubleArrayTemplate implements Template {
 			throw new MessageTypeException();
 		}
 		double[] array = (double[])target;
-		pk.packArray(array.length);
+		try {
+			pk.packArray(array.length);
+		} catch (NullPointerException e) {
+			throw new MessageTypeException("target is null.", e);
+		}
 		for(double a : array) {
 			pk.pack(a);
 		}

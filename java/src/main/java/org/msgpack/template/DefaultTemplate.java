@@ -42,6 +42,9 @@ public class DefaultTemplate implements Template {
 
 	public void pack(Packer pk, Object target) throws IOException {
 		if(messagePackable) {
+			if(target == null) {
+				throw new MessageTypeException("target is null.");
+			}
 			((MessagePackable)target).messagePack(pk);
 			return;
 		}
