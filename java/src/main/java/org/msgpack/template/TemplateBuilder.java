@@ -149,7 +149,11 @@ public abstract class TemplateBuilder {
 				baseType = ((GenericArrayType)baseType).getGenericComponentType();
 				dim += 1;
 			}
-			baseClass = (Class<?>)((ParameterizedType)baseType).getRawType();
+			if(baseType instanceof ParameterizedType) {
+				baseClass = (Class<?>)((ParameterizedType)baseType).getRawType();
+			} else {
+				baseClass = (Class<?>)baseType;
+			}
 		} else {
 			Class<?> type = (Class<?>)arrayType;
 			baseClass = type.getComponentType();
