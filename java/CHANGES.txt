@@ -1,4 +1,12 @@
 
+Release 0.5.1 - 2010/12/14
+  BUG FIXES
+    Fixes cast error on GenericArrayType
+
+    Throws MessagePackException instead of NullPointerException if target is null
+    on pack method.
+
+
 Release 0.5.0 - 2010/12/09
   NEW FEATURES
     Dynamic template builder is rewritten. New ReflectionTemplateBuilder
