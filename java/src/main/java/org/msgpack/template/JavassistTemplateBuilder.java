@@ -18,16 +18,17 @@
 package org.msgpack.template;
 
 import java.io.IOException;
-import java.lang.reflect.*;
-import java.util.Map;
-import java.util.HashMap;
+import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Type;
+
 import org.msgpack.*;
 
 import javassist.CannotCompileException;
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtConstructor;
-import javassist.CtField;
 import javassist.CtMethod;
 import javassist.CtNewConstructor;
 import javassist.CtNewMethod;
@@ -38,7 +39,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class JavassistTemplateBuilder extends TemplateBuilder {
+	private static Logger LOG = LoggerFactory.getLogger(JavassistTemplateBuilder.class);
+
 	private static JavassistTemplateBuilder instance;
+
 	public synchronized static JavassistTemplateBuilder getInstance() {
 		if(instance == null) {
 			instance = new JavassistTemplateBuilder();
@@ -47,17 +51,15 @@ public class JavassistTemplateBuilder extends TemplateBuilder {
 	}
 
 	public static void addClassLoader(ClassLoader cl) {
-		instance.pool.appendClassPath(new LoaderClassPath(cl));
+		getInstance().pool.appendClassPath(new LoaderClassPath(cl));
 	}
 
 	private JavassistTemplateBuilder() {
 		this.pool = ClassPool.getDefault();
 	}
 
-	private static Logger LOG = LoggerFactory
-			.getLogger(JavassistTemplateBuilder.class);
-
 	protected ClassPool pool;
+
 	private int seqId = 0;
 
 	CtClass makeCtClass(String className) {
@@ -74,24 +76,30 @@ public class JavassistTemplateBuilder extends TemplateBuilder {
 
 	private static abstract class BuildContextBase {
 		protected JavassistTemplateBuilder director;
-		protected Class<?> origClass;
-		protected String origName;
+
 		protected String tmplName;
+
 		protected CtClass tmplCtClass;
 
 		protected abstract void setSuperClass() throws CannotCompileException, NotFoundException;
+
 		protected abstract void buildConstructor() throws CannotCompileException, NotFoundException;
+
 		protected void buildMethodInit() { }
+
 		protected abstract String buildPackMethodBody();
+
 		protected abstract String buildUnpackMethodBody();
+
 		protected abstract String buildConvertMethodBody();
+
 		protected abstract Template buildInstance(Class<?> c) throws NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException;
 
 		public BuildContextBase(JavassistTemplateBuilder director) {
 			this.director = director;
 		}
 
-		protected Template build(String className) {
+		protected Template build(final String className) {
 			try {
 				reset(className);
 				buildClass();
@@ -104,10 +112,8 @@ public class JavassistTemplateBuilder extends TemplateBuilder {
 			} catch (Exception e) {
 				String code = getBuiltString();
 				if(code != null) {
-					LOG.error("builder: "+this.stringBuilder.toString());
-				}
-				if(code != null) {
-					throw new TemplateBuildException("cannot compile: "+code, e);
+					LOG.error("builder: " + code, e);
+					throw new TemplateBuildException("cannot compile: " + code, e);
 				} else {
 					throw new TemplateBuildException(e);
 				}
@@ -115,14 +121,13 @@ public class JavassistTemplateBuilder extends TemplateBuilder {
 		}
 
 		protected void reset(String className) {
-			this.tmplName = className + "_$$_Template" + director.nextSeqId();
-			this.tmplCtClass = director.makeCtClass(this.tmplName);
+			tmplName = className + "_$$_Template" + director.nextSeqId();
+			tmplCtClass = director.makeCtClass(tmplName);
 		}
 
 		protected void buildClass() throws CannotCompileException, NotFoundException {
 			setSuperClass();
-			this.tmplCtClass.addInterface(
-					director.getCtClass(Template.class.getName()));
+			tmplCtClass.addInterface(director.getCtClass(Template.class.getName()));
 		}
 
 		protected void buildPackMethod() throws CannotCompileException, NotFoundException {
@@ -133,15 +138,14 @@ public class JavassistTemplateBuilder extends TemplateBuilder {
 			CtClass[] paramTypes = new CtClass[] {
 					director.getCtClass(Packer.class.getName()),
 					director.getCtClass(Object.class.getName())
-				};
+			};
 			CtClass[] exceptTypes = new CtClass[] {
 					director.getCtClass(IOException.class.getName())
-				};
+			};
 			CtMethod newCtMethod = CtNewMethod.make(
 					mod, returnType, mname,
-					paramTypes, exceptTypes, mbody,
-					this.tmplCtClass);
-			this.tmplCtClass.addMethod(newCtMethod);
+					paramTypes, exceptTypes, mbody, tmplCtClass);
+			tmplCtClass.addMethod(newCtMethod);
 		}
 
 		protected void buildUnpackMethod() throws CannotCompileException, NotFoundException {
@@ -152,15 +156,14 @@ public class JavassistTemplateBuilder extends TemplateBuilder {
 			CtClass[] paramTypes = new CtClass[] {
 					director.getCtClass(Unpacker.class.getName()),
 					director.getCtClass(Object.class.getName())
-				};
+			};
 			CtClass[] exceptTypes = new CtClass[] {
 					director.getCtClass(MessageTypeException.class.getName())
-				};
+			};
 			CtMethod newCtMethod = CtNewMethod.make(
 					mod, returnType, mname,
-					paramTypes, exceptTypes, mbody,
-					this.tmplCtClass);
-			this.tmplCtClass.addMethod(newCtMethod);
+					paramTypes, exceptTypes, mbody, tmplCtClass);
+			tmplCtClass.addMethod(newCtMethod);
 		}
 
 		protected void buildConvertMethod() throws CannotCompileException, NotFoundException {
@@ -171,48 +174,47 @@ public class JavassistTemplateBuilder extends TemplateBuilder {
 			CtClass[] paramTypes = new CtClass[] {
 					director.getCtClass(MessagePackObject.class.getName()),
 					director.getCtClass(Object.class.getName())
-				};
+			};
 			CtClass[] exceptTypes = new CtClass[] {
 					director.getCtClass(MessageTypeException.class.getName())
-				};
+			};
 			CtMethod newCtMethod = CtNewMethod.make(
 					mod, returnType, mname,
-					paramTypes, exceptTypes, mbody,
-					this.tmplCtClass);
-			this.tmplCtClass.addMethod(newCtMethod);
+					paramTypes, exceptTypes, mbody, tmplCtClass);
+			tmplCtClass.addMethod(newCtMethod);
 		}
 
 		protected Class<?> createClass() throws CannotCompileException {
-			return (Class<?>)this.tmplCtClass.toClass(null, null);
+			return (Class<?>) tmplCtClass.toClass(null, null);
 		}
 
 		protected StringBuilder stringBuilder = null;
 
 		protected void resetStringBuilder() {
-			this.stringBuilder = new StringBuilder();
+			stringBuilder = new StringBuilder();
 		}
 
 		protected void buildString(String str) {
-			this.stringBuilder.append(str);
+			stringBuilder.append(str);
 		}
 
 		protected void buildString(String format, Object... args) {
-			this.stringBuilder.append(String.format(format, args));
+			stringBuilder.append(String.format(format, args));
 		}
 
 		protected String getBuiltString() {
-			if(this.stringBuilder == null) {
+			if(stringBuilder == null) {
 				return null;
 			}
-			return this.stringBuilder.toString();
+			return stringBuilder.toString();
 		}
 	}
 
 	public static abstract class JavassistTemplate extends AbstractTemplate {
-		public Class targetClass;
+		public Class<?> targetClass;
 		public Template[] templates;
 
-		public JavassistTemplate(Class targetClass, Template[] templates) {
+		public JavassistTemplate(Class<?> targetClass, Template[] templates) {
 			this.targetClass = targetClass;
 			this.templates = templates;
 		}
@@ -279,7 +281,6 @@ public class JavassistTemplateBuilder extends TemplateBuilder {
 		protected String buildPackMethodBody() {
 			resetStringBuilder();
 			buildString("{");
-
 			buildString("%s _$$_t = (%s)$2;", this.origName, this.origName);
 			buildString("$1.packArray(%d);", entries.length);
 			for(int i=0; i < entries.length; i++) {
@@ -303,7 +304,6 @@ public class JavassistTemplateBuilder extends TemplateBuilder {
 					buildString("}");
 				}
 			}
-
 			buildString("}");
 			return getBuiltString();
 		}
@@ -462,7 +462,6 @@ public class JavassistTemplateBuilder extends TemplateBuilder {
 			buildString("}");
 			return getBuiltString();
 		}
-
 
 		protected String primitivePackName(Class<?> type) {
 			if(type == boolean.class) {
