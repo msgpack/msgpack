@@ -18,8 +18,9 @@
 #ifndef MSGPACK_SYSDEP_H__
 #define MSGPACK_SYSDEP_H__
 
-
-#ifdef _MSC_VER
+#include <stdlib.h>
+#include <stddef.h>
+#if defined(_MSC_VER) && _MSC_VER < 1600
 typedef __int8 int8_t;
 typedef unsigned __int8 uint8_t;
 typedef __int16 int16_t;
@@ -28,8 +29,9 @@ typedef __int32 int32_t;
 typedef unsigned __int32 uint32_t;
 typedef __int64 int64_t;
 typedef unsigned __int64 uint64_t;
+#elif defined(_MSC_VER)  // && _MSC_VER >= 1600
+#include <stdint.h>
 #else
-#include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
 #endif
@@ -76,7 +78,7 @@ typedef unsigned int _msgpack_atomic_counter_t;
 #define _msgpack_be16(x) ntohs(x)
 #define _msgpack_be32(x) ntohl(x)
 
-#if defined(_byteswap_uint64)
+#if defined(_byteswap_uint64) || _MSC_VER >= 1400
 #  define _msgpack_be64(x) (_byteswap_uint64(x))
 #elif defined(bswap_64)
 #  define _msgpack_be64(x) bswap_64(x)

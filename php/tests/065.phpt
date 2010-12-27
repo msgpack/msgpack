@@ -2,8 +2,10 @@
 Check for unbuffered streaming unserialization (single)
 --SKIPIF--
 <?php
-if (version_compare(PHP_VERSION, '5.3.2') <= 0) {
-    echo "skip tests in PHP 5.3.3 or newer";
+if ((version_compare(PHP_VERSION, '5.2.13') <= 0) ||
+    (version_compare(PHP_VERSION, '5.3.0') >= 0 &&
+     version_compare(PHP_VERSION, '5.3.2') <= 0)) {
+    echo "skip tests in PHP 5.2.14/5.3.3 or newer";
 }
 --FILE--
 <?php

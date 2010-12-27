@@ -2,8 +2,13 @@
 Check for class unpacker
 --SKIPIF--
 <?php
-if (version_compare(PHP_VERSION, '5.3.3') >= 0) {
-    echo "skip tests in PHP 5.3.2 or older";
+if ((version_compare(PHP_VERSION, '5.3.0') < 0 &&
+     version_compare(PHP_VERSION, '5.2.14') >= 0) ||
+    (version_compare(PHP_VERSION, '5.3.3') >= 0)) {
+    echo "skip tests in PHP 5.2.13/5.3.2 or older";
+}
+if (version_compare(PHP_VERSION, '5.2.0') < 0) {
+    echo "skip tests in PHP 5.2 or newer";
 }
 --FILE--
 <?php

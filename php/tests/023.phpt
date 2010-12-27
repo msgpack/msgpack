@@ -1,11 +1,6 @@
 --TEST--
 Resource
 --SKIPIF--
-<?php
-if (!function_exists("curl_init") && !class_exists("Sqlite3"))) {
-    echo "skip";
-}
-?>
 --FILE--
 <?php
 if(!extension_loaded('msgpack')) {
@@ -26,11 +21,10 @@ function test($type, $variable, $test) {
 
 if (function_exists('curl_init')) {
     $test = 'curl';
-    $res = curl_init('http://opensource.dynamoid.com');
-} else if (class_exists('Sqlite3')) {
-    $test = 'sqlite';
-    $sqlite = new Sqlite3();
-    $res = $sqlite->open('db.txt');
+    $res = curl_init('http://php.net/');
+} else {
+    $test = 'dir';
+    $res = opendir('/tmp');
 }
 
 test('resource', $res, false);
@@ -39,11 +33,8 @@ switch ($test) {
     case 'curl':
         curl_close($res);
         break;
-    case 'sqlite':
-        if (isset($sqlite)) {
-            $sqlite->close();
-        }
-        @unlink('db.txt');
+    default:
+        closedir($res);
         break;
 }
 ?>

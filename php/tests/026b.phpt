@@ -3,8 +3,13 @@ Cyclic array test
 --INI--
 --SKIPIF--
 <?php
-if (version_compare(PHP_VERSION, '5.3.3') >= 0) {
-    echo "skip tests in PHP 5.3.2 or older";
+if ((version_compare(PHP_VERSION, '5.3.0') < 0 &&
+     version_compare(PHP_VERSION, '5.2.14') >= 0) ||
+    (version_compare(PHP_VERSION, '5.3.3') >= 0)) {
+    echo "skip tests in PHP 5.2.13/5.3.2 or older";
+}
+if (version_compare(PHP_VERSION, '5.1.0') < 0) {
+    echo "skip tests in PHP 5.1 or newer";
 }
 --FILE--
 <?php
@@ -43,7 +48,7 @@ var_dump($k);
 ?>
 --EXPECT--
 array
-82a16182a162a163a164a165a16683c001a16182a162a163a164a165a16682c0020005
+82a16182a162a163a164a165a16683c001a16182a162a163a164a165a16682c0020003
 array(2) {
   ["a"]=>
   array(2) {

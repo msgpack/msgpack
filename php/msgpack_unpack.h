@@ -25,7 +25,8 @@ typedef struct {
 } msgpack_unserialize_data;
 
 void msgpack_unserialize_var_init(php_unserialize_data_t *var_hashx);
-void msgpack_unserialize_var_destroy(php_unserialize_data_t *var_hashx);
+void msgpack_unserialize_var_destroy(
+    php_unserialize_data_t *var_hashx, bool err);
 
 void msgpack_unserialize_init(msgpack_unserialize_data *unpack);
 
