@@ -10,11 +10,11 @@
     <email>advect@gmail.com</email>
     <active>yes</active>
   </lead>
-  <date>2010-12-27</date>
-  <time>10:30:54</time>
+  <date>2010-12-28</date>
+  <time>15:40:02</time>
   <version>
-    <release>0.3.3</release>
-    <api>0.3.3</api>
+    <release>0.3.4</release>
+    <api>0.3.4</api>
   </version>
   <stability>
     <release>beta</release>
@@ -32,17 +32,17 @@
       <file md5sum="8cc392f13f5a89d033cf73e612377b95" name="config.m4" role="src" />
       <file md5sum="712ddaf861db6e52a7cf4885c6eced70" name="config.w32" role="src" />
       <file md5sum="c9216741b72004ddf1a1347398220433" name="msgpack.c" role="src" />
-      <file md5sum="55455423c25b0a13946809aa5345a160" name="msgpack_class.c" role="src" />
+      <file md5sum="1b97cb7ae1cb157115ba8df0b3331229" name="msgpack_class.c" role="src" />
       <file md5sum="b8eadd32c3eafb67645bb4ffe16f687c" name="msgpack_class.h" role="src" />
-      <file md5sum="20c46a37124113e6f6a45df46e5496ba" name="msgpack_pack.c" role="src" />
+      <file md5sum="d08dda734f564bda69136293aac67c9f" name="msgpack_pack.c" role="src" />
       <file md5sum="eae6797621ca53f8a7b0c2d9cb8a4d21" name="msgpack_pack.h" role="src" />
-      <file md5sum="b965b77a1732e78361a9037ad46ac976" name="msgpack_unpack.c" role="src" />
-      <file md5sum="57657b955720eedcad10c2e510f2c825" name="msgpack_unpack.h" role="src" />
-      <file md5sum="714bca7f7e5e1ef9e6d190e72ca04cad" name="php_msgpack.h" role="src" />
+      <file md5sum="163d17e17abc50915668c64145283049" name="msgpack_unpack.c" role="src" />
+      <file md5sum="1a31c49f353c8deec86affd1564909d1" name="msgpack_unpack.h" role="src" />
+      <file md5sum="9c3b5db959fbd5df57f2c2af8e69eaef" name="php_msgpack.h" role="src" />
       <file md5sum="82079e9a298ecdda2122757ddfbf576e" name="msgpack/pack_define.h" role="src" />
-      <file md5sum="634c90d15cba0aa0cb0bd7f4fbef114d" name="msgpack/pack_template.h" role="src" />
+      <file md5sum="af3f5ca341be55d866fe151c45186d22" name="msgpack/pack_template.h" role="src" />
       <file md5sum="09510085da29090ea0f3919c2e708f46" name="msgpack/unpack_define.h" role="src" />
-      <file md5sum="cf387b1971d55b529593fcbc7972ced4" name="msgpack/unpack_template.h" role="src" />
+      <file md5sum="61cd2025a8357329430154bd3e568be9" name="msgpack/unpack_template.h" role="src" />
       <file md5sum="5eea4af1097495efab534b174c16d939" name="msgpack/sysdep.h" role="src" />
       <file md5sum="2e346ebe243e8b770ed01f56d9f886ba" name="msgpack/version.h" role="src" />
       <file md5sum="237eda031928a5546bdb92a34815830f" name="tests/001.phpt" role="test" />

@@ -22,13 +22,13 @@ typedef struct
     void *next;
 } var_entries;
 
-#define MSGPACK_UNSERIALIZE_ALLOC_STACK(_unpack)           \
-    if (_unpack->deps <= 0) {                              \
-        *obj = _unpack->retval;                            \
-        msgpack_stack_push(_unpack->var_hash, obj, false); \
-    } else {                                               \
-        ALLOC_INIT_ZVAL(*obj);                             \
-        msgpack_stack_push(_unpack->var_hash, obj, true);  \
+#define MSGPACK_UNSERIALIZE_ALLOC_STACK(_unpack)       \
+    if (_unpack->deps <= 0) {                          \
+        *obj = _unpack->retval;                        \
+        msgpack_stack_push(_unpack->var_hash, obj, 0); \
+    } else {                                           \
+        ALLOC_INIT_ZVAL(*obj);                         \
+        msgpack_stack_push(_unpack->var_hash, obj, 1); \
     }
 
 #define MSGPACK_UNSERIALIZE_ALLOC_VALUE(_unpack)  \
@@ -42,9 +42,8 @@ typedef struct
 
 #define MSGPACK_UNSERIALIZE_FINISH_ITEM(_unpack, _count) \
     msgpack_stack_pop(_unpack->var_hash, _count);        \
-    long deps = _unpack->deps - 1;                       \
-    _unpack->stack[deps]--;                              \
-    if (_unpack->stack[deps] == 0) {                     \
+    _unpack->stack[_unpack->deps-1]--;                   \
+    if (_unpack->stack[_unpack->deps-1] == 0) {          \
         _unpack->deps--;                                 \
     }
 
@@ -118,7 +117,7 @@ inline static int msgpack_var_access(
 }
 
 inline static void msgpack_stack_push(
-    php_unserialize_data_t *var_hashx, zval **rval, bool save)
+    php_unserialize_data_t *var_hashx, zval **rval, zend_bool save)
 {
     var_entries *var_hash, *prev = NULL;
 
@@ -197,7 +196,7 @@ inline static zend_class_entry* msgpack_unserialize_class(
     zval **container, char *class_name, size_t name_len)
 {
     zend_class_entry *ce, **pce;
-    bool incomplete_class = false;
+    zend_bool incomplete_class = 0;
     zval *user_func, *retval_ptr, **args[1], *arg_func_name;
     TSRMLS_FETCH();
 
@@ -262,7 +261,7 @@ inline static zend_class_entry* msgpack_unserialize_class(
                            "it was called for", __FUNCTION__, class_name);
             }
 
-            incomplete_class = true;
+            incomplete_class = 1;
             ce = PHP_IC_ENTRY;
         }
 
@@ -299,7 +298,8 @@ void msgpack_unserialize_var_init(php_unserialize_data_t *var_hashx)
     var_hashx->first_dtor = 0;
 }
 
-void msgpack_unserialize_var_destroy(php_unserialize_data_t *var_hashx, bool err)
+void msgpack_unserialize_var_destroy(
+    php_unserialize_data_t *var_hashx, zend_bool err)
 {
     void *next;
     long i;
@@ -529,10 +529,12 @@ int msgpack_unserialize_map(
 int msgpack_unserialize_map_item(
     msgpack_unserialize_data *unpack, zval **container, zval *key, zval *val)
 {
+    long deps;
     TSRMLS_FETCH();
 
     if (MSGPACK_G(php_only))
     {
+        zend_class_entry *ce;
         if (Z_TYPE_P(key) == IS_NULL)
         {
             unpack->type = MSGPACK_SERIALIZE_TYPE_NONE;
@@ -556,7 +558,7 @@ int msgpack_unserialize_map_item(
             }
             else if (Z_TYPE_P(val) == IS_STRING)
             {
-                zend_class_entry *ce = msgpack_unserialize_class(
+                ce = msgpack_unserialize_class(
                     container, Z_STRVAL_P(val), Z_STRLEN_P(val));
 
                 if (ce == NULL)
@@ -575,7 +577,7 @@ int msgpack_unserialize_map_item(
         {
             unpack->type = MSGPACK_SERIALIZE_TYPE_NONE;
 
-            zend_class_entry *ce = msgpack_unserialize_class(
+            ce = msgpack_unserialize_class(
                 container, Z_STRVAL_P(key), Z_STRLEN_P(key));
 
             if (ce == NULL)
@@ -698,7 +700,7 @@ int msgpack_unserialize_map_item(
     zval_ptr_dtor(&key);
     msgpack_stack_pop(unpack->var_hash, 2);
 
-    long deps = unpack->deps - 1;
+    deps = unpack->deps - 1;
     unpack->stack[deps]--;
     if (unpack->stack[deps] == 0)
     {

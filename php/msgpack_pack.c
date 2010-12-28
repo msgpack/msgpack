@@ -231,12 +231,12 @@ inline static void msgpack_serialize_class(
 }
 
 inline static void msgpack_serialize_array(
-    smart_str *buf, zval *val, HashTable *var_hash, bool object,
+    smart_str *buf, zval *val, HashTable *var_hash, zend_bool object,
     char* class_name, zend_uint name_len, zend_bool incomplete_class TSRMLS_DC)
 {
     HashTable *ht;
     size_t n;
-    bool hash = true;
+    zend_bool hash = 1;
 
     if (object)
     {
@@ -283,12 +283,12 @@ inline static void msgpack_serialize_array(
         else
         {
             msgpack_pack_array(buf, n);
-            hash = false;
+            hash = 0;
         }
     }
     else if (n == 0)
     {
-        hash = false;
+        hash = 0;
         msgpack_pack_array(buf, n);
     }
     else
@@ -366,8 +366,6 @@ inline static void msgpack_serialize_array(
                 {
                     Z_ARRVAL_PP(data)->nApplyCount++;
                 }
-
-                //php_var_dump(data, 1 TSRMLS_CC); //hoge
 
                 msgpack_serialize_zval(buf, *data, var_hash TSRMLS_CC);
 
@@ -471,7 +469,7 @@ inline static void msgpack_serialize_object(
     }
 
     msgpack_serialize_array(
-        buf, val, var_hash, true,
+        buf, val, var_hash, 1,
         class_name, name_len, incomplete_class TSRMLS_CC);
 }
 
@@ -541,7 +539,7 @@ void msgpack_serialize_zval(
             break;
         case IS_ARRAY:
             msgpack_serialize_array(
-                buf, val, var_hash, false, NULL, 0, 0 TSRMLS_CC);
+                buf, val, var_hash, 0, NULL, 0, 0 TSRMLS_CC);
             break;
         case IS_OBJECT:
             {

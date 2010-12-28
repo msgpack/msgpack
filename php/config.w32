@@ -1,9 +1,9 @@
 // $Id$
 // vim:ft=javascript
 
-// If your extension references something external, use ARG_WITH
-// ARG_WITH("msgpack", "for msgpack support", "no");
+ARG_ENABLE("msgpack", "for msgpack support", "yes");
 
 if (PHP_MSGPACK != "no") {
-   EXTENSION("msgpack", "msgpack.c msgpack_pack.c msgpack_unpack.c msgpack_class.c");
+   EXTENSION("msgpack", "msgpack.c", PHP_MSGPACK_SHARED, "");
+   ADD_SOURCES(configure_module_dirname, "msgpack_pack.c msgpack_unpack.c msgpack_class.c", "msgpack");
 }

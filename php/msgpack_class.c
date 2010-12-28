@@ -258,7 +258,7 @@ static zend_object_value php_msgpack_unpacker_new(
 /* MessagePack */
 static ZEND_METHOD(msgpack, __construct)
 {
-    bool php_only = MSGPACK_G(php_only);
+    zend_bool php_only = MSGPACK_G(php_only);
     MSGPACK_BASE_OBJECT;
 
     if (zend_parse_parameters(
@@ -369,7 +369,7 @@ static ZEND_METHOD(msgpack, unpacker)
 /* MessagePackUnpacker */
 static ZEND_METHOD(msgpack_unpacker, __construct)
 {
-    bool php_only = MSGPACK_G(php_only);
+    zend_bool php_only = MSGPACK_G(php_only);
     MSGPACK_UNPACKER_OBJECT;
 
     if (zend_parse_parameters(

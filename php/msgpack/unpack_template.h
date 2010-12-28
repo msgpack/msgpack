@@ -96,7 +96,9 @@ msgpack_unpack_func(msgpack_unpack_object, _data)(msgpack_unpack_struct(_context
 
 msgpack_unpack_func(int, _execute)(msgpack_unpack_struct(_context)* ctx, const char* data, size_t len, size_t* off)
 {
+#ifndef _MSC_VER
 	assert(len >= *off);
+#endif
 
 	const unsigned char* p = (unsigned char*)data + *off;
 	const unsigned char* const pe = (unsigned char*)data + len;
@@ -105,6 +107,9 @@ msgpack_unpack_func(int, _execute)(msgpack_unpack_struct(_context)* ctx, const c
 	unsigned int trail = ctx->trail;
 	unsigned int cs = ctx->cs;
 	unsigned int top = ctx->top;
+
+	int ret;
+
 	msgpack_unpack_struct(_stack)* stack = ctx->stack;
 	/*
 	unsigned int stack_size = ctx->stack_size;
@@ -113,8 +118,6 @@ msgpack_unpack_func(int, _execute)(msgpack_unpack_struct(_context)* ctx, const c
 
 	msgpack_unpack_object obj;
 	msgpack_unpack_struct(_stack)* c = NULL;
-
-	int ret;
 
 #define push_simple_value(func) \
 	if(msgpack_unpack_callback(func)(user, &obj) < 0) { goto _failed; } \
