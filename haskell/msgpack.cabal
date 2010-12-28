@@ -1,5 +1,5 @@
 Name:               msgpack
-Version:            0.4.0.1
+Version:            0.5.0.0
 Synopsis:           A Haskell binding to MessagePack
 Description:
   A Haskell binding to MessagePack <http://msgpack.org/>
@@ -37,6 +37,7 @@ Library
 
   Exposed-modules:
     Data.MessagePack
+    Data.MessagePack.Assoc
     Data.MessagePack.Pack
     Data.MessagePack.Unpack
     Data.MessagePack.Object

@@ -13,6 +13,7 @@
 --------------------------------------------------------------------
 
 module Data.MessagePack(
+  module Data.MessagePack.Assoc,
   module Data.MessagePack.Pack,
   module Data.MessagePack.Unpack,
   module Data.MessagePack.Object,
@@ -44,6 +45,7 @@ import qualified Data.ByteString.Lazy as L
 import qualified Data.Iteratee as I
 import System.IO
 
+import Data.MessagePack.Assoc
 import Data.MessagePack.Pack
 import Data.MessagePack.Unpack
 import Data.MessagePack.Object
