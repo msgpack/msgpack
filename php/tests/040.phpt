@@ -1,5 +1,5 @@
 --TEST--
-b0rked random data test
+broken random data test
 --SKIPIF--
 --FILE--
 <?php

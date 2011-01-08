@@ -20,8 +20,8 @@ package org.msgpack;
 import java.io.IOException;
 
 public abstract class AbstractTemplate implements Template {
-	public Object unpack(Unpacker pac) throws IOException, MessageTypeException {
-		return convert(pac.unpackObject());
+	public Object unpack(Unpacker pac, Object to) throws IOException, MessageTypeException {
+		return convert(pac.unpackObject(), to);
 	}
 }
 

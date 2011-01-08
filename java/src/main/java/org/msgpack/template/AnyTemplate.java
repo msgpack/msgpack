@@ -24,18 +24,20 @@ public class AnyTemplate implements Template {
 	private AnyTemplate() { }
 
 	public void pack(Packer pk, Object target) throws IOException {
-		if(target == null) {
+		if(target instanceof MessagePackObject) {
+			pk.pack((MessagePackObject)target);
+		} else if(target == null) {
 			pk.packNil();
 		} else {
-			new ClassTemplate(target.getClass()).pack(pk, target);
+			TemplateRegistry.lookup(target.getClass()).pack(pk, target);
 		}
 	}
 
-	public Object unpack(Unpacker pac) throws IOException, MessageTypeException {
+	public Object unpack(Unpacker pac, Object to) throws IOException, MessageTypeException {
 		return pac.unpackObject();
 	}
 
-	public Object convert(MessagePackObject from) throws MessageTypeException {
+	public Object convert(MessagePackObject from, Object to) throws MessageTypeException {
 		return from;
 	}
 
@@ -46,7 +48,7 @@ public class AnyTemplate implements Template {
 	static final AnyTemplate instance = new AnyTemplate();
 
 	static {
-		CustomMessage.register(MessagePackObject.class, instance);
+		TemplateRegistry.register(MessagePackObject.class, instance);
 	}
 }
 

@@ -23,6 +23,8 @@ import java.io.IOException;
 import org.msgpack.*;
 
 public class MapTemplate implements Template {
+	static void load() { }
+
 	private Template keyTemplate;
 	private Template valueTemplate;
 
@@ -42,9 +44,12 @@ public class MapTemplate implements Template {
 	@SuppressWarnings("unchecked")
 	public void pack(Packer pk, Object target) throws IOException {
 		if(!(target instanceof Map)) {
-			throw new MessageTypeException();
+			if (target == null) {
+				throw new MessageTypeException(new NullPointerException("target is null."));
+			}
+			throw new MessageTypeException("target is not Map type: " + target.getClass());
 		}
-		Map<Object,Object> map = (Map<Object,Object>)target;
+		Map<Object,Object> map = (Map<Object,Object>) target;
 		pk.packMap(map.size());
 		for(Map.Entry<Object,Object> pair : map.entrySet()) {
 			keyTemplate.pack(pk, pair.getKey());
@@ -52,27 +57,45 @@ public class MapTemplate implements Template {
 		}
 	}
 
-	public Object unpack(Unpacker pac) throws IOException, MessageTypeException {
+	@SuppressWarnings("unchecked")
+	public Object unpack(Unpacker pac, Object to) throws IOException, MessageTypeException {
 		int length = pac.unpackMap();
-		Map<Object,Object> map = new HashMap<Object,Object>(length);
+		Map<Object,Object> map;
+		if(to == null) {
+			map = new HashMap<Object,Object>(length);
+		} else {
+			map = (Map<Object,Object>) to;
+			map.clear();
+		}
 		for(; length > 0; length--) {
-			Object key = keyTemplate.unpack(pac);
-			Object value = valueTemplate.unpack(pac);
+			Object key = keyTemplate.unpack(pac, null);
+			Object value = valueTemplate.unpack(pac, null);
 			map.put(key, value);
 		}
 		return map;
 	}
 
 	@SuppressWarnings("unchecked")
-	public Object convert(MessagePackObject from) throws MessageTypeException {
+	public Object convert(MessagePackObject from, Object to) throws MessageTypeException {
 		Map<MessagePackObject,MessagePackObject> src = from.asMap();
-		Map<Object,Object> map = new HashMap();
+		Map<Object,Object> map;
+		if(to == null) {
+			map = new HashMap<Object,Object>(src.size());
+		} else {
+			map = (Map<Object,Object>) to;
+			map.clear();
+		}
 		for(Map.Entry<MessagePackObject,MessagePackObject> pair : src.entrySet()) {
-			Object key = keyTemplate.convert(pair.getKey());
-			Object value = valueTemplate.convert(pair.getValue());
+			Object key = keyTemplate.convert(pair.getKey(), null);
+			Object value = valueTemplate.convert(pair.getValue(), null);
 			map.put(key, value);
 		}
 		return map;
+	}
+
+	static {
+		TemplateRegistry.registerGeneric(Map.class, new GenericTemplate2(MapTemplate.class));
+		TemplateRegistry.register(Map.class, new MapTemplate(AnyTemplate.getInstance(), AnyTemplate.getInstance()));
 	}
 }
 

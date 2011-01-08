@@ -18,45 +18,76 @@
 package org.msgpack.template;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.LinkedList;
 import java.io.IOException;
-import org.msgpack.*;
+
+import org.msgpack.MessagePackObject;
+import org.msgpack.MessageTypeException;
+import org.msgpack.Packer;
+import org.msgpack.Template;
+import org.msgpack.Unpacker;
 
 public class CollectionTemplate implements Template {
+	public static void load() { }
+
 	private Template elementTemplate;
 
 	public CollectionTemplate(Template elementTemplate) {
 		this.elementTemplate = elementTemplate;
 	}
 
+	@SuppressWarnings("unchecked")
 	public void pack(Packer pk, Object target) throws IOException {
-		if(!(target instanceof Collection)) {
-			throw new MessageTypeException();
+		if (! (target instanceof Collection)) {
+			if (target == null) {
+				throw new MessageTypeException(new NullPointerException("target is null."));
+			}
+			throw new MessageTypeException("target is not Collection type: " + target.getClass());
 		}
-		Collection<Object> collection = (Collection<Object>)target;
+		Collection<Object> collection = (Collection<Object>) target;
 		pk.packArray(collection.size());
 		for(Object element : collection) {
 			elementTemplate.pack(pk, element);
 		}
 	}
 
-	public Object unpack(Unpacker pac) throws IOException, MessageTypeException {
+	@SuppressWarnings("unchecked")
+	public Object unpack(Unpacker pac, Object to) throws IOException, MessageTypeException {
 		int length = pac.unpackArray();
-		List<Object> list = new LinkedList<Object>();
-		for(; length > 0; length--) {
-			list.add( elementTemplate.unpack(pac) );
+		Collection<Object> c;
+		if(to == null) {
+			c = new LinkedList<Object>();
+		} else {
+			// TODO: optimize if list is instanceof ArrayList
+			c = (Collection<Object>) to;
+			c.clear();
 		}
-		return list;
+		for(; length > 0; length--) {
+			c.add(elementTemplate.unpack(pac, null));
+		}
+		return c;
 	}
 
-	public Object convert(MessagePackObject from) throws MessageTypeException {
+	@SuppressWarnings("unchecked")
+	public Object convert(MessagePackObject from, Object to) throws MessageTypeException {
 		MessagePackObject[] array = from.asArray();
-		List<Object> list = new LinkedList<Object>();
-		for(MessagePackObject element : array) {
-			list.add( elementTemplate.convert(element) );
+		Collection<Object> c;
+		if(to == null) {
+			c = new LinkedList<Object>();
+		} else {
+			// TODO: optimize if list is instanceof ArrayList
+			c = (Collection<Object>) to;
+			c.clear();
 		}
-		return list;
+		for(MessagePackObject element : array) {
+			c.add(elementTemplate.convert(element, null));
+		}
+		return c;
+	}
+
+	static {
+		TemplateRegistry.registerGeneric(Collection.class, new GenericTemplate1(CollectionTemplate.class));
+		TemplateRegistry.register(Collection.class, new CollectionTemplate(AnyTemplate.getInstance()));
 	}
 }
 

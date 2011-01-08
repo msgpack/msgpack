@@ -20,20 +20,14 @@ package org.msgpack;
 import org.msgpack.template.*;
 
 public class Templates {
-	public static void load() { }
+	public static Template tNullable(Template elementTemplate) {
+		return new NullableTemplate(elementTemplate);
+	}
 
 
 	public static final Template TAny = AnyTemplate.getInstance();
 	public static Template tAny() {
 		return TAny;
-	}
-
-	public static Template tOptional(Template elementTemplate) {
-		return new OptionalTemplate(elementTemplate);
-	}
-
-	public static Template tOptional(Template elementTemplate, Object defaultObject) {
-		return new OptionalTemplate(elementTemplate, defaultObject);
 	}
 
 
@@ -50,9 +44,12 @@ public class Templates {
 	}
 
 	public static Template tClass(Class target) {
-		return new ClassTemplate(target);
+		Template tmpl = TemplateRegistry.lookup(target);
+		if(tmpl == null) {
+			// FIXME
+		}
+		return tmpl;
 	}
-
 
 	public static final Template TByte = ByteTemplate.getInstance();
 	public static Template tByte() {
@@ -104,5 +101,9 @@ public class Templates {
 		return TByteArray;
 	}
 
+	public static final Template TByteBuffer = ByteBufferTemplate.getInstance();
+	public static Template tByteBuffer() {
+		return TByteBuffer;
+	}
 }
 

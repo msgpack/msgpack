@@ -1,6 +1,4 @@
 <?php
-require_once 'Benchmark/Timer.php';
-
 $loop = 10000;
 $retry = 10;
 $value_display = false;
@@ -87,24 +85,23 @@ foreach ($types as $type)
         //default (serialize)
         $pack = null;
         $unpack = null;
-        $t = new Benchmark_Timer;
-        $t->start();
+
+        $start = microtime(true);
         for ($i = 0; $i < $loop; $i++)
         {
             $pack = serialize($value);
         }
-        $t->setMarker('serialize');
+        $end = microtime(true);
+        $serialize_pack += ($end - $start);
+
+        $start = microtime(true);
         for ($i = 0; $i < $loop; $i++)
         {
             $unpack = unserialize($pack);
         }
-        $t->stop();
-        //$t->display();
-        $profiling = $t->getProfiling();
-        unset($t);
+        $end = microtime(true);
+        $serialize_unpack += ($end - $start);
 
-        $serialize_pack += $profiling[1]['diff'];
-        $serialize_unpack += $profiling[2]['diff'];
         $serialize_size += strlen($pack);
         if ($unpack === $value ||
             (is_object($value) && $unpack == $value))
@@ -120,24 +117,22 @@ foreach ($types as $type)
         {
             $opt = true;
         }
-        $t = new Benchmark_Timer;
-        $t->start();
+        $start = microtime(true);
         for ($i = 0; $i < $loop; $i++)
         {
             $pack = json_encode($value);
         }
-        $t->setMarker('json_encode');
+        $end = microtime(true);
+        $json_pack += ($end - $start);
+
+        $start = microtime(true);
         for ($i = 0; $i < $loop; $i++)
         {
             $unpack = json_decode($pack, $opt);
         }
-        $t->stop();
-        //$t->display();
-        $profiling = $t->getProfiling();
-        unset($t);
+        $end = microtime(true);
+        $json_unpack += ($end - $start);
 
-        $json_pack += $profiling[1]['diff'];
-        $json_unpack += $profiling[2]['diff'];
         $json_size += strlen($pack);
         if ($unpack === $value ||
             (is_object($value) && $unpack == $value) ||
@@ -153,24 +148,22 @@ foreach ($types as $type)
         {
             $pack = null;
             $unpack = null;
-            $t = new Benchmark_Timer;
-            $t->start();
+            $start = microtime(true);
             for ($i = 0; $i < $loop; $i++)
             {
                 $pack = igbinary_serialize($value);
             }
-            $t->setMarker('igbinary_serialize');
+            $end = microtime(true);
+            $igbinary_pack += ($end - $start);
+
+            $start = microtime(true);
             for ($i = 0; $i < $loop; $i++)
             {
                 $unpack = igbinary_unserialize($pack);
             }
-            $t->stop();
-            //$t->display();
-            $profiling = $t->getProfiling();
-            unset($t);
+            $end = microtime(true);
+            $igbinary_unpack += ($end - $start);
 
-            $igbinary_pack += $profiling[1]['diff'];
-            $igbinary_unpack += $profiling[2]['diff'];
             $igbinary_size += strlen($pack);
             if ($unpack === $value ||
                 (is_object($value) && $unpack == $value))
@@ -182,24 +175,22 @@ foreach ($types as $type)
         //msgpack
         $pack = null;
         $unpack = null;
-        $t = new Benchmark_Timer;
-        $t->start();
+        $start = microtime(true);
         for ($i = 0; $i < $loop; $i++)
         {
             $pack = msgpack_serialize($value);
         }
-        $t->setMarker('msgpack_serialize');
+        $end = microtime(true);
+        $msgpack_pack += ($end - $start);
+
+        $start = microtime(true);
         for ($i = 0; $i < $loop; $i++)
         {
             $unpack = msgpack_unserialize($pack);
         }
-        $t->stop();
-        //$t->display();
-        $profiling = $t->getProfiling();
-        unset($t);
+        $end = microtime(true);
+        $msgpack_unpack += ($end - $start);
 
-        $msgpack_pack += $profiling[1]['diff'];
-        $msgpack_unpack += $profiling[2]['diff'];
         $msgpack_size += strlen($pack);
         if ($unpack === $value ||
             (is_object($value) && $unpack == $value))

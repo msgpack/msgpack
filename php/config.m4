@@ -8,12 +8,12 @@ dnl Check PHP version:
 
 AC_MSG_CHECKING(PHP version)
 AC_TRY_COMPILE([#include "php/main/php_version.h"], [
-#if PHP_MAJOR_VERSION < 5 || (PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION < 2)
-#error  this extension requires at least PHP version 5.2.0
+#if PHP_MAJOR_VERSION < 5
+#error  this extension requires at least PHP version 5 or newer
 #endif
 ],
 [AC_MSG_RESULT(ok)],
-[AC_MSG_ERROR([need at least PHP 5.2.0])])
+[AC_MSG_ERROR([need at least PHP 5 or newer])])
 
 dnl If your extension references something external, use with:
 
@@ -24,5 +24,10 @@ Make sure that the comment is aligned:
 if test "$PHP_MSGPACK" != "no"; then
   PHP_NEW_EXTENSION(msgpack, msgpack.c msgpack_pack.c msgpack_unpack.c msgpack_class.c, $ext_shared)
 
-  PHP_INSTALL_HEADERS([ext/msgpack], [php_msgpack.h])
+  ifdef([PHP_INSTALL_HEADERS],
+  [
+    PHP_INSTALL_HEADERS([ext/msgpack], [php_msgpack.h])
+  ], [
+    PHP_ADD_MAKEFILE_FRAGMENT
+  ])
 fi

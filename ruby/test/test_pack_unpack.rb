@@ -227,8 +227,9 @@ class MessagePackTestPackUnpack < Test::Unit::TestCase
 			assert(fe.length > 0)
 			off += fe.length
 
-			pac.feed fe
-			pac.each {|obj|
+			#pac.feed fe
+			#pac.each {|obj|
+			pac.feed_each(fe) {|obj|
 				assert(!parsed)
 				assert_equal(obj, str)
 				parsed = true
@@ -245,8 +246,8 @@ class MessagePackTestPackUnpack < Test::Unit::TestCase
 		pac = MessagePack::Unpacker.new
 		parsed = 0
 		raw.split(//).each do |b|
-			pac.feed(b)
-			pac.each {|o|
+			#pac.feed(b)
+			pac.feed_each(b) {|o|
 				GC.start
 				assert_equal(obj, o)
 				parsed += 1

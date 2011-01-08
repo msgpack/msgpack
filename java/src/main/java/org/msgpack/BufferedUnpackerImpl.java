@@ -25,6 +25,7 @@ abstract class BufferedUnpackerImpl extends UnpackerImpl {
 	int offset = 0;
 	int filled = 0;
 	byte[] buffer = null;
+	boolean bufferReferenced = false;  // TODO zero-copy buffer
 	private ByteBuffer castBuffer = ByteBuffer.allocate(8);
 
 	abstract boolean fill() throws IOException;
@@ -417,7 +418,18 @@ abstract class BufferedUnpackerImpl extends UnpackerImpl {
 
 	final byte[] unpackByteArray() throws IOException, MessageTypeException {
 		int length = unpackRaw();
-		return unpackRawBody(length);
+		byte[] body = unpackRawBody(length);
+		return body;
+	}
+
+	final ByteBuffer unpackByteBuffer() throws IOException, MessageTypeException {
+		// TODO zero-copy buffer
+		int length = unpackRaw();
+		more(length);
+		ByteBuffer buf = ByteBuffer.wrap(buffer, offset, length);
+		bufferReferenced = true;  // TODO fix magical code
+		advance(length);
+		return buf;
 	}
 
 	final String unpackString() throws IOException, MessageTypeException {

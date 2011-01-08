@@ -20,6 +20,7 @@ typedef struct {
     php_unserialize_data_t var_hash;
     long php_only;
     zend_bool finished;
+    int error;
 } php_msgpack_unpacker_t;
 
 #if ZEND_MODULE_API_NO >= 20060613
@@ -40,16 +41,25 @@ typedef struct {
 #   define POP_EO_PARAM() (void)zend_ptr_stack_pop(&EG(argument_stack))
 #endif
 
+#if (PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION > 0)
 #define MSGPACK_METHOD_HELPER(classname, name, retval, thisptr, num, param) \
     PUSH_PARAM(param); PUSH_PARAM((void*)num);                              \
     PUSH_EO_PARAM();                                                        \
     MSGPACK_METHOD_BASE(classname, name)(num, retval, NULL, thisptr, 0 TSRMLS_CC); \
     POP_EO_PARAM();                                                         \
-    POP_PARAM();                                                            \
-    POP_PARAM();
-
+    POP_PARAM(); POP_PARAM();
 #define MSGPACK_METHOD(classname, name, retval, thisptr) \
     MSGPACK_METHOD_BASE(classname, name)(0, retval, NULL, thisptr, 0 TSRMLS_CC)
+#else
+#define MSGPACK_METHOD_HELPER(classname, name, retval, thisptr, num, param) \
+    PUSH_PARAM(param); PUSH_PARAM((void*)num);                              \
+    PUSH_EO_PARAM();                                                        \
+    MSGPACK_METHOD_BASE(classname, name)(num, retval, thisptr, 0 TSRMLS_CC); \
+    POP_EO_PARAM();                                                         \
+    POP_PARAM(); POP_PARAM();
+#define MSGPACK_METHOD(classname, name, retval, thisptr) \
+    MSGPACK_METHOD_BASE(classname, name)(0, retval, thisptr, 0 TSRMLS_CC)
+#endif
 
 #define MSGPACK_METHOD1(classname, name, retval, thisptr, param1) \
     MSGPACK_METHOD_HELPER(classname, name, retval, thisptr, 1, param1);
@@ -61,8 +71,6 @@ typedef struct {
 #define MSGPACK_UNPACKER_OBJECT       \
     php_msgpack_unpacker_t *unpacker; \
     unpacker = (php_msgpack_unpacker_t *)zend_object_store_get_object(getThis() TSRMLS_CC);
-
-#define MSGPACK_CLASS_OPT_PHPONLY -1001
 
 /* MessagePack */
 static zend_class_entry *msgpack_ce = NULL;
@@ -161,7 +169,15 @@ static const zend_function_entry msgpack_unpacker_methods[] = {
 
 static void php_msgpack_base_free(php_msgpack_base_t *base TSRMLS_DC)
 {
+#if (PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION > 0)
     zend_object_std_dtor(&base->object TSRMLS_CC);
+#else
+    if (base->object.properties)
+    {
+        zend_hash_destroy(base->object.properties);
+        FREE_HASHTABLE(base->object.properties);
+    }
+#endif
     efree(base);
 }
 
@@ -173,7 +189,13 @@ static zend_object_value php_msgpack_base_new(zend_class_entry *ce TSRMLS_DC)
 
     base = emalloc(sizeof(php_msgpack_base_t));
 
+#if (PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION > 0)
     zend_object_std_init(&base->object, ce TSRMLS_CC);
+#else
+    ALLOC_HASHTABLE(base->object.properties);
+    zend_hash_init(base->object.properties, 0, NULL, ZVAL_PTR_DTOR, 0);
+    base->object.ce = ce;
+#endif
 
     zend_hash_copy(
         base->object.properties, &ce->default_properties,
@@ -191,7 +213,15 @@ static zend_object_value php_msgpack_base_new(zend_class_entry *ce TSRMLS_DC)
 static void php_msgpack_unpacker_free(
     php_msgpack_unpacker_t *unpacker TSRMLS_DC)
 {
+#if (PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION > 0)
     zend_object_std_dtor(&unpacker->object TSRMLS_CC);
+#else
+    if (unpacker->object.properties)
+    {
+        zend_hash_destroy(unpacker->object.properties);
+        FREE_HASHTABLE(unpacker->object.properties);
+    }
+#endif
     efree(unpacker);
 }
 
@@ -204,7 +234,13 @@ static zend_object_value php_msgpack_unpacker_new(
 
     unpacker = emalloc(sizeof(php_msgpack_unpacker_t));
 
+#if (PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION > 0)
     zend_object_std_init(&unpacker->object, ce TSRMLS_CC);
+#else
+    ALLOC_HASHTABLE(unpacker->object.properties);
+    zend_hash_init(unpacker->object.properties, 0, NULL, ZVAL_PTR_DTOR, 0);
+    unpacker->object.ce = ce;
+#endif
 
     zend_hash_copy(
         unpacker->object.properties, &ce->default_properties,
@@ -222,7 +258,7 @@ static zend_object_value php_msgpack_unpacker_new(
 /* MessagePack */
 static ZEND_METHOD(msgpack, __construct)
 {
-    bool php_only = MSGPACK_G(php_only);
+    zend_bool php_only = MSGPACK_G(php_only);
     MSGPACK_BASE_OBJECT;
 
     if (zend_parse_parameters(
@@ -333,7 +369,7 @@ static ZEND_METHOD(msgpack, unpacker)
 /* MessagePackUnpacker */
 static ZEND_METHOD(msgpack_unpacker, __construct)
 {
-    bool php_only = MSGPACK_G(php_only);
+    zend_bool php_only = MSGPACK_G(php_only);
     MSGPACK_UNPACKER_OBJECT;
 
     if (zend_parse_parameters(
@@ -350,6 +386,7 @@ static ZEND_METHOD(msgpack_unpacker, __construct)
     unpacker->retval = NULL;
     unpacker->offset = 0;
     unpacker->finished = 0;
+    unpacker->error = 0;
 
     template_init(&unpacker->mp);
 
@@ -370,7 +407,7 @@ static ZEND_METHOD(msgpack_unpacker, __destruct)
         zval_ptr_dtor(&unpacker->retval);
     }
 
-    msgpack_unserialize_var_destroy(&unpacker->var_hash);
+    msgpack_unserialize_var_destroy(&unpacker->var_hash, unpacker->error);
 }
 
 static ZEND_METHOD(msgpack_unpacker, setOption)
@@ -447,6 +484,17 @@ static ZEND_METHOD(msgpack_unpacker, execute)
 
     if (str != NULL)
     {
+        if (ZEND_NUM_ARGS() < 2)
+        {
+            if (MSGPACK_G(error_display))
+            {
+                zend_error(E_WARNING,
+                           "[msgpack] (MessagePackUnpacker::execute) "
+                           "expects exactly 2 parameters");
+            }
+            RETURN_FALSE;
+        }
+
         data = (char *)str;
         len = (size_t)str_len;
         off = Z_LVAL_P(offset);
@@ -466,8 +514,8 @@ static ZEND_METHOD(msgpack_unpacker, execute)
     {
         zval_ptr_dtor(&unpacker->retval);
 
-        msgpack_unserialize_var_destroy(&unpacker->var_hash);
-
+        msgpack_unserialize_var_destroy(&unpacker->var_hash, unpacker->error);
+        unpacker->error = 0;
 
         ALLOC_INIT_ZVAL(unpacker->retval);
 
@@ -502,8 +550,10 @@ static ZEND_METHOD(msgpack_unpacker, execute)
         case MSGPACK_UNPACK_EXTRA_BYTES:
         case MSGPACK_UNPACK_SUCCESS:
             unpacker->finished = 1;
+            unpacker->error = 0;
             RETURN_TRUE;
         default:
+            unpacker->error = 1;
             RETURN_FALSE;
     }
 }
@@ -556,7 +606,8 @@ static ZEND_METHOD(msgpack_unpacker, reset)
         unpacker->retval = NULL;
     }
 
-    msgpack_unserialize_var_destroy(&unpacker->var_hash);
+    msgpack_unserialize_var_destroy(&unpacker->var_hash, unpacker->error);
+    unpacker->error = 0;
 
 
     template_init(&unpacker->mp);
@@ -577,9 +628,11 @@ void msgpack_init_class()
     msgpack_ce = zend_register_internal_class(&ce TSRMLS_CC);
     msgpack_ce->create_object = php_msgpack_base_new;
 
+#if (PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION > 0)
     zend_declare_class_constant_long(
         msgpack_ce, ZEND_STRS("OPT_PHPONLY") - 1,
         MSGPACK_CLASS_OPT_PHPONLY TSRMLS_CC);
+#endif
 
     /* unpacker */
     INIT_CLASS_ENTRY(ce, "MessagePackUnpacker", msgpack_unpacker_methods);

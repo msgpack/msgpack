@@ -77,6 +77,12 @@ static ZEND_MINIT_FUNCTION(msgpack)
 
     msgpack_init_class();
 
+#if (PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION < 1)
+    REGISTER_LONG_CONSTANT(
+        "MESSAGEPACK_OPT_PHPONLY", MSGPACK_CLASS_OPT_PHPONLY,
+        CONST_CS | CONST_PERSISTENT);
+#endif
+
     return SUCCESS;
 }
 
@@ -164,33 +170,41 @@ PS_SERIALIZER_DECODE_FUNC(msgpack)
 
     msgpack_unserialize_var_init(&var_hash);
 
-    (&mp)->user.retval = (zval *)tmp;
-    (&mp)->user.var_hash = (php_unserialize_data_t *)&var_hash;
+    mp.user.retval = (zval *)tmp;
+    mp.user.var_hash = (php_unserialize_data_t *)&var_hash;
 
     ret = template_execute(&mp, (char *)val, (size_t)vallen, &off);
 
-    msgpack_unserialize_var_destroy(&var_hash);
-
-    tmp_hash = HASH_OF(tmp);
-
-    zend_hash_internal_pointer_reset_ex(tmp_hash, &tmp_hash_pos);
-    while (zend_hash_get_current_data_ex(
-               tmp_hash, (void *)&value, &tmp_hash_pos) == SUCCESS)
+    if (ret == MSGPACK_UNPACK_EXTRA_BYTES || ret == MSGPACK_UNPACK_SUCCESS)
     {
-        ret = zend_hash_get_current_key_ex(
-            tmp_hash, &key_str, &key_len, &key_long, 0, &tmp_hash_pos);
-        switch (ret)
+        msgpack_unserialize_var_destroy(&var_hash, 0);
+
+        tmp_hash = HASH_OF(tmp);
+
+        zend_hash_internal_pointer_reset_ex(tmp_hash, &tmp_hash_pos);
+
+        while (zend_hash_get_current_data_ex(
+                   tmp_hash, (void *)&value, &tmp_hash_pos) == SUCCESS)
         {
-            case HASH_KEY_IS_LONG:
-                /* ??? */
-                break;
-            case HASH_KEY_IS_STRING:
-                php_set_session_var(
-                    key_str, key_len - 1, *value, NULL TSRMLS_CC);
-                php_add_session_var(key_str, key_len - 1 TSRMLS_CC);
-                break;
+            ret = zend_hash_get_current_key_ex(
+                tmp_hash, &key_str, &key_len, &key_long, 0, &tmp_hash_pos);
+            switch (ret)
+            {
+                case HASH_KEY_IS_LONG:
+                    /* ??? */
+                    break;
+                case HASH_KEY_IS_STRING:
+                    php_set_session_var(
+                        key_str, key_len - 1, *value, NULL TSRMLS_CC);
+                    php_add_session_var(key_str, key_len - 1 TSRMLS_CC);
+                    break;
+            }
+            zend_hash_move_forward_ex(tmp_hash, &tmp_hash_pos);
         }
-        zend_hash_move_forward_ex(tmp_hash, &tmp_hash_pos);
+    }
+    else
+    {
+        msgpack_unserialize_var_destroy(&var_hash, 1);
     }
 
     zval_ptr_dtor(&tmp);
@@ -226,43 +240,49 @@ PHP_MSGPACK_API void php_msgpack_unserialize(
 
     msgpack_unserialize_var_init(&var_hash);
 
-    (&mp)->user.retval = (zval *)return_value;
-    (&mp)->user.var_hash = (php_unserialize_data_t *)&var_hash;
+    mp.user.retval = (zval *)return_value;
+    mp.user.var_hash = (php_unserialize_data_t *)&var_hash;
 
     ret = template_execute(&mp, str, (size_t)str_len, &off);
-
-    msgpack_unserialize_var_destroy(&var_hash);
 
     switch (ret)
     {
         case MSGPACK_UNPACK_PARSE_ERROR:
+        {
+            msgpack_unserialize_var_destroy(&var_hash, 1);
             if (MSGPACK_G(error_display))
             {
                 zend_error(E_WARNING,
-                           "[msgpack] (php_msgpack_unserialize) Parse error");
+                           "[msgpack] (%s) Parse error", __FUNCTION__);
             }
             break;
+        }
         case MSGPACK_UNPACK_CONTINUE:
+        {
+            msgpack_unserialize_var_destroy(&var_hash, 1);
             if (MSGPACK_G(error_display))
             {
                 zend_error(E_WARNING,
-                           "[msgpack] (php_msgpack_unserialize) "
-                           "Insufficient data for unserializing");
+                           "[msgpack] (%s) Insufficient data for unserializing",
+                           __FUNCTION__);
             }
             break;
+        }
         case MSGPACK_UNPACK_EXTRA_BYTES:
         case MSGPACK_UNPACK_SUCCESS:
+            msgpack_unserialize_var_destroy(&var_hash, 0);
             if (off < (size_t)str_len && MSGPACK_G(error_display))
             {
                 zend_error(E_WARNING,
-                           "[msgpack] (php_msgpack_unserialize) Extra bytes");
+                           "[msgpack] (%s) Extra bytes", __FUNCTION__);
             }
             break;
         default:
+            msgpack_unserialize_var_destroy(&var_hash, 0);
             if (MSGPACK_G(error_display))
             {
                 zend_error(E_WARNING,
-                           "[msgpack] (php_msgpack_unserialize) Unknown result");
+                           "[msgpack] (%s) Unknown result", __FUNCTION__);
             }
             break;
     }

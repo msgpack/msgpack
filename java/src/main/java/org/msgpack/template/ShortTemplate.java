@@ -24,14 +24,18 @@ public class ShortTemplate implements Template {
 	private ShortTemplate() { }
 
 	public void pack(Packer pk, Object target) throws IOException {
-		pk.packShort((Short)target);
+		try {
+			pk.packShort((Short)target);
+		} catch (NullPointerException e) {
+			throw new MessageTypeException("target is null.", e);
+		}
 	}
 
-	public Object unpack(Unpacker pac) throws IOException, MessageTypeException {
+	public Object unpack(Unpacker pac, Object to) throws IOException, MessageTypeException {
 		return pac.unpackShort();
 	}
 
-	public Object convert(MessagePackObject from) throws MessageTypeException {
+	public Object convert(MessagePackObject from, Object to) throws MessageTypeException {
 		return from.asShort();
 	}
 
@@ -42,7 +46,8 @@ public class ShortTemplate implements Template {
 	static final ShortTemplate instance = new ShortTemplate();
 
 	static {
-		CustomMessage.register(Short.class, instance);
+		TemplateRegistry.register(Short.class, instance);
+		TemplateRegistry.register(short.class, instance);
 	}
 }
 

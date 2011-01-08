@@ -24,14 +24,18 @@ public class StringTemplate implements Template {
 	private StringTemplate() { }
 
 	public void pack(Packer pk, Object target) throws IOException {
-		pk.packString((String)target);
+		try {
+			pk.packString((String)target);
+		} catch (NullPointerException e) {
+			throw new MessageTypeException("target is null.", e);
+		}
 	}
 
-	public Object unpack(Unpacker pac) throws IOException, MessageTypeException {
+	public Object unpack(Unpacker pac, Object to) throws IOException, MessageTypeException {
 		return pac.unpackString();
 	}
 
-	public Object convert(MessagePackObject from) throws MessageTypeException {
+	public Object convert(MessagePackObject from, Object to) throws MessageTypeException {
 		return from.asString();
 	}
 
@@ -42,7 +46,7 @@ public class StringTemplate implements Template {
 	static final StringTemplate instance = new StringTemplate();
 
 	static {
-		CustomMessage.register(String.class, instance);
+		TemplateRegistry.register(String.class, instance);
 	}
 }
 

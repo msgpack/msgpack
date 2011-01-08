@@ -24,14 +24,18 @@ public class ByteArrayTemplate implements Template {
 	private ByteArrayTemplate() { }
 
 	public void pack(Packer pk, Object target) throws IOException {
-		pk.packByteArray((byte[])target);
+		try {
+			pk.packByteArray((byte[])target);
+		} catch (NullPointerException e) {
+			throw new MessageTypeException("target is null.", e);
+		}
 	}
 
-	public Object unpack(Unpacker pac) throws IOException, MessageTypeException {
+	public Object unpack(Unpacker pac, Object to) throws IOException, MessageTypeException {
 		return pac.unpackByteArray();
 	}
 
-	public Object convert(MessagePackObject from) throws MessageTypeException {
+	public Object convert(MessagePackObject from, Object to) throws MessageTypeException {
 		return from.asByteArray();
 	}
 
@@ -42,7 +46,7 @@ public class ByteArrayTemplate implements Template {
 	static final ByteArrayTemplate instance = new ByteArrayTemplate();
 
 	static {
-		CustomMessage.register(byte[].class, instance);
+		TemplateRegistry.register(byte[].class, instance);
 	}
 }
 

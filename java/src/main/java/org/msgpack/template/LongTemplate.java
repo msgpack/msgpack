@@ -24,14 +24,18 @@ public class LongTemplate implements Template {
 	private LongTemplate() { }
 
 	public void pack(Packer pk, Object target) throws IOException {
-		pk.packLong((Long)target);
+		try {
+			pk.packLong((Long)target);
+		} catch (NullPointerException e) {
+			throw new MessageTypeException("target is null.", e);
+		}
 	}
 
-	public Object unpack(Unpacker pac) throws IOException, MessageTypeException {
+	public Object unpack(Unpacker pac, Object to) throws IOException, MessageTypeException {
 		return pac.unpackLong();
 	}
 
-	public Object convert(MessagePackObject from) throws MessageTypeException {
+	public Object convert(MessagePackObject from, Object to) throws MessageTypeException {
 		return from.asLong();
 	}
 
@@ -42,7 +46,8 @@ public class LongTemplate implements Template {
 	static final LongTemplate instance = new LongTemplate();
 
 	static {
-		CustomMessage.register(Long.class, instance);
+		TemplateRegistry.register(Long.class, instance);
+		TemplateRegistry.register(long.class, instance);
 	}
 }
 

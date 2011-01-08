@@ -24,14 +24,18 @@ public class FloatTemplate implements Template {
 	private FloatTemplate() { }
 
 	public void pack(Packer pk, Object target) throws IOException {
-		pk.packFloat((Float)target);
+		try {
+			pk.packFloat((Float)target);
+		} catch (NullPointerException e) {
+			throw new MessageTypeException("target is null.", e);
+		}
 	}
 
-	public Object unpack(Unpacker pac) throws IOException, MessageTypeException {
+	public Object unpack(Unpacker pac, Object to) throws IOException, MessageTypeException {
 		return pac.unpackFloat();
 	}
 
-	public Object convert(MessagePackObject from) throws MessageTypeException {
+	public Object convert(MessagePackObject from, Object to) throws MessageTypeException {
 		return from.asFloat();
 	}
 
@@ -42,7 +46,8 @@ public class FloatTemplate implements Template {
 	static final FloatTemplate instance = new FloatTemplate();
 
 	static {
-		CustomMessage.register(Float.class, instance);
+		TemplateRegistry.register(Float.class, instance);
+		TemplateRegistry.register(float.class, instance);
 	}
 }
 

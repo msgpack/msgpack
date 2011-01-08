@@ -24,14 +24,18 @@ public class DoubleTemplate implements Template {
 	private DoubleTemplate() { }
 
 	public void pack(Packer pk, Object target) throws IOException {
-		pk.packDouble(((Double)target));
+		try {
+			pk.packDouble(((Double)target));
+		} catch (NullPointerException e) {
+			throw new MessageTypeException("target is null.", e);
+		}
 	}
 
-	public Object unpack(Unpacker pac) throws IOException, MessageTypeException {
+	public Object unpack(Unpacker pac, Object to) throws IOException, MessageTypeException {
 		return pac.unpackDouble();
 	}
 
-	public Object convert(MessagePackObject from) throws MessageTypeException {
+	public Object convert(MessagePackObject from, Object to) throws MessageTypeException {
 		return from.asDouble();
 	}
 
@@ -42,7 +46,8 @@ public class DoubleTemplate implements Template {
 	static final DoubleTemplate instance = new DoubleTemplate();
 
 	static {
-		CustomMessage.register(Double.class, instance);
+		TemplateRegistry.register(Double.class, instance);
+		TemplateRegistry.register(double.class, instance);
 	}
 }
 

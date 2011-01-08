@@ -21,12 +21,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.Map;
 import java.math.BigInteger;
+import org.msgpack.template.TemplateRegistry;
 
 public abstract class MessagePackObject implements Cloneable, MessagePackable {
-	static {
-		Templates.load();
-	}
-
 	public boolean isNil() {
 		return false;
 	}
@@ -138,7 +135,26 @@ public abstract class MessagePackObject implements Cloneable, MessagePackable {
 	abstract public Object clone();
 
 	public Object convert(Template tmpl) throws MessageTypeException {
-		return tmpl.convert(this);
+		return convert(tmpl, null);
+	}
+
+	public <T> T convert(Template tmpl, T to) throws MessageTypeException {
+		return (T)tmpl.convert(this, to);
+	}
+
+	public <T> T convert(Class<T> klass) throws MessageTypeException {
+		return convert(klass, null);
+	}
+
+	public <T> T convert(T to) throws MessageTypeException {
+		return convert((Class<T>)to.getClass(), to);
+	}
+
+	public <T> T convert(Class<T> klass, T to) throws MessageTypeException {
+		if(isNil()) {
+			return null;
+		}
+		return (T)convert(TemplateRegistry.lookup(klass), to);
 	}
 }
 

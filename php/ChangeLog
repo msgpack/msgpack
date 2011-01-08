@@ -1,5 +1,19 @@
 msgpack extension changelog
 
+Version 0.3.4
+-------------
+	* Support PHP 5.3.x version on Windows.
+	(note: NAN and Resource is failed)
+
+Version 0.3.3
+-------------
+	* Update msgpack header files.
+	* Fix unpack internal processing.
+
+Version 0.3.2
+-------------
+	* Version PHP 5 or newer.
+
 Version 0.3.1
 -------------
 	* Fix class MessagePackUnpacker.

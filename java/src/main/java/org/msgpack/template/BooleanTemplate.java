@@ -24,14 +24,18 @@ public class BooleanTemplate implements Template {
 	private BooleanTemplate() { }
 
 	public void pack(Packer pk, Object target) throws IOException {
-		pk.packBoolean((Boolean)target);
+		try {
+			pk.packBoolean((Boolean)target);
+		} catch (NullPointerException e) {
+			throw new MessageTypeException("target is null.", e);
+		}
 	}
 
-	public Object unpack(Unpacker pac) throws IOException, MessageTypeException {
+	public Object unpack(Unpacker pac, Object to) throws IOException, MessageTypeException {
 		return pac.unpackBoolean();
 	}
 
-	public Object convert(MessagePackObject from) throws MessageTypeException {
+	public Object convert(MessagePackObject from, Object to) throws MessageTypeException {
 		return from.asBoolean();
 	}
 
@@ -42,7 +46,8 @@ public class BooleanTemplate implements Template {
 	static final BooleanTemplate instance = new BooleanTemplate();
 
 	static {
-		CustomMessage.register(Boolean.class, instance);
+		TemplateRegistry.register(Boolean.class, instance);
+		TemplateRegistry.register(boolean.class, instance);
 	}
 }
 

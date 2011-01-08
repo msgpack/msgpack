@@ -25,14 +25,18 @@ public class BigIntegerTemplate implements Template {
 	private BigIntegerTemplate() { }
 
 	public void pack(Packer pk, Object target) throws IOException {
-		pk.packBigInteger((BigInteger)target);
+		try {
+			pk.packBigInteger((BigInteger)target);
+		} catch (NullPointerException e) {
+			throw new MessageTypeException("target is null.", e);
+		}
 	}
 
-	public Object unpack(Unpacker pac) throws IOException, MessageTypeException {
+	public Object unpack(Unpacker pac, Object to) throws IOException, MessageTypeException {
 		return pac.unpackBigInteger();
 	}
 
-	public Object convert(MessagePackObject from) throws MessageTypeException {
+	public Object convert(MessagePackObject from, Object to) throws MessageTypeException {
 		return from.asBigInteger();
 	}
 
@@ -43,7 +47,7 @@ public class BigIntegerTemplate implements Template {
 	static final BigIntegerTemplate instance = new BigIntegerTemplate();
 
 	static {
-		CustomMessage.register(BigInteger.class, instance);
+		TemplateRegistry.register(BigInteger.class, instance);
 	}
 }
 

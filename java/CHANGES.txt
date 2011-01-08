@@ -1,3 +1,78 @@
+
+Release 0.5.1 - 2010/12/14
+  BUG FIXES
+    Fixes cast error on GenericArrayType
+
+    Throws MessagePackException instead of NullPointerException if target is null
+    on pack method.
+
+
+Release 0.5.0 - 2010/12/09
+  NEW FEATURES
+    Dynamic template builder is rewritten. New ReflectionTemplateBuilder
+    supports DalvikVM.
+
+    Some optimization for dynamic code generator.
+
+    @MessagePackMessage accepts default filed option.
+    Added new field annotations: @Ignore, @Requred and @Index.
+
+    Supported pack/unpack/convertion of arrays including multidimensional arrays.
+
+    Added native pack/unpack routine of ByteBuffer. It will be zero-copy optimized
+    under a specific condition.
+
+
+Release 0.4.3 - 2010/11/10
+  NEW FEATURES
+    Added FieldList class and MessagePack.register(Class<T>, FieldList) method
+    to specify optional/nullable options on runtime without annotations.
+
+    Changed annotation name: @MessagePackNullable -> @Nullable
+    Changed annotation name: @MessagePackOptional -> @Optional
+
+    Supported pack/unpack/convertion of enums.
+
+    Added MessagePack.unpack(buffer, T to) and MessagePackObject.convert(T to)
+    methods. They can unpack/convert buffer/object into existing object and
+    eliminate re-allocation overhead.
+
+
+Release 0.4.2 - 2010/11/09
+  NEW FEATURES
+    Added MessagePackNullable annotation and Tempalte.tNullable(Template)
+    method.
+
+    Added <T> T MessagePackObject.unpack(Class<T>) method.
+
+
+Release 0.4.1 - 2010/11/05
+  BUG FIXES
+    Fixed dynamic code generation of unpack methods
+
+
+Release 0.4.0 - 2010/10/25
+  NEW FEATURES
+    Added MessagePackObject class and org.msgpack.object package that
+    represent unpacked (=dynamically typed) objects.
+    Unpacker.unpack method returns MessagePackObject instead of Object.
+
+    Added Templates class and org.msgpack.template package that provide
+    type conversion feature.
+
+    User-defined classes annotated with MessagePackMessage can be
+    pack/unpack/converted.
+
+    User-defined classes registered with MessagePack.register(Class) can be
+    pack/unpack/converted.
+
+    Added dynamic code generation feature for user-defined classes.
+
+    Added MessagePackOptional annotation.
+
+    Added MessagePack class that implements typical useful methods.
+
+
 Release 0.3 - 2010/05/23
   NEW FEATURES
     Added Unbuffered API + Direct Conversion API to the Unpacker.

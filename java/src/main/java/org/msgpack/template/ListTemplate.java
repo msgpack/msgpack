@@ -23,6 +23,8 @@ import java.io.IOException;
 import org.msgpack.*;
 
 public class ListTemplate implements Template {
+	static void load() { }
+
 	private Template elementTemplate;
 
 	public ListTemplate(Template elementTemplate) {
@@ -35,8 +37,11 @@ public class ListTemplate implements Template {
 
 	@SuppressWarnings("unchecked")
 	public void pack(Packer pk, Object target) throws IOException {
-		if(!(target instanceof List)) {
-			throw new MessageTypeException();
+		if (! (target instanceof List)) {
+			if (target == null) {
+				throw new MessageTypeException(new NullPointerException("target is null."));
+			}
+			throw new MessageTypeException("target is not List type: " + target.getClass());
 		}
 		List<Object> list = (List<Object>)target;
 		pk.packArray(list.size());
@@ -45,22 +50,42 @@ public class ListTemplate implements Template {
 		}
 	}
 
-	public Object unpack(Unpacker pac) throws IOException, MessageTypeException {
+	@SuppressWarnings("unchecked")
+	public Object unpack(Unpacker pac, Object to) throws IOException, MessageTypeException {
 		int length = pac.unpackArray();
-		List<Object> list = new ArrayList<Object>(length);
+		List<Object> list;
+		if(to == null) {
+			list = new ArrayList<Object>(length);
+		} else {
+			list = (List<Object>) to;
+			list.clear();
+		}
 		for(; length > 0; length--) {
-			list.add( elementTemplate.unpack(pac) );
+			list.add( elementTemplate.unpack(pac, null) );
 		}
 		return list;
 	}
 
-	public Object convert(MessagePackObject from) throws MessageTypeException {
+	@SuppressWarnings("unchecked")
+	public Object convert(MessagePackObject from, Object to) throws MessageTypeException {
 		MessagePackObject[] array = from.asArray();
-		List<Object> list = new ArrayList<Object>(array.length);
+		List<Object> list;
+		if(to == null) {
+			list = new ArrayList<Object>(array.length);
+		} else {
+			// TODO: optimize if list is instanceof ArrayList
+			list = (List<Object>) to;
+			list.clear();
+		}
 		for(MessagePackObject element : array) {
-			list.add( elementTemplate.convert(element) );
+			list.add( elementTemplate.convert(element, null) );
 		}
 		return list;
+	}
+
+	static {
+		TemplateRegistry.registerGeneric(List.class, new GenericTemplate1(ListTemplate.class));
+		TemplateRegistry.register(List.class, new ListTemplate(AnyTemplate.getInstance()));
 	}
 }
 

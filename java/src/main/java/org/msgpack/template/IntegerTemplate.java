@@ -24,14 +24,18 @@ public class IntegerTemplate implements Template {
 	private IntegerTemplate() { }
 
 	public void pack(Packer pk, Object target) throws IOException {
-		pk.packInt((Integer)target);
+		try {
+			pk.packInt((Integer)target);
+		} catch (NullPointerException e) {
+			throw new MessageTypeException("target is null.", e);
+		}
 	}
 
-	public Object unpack(Unpacker pac) throws IOException, MessageTypeException {
+	public Object unpack(Unpacker pac, Object to) throws IOException, MessageTypeException {
 		return pac.unpackInt();
 	}
 
-	public Object convert(MessagePackObject from) throws MessageTypeException {
+	public Object convert(MessagePackObject from, Object to) throws MessageTypeException {
 		return from.asInt();
 	}
 
@@ -42,7 +46,8 @@ public class IntegerTemplate implements Template {
 	static final IntegerTemplate instance = new IntegerTemplate();
 
 	static {
-		CustomMessage.register(Integer.class, instance);
+		TemplateRegistry.register(Integer.class, instance);
+		TemplateRegistry.register(int.class, instance);
 	}
 }
 

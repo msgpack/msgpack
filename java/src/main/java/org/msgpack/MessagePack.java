@@ -21,10 +21,9 @@ import java.io.OutputStream;
 import java.io.InputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-//import org.msgpack.util.codegen.DynamicTemplate;  // FIXME
-import org.msgpack.util.codegen.DynamicPacker;
-import org.msgpack.util.codegen.DynamicConverter;
-import org.msgpack.util.codegen.DynamicUnpacker;
+import org.msgpack.template.TemplateRegistry;
+import org.msgpack.template.TemplateBuilder;
+import org.msgpack.template.FieldList;
 
 public class MessagePack {
 	public static byte[] pack(Object obj) {
@@ -51,7 +50,7 @@ public class MessagePack {
 		return out.toByteArray();
 	}
 
-	public static void pack(OutputStream out, Object obj, Template tmpl) throws IOException {
+	public static void pack(OutputStream out, Object obj, Template tmpl) throws IOException, MessageTypeException {
 		new Packer(out).pack(obj, tmpl);
 	}
 
@@ -76,6 +75,16 @@ public class MessagePack {
 		}
 	}
 
+	public static <T> T unpack(byte[] buffer, Template tmpl, T to) throws MessageTypeException {
+		Unpacker pac = new Unpacker();
+		pac.wrap(buffer);
+		try {
+			return pac.unpack(tmpl, to);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	public static <T> T unpack(byte[] buffer, Class<T> klass) throws MessageTypeException {
 		Unpacker pac = new Unpacker();
 		pac.wrap(buffer);
@@ -86,19 +95,34 @@ public class MessagePack {
 		}
 	}
 
-	public static MessagePackObject unpack(InputStream in) {
-		Unpacker pac = new Unpacker(in);
+	public static <T> T unpack(byte[] buffer, T to) throws MessageTypeException {
+		Unpacker pac = new Unpacker();
+		pac.wrap(buffer);
 		try {
-			return pac.unpackObject();
+			return pac.unpack(to);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	public static MessagePackObject unpack(InputStream in) throws IOException {
+		Unpacker pac = new Unpacker(in);
+		return pac.unpackObject();
 	}
 
 	public static Object unpack(InputStream in, Template tmpl) throws IOException, MessageTypeException {
 		Unpacker pac = new Unpacker(in);
 		try {
 			return pac.unpack(tmpl);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public static <T> T unpack(InputStream in, Template tmpl, T to) throws IOException, MessageTypeException {
+		Unpacker pac = new Unpacker(in);
+		try {
+			return pac.unpack(tmpl, to);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
@@ -111,46 +135,27 @@ public class MessagePack {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
-
 	}
 
-	public static void register(Class<?> target) {  // auto-detect
-		// FIXME
-		//Template tmpl;
-		//if(List.isAssignableFrom(target)) {
-		//} else if(Set.isAssignableFrom(target)) {
-		//} else if(Map.isAssignableFrom(target)) {
-		//} else if(Collection.isAssignableFrom(target)) {
-		//} else if(BigInteger.isAssignableFrom(target)) {
-		//} else {
-		//}
+	public static <T> T unpack(InputStream in, T to) throws IOException, MessageTypeException {
+		Unpacker pac = new Unpacker(in);
+		try {
+			return pac.unpack(to);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
 
-		// FIXME
-		//Template tmpl = DynamicTemplate.create(target);
-		//register(target, tmpl);
+	public static void register(Class<?> target) {
+		TemplateRegistry.register(target);
+	}
 
-		// FIXME
-		CustomPacker.register(target, DynamicPacker.create(target));
-		CustomConverter.register(target, DynamicConverter.create(target));
-		CustomUnpacker.register(target, DynamicUnpacker.create(target));
+	public static void register(Class<?> target, FieldList flist) throws NoSuchFieldException {
+		TemplateRegistry.register(target, flist);
 	}
 
 	public static void register(Class<?> target, Template tmpl) {
-		CustomPacker.register(target, tmpl);
-		CustomConverter.register(target, tmpl);
-		CustomUnpacker.register(target, tmpl);
-	}
-
-	public static void registerPacker(Class<?> target, MessagePacker packer) {
-		CustomPacker.register(target, packer);
-	}
-
-	public static void registerConverter(Class<?> target, MessageConverter converter) {
-		CustomConverter.register(target, converter);
-	}
-
-	public static void registerUnpacker(Class<?> target, MessageUnpacker unpacker) {
-		CustomUnpacker.register(target, unpacker);
+		TemplateRegistry.register(target, tmpl);
 	}
 }
 

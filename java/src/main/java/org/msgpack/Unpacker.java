@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.nio.ByteBuffer;
 import java.math.BigInteger;
+import org.msgpack.template.TemplateRegistry;
 
 /**
  * Unpacker enables you to deserialize objects from stream.
@@ -103,10 +104,6 @@ import java.math.BigInteger;
  * </pre>
  */
 public class Unpacker implements Iterable<MessagePackObject> {
-	static {
-		Templates.load();
-	}
-
 	// buffer:
 	// +---------------------------------------------+
 	// | [object] | [obje| unparsed ... | unused  ...|
@@ -235,6 +232,7 @@ public class Unpacker implements Iterable<MessagePackObject> {
 		impl.buffer = buffer;
 		impl.offset = offset;
 		impl.filled = length;
+		impl.bufferReferenced = false;  // TODO zero-copy buffer
 	}
 
 	/**
@@ -279,13 +277,16 @@ public class Unpacker implements Iterable<MessagePackObject> {
 		if(impl.buffer == null) {
 			int nextSize = (bufferReserveSize < require) ? require : bufferReserveSize;
 			impl.buffer = new byte[nextSize];
+			impl.bufferReferenced = false;  // TODO zero-copy buffer
 			return;
 		}
 
-		if(impl.filled <= impl.offset) {
-			// rewind the buffer
-			impl.filled = 0;
-			impl.offset = 0;
+		if(!impl.bufferReferenced) {  // TODO zero-copy buffer
+			if(impl.filled <= impl.offset) {
+				// rewind the buffer
+				impl.filled = 0;
+				impl.offset = 0;
+			}
 		}
 
 		if(impl.buffer.length - impl.filled >= require) {
@@ -304,6 +305,7 @@ public class Unpacker implements Iterable<MessagePackObject> {
 		impl.buffer = tmp;
 		impl.filled = notParsed;
 		impl.offset = 0;
+		impl.bufferReferenced = false;  // TODO zero-copy buffer
 	}
 
 	/**
@@ -370,8 +372,7 @@ public class Unpacker implements Iterable<MessagePackObject> {
 	 * @return offset position that is parsed.
 	 */
 	public int execute(byte[] buffer, int offset, int length) throws UnpackException {
-		int noffset = impl.execute(buffer, offset + impl.offset, length);
-		impl.offset = noffset - offset;
+		int noffset = impl.execute(buffer, offset, length);
 		if(impl.isFinished()) {
 			impl.resetState();
 		}
@@ -539,12 +540,21 @@ public class Unpacker implements Iterable<MessagePackObject> {
 		return impl.unpackRawBody(length);
 	}
 
+
 	/**
-	 * Gets one raw bytes from the buffer.
+	 * Gets one raw object (header + body) from the buffer.
 	 * This method calls {@link fill()} method if needed.
 	 */
 	public byte[] unpackByteArray() throws IOException {
 		return impl.unpackByteArray();
+	}
+
+	/**
+	 * Gets one raw object (header + body) from the buffer.
+	 * This method calls {@link fill()} method if needed.
+	 */
+	public ByteBuffer unpackByteBuffer() throws IOException {
+		return impl.unpackByteBuffer();
 	}
 
 	/**
@@ -576,13 +586,25 @@ public class Unpacker implements Iterable<MessagePackObject> {
 	//	return unpackObject();
 	//}
 
-	final public Object unpack(Template tmpl) throws IOException, MessageTypeException {
-		return tmpl.unpack(this);
+	final public <T> T unpack(T to) throws IOException, MessageTypeException {
+		return unpack((Class<T>)to.getClass(), to);
 	}
 
 	final public <T> T unpack(Class<T> klass) throws IOException, MessageTypeException {
-		// FIXME optional?
-		return (T)unpack(Templates.tOptional(Templates.tClass(klass)));
+		return unpack(klass, null);
+	}
+
+	final public <T> T unpack(Class<T> klass, T to) throws IOException, MessageTypeException {
+		if(tryUnpackNull()) { return null; }
+		return (T)TemplateRegistry.lookup(klass).unpack(this, to);
+	}
+
+	final public Object unpack(Template tmpl) throws IOException, MessageTypeException {
+		return unpack(tmpl, null);
+	}
+
+	final public <T> T unpack(Template tmpl, T to) throws IOException, MessageTypeException {
+		return (T)tmpl.unpack(this, to);
 	}
 }
 
