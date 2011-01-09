@@ -73,7 +73,6 @@ cdef class Packer(object):
 
         if o is None:
             ret = msgpack_pack_nil(&self.pk)
-            #elif PyBool_Check(o):
         elif isinstance(o, bool):
             if o:
                 ret = msgpack_pack_true(&self.pk)
@@ -145,7 +144,7 @@ def packb(object o, default=None):
     packer = Packer(default=default)
     return packer.pack(o)
 
-packs = packb
+dumps = packs = packb
 
 cdef extern from "unpack.h":
     ctypedef struct msgpack_user:
@@ -193,7 +192,7 @@ def unpackb(object packed, object object_hook=None, object list_hook=None):
     else:
         return None
 
-unpacks = unpackb
+loads = unpacks = unpackb
 
 def unpack(object stream, object object_hook=None, object list_hook=None):
     """unpack an object from stream."""
