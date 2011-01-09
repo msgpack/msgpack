@@ -1,13 +1,11 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from __future__ import unicode_literals
-
 from msgpack import Unpacker
 
 def test_foobar():
     unpacker = Unpacker(read_size=3)
-    unpacker.feed(b'foobar')
+    unpacker.feed('foobar')
     assert unpacker.unpack() == ord(b'f')
     assert unpacker.unpack() == ord(b'o')
     assert unpacker.unpack() == ord(b'o')
