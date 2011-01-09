@@ -229,7 +229,8 @@ cdef class Unpacker(object):
     cdef char* buf
     cdef size_t buf_size, buf_head, buf_tail
     cdef object file_like
-    cdef int read_size
+    cdef object file_like_read
+    cdef Py_ssize_t read_size
     cdef bint use_list
     cdef object object_hook
 
@@ -239,12 +240,16 @@ cdef class Unpacker(object):
     def __dealloc__(self):
         free(self.buf);
 
-    def __init__(self, file_like=None, int read_size=0, bint use_list=0,
+    def __init__(self, file_like=None, Py_ssize_t read_size=0, bint use_list=0,
                  object object_hook=None, object list_hook=None):
         if read_size == 0:
             read_size = 1024*1024
         self.use_list = use_list
         self.file_like = file_like
+        if file_like:
+            self.file_like_read = file_like.read
+            if not PyCallable_Check(self.file_like_read):
+                raise ValueError("`file_like.read` must be a callable.")
         self.read_size = read_size
         self.buf = <char*>malloc(read_size)
         self.buf_size = read_size
@@ -265,6 +270,9 @@ cdef class Unpacker(object):
     def feed(self, object next_bytes):
         cdef char* buf
         cdef Py_ssize_t buf_len
+        if self.file_like is not None:
+            raise AssertionError(
+                    "unpacker.feed() is not be able to use with`file_like`.")
         PyObject_AsReadBuffer(next_bytes, <const_void_ptr*>&buf, &buf_len)
         self.append_buffer(buf, buf_len)
 
@@ -298,7 +306,7 @@ cdef class Unpacker(object):
     # prepare self.buf from file_like
     cdef fill_buffer(self):
         if self.file_like is not None:
-            next_bytes = self.file_like.read(self.read_size)
+            next_bytes = self.file_like_read(self.read_size)
             if next_bytes:
                 self.append_buffer(PyBytes_AsString(next_bytes),
                                    PyBytes_Size(next_bytes))
@@ -308,18 +316,19 @@ cdef class Unpacker(object):
     cpdef unpack(self):
         """unpack one object"""
         cdef int ret
-        self.fill_buffer()
-        ret = template_execute(&self.ctx, self.buf, self.buf_tail, &self.buf_head)
-        if ret == 1:
-            o = template_data(&self.ctx)
-            template_init(&self.ctx)
-            return o
-        elif ret == 0:
-            if self.file_like is not None:
-                return self.unpack()
-            raise StopIteration, "No more unpack data."
-        else:
-            raise ValueError, "Unpack failed."
+        while 1:
+            ret = template_execute(&self.ctx, self.buf, self.buf_tail, &self.buf_head)
+            if ret == 1:
+                o = template_data(&self.ctx)
+                template_init(&self.ctx)
+                return o
+            elif ret == 0:
+                if self.file_like is not None:
+                    self.fill_buffer()
+                    continue
+                raise StopIteration("No more unpack data.")
+            else:
+                raise ValueError("Unpack failed: error = %d" % (ret,))
 
     def __iter__(self):
         return UnpackIterator(self)
