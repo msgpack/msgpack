@@ -299,6 +299,7 @@ cdef class Unpacker(object):
                 buf_size = new_size
 
         memcpy(buf + tail, <char*>(_buf), _buf_len)
+        self.buf = buf
         self.buf_head = head
         self.buf_size = buf_size
         self.buf_tail = tail + _buf_len
