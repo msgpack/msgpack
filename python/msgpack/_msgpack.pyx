@@ -239,6 +239,7 @@ cdef class Unpacker(object):
 
     def __dealloc__(self):
         free(self.buf);
+        self.buf = NULL;
 
     def __init__(self, file_like=None, Py_ssize_t read_size=0, bint use_list=0,
                  object object_hook=None, object list_hook=None):
@@ -252,6 +253,8 @@ cdef class Unpacker(object):
                 raise ValueError("`file_like.read` must be a callable.")
         self.read_size = read_size
         self.buf = <char*>malloc(read_size)
+        if self.buf == NULL:
+            raise MemoryError("Unable to allocate internal buffer.")
         self.buf_size = read_size
         self.buf_head = 0
         self.buf_tail = 0
@@ -295,7 +298,9 @@ cdef class Unpacker(object):
                 new_size = tail + _buf_len
                 if new_size < buf_size*2:
                     new_size = buf_size*2
-                buf = <char*>realloc(buf, new_size)
+                buf = <char*>realloc(buf, new_size) 
+                if buf == NULL:
+                    raise MemoryError("Unable to enlarge internal buffer.")   # self.buf still holds old buffer and will be freed during obj destruction
                 buf_size = new_size
 
         memcpy(buf + tail, <char*>(_buf), _buf_len)
