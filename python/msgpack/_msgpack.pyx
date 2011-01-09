@@ -264,7 +264,7 @@ cdef class Unpacker(object):
             self.ctx.user.object_hook = <PyObject*>object_hook
         if list_hook is not None:
             if not PyCallable_Check(list_hook):
-                raise TypeError("object_hook must be a callable.")
+                raise TypeError("list_hook must be a callable.")
             self.ctx.user.list_hook = <PyObject*>list_hook
 
     def feed(self, object next_bytes):
