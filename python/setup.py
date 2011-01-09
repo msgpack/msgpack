@@ -57,7 +57,7 @@ del sources, libraries
 desc = 'MessagePack (de)serializer.'
 long_desc = """MessagePack (de)serializer for Python.
 
-What's MessagePack? (from http://msgpack.sourceforge.net/)
+What's MessagePack? (from http://msgpack.org/)
 
  MessagePack is a binary-based efficient data interchange format that is
  focused on high performance. It is like JSON, but very fast and small.
@@ -72,7 +72,7 @@ setup(name='msgpack-python',
       packages=['msgpack'],
       description=desc,
       long_description=long_desc,
-      url='http://msgpack.sourceforge.net/',
+      url='http://msgpack.org/',
       download_url='http://pypi.python.org/pypi/msgpack/',
       classifiers=[
           'Programming Language :: Python :: 2',
