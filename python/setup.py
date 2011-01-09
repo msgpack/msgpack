@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-version = (0, 1, 7, 'final')
+version = (0, 1, 8, 'final')
 
 import os
 import sys
@@ -20,6 +20,8 @@ except ImportError:
 f = open('msgpack/__version__.py', 'w')
 f.write("version = %r\n" % (version,))
 f.close()
+del f
+
 version_str = '.'.join(str(x) for x in version[:3])
 if len(version) > 3 and version[3] != 'final':
     version_str += version[3]

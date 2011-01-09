@@ -1,6 +1,6 @@
 0.1.8
 ======
-:release date: NOT YET RELEASED
+:release date: 2011-01-10
 
 New feature
 ------------
@@ -16,6 +16,7 @@ New feature
 
 Bugs fixed
 ----------
+* Fix segv around ``Unpacker.feed`` or ``Unpacker(file)``.
 
 
 0.1.7
