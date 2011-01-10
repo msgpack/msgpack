@@ -46,6 +46,8 @@ cdef class Packer(object):
     def __cinit__(self):
         cdef int buf_size = 1024*1024
         self.pk.buf = <char*> malloc(buf_size);
+        if self.pk.buf == NULL:
+            raise MemoryError("Unable to allocate internal buffer.")
         self.pk.buf_size = buf_size
         self.pk.length = 0
 
@@ -300,7 +302,9 @@ cdef class Unpacker(object):
                     new_size = buf_size*2
                 buf = <char*>realloc(buf, new_size) 
                 if buf == NULL:
-                    raise MemoryError("Unable to enlarge internal buffer.")   # self.buf still holds old buffer and will be freed during obj destruction
+                    # self.buf still holds old buffer and will be freed during
+                    # obj destruction
+                    raise MemoryError("Unable to enlarge internal buffer.")
                 buf_size = new_size
 
         memcpy(buf + tail, <char*>(_buf), _buf_len)
