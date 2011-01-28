@@ -24,7 +24,7 @@ test('array("" => "empty")', array("" => "empty"));
 ?>
 --EXPECT--
 array("foo", "foo", "foo")
-8300a3666f6f01a3666f6f02a3666f6f
+93a3666f6fa3666f6fa3666f6f
 array(3) {
   [0]=>
   string(3) "foo"

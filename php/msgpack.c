@@ -15,6 +15,8 @@
 #include "msgpack_pack.h"
 #include "msgpack_unpack.h"
 #include "msgpack_class.h"
+#include "msgpack_convert.h"
+#include "msgpack_errors.h"
 #include "msgpack/version.h"
 
 static ZEND_FUNCTION(msgpack_serialize);
@@ -26,6 +28,7 @@ ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_msgpack_unserialize, 0, 0, 1)
     ZEND_ARG_INFO(0, str)
+    ZEND_ARG_INFO(0, object)
 ZEND_END_ARG_INFO()
 
 PHP_INI_BEGIN()
@@ -248,42 +251,26 @@ PHP_MSGPACK_API void php_msgpack_unserialize(
     switch (ret)
     {
         case MSGPACK_UNPACK_PARSE_ERROR:
-        {
             msgpack_unserialize_var_destroy(&var_hash, 1);
-            if (MSGPACK_G(error_display))
-            {
-                zend_error(E_WARNING,
-                           "[msgpack] (%s) Parse error", __FUNCTION__);
-            }
+            MSGPACK_WARNING("[msgpack] (%s) Parse error", __FUNCTION__);
             break;
-        }
         case MSGPACK_UNPACK_CONTINUE:
-        {
             msgpack_unserialize_var_destroy(&var_hash, 1);
-            if (MSGPACK_G(error_display))
-            {
-                zend_error(E_WARNING,
-                           "[msgpack] (%s) Insufficient data for unserializing",
-                           __FUNCTION__);
-            }
+            MSGPACK_WARNING(
+                "[msgpack] (%s) Insufficient data for unserializing",
+                __FUNCTION__);
             break;
-        }
         case MSGPACK_UNPACK_EXTRA_BYTES:
         case MSGPACK_UNPACK_SUCCESS:
             msgpack_unserialize_var_destroy(&var_hash, 0);
-            if (off < (size_t)str_len && MSGPACK_G(error_display))
+            if (off < (size_t)str_len)
             {
-                zend_error(E_WARNING,
-                           "[msgpack] (%s) Extra bytes", __FUNCTION__);
+                MSGPACK_WARNING("[msgpack] (%s) Extra bytes", __FUNCTION__);
             }
             break;
         default:
             msgpack_unserialize_var_destroy(&var_hash, 0);
-            if (MSGPACK_G(error_display))
-            {
-                zend_error(E_WARNING,
-                           "[msgpack] (%s) Unknown result", __FUNCTION__);
-            }
+            MSGPACK_WARNING("[msgpack] (%s) Unknown result", __FUNCTION__);
             break;
     }
 }
@@ -310,9 +297,11 @@ static ZEND_FUNCTION(msgpack_unserialize)
 {
     char *str;
     int str_len;
+    zval *object = NULL;
 
     if (zend_parse_parameters(
-            ZEND_NUM_ARGS() TSRMLS_CC, "s", &str, &str_len) == FAILURE)
+            ZEND_NUM_ARGS() TSRMLS_CC, "s|z",
+            &str, &str_len, &object) == FAILURE)
     {
         return;
     }
@@ -322,5 +311,20 @@ static ZEND_FUNCTION(msgpack_unserialize)
         RETURN_NULL();
     }
 
-    php_msgpack_unserialize(return_value, str, str_len TSRMLS_CC);
+    if (object == NULL)
+    {
+        php_msgpack_unserialize(return_value, str, str_len TSRMLS_CC);
+    }
+    else
+    {
+        zval *zv;
+
+        ALLOC_INIT_ZVAL(zv);
+        php_msgpack_unserialize(zv, str, str_len TSRMLS_CC);
+
+        if (msgpack_convert_object(return_value, object, &zv) != SUCCESS)
+        {
+            RETURN_NULL();
+        }
+    }
 }

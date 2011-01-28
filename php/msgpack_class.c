@@ -5,6 +5,8 @@
 #include "msgpack_pack.h"
 #include "msgpack_unpack.h"
 #include "msgpack_class.h"
+#include "msgpack_convert.h"
+#include "msgpack_errors.h"
 
 typedef struct {
     zend_object object;
@@ -96,6 +98,7 @@ ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_msgpack_base_unpack, 0, 0, 1)
     ZEND_ARG_INFO(0, str)
+    ZEND_ARG_INFO(0, object)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_msgpack_base_unpacker, 0, 0, 0)
@@ -144,6 +147,7 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_msgpack_unpacker_execute, 1, 0, 0)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_msgpack_unpacker_data, 0, 0, 0)
+    ZEND_ARG_INFO(0, object)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_msgpack_unpacker_reset, 0, 0, 0)
@@ -289,12 +293,8 @@ static ZEND_METHOD(msgpack, setOption)
             base->php_only = Z_BVAL_P(value);
             break;
         default:
-            if (MSGPACK_G(error_display))
-            {
-                zend_error(E_WARNING,
-                           "[msgpack] (MessagePack::setOption) "
-                           "error setting msgpack option");
-            }
+            MSGPACK_WARNING("[msgpack] (MessagePack::setOption) "
+                            "error setting msgpack option");
             RETURN_FALSE;
             break;
     }
@@ -330,11 +330,13 @@ static ZEND_METHOD(msgpack, unpack)
 {
     char *str;
     int str_len;
+    zval *object = NULL;
     int php_only = MSGPACK_G(php_only);
     MSGPACK_BASE_OBJECT;
 
     if (zend_parse_parameters(
-            ZEND_NUM_ARGS() TSRMLS_CC, "s", &str, &str_len) == FAILURE)
+            ZEND_NUM_ARGS() TSRMLS_CC, "s|z",
+            &str, &str_len, &object) == FAILURE)
     {
         return;
     }
@@ -346,7 +348,22 @@ static ZEND_METHOD(msgpack, unpack)
 
     MSGPACK_G(php_only) = base->php_only;
 
-    php_msgpack_unserialize(return_value, str, str_len TSRMLS_CC);
+    if (object == NULL)
+    {
+        php_msgpack_unserialize(return_value, str, str_len TSRMLS_CC);
+    }
+    else
+    {
+        zval *zv;
+
+        ALLOC_INIT_ZVAL(zv);
+        php_msgpack_unserialize(zv, str, str_len TSRMLS_CC);
+
+        if (msgpack_convert_object(return_value, object, &zv) != SUCCESS)
+        {
+            RETURN_NULL();
+        }
+    }
 
     MSGPACK_G(php_only) = php_only;
 }
@@ -429,12 +446,8 @@ static ZEND_METHOD(msgpack_unpacker, setOption)
             unpacker->php_only = Z_BVAL_P(value);
             break;
         default:
-            if (MSGPACK_G(error_display))
-            {
-                zend_error(E_WARNING,
-                           "[msgpack] (MessagePackUnpacker::setOption) "
-                           "error setting msgpack option");
-            }
+            MSGPACK_WARNING("[msgpack] (MessagePackUnpacker::setOption) "
+                            "error setting msgpack option");
             RETURN_FALSE;
             break;
     }
@@ -468,7 +481,7 @@ static ZEND_METHOD(msgpack_unpacker, execute)
 {
     char *str = NULL, *data;
     long str_len = 0;
-    zval *offset;
+    zval *offset = NULL;
     int ret;
     size_t len, off;
     int error_display = MSGPACK_G(error_display);
@@ -484,20 +497,16 @@ static ZEND_METHOD(msgpack_unpacker, execute)
 
     if (str != NULL)
     {
-        if (ZEND_NUM_ARGS() < 2)
-        {
-            if (MSGPACK_G(error_display))
-            {
-                zend_error(E_WARNING,
-                           "[msgpack] (MessagePackUnpacker::execute) "
-                           "expects exactly 2 parameters");
-            }
-            RETURN_FALSE;
-        }
-
         data = (char *)str;
         len = (size_t)str_len;
-        off = Z_LVAL_P(offset);
+        if (offset != NULL)
+        {
+            off = Z_LVAL_P(offset);
+        }
+        else
+        {
+            off = 0;
+        }
     }
     else
     {
@@ -538,7 +547,10 @@ static ZEND_METHOD(msgpack_unpacker, execute)
 
     if (str != NULL)
     {
-        ZVAL_LONG(offset, off);
+        if (offset != NULL)
+        {
+            ZVAL_LONG(offset, off);
+        }
     }
     else
     {
@@ -560,11 +572,33 @@ static ZEND_METHOD(msgpack_unpacker, execute)
 
 static ZEND_METHOD(msgpack_unpacker, data)
 {
+    zval *object = NULL;
     MSGPACK_UNPACKER_OBJECT;
+
+    if (zend_parse_parameters(
+            ZEND_NUM_ARGS() TSRMLS_CC, "|z", &object) == FAILURE)
+    {
+        return;
+    }
 
     if (unpacker->retval != NULL)
     {
-        ZVAL_ZVAL(return_value, unpacker->retval, 1, 0);
+        if (object == NULL)
+        {
+            ZVAL_ZVAL(return_value, unpacker->retval, 1, 0);
+        }
+        else
+        {
+            zval *zv;
+
+            ALLOC_INIT_ZVAL(zv);
+            ZVAL_ZVAL(zv, unpacker->retval, 1, 0);
+
+            if (msgpack_convert_object(return_value, object, &zv) != SUCCESS)
+            {
+                RETURN_NULL();
+            }
+        }
 
         MSGPACK_METHOD(msgpack_unpacker, reset, NULL, getThis());
 
