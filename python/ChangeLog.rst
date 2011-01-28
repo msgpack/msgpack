@@ -1,3 +1,17 @@
+0.1.9
+======
+:release date: 2011-01-29
+
+New feature
+-----------
+* ``use_list`` option is added to unpack(b) like Unpacker.
+  (Use keyword argument because order of parameters are different)
+
+Bugs fixed
+----------
+* Fix typo.
+* Add MemoryError check.
+
 0.1.8
 ======
 :release date: 2011-01-10
