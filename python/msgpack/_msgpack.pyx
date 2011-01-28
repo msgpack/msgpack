@@ -167,7 +167,7 @@ cdef extern from "unpack.h":
     object template_data(template_context* ctx)
 
 
-def unpackb(object packed, object object_hook=None, object list_hook=None):
+def unpackb(object packed, object object_hook=None, object list_hook=None, bint use_list=0):
     """Unpack packed_bytes to object. Returns an unpacked object."""
     cdef template_context ctx
     cdef size_t off = 0
@@ -178,7 +178,7 @@ def unpackb(object packed, object object_hook=None, object list_hook=None):
     PyObject_AsReadBuffer(packed, <const_void_ptr*>&buf, &buf_len)
 
     template_init(&ctx)
-    ctx.user.use_list = 0
+    ctx.user.use_list = use_list
     ctx.user.object_hook = ctx.user.list_hook = NULL
     if object_hook is not None:
         if not PyCallable_Check(object_hook):
@@ -196,9 +196,9 @@ def unpackb(object packed, object object_hook=None, object list_hook=None):
 
 loads = unpacks = unpackb
 
-def unpack(object stream, object object_hook=None, object list_hook=None):
+def unpack(object stream, object object_hook=None, object list_hook=None, bint use_list=0):
     """unpack an object from stream."""
-    return unpackb(stream.read(),
+    return unpackb(stream.read(), use_list=use_list,
                    object_hook=object_hook, list_hook=list_hook)
 
 cdef class UnpackIterator(object):
