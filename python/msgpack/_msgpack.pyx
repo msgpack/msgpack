@@ -41,7 +41,7 @@ cdef class Packer(object):
         astream.write(packer.pack(b))
     """
     cdef msgpack_packer pk
-    cdef object default
+    cdef object _default
 
     def __cinit__(self):
         cdef int buf_size = 1024*1024
@@ -55,13 +55,12 @@ cdef class Packer(object):
         if default is not None:
             if not PyCallable_Check(default):
                 raise TypeError("default must be a callable.")
-        self.default = default
+        self._default = default
 
     def __dealloc__(self):
         free(self.pk.buf);
 
-    cdef int _pack(self, object o, int nest_limit=DEFAULT_RECURSE_LIMIT,
-                   default=None) except -1:
+    cdef int _pack(self, object o, int nest_limit=DEFAULT_RECURSE_LIMIT) except -1:
         cdef long long llval
         cdef unsigned long long ullval
         cdef long longval
@@ -109,18 +108,18 @@ cdef class Packer(object):
             ret = msgpack_pack_map(&self.pk, len(d))
             if ret == 0:
                 for k,v in d.items():
-                    ret = self._pack(k, nest_limit-1, default)
+                    ret = self._pack(k, nest_limit-1)
                     if ret != 0: break
-                    ret = self._pack(v, nest_limit-1, default)
+                    ret = self._pack(v, nest_limit-1)
                     if ret != 0: break
         elif PySequence_Check(o):
             ret = msgpack_pack_array(&self.pk, len(o))
             if ret == 0:
                 for v in o:
-                    ret = self._pack(v, nest_limit-1, default)
+                    ret = self._pack(v, nest_limit-1)
                     if ret != 0: break
-        elif default is not None:
-            o = self.default(o)
+        elif self._default is not None:
+            o = self._default(o)
             ret = self._pack(o, nest_limit)
         else:
             raise TypeError("can't serialize %r" % (o,))
@@ -128,7 +127,7 @@ cdef class Packer(object):
 
     def pack(self, object obj):
         cdef int ret
-        ret = self._pack(obj, DEFAULT_RECURSE_LIMIT, self.default)
+        ret = self._pack(obj, DEFAULT_RECURSE_LIMIT)
         if ret:
             raise TypeError
         buf = PyBytes_FromStringAndSize(self.pk.buf, self.pk.length)
