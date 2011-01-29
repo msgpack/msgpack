@@ -9,6 +9,9 @@ cdef extern from "Python.h":
 
 from libc.stdlib cimport *
 from libc.string cimport *
+import gc
+_gc_disable = gc.disable
+_gc_enable = gc.enable
 
 cdef extern from "pack.h":
     struct msgpack_packer:
@@ -187,7 +190,9 @@ def unpackb(object packed, object object_hook=None, object list_hook=None, bint 
         if not PyCallable_Check(list_hook):
             raise TypeError("list_hook must be a callable.")
         ctx.user.list_hook = <PyObject*>list_hook
+    _gc_disable()
     ret = template_execute(&ctx, buf, buf_len, &off)
+    _gc_enable()
     if ret == 1:
         return template_data(&ctx)
     else:
@@ -326,7 +331,9 @@ cdef class Unpacker(object):
         """unpack one object"""
         cdef int ret
         while 1:
+            _gc_disable()
             ret = template_execute(&self.ctx, self.buf, self.buf_tail, &self.buf_head)
+            _gc_enable()
             if ret == 1:
                 o = template_data(&self.ctx)
                 template_init(&self.ctx)
