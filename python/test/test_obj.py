@@ -26,7 +26,7 @@ def test_decode_hook():
     unpacked = unpacks(packed, object_hook=_decode_complex)
     eq_(unpacked[1], 1+2j)
 
-@raises(TypeError)
+@raises(ValueError)
 def test_bad_hook():
     packed = packs([3, 1+2j], default=lambda o: o)
     unpacked = unpacks(packed)

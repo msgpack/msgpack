@@ -118,9 +118,9 @@ cdef class Packer(object):
                 for v in o:
                     ret = self._pack(v, nest_limit-1)
                     if ret != 0: break
-        elif self._default is not None:
+        elif self._default:
             o = self._default(o)
-            ret = self._pack(o, nest_limit)
+            ret = self._pack(o, nest_limit-1)
         else:
             raise TypeError("can't serialize %r" % (o,))
         return ret
