@@ -205,18 +205,6 @@ def unpack(object stream, object object_hook=None, object list_hook=None, bint u
     return unpackb(stream.read(), use_list=use_list,
                    object_hook=object_hook, list_hook=list_hook)
 
-cdef class UnpackIterator(object):
-    cdef object unpacker
-
-    def __init__(self, unpacker):
-        self.unpacker = unpacker
-
-    def __next__(self):
-        return self.unpacker.unpack()
-
-    def __iter__(self):
-        return self
-
 cdef class Unpacker(object):
     """Unpacker(read_size=1024*1024)
 
@@ -347,7 +335,10 @@ cdef class Unpacker(object):
                 raise ValueError("Unpack failed: error = %d" % (ret,))
 
     def __iter__(self):
-        return UnpackIterator(self)
+        return self
+
+    def __next__(self):
+        return self.unpack()
 
     # for debug.
     #def _buf(self):
