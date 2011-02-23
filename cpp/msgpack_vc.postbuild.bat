@@ -24,7 +24,7 @@ copy src\msgpack\pack.hpp              include\msgpack\
 copy src\msgpack\unpack.hpp            include\msgpack\
 copy src\msgpack\object.hpp            include\msgpack\
 copy src\msgpack\zone.hpp              include\msgpack\
-copy src\msgpack\type.hpp              include\msgpack\type\
+copy src\msgpack\type.hpp              include\msgpack\
 copy src\msgpack\type\bool.hpp         include\msgpack\type\
 copy src\msgpack\type\deque.hpp        include\msgpack\type\
 copy src\msgpack\type\fixint.hpp       include\msgpack\type\
