@@ -38,6 +38,7 @@ typedef unsigned __int64 uint64_t;
 
 
 #ifdef _WIN32
+#define _msgpack_atomic_counter_header <windows.h>
 typedef long _msgpack_atomic_counter_t;
 #define _msgpack_sync_decr_and_fetch(ptr) InterlockedDecrement(ptr)
 #define _msgpack_sync_incr_and_fetch(ptr) InterlockedIncrement(ptr)

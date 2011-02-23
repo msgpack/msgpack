@@ -19,6 +19,10 @@
 #include "msgpack/unpack_define.h"
 #include <stdlib.h>
 
+#ifdef _msgpack_atomic_counter_header
+#include _msgpack_atomic_counter_header
+#endif
+
 
 typedef struct {
 	msgpack_zone* z;
