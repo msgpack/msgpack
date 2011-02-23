@@ -35,11 +35,11 @@ namespace detail {
 			if(o.type == type::POSITIVE_INTEGER) {
 				if(o.via.u64 > (uint64_t)std::numeric_limits<T>::max())
 					{ throw type_error(); }
-				return o.via.u64;
+				return (T)o.via.u64;
 			} else if(o.type == type::NEGATIVE_INTEGER) {
 				if(o.via.i64 < (int64_t)std::numeric_limits<T>::min())
 					{ throw type_error(); }
-				return o.via.i64;
+				return (T)o.via.i64;
 			}
 			throw type_error();
 		}
@@ -51,7 +51,7 @@ namespace detail {
 			if(o.type == type::POSITIVE_INTEGER) {
 				if(o.via.u64 > (uint64_t)std::numeric_limits<T>::max())
 					{ throw type_error(); }
-				return o.via.u64;
+				return (T)o.via.u64;
 			}
 			throw type_error();
 		}

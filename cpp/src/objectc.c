@@ -164,7 +164,7 @@ void msgpack_object_print(FILE* out, msgpack_object o)
 
 	default:
 		// FIXME
-		fprintf(out, "#<UNKNOWN %hu %"PRIu64">", o.type, o.via.u64);
+		fprintf(out, "#<UNKNOWN %i %"PRIu64">", o.type, o.via.u64);
 	}
 }
 
