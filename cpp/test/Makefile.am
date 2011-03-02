@@ -1,7 +1,7 @@
 
 AM_CPPFLAGS   = -I../src
 AM_C_CPPFLAGS = -I../src
-AM_LDFLAGS = ../src/libmsgpack.la -lgtest_main
+AM_LDFLAGS = ../src/libmsgpack.la -lgtest_main -pthread
 
 check_PROGRAMS = \
 		zone \
