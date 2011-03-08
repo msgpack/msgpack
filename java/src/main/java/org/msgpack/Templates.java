@@ -105,5 +105,9 @@ public class Templates {
 	public static Template tByteBuffer() {
 		return TByteBuffer;
 	}
+	public static Template TDate = DateTemplate.getInstance();
+	public static Template tDate(){
+		return TDate;
+	}
 }
 

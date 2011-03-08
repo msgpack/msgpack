@@ -37,6 +37,7 @@ public class BuiltInTemplateLoader {
 		ShortArrayTemplate.getInstance();
 		ShortTemplate.getInstance();
 		StringTemplate.getInstance();
+		DateTemplate.getInstance();
 
 		CollectionTemplate.load();
 		ListTemplate.load();
