@@ -34,6 +34,7 @@ import javassist.CtNewConstructor;
 import javassist.CtNewMethod;
 import javassist.LoaderClassPath;
 import javassist.NotFoundException;
+import javassist.ClassClassPath;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,7 +56,8 @@ public class JavassistTemplateBuilder extends TemplateBuilder {
 	}
 
 	private JavassistTemplateBuilder() {
-		this.pool = ClassPool.getDefault();
+		this.pool = new ClassPool();
+		pool.appendClassPath(new LoaderClassPath(getClass().getClassLoader()));
 	}
 
 	protected ClassPool pool;
