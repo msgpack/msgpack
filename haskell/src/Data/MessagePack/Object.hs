@@ -1,6 +1,5 @@
 {-# Language TypeSynonymInstances #-}
 {-# Language FlexibleInstances #-}
-{-# Language OverlappingInstances #-}
 {-# Language IncoherentInstances #-}
 {-# Language DeriveDataTypeable #-}
 
@@ -36,19 +35,22 @@ import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as C8
 import Data.Typeable
 
+import Data.MessagePack.Assoc
 import Data.MessagePack.Pack
 import Data.MessagePack.Unpack
 
 -- | Object Representation of MessagePack data.
-data Object =
-  ObjectNil
+data Object
+  = ObjectNil
   | ObjectBool Bool
   | ObjectInteger Int
+  | ObjectFloat Float
   | ObjectDouble Double
   | ObjectRAW B.ByteString
   | ObjectArray [Object]
   | ObjectMap [(Object, Object)]
   deriving (Show, Eq, Ord, Typeable)
+  
 
 instance NFData Object where
   rnf obj =
@@ -56,10 +58,12 @@ instance NFData Object where
       ObjectNil -> ()
       ObjectBool b -> rnf b
       ObjectInteger n -> rnf n
+      ObjectFloat f -> rnf f
       ObjectDouble d -> rnf d
       ObjectRAW bs -> bs `seq` ()
       ObjectArray a -> rnf a
       ObjectMap m -> rnf m
+
 
 instance Unpackable Object where
   get =
@@ -67,6 +71,7 @@ instance Unpackable Object where
     [ liftM ObjectInteger get
     , liftM (\() -> ObjectNil) get
     , liftM ObjectBool get
+    , liftM ObjectFloat get
     , liftM ObjectDouble get
     , liftM ObjectRAW get
     , liftM ObjectArray get
@@ -82,6 +87,8 @@ instance Packable Object where
         put ()
       ObjectBool b ->
         put b
+      ObjectFloat f ->
+        put f
       ObjectDouble d ->
         put d
       ObjectRAW raw ->
@@ -135,6 +142,11 @@ instance OBJECT Bool where
 instance OBJECT Double where
   toObject = ObjectDouble
   tryFromObject (ObjectDouble d) = Right d
+  tryFromObject _ = tryFromObjectError
+
+instance OBJECT Float where
+  toObject = ObjectFloat
+  tryFromObject (ObjectFloat f) = Right f
   tryFromObject _ = tryFromObjectError
 
 instance OBJECT B.ByteString where
@@ -285,11 +297,11 @@ instance (OBJECT a1, OBJECT a2, OBJECT a3, OBJECT a4, OBJECT a5, OBJECT a6, OBJE
   tryFromObject _ =
     tryFromObjectError
 
-instance (OBJECT a, OBJECT b) => OBJECT [(a, b)] where
+instance (OBJECT a, OBJECT b) => OBJECT (Assoc [(a,b)]) where
   toObject =
-    ObjectMap . map (\(a, b) -> (toObject a, toObject b))
+    ObjectMap . map (\(a, b) -> (toObject a, toObject b)) . unAssoc
   tryFromObject (ObjectMap mem) = do
-    mapM (\(a, b) -> liftM2 (,) (tryFromObject a) (tryFromObject b)) mem
+    liftM Assoc $ mapM (\(a, b) -> liftM2 (,) (tryFromObject a) (tryFromObject b)) mem
   tryFromObject _ =
     tryFromObjectError
 
@@ -299,3 +311,4 @@ instance OBJECT a => OBJECT (Maybe a) where
   
   tryFromObject ObjectNil = return Nothing
   tryFromObject obj = liftM Just $ tryFromObject obj
+

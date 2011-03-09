@@ -1,6 +1,5 @@
 {-# Language FlexibleInstances #-}
 {-# Language IncoherentInstances #-}
-{-# Language OverlappingInstances #-}
 {-# Language TypeSynonymInstances #-}
 {-# Language DeriveDataTypeable #-}
 
@@ -44,6 +43,8 @@ import Data.Typeable
 import qualified Data.Vector as V
 import Data.Word
 import Text.Printf
+
+import Data.MessagePack.Assoc
 
 -- | Deserializable class
 class Unpackable a where
@@ -133,12 +134,19 @@ instance Unpackable Bool where
       _ ->
         fail $ printf "invlid bool tag: 0x%02X" c
 
-instance Unpackable Double where
+instance Unpackable Float where
   get = do
     c <- A.anyWord8
     case c of
       0xCA ->
-        return . realToFrac . runGet getFloat32be . toLBS =<< A.take 4
+        return . runGet getFloat32be . toLBS =<< A.take 4
+      _ ->
+        fail $ printf "invlid float tag: 0x%02X" c
+
+instance Unpackable Double where
+  get = do
+    c <- A.anyWord8
+    case c of
       0xCB ->
         return . runGet getFloat64be . toLBS =<< A.take 8
       _ ->
@@ -225,11 +233,11 @@ parseArray aget = do
     _ ->
       fail $ printf "invlid array tag: 0x%02X" c
 
-instance (Unpackable k, Unpackable v) => Unpackable [(k, v)] where
-  get = parseMap (flip replicateM parsePair)
+instance (Unpackable k, Unpackable v) => Unpackable (Assoc [(k,v)]) where
+  get = liftM Assoc $ parseMap (flip replicateM parsePair)
 
-instance (Unpackable k, Unpackable v) => Unpackable (V.Vector (k, v)) where
-  get = parseMap (flip V.replicateM parsePair)
+instance (Unpackable k, Unpackable v) => Unpackable (Assoc (V.Vector (k, v))) where
+  get = liftM Assoc $ parseMap (flip V.replicateM parsePair)
 
 parsePair :: (Unpackable k, Unpackable v) => A.Parser (k, v)
 parsePair = do
