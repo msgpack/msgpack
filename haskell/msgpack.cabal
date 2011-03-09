@@ -1,8 +1,8 @@
 Name:               msgpack
 Version:            0.5.0.0
-Synopsis:           A Haskell binding to MessagePack
+Synopsis:           A Haskell implementation of MessagePack
 Description:
-  A Haskell binding to MessagePack <http://msgpack.org/>
+  A Haskell implementation of MessagePack <http://msgpack.org/>
 
 License:            BSD3
 License-File:       LICENSE
