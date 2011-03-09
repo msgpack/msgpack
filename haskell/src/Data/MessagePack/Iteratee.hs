@@ -37,18 +37,18 @@ getI = parserToIteratee get
 -- | Enumerator
 enumHandleNonBlocking :: MonadIO m => Int -> Handle -> I.Enumerator B.ByteString m a
 enumHandleNonBlocking bufSize h =
-  I.enumFromCallback $ readSome bufSize h
+  I.enumFromCallback (readSome bufSize h) ()
 
-readSome :: MonadIO m => Int -> Handle -> m (Either SomeException (Bool, B.ByteString))
-readSome bufSize h = liftIO $ do
+readSome :: MonadIO m => Int -> Handle -> st -> m (Either SomeException ((Bool, st), B.ByteString))
+readSome bufSize h st = liftIO $ do
   ebs <- try $ hGetSome bufSize h
   case ebs of
     Left exc ->
       return $ Left (exc :: SomeException)
     Right bs | B.null bs ->
-      return $ Right (False, B.empty)
+      return $ Right ((False, st), B.empty)
     Right bs ->
-      return $ Right (True, bs)
+      return $ Right ((True, st), bs)
 
 hGetSome :: Int -> Handle -> IO B.ByteString
 hGetSome bufSize h = do

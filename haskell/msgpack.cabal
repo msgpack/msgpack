@@ -21,16 +21,16 @@ Extra-source-files:
 
 Library
   Build-depends:    base >=4 && <5,
-                    transformers >= 0.2.1 && < 0.2.2,
+                    transformers >= 0.2 && < 0.3,
                     MonadCatchIO-transformers >= 0.2.2 && < 0.2.3,
                     bytestring >= 0.9 && < 0.10,
-                    vector >= 0.6.0 && < 0.6.1,
-                    iteratee >= 0.4 && < 0.5,
-                    attoparsec >= 0.8.1 && < 0.8.2,
+                    vector >= 0.7 && < 0.8,
+                    iteratee >= 0.8 && < 0.9,
+                    attoparsec >= 0.8 && < 0.9,
                     binary >= 0.5.0 && < 0.5.1,
                     data-binary-ieee754 >= 0.4 && < 0.5,
                     deepseq >= 1.1 && <1.2,
-                    template-haskell >= 2.4 && < 2.5
+                    template-haskell >= 2.5 && < 2.6
 
   Ghc-options:      -Wall
   Hs-source-dirs:   src
