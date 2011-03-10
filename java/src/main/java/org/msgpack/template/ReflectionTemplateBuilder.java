@@ -32,6 +32,13 @@ public class ReflectionTemplateBuilder extends TemplateBuilder {
 		return instance;
 	}
 
+	IFieldEntryReader reader = new FieldEntryReader();
+	
+	@Override
+	public IFieldEntryReader getFieldEntryReader(){
+		return reader;
+	}
+
 	private ReflectionTemplateBuilder() {
 	}
 
@@ -373,9 +380,10 @@ public class ReflectionTemplateBuilder extends TemplateBuilder {
 		}
 	}
 
-	public Template buildTemplate(Class<?> targetClass, FieldEntry[] entries) {
-		for(FieldEntry e : entries) {
-			Field f = e.getField();
+	public Template buildTemplate(Class<?> targetClass, IFieldEntry[] entries) {
+		// TODO　Now it is simply cast.
+		for(IFieldEntry e : entries) {
+			Field f = ((FieldEntry)e).getField();
 			int mod = f.getModifiers();
 			if(!Modifier.isPublic(mod)) {
 				f.setAccessible(true);
@@ -384,7 +392,7 @@ public class ReflectionTemplateBuilder extends TemplateBuilder {
 
 		ReflectionFieldEntry[] res = new ReflectionFieldEntry[entries.length];
 		for(int i=0; i < entries.length; i++) {
-			FieldEntry e = entries[i];
+			FieldEntry e = (FieldEntry)entries[i];
 			Class<?> type = e.getType();
 			if(!e.isAvailable()) {
 				res[i] = new NullFieldEntry(e);

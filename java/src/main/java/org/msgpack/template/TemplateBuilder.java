@@ -27,88 +27,9 @@ import org.msgpack.*;
 import org.msgpack.annotation.*;
 
 public abstract class TemplateBuilder {
-	public static class FieldEntry {
-		private Field field;
-		private FieldOption option;
-
-		public FieldEntry() {
-			this.field = null;
-			this.option = FieldOption.IGNORE;
-		}
-
-		public FieldEntry(FieldEntry e) {
-			this.field = e.field;
-			this.option = e.option;
-		}
-
-		public FieldEntry(Field field, FieldOption option) {
-			this.field = field;
-			this.option = option;
-		}
-
-		public Field getField() {
-			return field;
-		}
-
-		public String getName() {
-			return field.getName();
-		}
-
-		public Class<?> getType() {
-			return field.getType();
-		}
-
-		public String getJavaTypeName() {
-			Class<?> type = field.getType();
-			if(type.isArray()) {
-				return arrayTypeToString(type);
-			} else {
-				return type.getName();
-			}
-		}
-
-		public Type getGenericType() {
-			return field.getGenericType();
-		}
-
-		public FieldOption getOption() {
-			return option;
-		}
-
-		public boolean isAvailable() {
-			return option != FieldOption.IGNORE;
-		}
-
-		public boolean isRequired() {
-			return option == FieldOption.REQUIRED;
-		}
-
-		public boolean isOptional() {
-			return option == FieldOption.OPTIONAL;
-		}
-
-		public boolean isNullable() {
-			return option == FieldOption.NULLABLE;
-		}
-
-		static String arrayTypeToString(Class<?> type) {
-			int dim = 1;
-			Class<?> baseType = type.getComponentType();
-			while(baseType.isArray()) {
-				baseType = baseType.getComponentType();
-				dim += 1;
-			}
-			StringBuilder sb = new StringBuilder();
-			sb.append(baseType.getName());
-			for (int i = 0; i < dim; ++i) {
-				sb.append("[]");
-			}
-			return sb.toString();
-		}
-	}
 
 	// Override this method
-	public abstract Template buildTemplate(Class<?> targetClass, FieldEntry[] entries);
+	public abstract Template buildTemplate(Class<?> targetClass, IFieldEntry[] entries);
 
 	// Override this method
 	public abstract Template buildOrdinalEnumTemplate(Class<?> targetClass, Enum<?>[] entries);
@@ -116,19 +37,20 @@ public abstract class TemplateBuilder {
 	// Override this method
 	public abstract Template buildArrayTemplate(Type arrayType, Type genericBaseType, Class<?> baseClass, int dim);
 
+	public abstract IFieldEntryReader getFieldEntryReader();
 
 	public Template buildTemplate(Class<?> targetClass, FieldList flist) throws NoSuchFieldException {
 		checkValidation(targetClass);
-		return buildTemplate(targetClass, convertFieldEntries(targetClass, flist));
+		return buildTemplate(targetClass, getFieldEntryReader().convertFieldEntries(targetClass, flist));
 	}
 
 	public Template buildTemplate(Class<?> targetClass, FieldOption implicitOption) {
 		checkValidation(targetClass);
-		return buildTemplate(targetClass, readFieldEntries(targetClass, implicitOption));
+		return buildTemplate(targetClass, getFieldEntryReader().readFieldEntries(targetClass, implicitOption));
 	}
 
 	public Template buildTemplate(Class<?> targetClass) {
-		FieldOption implicitOption = readImplicitFieldOption(targetClass);
+		FieldOption implicitOption = getFieldEntryReader().readImplicitFieldOption(targetClass);
 		return buildTemplate(targetClass, implicitOption);
 	}
 
@@ -234,8 +156,8 @@ public abstract class TemplateBuilder {
 		}
 	}
 
-
-	static FieldEntry[] convertFieldEntries(Class<?> targetClass, FieldList flist) throws NoSuchFieldException {
+    /*
+	static IFieldEntry[] convertFieldEntries(Class<?> targetClass, FieldList flist) throws NoSuchFieldException {
 		List<FieldList.Entry> src = flist.getList();
 		FieldEntry[] result = new FieldEntry[src.size()];
 		for(int i=0; i < src.size(); i++) {
@@ -247,9 +169,9 @@ public abstract class TemplateBuilder {
 			}
 		}
 		return result;
-	}
-
-	static FieldEntry[] readFieldEntries(Class<?> targetClass, FieldOption implicitOption) {
+	}*/
+    
+	/*static IFieldEntry[] readFieldEntries(Class<?> targetClass, FieldOption implicitOption) {
 		Field[] allFields = readAllFields(targetClass);
 
 		/* index:
@@ -259,7 +181,7 @@ public abstract class TemplateBuilder {
 		 *             int field_d;   // 4
 		 *   @Index(2) int field_e;   // 2
 		 *             int field_f;   // 5
-		 */
+		 *//*
 		List<FieldEntry> indexed = new ArrayList<FieldEntry>();
 		int maxIndex = -1;
 		for(Field f : allFields) {
@@ -299,8 +221,8 @@ public abstract class TemplateBuilder {
 		}
 
 		return result;
-	}
-
+	}*/
+    /* 
 	private static Field[] readAllFields(Class<?> targetClass) {
 		// order: [fields of super class, ..., fields of this class]
 		List<Field[]> succ = new ArrayList<Field[]>();
@@ -376,6 +298,6 @@ public abstract class TemplateBuilder {
 
 	private static boolean isAnnotated(AccessibleObject ao, Class<? extends Annotation> with) {
 		return ao.getAnnotation(with) != null;
-	}
+	}*/
 }
 
