@@ -7,6 +7,7 @@ import java.lang.Class
 import collection.immutable.{ListMap, TreeMap}
 import java.lang.reflect.{Type, Modifier, Method}
 import java.lang.annotation.{Annotation => JavaAnnotation}
+import scala.collection.JavaConverters._
 ;
 /*
  * Created by IntelliJ IDEA.
@@ -211,7 +212,27 @@ class ScalaFieldEntryReader extends IFieldEntryReader{
     FieldOption.NULLABLE
   }
 
-  def convertFieldEntries(targetClass: Class[_], flist: FieldList) = null
+  def convertFieldEntries(targetClass: Class[_], flist: FieldList) = {
+
+    val list : List[FieldList.Entry] = flist.getList.asScala.toList
+
+    list.map( s => {
+      if(s.isAvailable){
+        val getter = targetClass.getMethod(s.getName)
+        if(getter.getReturnType.getName != "void"){
+          val setter = targetClass.getMethod(s.getName + "_$eq",getter.getReturnType)
+          if(setter.getReturnType.getName == "void"){
+            val prop = (s.getName,(getter,setter))
+            convertToScalaFieldEntry(prop)
+          }else{
+            new ScalaFieldEntry("")
+          }
+        }else new ScalaFieldEntry("")
+      }else{
+        new ScalaFieldEntry("")
+      }
+    }).toArray
+  }
 
   def readFieldEntries(targetClass: Class[_], implicitOption: FieldOption) = {
     val props = findPropertyMethods(targetClass) filter( !hasAnnotation(_,classOf[Ignore]))
