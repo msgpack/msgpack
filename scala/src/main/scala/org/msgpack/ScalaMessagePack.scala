@@ -1,7 +1,8 @@
 package org.msgpack
 
+import template._
 import template.javassist.BuildContextFactory
-import template.JavassistTemplateBuilder
+import collection.mutable.{MutableList, LinkedList}
 ;
 /*
  * Created by IntelliJ IDEA.
@@ -17,6 +18,15 @@ object ScalaMessagePack {
     JavassistTemplateBuilder.getInstance.setBuildContextFactory(new BuildContextFactory{
       def createBuildContext(builder: JavassistTemplateBuilder) = new BuildContextForScala(builder)
     })
+
+    TemplateRegistry.register(classOf[List[_]],new ImmutableListTemplate(AnyTemplate.getInstance))
+    TemplateRegistry.registerGeneric(classOf[List[_]],new GenericTemplate1(classOf[ImmutableListTemplate]))
+    TemplateRegistry.register(classOf[LinkedList[_]],new LinkedListTemplate(AnyTemplate.getInstance))
+    TemplateRegistry.registerGeneric(classOf[LinkedList[_]],new GenericTemplate1(classOf[LinkedListTemplate]))
+    TemplateRegistry.register(classOf[MutableList[_]],new MutableListCTemplate(AnyTemplate.getInstance))
+    TemplateRegistry.registerGeneric(classOf[MutableList[_]],new GenericTemplate1(classOf[MutableListCTemplate]))
+
+
 
   }
 
