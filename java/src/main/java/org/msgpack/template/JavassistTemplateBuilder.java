@@ -55,7 +55,30 @@ public class JavassistTemplateBuilder extends TemplateBuilder {
 	}
 
 	private JavassistTemplateBuilder() {
-		this.pool = ClassPool.getDefault();
+		pool = new ClassPool();
+		boolean appended = false;
+		ClassLoader cl = null;
+		try {
+			Thread.currentThread().getContextClassLoader();
+			if (cl != null) {
+				pool.appendClassPath(new LoaderClassPath(cl));
+				appended = true;
+			}
+		} catch (SecurityException e) {
+			LOG.debug("Cannot append a search path of context classloader", e);
+		}
+		try {
+			ClassLoader cl2 = getClass().getClassLoader();
+			if (cl2 != null && cl2 != cl) {
+				pool.appendClassPath(new LoaderClassPath(cl2));
+				appended = true;
+			}
+		} catch (SecurityException e) {
+			LOG.debug("Cannot append a search path of classloader", e);
+		}
+		if (!appended) {
+			pool.appendSystemPath();
+		}
 	}
 
 	protected ClassPool pool;
