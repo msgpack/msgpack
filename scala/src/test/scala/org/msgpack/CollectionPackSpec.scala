@@ -36,6 +36,12 @@ class CollectionPackSpec extends Specification with JUnit  {
       des.mutable must be_==(c.mutable)
       //des.tuple2 must be_==(c.tuple2)
 
+      val mpo = ScalaMessagePack.unpackD(b)
+      val des2 = mpo.convert(classOf[ClassWithList])
+
+      des2.immutable must be_==(c.immutable)
+      des2.mutable must be_==(c.mutable)
+
     }
     "pack scala-map" in {
       val c = new ClassWithMap
@@ -47,6 +53,13 @@ class CollectionPackSpec extends Specification with JUnit  {
 
       des.immutable must be_==(c.immutable)
       des.mutable must be_==(c.mutable)
+
+      val mpo = ScalaMessagePack.unpackD(b)
+      val des2 = mpo.convert(classOf[ClassWithMap])
+
+      des2.immutable must be_==(c.immutable)
+      des2.mutable must be_==(c.mutable)
+
     }
 
   }

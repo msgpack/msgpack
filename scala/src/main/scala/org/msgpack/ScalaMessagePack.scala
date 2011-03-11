@@ -54,8 +54,11 @@ object ScalaMessagePack {
   }
 
   def unpack[T]( buffer : Array[Byte])(implicit manifest : ClassManifest[T]) : T = {
-    println(manifest.erasure)
     MessagePack.unpack[T]( buffer, manifest.erasure.asInstanceOf[Class[T]])
+  }
+
+  def unpackD(buffer : Array[Byte]) = {
+    MessagePack.unpack(buffer)
   }
 
 
