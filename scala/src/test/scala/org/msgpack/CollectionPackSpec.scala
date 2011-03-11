@@ -26,12 +26,15 @@ class CollectionPackSpec extends Specification with JUnit  {
 
       c.immutable = List("a","b","c")
       c.mutable = LinkedList("a","b","d")
+      c.mutable2 ++= List("gh","fjei")
+      //c.tuple2 = ("hoge","wahoo")
 
       val b = ScalaMessagePack.pack(c)
       val des = ScalaMessagePack.unpack[ClassWithList](b)
 
       des.immutable must be_==(c.immutable)
       des.mutable must be_==(c.mutable)
+      //des.tuple2 must be_==(c.tuple2)
 
     }
     "pack scala-map" in {
@@ -40,7 +43,7 @@ class CollectionPackSpec extends Specification with JUnit  {
       c.mutable = scala.collection.mutable.Map("d" -> "oo" , "e" -> "aa")
 
       val b = ScalaMessagePack.pack(c)
-      val des = ScalaMessagePack.unpack[ClassWithList](b)
+      val des = ScalaMessagePack.unpack[ClassWithMap](b)
 
       des.immutable must be_==(c.immutable)
       des.mutable must be_==(c.mutable)

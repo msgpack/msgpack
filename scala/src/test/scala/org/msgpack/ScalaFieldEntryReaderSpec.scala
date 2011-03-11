@@ -94,6 +94,7 @@ class ScalaFieldEntryReaderSpec extends Specification with JUnit  {
 
       indexed.size must be_==(6)
       indexed(0)._1 must be_==("sampleClass2Num")
+      indexed(3)._1 must be_==("sampleClass2Name")
       indexed must notContain(null)
 
     }

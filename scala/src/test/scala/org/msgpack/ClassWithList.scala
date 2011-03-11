@@ -7,7 +7,7 @@ package org.msgpack;
  */
 
 import annotation.MessagePackMessage
-import scala.collection.mutable.LinkedList
+import collection.mutable.{MutableList, LinkedList}
 
 @MessagePackMessage
 class ClassWithList {
@@ -15,4 +15,7 @@ class ClassWithList {
 
   var mutable : LinkedList[String] = LinkedList.empty
 
+  var mutable2 : MutableList[String] = new MutableList
+
+  //var tuple2 : (String,String) = (null,null)
 }

@@ -5,7 +5,7 @@ import template._
 import template.javassist.BuildContext
 import java.lang.Class
 import collection.immutable.{ListMap, TreeMap}
-import java.lang.reflect.{Type, Modifier, Method}
+import java.lang.reflect.{Type, Modifier, Method, Field}
 import java.lang.annotation.{Annotation => JavaAnnotation}
 import scala.collection.JavaConverters._
 ;
@@ -205,7 +205,7 @@ import scala.collection.JavaConverters._
 
 class ScalaFieldEntryReader extends IFieldEntryReader{
 
-  type Property = (Method,Method)
+  type Property = (Method,Method,Field)
   type PropertySet = (String,Property)
 
   def readImplicitFieldOption(targetClass: Class[_]) = {
@@ -222,7 +222,11 @@ class ScalaFieldEntryReader extends IFieldEntryReader{
         if(getter.getReturnType.getName != "void"){
           val setter = targetClass.getMethod(s.getName + "_$eq",getter.getReturnType)
           if(setter.getReturnType.getName == "void"){
-            val prop = (s.getName,(getter,setter))
+            val f = try{targetClass.getDeclaredField(s.getName)}
+            catch{
+              case e : NoSuchFieldException => null
+            }
+            val prop = (s.getName,(getter,setter,f))
             convertToScalaFieldEntry(prop)
           }else{
             new ScalaFieldEntry("")
@@ -259,7 +263,7 @@ class ScalaFieldEntryReader extends IFieldEntryReader{
 
 
 
-  def findPropertyMethods(targetClass: Class[_]) : Map[String,(Method,Method)] = {
+  def findPropertyMethods(targetClass: Class[_]) : Map[String,Property] = {
     var getters : Map[String,Method] = ListMap.empty
     var setters : Map[String,Method] = ListMap.empty
 
@@ -285,7 +289,15 @@ class ScalaFieldEntryReader extends IFieldEntryReader{
     for(g <- getters){
       setters.get(g._1).map( s => {
         if(sameType_?(g._2,s)){
-          props +=( g._1 -> (g._2,s))
+
+          val name = g._1
+          val f = try{targetClass.getDeclaredField(name)}
+          catch{
+            case e : NoSuchFieldException => null
+          }
+
+          //TODO add validation for field
+          props +=( name -> (g._2,s,f))
         }
       })
     }
@@ -341,19 +353,31 @@ class ScalaFieldEntryReader extends IFieldEntryReader{
   def hasAnnotation[T <: JavaAnnotation](prop : PropertySet , classOfAnno : Class[T]) : Boolean = {
     val getter = prop._2._1
     val setter = prop._2._2
-
+    val field = prop._2._3
     getter.getAnnotation(classOfAnno) != null ||
-    setter.getAnnotation(classOfAnno) != null
+    setter.getAnnotation(classOfAnno) != null ||
+      {if(field != null) field.getAnnotation(classOfAnno) != null
+    else false}
   }
   def getAnnotation[T <: JavaAnnotation](prop : PropertySet , classOfAnno : Class[T]) : T = {
     val getter = prop._2._1
     val setter = prop._2._2
+    val field = prop._2._3
+
+
 
     val a = getter.getAnnotation(classOfAnno)
     if(a != null){
       a
     }else{
-      setter.getAnnotation(classOfAnno)
+      val b = setter.getAnnotation(classOfAnno)
+      if(b != null){
+        b
+      }else if(field != null){
+        field.getAnnotation(classOfAnno)
+      }else{
+        null.asInstanceOf[T]
+      }
     }
   }
 
@@ -406,6 +430,7 @@ class ScalaFieldEntry(var getName : String) extends IFieldEntry{
 
   def getJavaTypeName = {
     if(getType.isArray){
+      //TODO implement here
       getType.getName()
     }else{
       getType.getName()

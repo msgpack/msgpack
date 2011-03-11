@@ -14,6 +14,7 @@ import scala.annotation.target.getter
 class SampleClass2 extends SampleClass with SampleTrait {
 
 
+  @Index(3)
   var sampleClass2Name : String = "sampleclass2"
 
   @Index(0)
@@ -27,5 +28,3 @@ class SampleClass2 extends SampleClass with SampleTrait {
   def wrongValue_=(v : String) = {}
 
 }
-
-final class MyAnno extends StaticAnnotation
