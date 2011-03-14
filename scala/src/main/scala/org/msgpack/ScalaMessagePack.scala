@@ -1,6 +1,7 @@
 package org.msgpack
 
 import template._
+import builder.{MessagePackMessageTemplateSelector, BuilderSelectorRegistry}
 import template.javassist.BuildContextFactory
 import collection.mutable.{MutableList, LinkedList}
 import collection.mutable.{Map => MMap,HashMap => MHashMap}
@@ -15,11 +16,12 @@ import collection.mutable.{Map => MMap,HashMap => MHashMap}
 object ScalaMessagePack {
 
   {
-    JavassistTemplateBuilder.getInstance.setFieldEntryReader(new ScalaFieldEntryReader)
-    JavassistTemplateBuilder.getInstance.setBuildContextFactory(new BuildContextFactory{
-      def createBuildContext(builder: JavassistTemplateBuilder) = new BuildContextForScala(builder)
-    })
+    // for scala object
+    BuilderSelectorRegistry.getInstance.insertBefore(
+      MessagePackMessageTemplateSelector.NAME,
+      new ScalaTemplateBuilderSelector)
 
+    // register scala's list classes
     TemplateRegistry.register(classOf[List[_]],new ImmutableListTemplate(AnyTemplate.getInstance))
     TemplateRegistry.registerGeneric(classOf[List[_]],new GenericTemplate1(classOf[ImmutableListTemplate]))
     TemplateRegistry.register(classOf[Seq[_]],new ImmutableListTemplate(AnyTemplate.getInstance))
@@ -29,7 +31,7 @@ object ScalaMessagePack {
     TemplateRegistry.register(classOf[MutableList[_]],new MutableListCTemplate(AnyTemplate.getInstance))
     TemplateRegistry.registerGeneric(classOf[MutableList[_]],new GenericTemplate1(classOf[MutableListCTemplate]))
 
-
+    // register scala's map classes
     TemplateRegistry.register(classOf[Map[_,_]],new ImmutableMapTemplate(
       AnyTemplate.getInstance,AnyTemplate.getInstance))
     TemplateRegistry.registerGeneric(classOf[Map[_,_]],new GenericTemplate2(

@@ -39,9 +39,10 @@ import javassist.ClassClassPath;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.msgpack.template.builder.CustomTemplateBuilder;
 import org.msgpack.template.javassist.*;
 
-public class JavassistTemplateBuilder extends TemplateBuilder {
+public class JavassistTemplateBuilder extends CustomTemplateBuilder {
 	private static Logger LOG = LoggerFactory.getLogger(JavassistTemplateBuilder.class);
 
 	private static JavassistTemplateBuilder instance;
@@ -65,10 +66,6 @@ public class JavassistTemplateBuilder extends TemplateBuilder {
 	
 	IFieldEntryReader reader = new FieldEntryReader();
 	
-	@Override
-	public IFieldEntryReader getFieldEntryReader(){
-		return reader;
-	}
 	public void setFieldEntryReader(IFieldEntryReader reader){
 		this.reader = reader;
 	}
@@ -81,16 +78,13 @@ public class JavassistTemplateBuilder extends TemplateBuilder {
 			return new BuildContext(builder);
 		}
 	};
-	public BuildContextFactory getBuildContextFacotry() {
-		return buildContextFactory;
-	}
 	public void setBuildContextFactory(BuildContextFactory factory){
 		this.buildContextFactory = factory;
 	}
 	
 	
 	
-	protected JavassistTemplateBuilder() {
+	public JavassistTemplateBuilder() {
 	  this.pool = new ClassPool();
 	  ClassLoader cl = Thread.currentThread().getContextClassLoader();
 	  boolean appended = false;
@@ -128,6 +122,7 @@ public class JavassistTemplateBuilder extends TemplateBuilder {
 
 
 
+	@Override
 	public Template buildTemplate(Class<?> targetClass, IFieldEntry[] entries) {
 		// FIXME private / packagefields
 		//for(FieldEntry e : entries) {
@@ -152,8 +147,18 @@ public class JavassistTemplateBuilder extends TemplateBuilder {
 		BuildContextBase bc = getBuildContextFacotry().createBuildContext(this);
 		return bc.buildTemplate(targetClass, entries, tmpls);
 	}
-	
 
+	@Override
+	public IFieldEntryReader getFieldEntryReader() {
+		return reader;
+	}
+
+	public BuildContextFactory getBuildContextFacotry() {
+		return buildContextFactory;
+	}
+
+	
+    /*
 	static class JavassistOrdinalEnumTemplate extends ReflectionTemplateBuilder.ReflectionOrdinalEnumTemplate {
 		JavassistOrdinalEnumTemplate(Enum<?>[] entries) {
 			super(entries);
@@ -195,6 +200,6 @@ public class JavassistTemplateBuilder extends TemplateBuilder {
 			Class<?> componentClass = Array.newInstance(componentTemplate.getComponentClass(), 0).getClass();
 			return new ReflectionTemplateBuilder.ReflectionMultidimentionalArrayTemplate(componentClass, componentTemplate);
 		}
-	}
+	}*/
 }
 

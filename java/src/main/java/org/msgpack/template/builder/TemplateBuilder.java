@@ -15,7 +15,7 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 //
-package org.msgpack.template;
+package org.msgpack.template.builder;
 
 import java.io.IOException;
 import java.lang.reflect.*;
@@ -25,9 +25,17 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import org.msgpack.*;
 import org.msgpack.annotation.*;
+import org.msgpack.template.FieldList;
+import org.msgpack.template.FieldOption;
+import org.msgpack.template.IFieldEntry;
+import org.msgpack.template.IFieldEntryReader;
+import org.msgpack.template.JavassistTemplateBuilder;
+import org.msgpack.template.ReflectionTemplateBuilder;
 
 public abstract class TemplateBuilder {
 
+	public abstract Template buildTemplate(Type targetType);
+	/*
 	// Override this method
 	public abstract Template buildTemplate(Class<?> targetClass, IFieldEntry[] entries);
 
@@ -36,7 +44,7 @@ public abstract class TemplateBuilder {
 
 	// Override this method
 	public abstract Template buildArrayTemplate(Type arrayType, Type genericBaseType, Class<?> baseClass, int dim);
-
+    
 	public abstract IFieldEntryReader getFieldEntryReader();
 
 	public Template buildTemplate(Class<?> targetClass, FieldList flist) throws NoSuchFieldException {
@@ -95,8 +103,24 @@ public abstract class TemplateBuilder {
 			return ((Class<?>)arrayType).getComponentType();
 		}
 	}
+	private void checkValidation(Class<?> targetClass) {
+		if(targetClass.isInterface()) {
+			throw new TemplateBuildException("cannot build template of interface");
+		}
+		if(targetClass.isArray()) {
+			throw new TemplateBuildException("cannot build template of array class");
+		}
+		if(targetClass.isPrimitive()) {
+			throw new TemplateBuildException("cannot build template of primitive type");
+		}
+	}
+	private void checkOrdinalEnumValidation(Class<?> targetClass) {
+		if(!targetClass.isEnum()) {
+			throw new TemplateBuildException("tried to build ordinal enum template of non-enum class");
+		}
+	}
 
-
+    
 	private static TemplateBuilder instance;
 	static {
 		instance = selectDefaultTemplateBuilder();
@@ -113,7 +137,7 @@ public abstract class TemplateBuilder {
 		return JavassistTemplateBuilder.getInstance();
 	}
 
-	synchronized static void setInstance(TemplateBuilder builder) {
+	public synchronized static void setInstance(TemplateBuilder builder) {
 		instance = builder;
 	}
 
@@ -135,9 +159,9 @@ public abstract class TemplateBuilder {
 
 	public static Template buildArray(Type arrayType) {
 		return instance.buildArrayTemplate(arrayType);
-	}
+	}*/
 
-
+    /*
 	private static void checkValidation(Class<?> targetClass) {
 		if(targetClass.isInterface()) {
 			throw new TemplateBuildException("cannot build template of interface");
@@ -154,7 +178,7 @@ public abstract class TemplateBuilder {
 		if(!targetClass.isEnum()) {
 			throw new TemplateBuildException("tried to build ordinal enum template of non-enum class");
 		}
-	}
+	}*/
 
     /*
 	static IFieldEntry[] convertFieldEntries(Class<?> targetClass, FieldList flist) throws NoSuchFieldException {

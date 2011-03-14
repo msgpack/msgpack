@@ -26,6 +26,7 @@ import java.lang.Thread;
 
 import org.msgpack.*;
 import org.msgpack.template.*;
+import org.msgpack.template.builder.TemplateBuildException;
 
 import javassist.CannotCompileException;
 import javassist.ClassPool;

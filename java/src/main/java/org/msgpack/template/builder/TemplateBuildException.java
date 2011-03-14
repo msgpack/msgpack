@@ -15,7 +15,7 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 //
-package org.msgpack.template;
+package org.msgpack.template.builder;
 
 @SuppressWarnings("serial")
 public class TemplateBuildException extends RuntimeException {

@@ -24,7 +24,12 @@ import org.msgpack.Unpacker;
 import org.msgpack.annotation.MessagePackMessage;
 import org.msgpack.annotation.MessagePackOrdinalEnum;
 import org.msgpack.annotation.Optional;
+import org.msgpack.template.TestTemplateBuilderPackConvert.SampleInterface;
+import org.msgpack.template.builder.BuilderSelectorRegistry;
+import org.msgpack.template.builder.TemplateBuildException;
+import org.msgpack.template.builder.TemplateBuilder;
 
+import junit.framework.Assert;
 import junit.framework.TestCase;
 
 public class TestTemplateBuilderPackUnpack extends TestCase {
@@ -714,7 +719,9 @@ public class TestTemplateBuilderPackUnpack extends TestCase {
 	@Test
 	public void testFinalClass() throws Exception {
 		try {
-			TemplateBuilder.build(FinalModifierClass.class);
+			TemplateBuilder builder = BuilderSelectorRegistry.getInstance().select(FinalModifierClass.class);
+			Assert.assertNull(builder);
+			BuilderSelectorRegistry.getInstance().getForceBuilder().buildTemplate(FinalModifierClass.class);
 			assertTrue(true);
 		} catch (TemplateBuildException e) {
 			fail();
@@ -731,7 +738,9 @@ public class TestTemplateBuilderPackUnpack extends TestCase {
 	@Test
 	public void testInterfaceType00() throws Exception {
 		try {
-			TemplateBuilder.build(SampleInterface.class);
+			TemplateBuilder builder = BuilderSelectorRegistry.getInstance().select(SampleInterface.class);
+			Assert.assertNull(builder);
+			BuilderSelectorRegistry.getInstance().getForceBuilder().buildTemplate(SampleInterface.class);
 			fail();
 		} catch (TemplateBuildException e) {
 			assertTrue(true);
@@ -742,7 +751,9 @@ public class TestTemplateBuilderPackUnpack extends TestCase {
 	@Test
 	public void testInterfaceType01() throws Exception {
 		try {
-			TemplateBuilder.build(SampleInterface.class);
+			TemplateBuilder builder = BuilderSelectorRegistry.getInstance().select(SampleInterface.class);
+			Assert.assertNull(builder);
+			BuilderSelectorRegistry.getInstance().getForceBuilder().buildTemplate(SampleInterface.class);
 			fail();
 		} catch (TemplateBuildException e) {
 			assertTrue(true);

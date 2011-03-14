@@ -2,6 +2,7 @@ package org.msgpack
 
 import annotation._
 import template._
+import builder.TemplateBuildException
 import template.javassist.BuildContext
 import java.lang.Class
 import collection.immutable.{ListMap, TreeMap}

@@ -19,7 +19,7 @@ import org.specs.runner.{ JUnitSuiteRunner, JUnit }
 class ScalaMessagePackTest extends Specification with JUnit /*with ScalaCheck*/ {
 
   "ScalaMessagePackTest" should {
-    "pack " in {
+    "pack and unpack" in {
 
       val sc = new SampleClass()
       sc.name = "Test object"
@@ -30,7 +30,13 @@ class ScalaMessagePackTest extends Specification with JUnit /*with ScalaCheck*/ 
 
       deser.name must be_==(sc.name)
       deser.number must be_==(sc.number)
+
+      val mso = ScalaMessagePack.unpackD(b)
+      val conv = mso.convert(classOf[SampleClass])
+      conv.name must be_==(sc.name)
+      conv.number must be_==(sc.number)
     }
+
   }
 
 
