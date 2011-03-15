@@ -1,13 +1,14 @@
 package org.msgpack
 
+import _root_.javassist.{CtClass, CtNewConstructor}
 import annotation._
 import template._
 import builder.TemplateBuildException
-import template.javassist.BuildContext
 import java.lang.Class
 import collection.immutable.{ListMap, TreeMap}
 import java.lang.reflect.{Type, Modifier, Method, Field}
 import java.lang.annotation.{Annotation => JavaAnnotation}
+import javassist.{JavassistTemplate, BuildContextBase, BuildContext}
 import scala.collection.JavaConverters._
 ;
 /*
@@ -18,19 +19,90 @@ import scala.collection.JavaConverters._
  */
 
 
-  class BuildContextForScala(builder : JavassistTemplateBuilder) extends BuildContext(builder){
+  class BuildContextForScala(builder : JavassistTemplateBuilder) extends BuildContextBase[IFieldEntry](builder){
 
-    protected override def buildPackMethodBody() : String = {
+    var entries : Array[IFieldEntry] = null
+    var origClass : Class[_] = null
+    var origName : String = null
+    var templates : Array[Template] = null
+    var minimumArrayLength : Int = 0
+
+    def buildTemplate(targetClass : Class[_] ,  entries : Array[IFieldEntry],  templates : Array[Template]) = {
+      this.entries = entries;
+      this.templates = templates;
+      this.origClass = targetClass;
+      this.origName = this.origClass.getName();
+      build(this.origName);
+	}
+
+    def setSuperClass() = {
+      tmplCtClass.setSuperclass(director.getCtClass(classOf[JavassistTemplate].getName))
+    }
+
+    def buildConstructor() = {
+      val newCtCons = CtNewConstructor.make(
+        Array[CtClass](
+          director.getCtClass(classOf[Class[_]].getName),
+          director.getCtClass(classOf[Template].getName + "[]")
+        ),
+      new Array[CtClass](0),
+      tmplCtClass
+      )
+      this.tmplCtClass.addConstructor(newCtCons)
+    }
+    def buildInstance(c : Class[_]) = {
+      val cons = c.getConstructor(classOf[Class[_]], classOf[Array[Template]])
+      val tmpl = cons.newInstance(origClass,templates)
+      tmpl.asInstanceOf[Template]
+    }
+    override def buildMethodInit() = {
+      this.minimumArrayLength = 0;
+      var i : Int = 0
+      for(e <- entries) {
+        if(e.isRequired() || e.isNullable()) {
+          this.minimumArrayLength = i+1;
+        }
+        i += 1
+      }
+    }
+
+    lazy val newInstanceDeclaration : String = {
+
+      def defCon = "new " + origClass.getName + "();"
+      try{
+        val c = origClass.getClassLoader.loadClass(origClass.getName + "$")
+        if(Modifier.isPublic(c.getModifiers)){
+          val method = c.getMethod("apply")
+
+          if(Modifier.isPublic(method.getModifiers) &&
+            origClass.isAssignableFrom(method.getReturnType)){
+            val staticField = c.getDeclaredFields()(0)
+             "%s.%s.apply();".format(c.getName,staticField.getName)
+          }else{
+            defCon
+          }
+        }else{
+          defCon
+        }
+      }catch{
+        case e : ClassNotFoundException => {
+          defCon
+        }
+      }
+    }
+
+    protected def buildPackMethodBody() : String = {
       resetStringBuilder();
       buildString("{");
       buildString("%s _$$_t = (%s)$2;", this.origName, this.origName);
       buildString("$1.packArray(%d);", entries.length.asInstanceOf[AnyRef]);
       for(i <- 0 until entries.length) {
-        val e = entries(i);
-        if(!e.isAvailable()) {
+        val e = entries(i)
+
+        if(!e.isAvailable) {
           buildString("$1.packNil();");
         }else{
-          val t = e.getType();
+          val t = e.getType;
           if(t.isPrimitive()) {
             buildString("$1.%s(_$$_t.%s());", primitivePackName(t), e.getName());
           } else {
@@ -52,13 +124,13 @@ import scala.collection.JavaConverters._
     }
 
 
-      protected override def buildUnpackMethodBody() : String = {
+    def buildUnpackMethodBody() : String = {
         resetStringBuilder();
         buildString("{ ");
 
         buildString("%s _$$_t;", this.origName);
         buildString("if($2 == null) {");
-        buildString("  _$$_t = new %s();", this.origName);
+        buildString("  _$$_t = " + newInstanceDeclaration) //new %s();", this.origName);
         buildString("} else {");
         buildString("  _$$_t = (%s)$2;", this.origName);
         buildString("}");
@@ -135,7 +207,7 @@ import scala.collection.JavaConverters._
 
       buildString("%s _$$_t;", this.origName);
       buildString("if($2 == null) {");
-      buildString("  _$$_t = new %s();", this.origName);
+      buildString("  _$$_t = " + newInstanceDeclaration) //new %s();", this.origName);
       buildString("} else {");
       buildString("  _$$_t = (%s)$2;", this.origName);
       buildString("}");
@@ -343,9 +415,9 @@ class ScalaFieldEntryReader extends IFieldEntryReader{
 
   def convertToScalaFieldEntry( propInfo : PropertySet) = {
     val entry = new ScalaFieldEntry(propInfo._1)
-    entry.getOption = readFieldOption(propInfo,FieldOption.NULLABLE)
-    entry.getType = readValueType(propInfo)
-    entry.getGenericType = readGenericType(propInfo)
+    entry.option = readFieldOption(propInfo,FieldOption.NULLABLE)
+    entry.normalType = readValueType(propInfo)
+    entry.genericType = readGenericType(propInfo)
 
     entry
   }
@@ -415,9 +487,11 @@ class ScalaFieldEntryReader extends IFieldEntryReader{
   }
 }
 
-class ScalaFieldEntry(var getName : String) extends IFieldEntry{
+class ScalaFieldEntry(name : String) extends IFieldEntry{
 
-  def isNullable = {getOption == FieldOption.NULLABLE}
+  def getName() = name
+
+  def isNullable() = {getOption == FieldOption.NULLABLE}
 
   def isOptional = {getOption == FieldOption.OPTIONAL}
 
@@ -425,9 +499,9 @@ class ScalaFieldEntry(var getName : String) extends IFieldEntry{
 
   def isAvailable = {getOption != FieldOption.IGNORE}
 
-  var getOption : FieldOption = null
+  var option : FieldOption = null
 
-  var getGenericType : Type = null
+  var genericType : Type = null
 
   def getJavaTypeName = {
     if(getType.isArray){
@@ -439,6 +513,10 @@ class ScalaFieldEntry(var getName : String) extends IFieldEntry{
 
   }
 
-  var getType : Class[_] = null
+  var normalType : Class[_] = null
+
+  def getOption() = option
+  def getType() = normalType
+  def getGenericType() = genericType
 
 }

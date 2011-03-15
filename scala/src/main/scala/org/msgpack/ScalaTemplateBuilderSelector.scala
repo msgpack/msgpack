@@ -21,7 +21,9 @@ class ScalaTemplateBuilderSelector extends BuilderSelector
   {
     b.setFieldEntryReader(new ScalaFieldEntryReader)
     b.setBuildContextFactory(new BuildContextFactory{
-      def createBuildContext(builder: JavassistTemplateBuilder) = new BuildContextForScala(builder)
+      def createBuildContext(builder: JavassistTemplateBuilder) = {
+        new BuildContextForScala(builder)
+      }
     })
   }
 

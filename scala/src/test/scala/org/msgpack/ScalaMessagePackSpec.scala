@@ -24,6 +24,9 @@ class ScalaMessagePackTest extends Specification with JUnit /*with ScalaCheck*/ 
       val sc = new SampleClass()
       sc.name = "Test object"
       sc.number = 123456
+
+      println("Sampleclass is inherit ScalaObject " + classOf[ScalaObject].isAssignableFrom(classOf[SampleClass]))
+      new ScalaTemplateBuilderSelector().matchType(classOf[SampleClass]) must be_==(true)
       val b = ScalaMessagePack.pack(sc)
 
       val deser = ScalaMessagePack.unpack[SampleClass](b)
@@ -36,6 +39,22 @@ class ScalaMessagePackTest extends Specification with JUnit /*with ScalaCheck*/ 
       conv.name must be_==(sc.name)
       conv.number must be_==(sc.number)
     }
+
+    "pack and unpack none-default constructor class" in {
+
+      val sc = new NotDefaultCons("hehehehe")
+
+      val b = ScalaMessagePack.pack(sc)
+
+      val deser = ScalaMessagePack.unpack[NotDefaultCons](b)
+
+      deser.name must be_==(sc.name)
+
+      val mso = ScalaMessagePack.unpackD(b)
+      val conv = mso.convert(classOf[NotDefaultCons])
+      conv.name must be_==(sc.name)
+    }
+
 
   }
 
