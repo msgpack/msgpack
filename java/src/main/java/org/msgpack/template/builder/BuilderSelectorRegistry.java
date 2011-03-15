@@ -4,8 +4,13 @@ import java.lang.reflect.Type;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.msgpack.template.BeansFieldEntryReader;
 import org.msgpack.template.JavassistTemplateBuilder;
 import org.msgpack.template.ReflectionTemplateBuilder;
+import org.msgpack.template.javassist.BeansBuildContext;
+import org.msgpack.template.javassist.BuildContext;
+import org.msgpack.template.javassist.BuildContextBase;
+import org.msgpack.template.javassist.BuildContextFactory;
 
 
 public class BuilderSelectorRegistry {
@@ -29,28 +34,39 @@ public class BuilderSelectorRegistry {
 	private static void initForJava(){
 
 		instance.append(new ArrayTemplateBuilderSelector());
-		try {
-			// FIXME JavassistTemplateBuilder doesn't work on DalvikVM
-			if(System.getProperty("java.vm.name").equals("Dalvik")) {
-				instance.append(
-						new MessagePackMessageTemplateSelector(
-								new ReflectionTemplateBuilder()));
-				instance.forceBuilder = new ReflectionTemplateBuilder();
-			}else{
-				instance.append(
-						new MessagePackMessageTemplateSelector(
-								new JavassistTemplateBuilder()));
-				instance.forceBuilder = new JavassistTemplateBuilder();
-			}
-		} catch (Exception e) {
+		
+		if(isSupportJavassist()){
 			instance.append(
 					new MessagePackMessageTemplateSelector(
 							new JavassistTemplateBuilder()));
 			instance.forceBuilder = new JavassistTemplateBuilder();
+		}else{
+			instance.append(
+					new MessagePackMessageTemplateSelector(
+							new ReflectionTemplateBuilder()));
+			instance.forceBuilder = new ReflectionTemplateBuilder();
 		}
-
+		//TODO support env Javassist doesn't work
+		instance.append(new MessagePackBeansTemplateSelector(
+				new JavassistTemplateBuilder(
+						new BeansFieldEntryReader(),
+						new BuildContextFactory() {
+							@Override
+							public BuildContextBase createBuildContext(JavassistTemplateBuilder builder) {
+								return new BeansBuildContext(builder);
+							}
+						}
+				)));
+		
 		instance.append(new MessagePackOrdinalEnumBuilderSelector());
 		instance.append(new EnumBuilderSelector());
+	}
+	private static boolean isSupportJavassist(){
+		try {
+			return System.getProperty("java.vm.name").equals("Dalvik");
+		} catch (Exception e) {
+			return true;
+		}
 	}
 	
     

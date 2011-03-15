@@ -101,6 +101,11 @@ public class JavassistTemplateBuilder extends CustomTemplateBuilder {
 	    pool.appendSystemPath();
 	  }
 	}
+	public JavassistTemplateBuilder(IFieldEntryReader reader,BuildContextFactory buildContextFactory ){
+		this();
+		this.reader = reader;
+		this.buildContextFactory = buildContextFactory;
+	}
 
 
 	protected ClassPool pool;

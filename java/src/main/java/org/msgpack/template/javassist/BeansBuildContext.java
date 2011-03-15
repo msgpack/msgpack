@@ -27,18 +27,18 @@ import org.slf4j.LoggerFactory;
 
 
 
-public class BuildContext extends BuildContextBase<FieldEntry> {
-	protected IFieldEntry[] entries;
+public class BeansBuildContext extends BuildContextBase<BeansFieldEntry> {
+	protected BeansFieldEntry[] entries;
 	protected Class<?> origClass;
 	protected String origName;
 	protected Template[] templates;
 	protected int minimumArrayLength;
 
-	public BuildContext(JavassistTemplateBuilder director) {
+	public BeansBuildContext(JavassistTemplateBuilder director) {
 		super(director);
 	}
 	
-	public Template buildTemplate(Class<?> targetClass, FieldEntry[] entries, Template[] templates) {
+	public Template buildTemplate(Class<?> targetClass, BeansFieldEntry[] entries, Template[] templates) {
 		this.entries = entries;
 		this.templates = templates;
 		this.origClass = targetClass;
@@ -91,23 +91,23 @@ public class BuildContext extends BuildContextBase<FieldEntry> {
 		buildString("%s _$$_t = (%s)$2;", this.origName, this.origName);
 		buildString("$1.packArray(%d);", entries.length);
 		for(int i=0; i < entries.length; i++) {
-			IFieldEntry e = entries[i];
+			BeansFieldEntry e = entries[i];
 			if(!e.isAvailable()) {
 				buildString("$1.packNil();");
 				continue;
 			}
 			Class<?> type = e.getType();
 			if(type.isPrimitive()) {
-				buildString("$1.%s(_$$_t.%s);", primitivePackName(type), e.getName());
+				buildString("$1.%s(_$$_t.%s());", primitivePackName(type), e.getGetterName());
 			} else {
-				buildString("if(_$$_t.%s == null) {", e.getName());
+				buildString("if(_$$_t.%s() == null) {", e.getGetterName());
 				if(!e.isNullable() && !e.isOptional()) {
 					buildString("throw new %s();", MessageTypeException.class.getName());
 				} else {
 					buildString("$1.packNil();");
 				}
 				buildString("} else {");
-				buildString("  this.templates[%d].pack($1, _$$_t.%s);", i, e.getName());
+				buildString("  this.templates[%d].pack($1, _$$_t.%s());", i, e.getGetterName());
 				buildString("}");
 			}
 		}
@@ -133,7 +133,7 @@ public class BuildContext extends BuildContextBase<FieldEntry> {
 
 		int i;
 		for(i=0; i < this.minimumArrayLength; i++) {
-			IFieldEntry e = entries[i];
+			BeansFieldEntry e = entries[i];
 			if(!e.isAvailable()) {
 				buildString("$1.unpackObject();");
 				continue;
@@ -147,14 +147,14 @@ public class BuildContext extends BuildContextBase<FieldEntry> {
 					// Optional + nil => keep default value
 				} else {  // Nullable
 					// Nullable + nil => set null
-					buildString("_$$_t.%s = null;", e.getName());
+					buildString("_$$_t.%s(null);", e.getSetterName());
 				}
 			buildString("} else {");
 				Class<?> type = e.getType();
 				if(type.isPrimitive()) {
-					buildString("_$$_t.%s = $1.%s();", e.getName(), primitiveUnpackName(type));
+					buildString("_$$_t.set%s( $1.%s() );", e.getName(), primitiveUnpackName(type));
 				} else {
-					buildString("_$$_t.%s = (%s)this.templates[%d].unpack($1, _$$_t.%s);", e.getName(), e.getJavaTypeName(), i, e.getName());
+					buildString("_$$_t.set%s( (%s)this.templates[%d].unpack($1, _$$_t.get%s()) );", e.getName(), e.getJavaTypeName(), i, e.getName());
 				}
 			buildString("}");
 		}
@@ -162,7 +162,7 @@ public class BuildContext extends BuildContextBase<FieldEntry> {
 		for(; i < entries.length; i++) {
 			buildString("if(length <= %d) { return _$$_t; }", i);
 
-			IFieldEntry e = entries[i];
+			BeansFieldEntry e = entries[i];
 			if(!e.isAvailable()) {
 				buildString("$1.unpackObject();");
 				continue;
@@ -174,9 +174,9 @@ public class BuildContext extends BuildContextBase<FieldEntry> {
 			buildString("} else {");
 				Class<?> type = e.getType();
 				if(type.isPrimitive()) {
-					buildString("_$$_t.%s = $1.%s();", e.getName(), primitiveUnpackName(type));
+					buildString("_$$_t.%s( $1.%s() );", e.getSetterName(), primitiveUnpackName(type));
 				} else {
-					buildString("_$$_t.%s = (%s)this.templates[%d].unpack($1, _$$_t.%s);", e.getName(), e.getJavaTypeName(), i, e.getName());
+					buildString("_$$_t.%s( (%s)this.templates[%d].unpack($1, _$$_t.%s()) );", e.getSetterName(), e.getJavaTypeName(), i, e.getGetterName());
 				}
 			buildString("}");
 		}
@@ -214,7 +214,7 @@ public class BuildContext extends BuildContextBase<FieldEntry> {
 
 		int i;
 		for(i=0; i < this.minimumArrayLength; i++) {
-			IFieldEntry e = entries[i];
+			BeansFieldEntry e = entries[i];
 			if(!e.isAvailable()) {
 				continue;
 			}
@@ -228,14 +228,14 @@ public class BuildContext extends BuildContextBase<FieldEntry> {
 					// Optional + nil => keep default value
 				} else {  // Nullable
 					// Nullable + nil => set null
-					buildString("_$$_t.%s = null;", e.getName());
+					buildString("_$$_t.%s( null );", e.getSetterName());
 				}
 			buildString("} else {");
 				Class<?> type = e.getType();
 				if(type.isPrimitive()) {
-					buildString("_$$_t.%s = obj.%s();", e.getName(), primitiveConvertName(type));
+					buildString("_$$_t.%s( obj.%s() );", e.getSetterName(), primitiveConvertName(type));
 				} else {
-					buildString("_$$_t.%s = (%s)this.templates[%d].convert(obj, _$$_t.%s);", e.getName(), e.getJavaTypeName(), i, e.getName());
+					buildString("_$$_t.%s( (%s)this.templates[%d].convert(obj, _$$_t.%s()) );", e.getSetterName(), e.getJavaTypeName(), i, e.getGetterName());
 				}
 			buildString("}");
 		}
@@ -243,7 +243,7 @@ public class BuildContext extends BuildContextBase<FieldEntry> {
 		for(; i < entries.length; i++) {
 			buildString("if(length <= %d) { return _$$_t; }", i);
 
-			IFieldEntry e = entries[i];
+			BeansFieldEntry e = entries[i];
 			if(!e.isAvailable()) {
 				continue;
 			}
@@ -255,9 +255,9 @@ public class BuildContext extends BuildContextBase<FieldEntry> {
 			buildString("} else {");
 				Class<?> type = e.getType();
 				if(type.isPrimitive()) {
-					buildString("_$$_t.%s = obj.%s();", e.getName(), primitiveConvertName(type));
+					buildString("_$$_t.%s( obj.%s() );", e.getSetterName(), primitiveConvertName(type));
 				} else {
-					buildString("_$$_t.%s = (%s)this.templates[%d].convert(obj, _$$_t.%s);", e.getName(), e.getJavaTypeName(), i, e.getName());
+					buildString("_$$_t.%s( (%s)this.templates[%d].convert(obj, _$$_t.%s()) );", e.getSetterName(), e.getJavaTypeName(), i, e.getGetterName());
 				}
 			buildString("}");
 		}

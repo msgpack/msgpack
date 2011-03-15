@@ -43,7 +43,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-public abstract class BuildContextBase {
+public abstract class BuildContextBase<T extends IFieldEntry> {
 	
 	private static Logger LOG = LoggerFactory.getLogger(JavassistTemplateBuilder.class);
 
@@ -73,7 +73,7 @@ public abstract class BuildContextBase {
 	}
 	
 	
-	public abstract Template buildTemplate(Class<?> targetClass, IFieldEntry[] entries, Template[] templates);
+	public abstract Template buildTemplate(Class<?> targetClass, T[] entries, Template[] templates);
 
 
 	protected Template build(final String className) {
