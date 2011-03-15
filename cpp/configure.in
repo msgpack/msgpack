@@ -1,6 +1,6 @@
 AC_INIT(src/object.cpp)
 AC_CONFIG_AUX_DIR(ac)
-AM_INIT_AUTOMAKE(msgpack, 0.5.4)
+AM_INIT_AUTOMAKE(msgpack, 0.5.5)
 AC_CONFIG_HEADER(config.h)
 
 AC_SUBST(CFLAGS)
@@ -55,7 +55,7 @@ if test "$msgpack_cv_atomic_ops" != "yes"; then
 Note that gcc < 4.1 is not supported.
 
 If you are using gcc >= 4.1 and the default target CPU architecture is "i386", try to
-add CFLAGS="--march=i686" and CXXFLAGS="-march=i686" options to ./configure as follows:
+add CFLAGS="-march=i686" and CXXFLAGS="-march=i686" options to ./configure as follows:
 
   $ ./configure CFLAGS="-march=i686" CXXFLAGS="-march=i686"
 ])

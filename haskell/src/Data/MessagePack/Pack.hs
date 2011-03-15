@@ -1,6 +1,5 @@
 {-# Language FlexibleInstances #-}
 {-# Language IncoherentInstances #-}
-{-# Language OverlappingInstances #-}
 {-# Language TypeSynonymInstances #-}
 
 --------------------------------------------------------------------
@@ -31,6 +30,8 @@ import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as B8
 import qualified Data.ByteString.Lazy as L
 import qualified Data.Vector as V
+
+import Data.MessagePack.Assoc
 
 -- | Serializable class
 class Packable a where
@@ -80,6 +81,11 @@ instance Packable () where
 instance Packable Bool where
   put True = putWord8 0xC3
   put False = putWord8 0xC2
+
+instance Packable Float where
+  put f = do
+    putWord8 0xCA
+    putFloat32be f
 
 instance Packable Double where
   put d = do
@@ -159,11 +165,11 @@ putArray lf pf arr = do
       putWord32be $ fromIntegral len
   pf arr
 
-instance (Packable k, Packable v) => Packable [(k, v)] where
-  put = putMap length (mapM_ putPair)
+instance (Packable k, Packable v) => Packable (Assoc [(k,v)]) where
+  put = putMap length (mapM_ putPair) . unAssoc
 
-instance (Packable k, Packable v) => Packable (V.Vector (k, v)) where
-  put = putMap V.length (V.mapM_ putPair)
+instance (Packable k, Packable v) => Packable (Assoc (V.Vector (k,v))) where
+  put = putMap V.length (V.mapM_ putPair) . unAssoc
 
 putPair :: (Packable a, Packable b) => (a, b) -> Put
 putPair (a, b) = put a >> put b
@@ -184,3 +190,4 @@ putMap lf pf m = do
 instance Packable a => Packable (Maybe a) where
   put Nothing = put ()
   put (Just a) = put a
+

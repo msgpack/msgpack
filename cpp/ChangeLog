@@ -1,4 +1,10 @@
 
+2011-02-24 version 0.5.5:
+
+  * eliminates dependency of winsock2.h header
+  * fixes msgpack_vc.postbuild.bat file
+  * fixes some implicit cast warnings
+
 2010-08-29 version 0.5.4:
 
   * includes msgpack_vc2008.vcproj file in source package

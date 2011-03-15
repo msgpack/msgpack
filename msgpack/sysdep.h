@@ -38,6 +38,7 @@ typedef unsigned __int64 uint64_t;
 
 
 #ifdef _WIN32
+#define _msgpack_atomic_counter_header <windows.h>
 typedef long _msgpack_atomic_counter_t;
 #define _msgpack_sync_decr_and_fetch(ptr) InterlockedDecrement(ptr)
 #define _msgpack_sync_incr_and_fetch(ptr) InterlockedIncrement(ptr)
@@ -49,7 +50,6 @@ typedef unsigned int _msgpack_atomic_counter_t;
 
 
 #ifdef _WIN32
-#include <winsock2.h>
 
 #ifdef __cplusplus
 /* numeric_limits<T>::min,max */
@@ -70,15 +70,45 @@ typedef unsigned int _msgpack_atomic_counter_t;
 #define __LITTLE_ENDIAN__
 #elif __BYTE_ORDER == __BIG_ENDIAN
 #define __BIG_ENDIAN__
+#elif _WIN32
+#define __LITTLE_ENDIAN__
 #endif
 #endif
+
 
 #ifdef __LITTLE_ENDIAN__
 
-#define _msgpack_be16(x) ntohs(x)
-#define _msgpack_be32(x) ntohl(x)
+#ifdef _WIN32
+#  if defined(ntohs)
+#    define _msgpack_be16(x) ntohs(x)
+#  elif defined(_byteswap_ushort) || (defined(_MSC_VER) && _MSC_VER >= 1400)
+#    define _msgpack_be16(x) ((uint16_t)_byteswap_ushort((unsigned short)x))
+#  else
+#    define _msgpack_be16(x) \
+		( ((((uint16_t)x) <<  8) ) | \
+		  ((((uint16_t)x) >>  8) )
+#  endif
+#else
+#  define _msgpack_be16(x) ntohs(x)
+#endif
 
-#if defined(_byteswap_uint64) || _MSC_VER >= 1400
+#ifdef _WIN32
+#  if defined(ntohl)
+#    define _msgpack_be32(x) ntohl(x)
+#  elif defined(_byteswap_ulong) || (defined(_MSC_VER) && _MSC_VER >= 1400)
+#    define _msgpack_be32(x) ((uint32_t)_byteswap_ulong((unsigned long)x))
+#  else
+#    define _msgpack_be32(x) \
+		( ((((uint32_t)x) << 24)               ) | \
+		  ((((uint32_t)x) <<  8) & 0x00ff0000U ) | \
+		  ((((uint32_t)x) >>  8) & 0x0000ff00U ) | \
+		  ((((uint32_t)x) >> 24)               ) )
+#  endif
+#else
+#  define _msgpack_be32(x) ntohl(x)
+#endif
+
+#if defined(_byteswap_uint64) || (defined(_MSC_VER) && _MSC_VER >= 1400)
 #  define _msgpack_be64(x) (_byteswap_uint64(x))
 #elif defined(bswap_64)
 #  define _msgpack_be64(x) bswap_64(x)
@@ -86,14 +116,14 @@ typedef unsigned int _msgpack_atomic_counter_t;
 #  define _msgpack_be64(x) __DARWIN_OSSwapInt64(x)
 #else
 #define _msgpack_be64(x) \
-	( ((((uint64_t)x) << 56) & 0xff00000000000000ULL ) | \
+	( ((((uint64_t)x) << 56)                         ) | \
 	  ((((uint64_t)x) << 40) & 0x00ff000000000000ULL ) | \
 	  ((((uint64_t)x) << 24) & 0x0000ff0000000000ULL ) | \
 	  ((((uint64_t)x) <<  8) & 0x000000ff00000000ULL ) | \
 	  ((((uint64_t)x) >>  8) & 0x00000000ff000000ULL ) | \
 	  ((((uint64_t)x) >> 24) & 0x0000000000ff0000ULL ) | \
 	  ((((uint64_t)x) >> 40) & 0x000000000000ff00ULL ) | \
-	  ((((uint64_t)x) >> 56) & 0x00000000000000ffULL ) )
+	  ((((uint64_t)x) >> 56)                         ) )
 #endif
 
 #else
@@ -104,11 +134,11 @@ typedef unsigned int _msgpack_atomic_counter_t;
 
 
 #define _msgpack_store16(to, num) \
-	do { uint16_t val = _msgpack_be16(num); memcpy(to, &val, 2); } while(0);
+	do { uint16_t val = _msgpack_be16(num); memcpy(to, &val, 2); } while(0)
 #define _msgpack_store32(to, num) \
-	do { uint32_t val = _msgpack_be32(num); memcpy(to, &val, 4); } while(0);
+	do { uint32_t val = _msgpack_be32(num); memcpy(to, &val, 4); } while(0)
 #define _msgpack_store64(to, num) \
-	do { uint64_t val = _msgpack_be64(num); memcpy(to, &val, 8); } while(0);
+	do { uint64_t val = _msgpack_be64(num); memcpy(to, &val, 8); } while(0)
 
 
 #define _msgpack_load16(cast, from) ((cast)_msgpack_be16(*(uint16_t*)from))

@@ -30,7 +30,7 @@ namespace msgpack {
 inline float& operator>> (object o, float& v)
 {
 	if(o.type != type::DOUBLE) { throw type_error(); }
-	v = o.via.dec;
+	v = (float)o.via.dec;
 	return v;
 }
 
@@ -60,7 +60,7 @@ inline packer<Stream>& operator<< (packer<Stream>& o, const double& v)
 inline void operator<< (object& o, float v)
 {
 	o.type = type::DOUBLE;
-	o.via.dec = v;
+	o.via.dec = (double)v;
 }
 
 inline void operator<< (object& o, double v)

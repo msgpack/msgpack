@@ -44,7 +44,7 @@ inline void operator<< (object::with_zone& o, const std::string& v)
 	o.type = type::RAW;
 	char* ptr = (char*)o.zone->malloc(v.size());
 	o.via.raw.ptr = ptr;
-	o.via.raw.size = v.size();
+	o.via.raw.size = (uint32_t)v.size();
 	memcpy(ptr, v.data(), v.size());
 }
 
@@ -52,7 +52,7 @@ inline void operator<< (object& o, const std::string& v)
 {
 	o.type = type::RAW;
 	o.via.raw.ptr = v.data();
-	o.via.raw.size = v.size();
+	o.via.raw.size = (uint32_t)v.size();
 }
 
 

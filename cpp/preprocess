@@ -12,7 +12,7 @@ preprocess() {
 	fi
 }
 
-if [ "$1" == "clean" ];then
+if [ "$1" = "clean" ];then
 	rm -f src/msgpack/type/tuple.hpp
 	rm -f src/msgpack/type/define.hpp
 	rm -f src/msgpack/zone.hpp
