@@ -2,6 +2,7 @@ package org.msgpack
 
 import annotation.MessagePackMessage
 import annotation.{Optional, Index}
+import java.util.Date
 ;
 /*
  * Created by IntelliJ IDEA.
@@ -54,3 +55,23 @@ class NotDefaultCons(var name : String){
 }
 
 class NotDefaultCons2 extends NotDefaultCons("hoge")
+
+@MessagePackMessage
+class BasicalTypes{
+
+  var intVar : Int = 0
+  var longVar : Long = 0
+  var shortVar : Short = 0
+  var byteVar : Byte = 0
+  var boolVar : Boolean = false
+
+  var floatVar : Float = 0
+  var doubleVar : Double = 0
+
+  var strVar : String = ""
+
+  var dateVar : Date = null
+
+
+
+}

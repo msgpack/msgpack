@@ -4,6 +4,8 @@ import org.junit.runner.RunWith
 import org.specs._
 import org.specs.matcher._
 import org.specs.runner.{ JUnitSuiteRunner, JUnit }
+import java.util.Date
+
 //import org.scalacheck.Gen
 
 /**
@@ -38,6 +40,31 @@ class ScalaMessagePackTest extends Specification with JUnit /*with ScalaCheck*/ 
       val conv = mso.convert(classOf[SampleClass])
       conv.name must be_==(sc.name)
       conv.number must be_==(sc.number)
+    }
+    "check basical types" in {
+      val v = new BasicalTypes
+      v.intVar = 20
+      v.longVar = 11
+      v.shortVar = 7
+      v.byteVar = 1
+      v.floatVar = 1.5f
+      v.doubleVar = 2.5
+      v.strVar = "fugafuga"
+      v.dateVar = new Date(1233333)
+
+      val b = ScalaMessagePack.pack(v)
+      val des : BasicalTypes = ScalaMessagePack.unpack[BasicalTypes](b)
+
+      des.intVar must be_==(v.intVar)
+      des.longVar must be_==(v.longVar)
+      des.shortVar must be_==(v.shortVar)
+      des.byteVar must be_==(v.byteVar)
+      des.floatVar must be_==(v.floatVar)
+      des.doubleVar must be_==(v.doubleVar)
+      des.strVar must be_==(v.strVar)
+      des.dateVar must be_==(v.dateVar)
+
+
     }
 
     "pack and unpack none-default constructor class" in {

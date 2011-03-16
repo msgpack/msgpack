@@ -76,7 +76,7 @@ import scala.collection.JavaConverters._
 
           if(Modifier.isPublic(method.getModifiers) &&
             origClass.isAssignableFrom(method.getReturnType)){
-            val staticField = c.getDeclaredFields()(0)
+            val staticField = c.getDeclaredField("MODULE$")
              "%s.%s.apply();".format(c.getName,staticField.getName)
           }else{
             defCon

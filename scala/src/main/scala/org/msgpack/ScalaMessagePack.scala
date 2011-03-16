@@ -50,6 +50,11 @@ object ScalaMessagePack {
 
   }
 
+  /**
+   * dammy method for initialize
+   */
+  def init() = {}
+
 
   def pack( obj : Any) = {
     MessagePack.pack(obj.asInstanceOf[AnyRef])
