@@ -1,5 +1,5 @@
 Name:               msgpack
-Version:            0.6.0.0
+Version:            0.6.0.1
 Synopsis:           A Haskell implementation of MessagePack
 Description:
   A Haskell implementation of MessagePack <http://msgpack.org/>
