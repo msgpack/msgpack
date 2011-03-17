@@ -75,7 +75,7 @@ instance Unpackable Object where
     , liftM ObjectDouble get
     , liftM ObjectRAW get
     , liftM ObjectArray get
-    , liftM ObjectMap get
+    , liftM (ObjectMap . unAssoc) get
     ]
 
 instance Packable Object where
@@ -96,7 +96,7 @@ instance Packable Object where
       ObjectArray arr ->
         put arr
       ObjectMap m ->
-        put m
+        put $ Assoc m
 
 -- | The class of types serializable to and from MessagePack object
 class (Unpackable a, Packable a) => OBJECT a where
