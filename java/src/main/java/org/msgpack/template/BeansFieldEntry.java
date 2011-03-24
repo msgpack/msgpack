@@ -117,4 +117,28 @@ public class BeansFieldEntry implements IFieldEntry {
 	public boolean isNullable() {
 		return option == FieldOption.NULLABLE;
 	}
+	
+	public Object get(Object target){
+		try {
+			return desc.getReadMethod().invoke(target);
+		} catch (IllegalArgumentException e) {
+			throw new MessageTypeException(e);
+		} catch (IllegalAccessException e) {
+			throw new MessageTypeException(e);
+		} catch (InvocationTargetException e) {
+			throw new MessageTypeException(e);
+		}
+	}
+	public void set(Object target , Object value){
+		try {
+			desc.getWriteMethod().invoke(target, value);
+		} catch (IllegalArgumentException e) {
+			throw new MessageTypeException(e);
+		} catch (IllegalAccessException e) {
+			throw new MessageTypeException(e);
+		} catch (InvocationTargetException e) {
+			throw new MessageTypeException(e);
+		}
+	}
+	
 }

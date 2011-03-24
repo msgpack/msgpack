@@ -5,6 +5,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.msgpack.template.BeansFieldEntryReader;
+import org.msgpack.template.BeansReflectionTemplateBuilder;
 import org.msgpack.template.JavassistTemplateBuilder;
 import org.msgpack.template.ReflectionTemplateBuilder;
 import org.msgpack.template.javassist.BeansBuildContext;
@@ -40,23 +41,28 @@ public class BuilderSelectorRegistry {
 					new MessagePackMessageTemplateSelector(
 							new JavassistTemplateBuilder()));
 			instance.forceBuilder = new JavassistTemplateBuilder();
+
+			//Java beans
+			instance.append(new MessagePackBeansTemplateSelector(
+					new JavassistTemplateBuilder(
+							new BeansFieldEntryReader(),
+							new BuildContextFactory() {
+								@Override
+								public BuildContextBase createBuildContext(JavassistTemplateBuilder builder) {
+									return new BeansBuildContext(builder);
+								}
+							}
+					)));
 		}else{
 			instance.append(
 					new MessagePackMessageTemplateSelector(
 							new ReflectionTemplateBuilder()));
 			instance.forceBuilder = new ReflectionTemplateBuilder();
+			
+			//Java beans
+			instance.append(new MessagePackBeansTemplateSelector(
+					new BeansReflectionTemplateBuilder()));
 		}
-		//TODO support env Javassist doesn't work
-		instance.append(new MessagePackBeansTemplateSelector(
-				new JavassistTemplateBuilder(
-						new BeansFieldEntryReader(),
-						new BuildContextFactory() {
-							@Override
-							public BuildContextBase createBuildContext(JavassistTemplateBuilder builder) {
-								return new BeansBuildContext(builder);
-							}
-						}
-				)));
 		
 		instance.append(new MessagePackOrdinalEnumBuilderSelector());
 		instance.append(new EnumBuilderSelector());
