@@ -84,7 +84,7 @@ public class JavassistTemplateBuilder extends CustomTemplateBuilder {
 		boolean appended = false;
 		ClassLoader cl = null;
 		try {
-			Thread.currentThread().getContextClassLoader();
+			cl = Thread.currentThread().getContextClassLoader();
 			if (cl != null) {
 				pool.appendClassPath(new LoaderClassPath(cl));
 				appended = true;
@@ -105,6 +105,12 @@ public class JavassistTemplateBuilder extends CustomTemplateBuilder {
 			pool.appendSystemPath();
 		}
 	}
+	/**
+	 * Replace FieldEntryReader and BuilderContextFactory.
+	 * you can replace field entry rules and generated codes easily.
+	 * @param reader
+	 * @param buildContextFactory
+	 */
 	public JavassistTemplateBuilder(IFieldEntryReader reader,BuildContextFactory buildContextFactory ){
 		this();
 		this.reader = reader;

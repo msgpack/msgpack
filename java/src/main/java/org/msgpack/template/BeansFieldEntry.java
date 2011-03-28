@@ -27,6 +27,11 @@ import java.util.EnumSet;
 import org.msgpack.*;
 import org.msgpack.annotation.*;
 
+/**
+ * Field entry for Java beans property.
+ * @author takeshita
+ *
+ */
 public class BeansFieldEntry implements IFieldEntry {
 
 	PropertyDescriptor desc;

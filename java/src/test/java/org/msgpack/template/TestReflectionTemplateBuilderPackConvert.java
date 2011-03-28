@@ -24,7 +24,6 @@ import org.msgpack.Unpacker;
 import org.msgpack.annotation.MessagePackMessage;
 import org.msgpack.annotation.MessagePackOrdinalEnum;
 import org.msgpack.annotation.Optional;
-import org.msgpack.template.TestTemplateBuilderPackConvert.SampleInterface;
 import org.msgpack.template.builder.BuilderSelectorRegistry;
 import org.msgpack.template.builder.MessagePackBeansBuilderSelector;
 import org.msgpack.template.builder.MessagePackMessageBuilderSelector;
@@ -34,9 +33,7 @@ import org.msgpack.template.builder.TemplateBuilder;
 import junit.framework.Assert;
 import junit.framework.TestCase;
 
-import static org.junit.Assert.assertThat;
-
-public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
+public class TestReflectionTemplateBuilderPackConvert extends TestCase {
 	static {
 		//Replace template selectors from javassist to reflection.
 		BuilderSelectorRegistry instance = BuilderSelectorRegistry.getInstance();
@@ -47,7 +44,6 @@ public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
 		instance.setForceBuilder( new ReflectionTemplateBuilder());
 		instance.replace(new MessagePackBeansBuilderSelector(
 				new BeansReflectionTemplateBuilder()));
-		
 		
 		MessagePack.register(PrimitiveTypeFieldsClass.class);
 		MessagePack.register(OptionalPrimitiveTypeFieldsClass.class);
@@ -91,8 +87,7 @@ public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
 		byte[] raw = MessagePack.pack(src);
 
 		PrimitiveTypeFieldsClass dst =
-			MessagePack.unpack(raw, PrimitiveTypeFieldsClass.class);
-		
+			MessagePack.unpack(raw).convert(PrimitiveTypeFieldsClass.class);
 		assertEquals(src.f0, dst.f0);
 		assertEquals(src.f1, dst.f1);
 		assertEquals(src.f2, dst.f2);
@@ -109,7 +104,7 @@ public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
 		byte[] raw = MessagePack.pack(src);
 
 		PrimitiveTypeFieldsClass dst =
-			MessagePack.unpack(raw, PrimitiveTypeFieldsClass.class);
+			MessagePack.unpack(raw).convert(PrimitiveTypeFieldsClass.class);
 		assertEquals(src.f0, dst.f0);
 		assertEquals(src.f1, dst.f1);
 		assertEquals(src.f2, dst.f2);
@@ -126,7 +121,7 @@ public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
 		byte[] raw = MessagePack.pack(src);
 
 		PrimitiveTypeFieldsClass dst =
-			MessagePack.unpack(raw, PrimitiveTypeFieldsClass.class);
+			MessagePack.unpack(raw).convert(PrimitiveTypeFieldsClass.class);
 		assertEquals(src, dst);
 	}
 
@@ -157,7 +152,7 @@ public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
 		byte[] raw = MessagePack.pack(src);
 
 		PrimitiveTypeFieldsClass dst =
-			MessagePack.unpack(raw, PrimitiveTypeFieldsClass.class);
+			MessagePack.unpack(raw).convert(PrimitiveTypeFieldsClass.class);
 		assertEquals(src.f0, dst.f0);
 		assertEquals(src.f1, dst.f1);
 		assertEquals(src.f2, dst.f2);
@@ -174,7 +169,7 @@ public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
 		byte[] raw = MessagePack.pack(src);
 
 		OptionalPrimitiveTypeFieldsClass dst =
-			MessagePack.unpack(raw, OptionalPrimitiveTypeFieldsClass.class);
+			MessagePack.unpack(raw).convert(OptionalPrimitiveTypeFieldsClass.class);
 		assertEquals(src.f0, dst.f0);
 		assertEquals(src.f1, dst.f1);
 		assertEquals(src.f2, dst.f2);
@@ -191,7 +186,7 @@ public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
 		byte[] raw = MessagePack.pack(src);
 
 		OptionalPrimitiveTypeFieldsClass dst =
-			MessagePack.unpack(raw, OptionalPrimitiveTypeFieldsClass.class);
+			MessagePack.unpack(raw).convert(OptionalPrimitiveTypeFieldsClass.class);
 		assertEquals(src, dst);
 	}
 
@@ -233,7 +228,7 @@ public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
 		byte[] raw = MessagePack.pack(src);
 
 		GeneralReferenceTypeFieldsClass dst =
-			MessagePack.unpack(raw, GeneralReferenceTypeFieldsClass.class);
+			MessagePack.unpack(raw).convert(GeneralReferenceTypeFieldsClass.class);
 		assertEquals(src.f0, dst.f0);
 		assertEquals(src.f1, dst.f1);
 		assertEquals(src.f2, dst.f2);
@@ -255,7 +250,7 @@ public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
 		byte[] raw = MessagePack.pack(src);
 
 		GeneralReferenceTypeFieldsClass dst =
-			MessagePack.unpack(raw, GeneralReferenceTypeFieldsClass.class);
+			MessagePack.unpack(raw).convert(GeneralReferenceTypeFieldsClass.class);
 		assertEquals(src, dst);
 	}
 
@@ -295,7 +290,7 @@ public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
 		byte[] raw = MessagePack.pack(src);
 
 		GeneralOptionalReferenceTypeFieldsClass dst =
-			MessagePack.unpack(raw, GeneralOptionalReferenceTypeFieldsClass.class);
+			MessagePack.unpack(raw).convert(GeneralOptionalReferenceTypeFieldsClass.class);
 		assertEquals(src.f0, dst.f0);
 		assertEquals(src.f1, dst.f1);
 		assertEquals(src.f2, dst.f2);
@@ -329,7 +324,7 @@ public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
 		byte[] raw = MessagePack.pack(src);
 
 		GeneralOptionalReferenceTypeFieldsClass dst =
-			MessagePack.unpack(raw, GeneralOptionalReferenceTypeFieldsClass.class);
+			MessagePack.unpack(raw).convert(GeneralOptionalReferenceTypeFieldsClass.class);
 		assertEquals(src.f0, dst.f0);
 		assertEquals(src.f1, dst.f1);
 		assertEquals(src.f2, dst.f2);
@@ -351,7 +346,7 @@ public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
 		byte[] raw = MessagePack.pack(src);
 
 		GeneralOptionalReferenceTypeFieldsClass dst =
-			MessagePack.unpack(raw, GeneralOptionalReferenceTypeFieldsClass.class);
+			MessagePack.unpack(raw).convert(GeneralOptionalReferenceTypeFieldsClass.class);
 		assertEquals(src, dst);
 	}
 
@@ -410,7 +405,7 @@ public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
 		byte[] raw = MessagePack.pack(src);
 
 		SampleListTypes dst =
-			MessagePack.unpack(raw, SampleListTypes.class);
+			MessagePack.unpack(raw).convert(SampleListTypes.class);
 		for (int i = 0; i < src.f1.size(); ++i) {
 			assertEquals(src.f1.get(i), dst.f1.get(i));
 		}
@@ -450,7 +445,7 @@ public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
 		byte[] raw = MessagePack.pack(src);
 
 		SampleListTypes dst =
-			MessagePack.unpack(raw, SampleListTypes.class);
+			MessagePack.unpack(raw).convert(SampleListTypes.class);
 		assertEquals(src, dst);
 	}
 
@@ -502,7 +497,7 @@ public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
 		byte[] raw = MessagePack.pack(src);
 
 		SampleOptionalListTypes dst =
-			MessagePack.unpack(raw, SampleOptionalListTypes.class);
+			MessagePack.unpack(raw).convert(SampleOptionalListTypes.class);
 		assertEquals(src.f0.size(), dst.f0.size());
 		assertEquals(src.f1.size(), dst.f1.size());
 		for (int i = 0; i < src.f1.size(); ++i) {
@@ -550,7 +545,7 @@ public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
 		byte[] raw = MessagePack.pack(src);
 
 		SampleOptionalListTypes dst =
-			MessagePack.unpack(raw, SampleOptionalListTypes.class);
+			MessagePack.unpack(raw).convert(SampleOptionalListTypes.class);
 		assertEquals(src.f0.size(), dst.f0.size());
 		assertEquals(src.f1, dst.f1);
 		assertEquals(src.f2.size(), dst.f2.size());
@@ -566,7 +561,7 @@ public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
 		byte[] raw = MessagePack.pack(src);
 
 		SampleListTypes dst =
-			MessagePack.unpack(raw, SampleListTypes.class);
+			MessagePack.unpack(raw).convert(SampleListTypes.class);
 		assertEquals(src, dst);
 	}
 
@@ -615,7 +610,7 @@ public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
 		byte[] raw = MessagePack.pack(src);
 
 		SampleMapTypes dst =
-			MessagePack.unpack(raw, SampleMapTypes.class);
+			MessagePack.unpack(raw).convert(SampleMapTypes.class);
 		Iterator<Integer> srcf1 = src.f1.keySet().iterator();
 		Iterator<Integer> dstf1 = dst.f1.keySet().iterator();
 		while (srcf1.hasNext()) {
@@ -642,7 +637,7 @@ public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
 		byte[] raw = MessagePack.pack(src);
 
 		SampleMapTypes dst =
-			MessagePack.unpack(raw, SampleMapTypes.class);
+			MessagePack.unpack(raw).convert(SampleMapTypes.class);
 		assertEquals(src, dst);
 	}
 
@@ -671,7 +666,7 @@ public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
 		byte[] raw = MessagePack.pack(src);
 
 		SampleOptionalMapTypes dst =
-			MessagePack.unpack(raw, SampleOptionalMapTypes.class);
+			MessagePack.unpack(raw).convert(SampleOptionalMapTypes.class);
 		assertEquals(src.f0.size(), dst.f0.size());
 		assertEquals(src.f1.size(), dst.f1.size());
 		Iterator<Integer> srcf1 = src.f1.keySet().iterator();
@@ -703,7 +698,7 @@ public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
 		byte[] raw = MessagePack.pack(src);
 
 		SampleOptionalMapTypes dst =
-			MessagePack.unpack(raw, SampleOptionalMapTypes.class);
+			MessagePack.unpack(raw).convert(SampleOptionalMapTypes.class);
 		assertEquals(src.f0.size(), dst.f0.size());
 		assertEquals(src.f1, dst.f1);
 		assertEquals(src.f2.size(), dst.f2.size());
@@ -716,7 +711,7 @@ public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
 		byte[] raw = MessagePack.pack(src);
 
 		SampleOptionalMapTypes dst =
-			MessagePack.unpack(raw, SampleOptionalMapTypes.class);
+			MessagePack.unpack(raw).convert(SampleOptionalMapTypes.class);
 		assertEquals(src, dst);
 	}
 
@@ -736,7 +731,7 @@ public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
 	public void testFinalClass() throws Exception {
 		try {
 			TemplateBuilder builder = BuilderSelectorRegistry.getInstance().select(FinalModifierClass.class);
-			Assert.assertNull(builder);
+			Assert.assertNull(builder);// no available builder
 			BuilderSelectorRegistry.getInstance().getForceBuilder().buildTemplate(FinalModifierClass.class);
 			assertTrue(true);
 		} catch (TemplateBuildException e) {
@@ -755,7 +750,7 @@ public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
 	public void testInterfaceType00() throws Exception {
 		try {
 			TemplateBuilder builder = BuilderSelectorRegistry.getInstance().select(SampleInterface.class);
-			Assert.assertNull(builder);
+			Assert.assertNull(builder);// no available builder
 			BuilderSelectorRegistry.getInstance().getForceBuilder().buildTemplate(SampleInterface.class);
 			fail();
 		} catch (TemplateBuildException e) {
@@ -768,7 +763,7 @@ public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
 	public void testInterfaceType01() throws Exception {
 		try {
 			TemplateBuilder builder = BuilderSelectorRegistry.getInstance().select(SampleInterface.class);
-			Assert.assertNull(builder);
+			Assert.assertNull(builder);// no available builder
 			BuilderSelectorRegistry.getInstance().getForceBuilder().buildTemplate(SampleInterface.class);
 			fail();
 		} catch (TemplateBuildException e) {
@@ -789,7 +784,7 @@ public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
 		byte[] raw = MessagePack.pack(src);
 
 		SampleEnumFieldClass dst =
-			MessagePack.unpack(raw, SampleEnumFieldClass.class);
+			MessagePack.unpack(raw).convert(SampleEnumFieldClass.class);
 		assertTrue(src.f1 == dst.f1);
 	}
 
@@ -800,7 +795,7 @@ public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
 		byte[] raw = MessagePack.pack(src);
 
 		SampleEnumFieldClass dst =
-			MessagePack.unpack(raw, SampleEnumFieldClass.class);
+			MessagePack.unpack(raw).convert(SampleEnumFieldClass.class);
 		assertEquals(src, dst);
 	}
 
@@ -827,7 +822,7 @@ public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
 		byte[] raw = MessagePack.pack(src);
 
 		SampleOptionalEnumFieldClass dst =
-			MessagePack.unpack(raw, SampleOptionalEnumFieldClass.class);
+			MessagePack.unpack(raw).convert(SampleOptionalEnumFieldClass.class);
 		assertTrue(src.f0 == dst.f0);
 		assertTrue(src.f1 == dst.f1);
 	}
@@ -840,7 +835,7 @@ public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
 		byte[] raw = MessagePack.pack(src);
 
 		SampleOptionalEnumFieldClass dst =
-			MessagePack.unpack(raw, SampleOptionalEnumFieldClass.class);
+			MessagePack.unpack(raw).convert(SampleOptionalEnumFieldClass.class);
 		assertTrue(src.f0 == dst.f0);
 		assertEquals(src.f1, dst.f1);
 	}
@@ -852,7 +847,7 @@ public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
 		byte[] raw = MessagePack.pack(src);
 
 		SampleEnumFieldClass dst =
-			MessagePack.unpack(raw, SampleEnumFieldClass.class);
+			MessagePack.unpack(raw).convert(SampleEnumFieldClass.class);
 		assertEquals(src, dst);
 	}
 
@@ -883,7 +878,7 @@ public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
 		byte[] raw = MessagePack.pack(src);
 
 		FieldModifiersClass dst =
-			MessagePack.unpack(raw, FieldModifiersClass.class);
+			MessagePack.unpack(raw).convert(FieldModifiersClass.class);
 		assertTrue(src.f1 == dst.f1);
 		assertTrue(src.f2 != dst.f2);
 		assertTrue(src.f3 != dst.f3);
@@ -912,7 +907,7 @@ public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
 		byte[] raw = MessagePack.pack(src);
 
 		OptionalFieldModifiersClass dst =
-			MessagePack.unpack(raw, OptionalFieldModifiersClass.class);
+			MessagePack.unpack(raw).convert(OptionalFieldModifiersClass.class);
 		assertTrue(src.f0 == dst.f0);
 		assertTrue(src.f1 == dst.f1);
 		assertTrue(src.f2 != dst.f2);
@@ -944,7 +939,7 @@ public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
 		byte[] raw = MessagePack.pack(src);
 
 		BaseClass dst =
-			MessagePack.unpack(raw, BaseClass.class);
+			MessagePack.unpack(raw).convert(BaseClass.class);
 		assertTrue(src.f0 == dst.f0);
 		assertTrue(src.f1.f2 == dst.f1.f2);
 	}
@@ -956,7 +951,7 @@ public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
 		byte[] raw = MessagePack.pack(src);
 
 		BaseClass dst =
-			MessagePack.unpack(raw, BaseClass.class);
+			MessagePack.unpack(raw).convert(BaseClass.class);
 		assertEquals(src, dst);
 	}
 
@@ -986,7 +981,7 @@ public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
 		byte[] raw = MessagePack.pack(src);
 
 		OptionalBaseClass dst =
-			MessagePack.unpack(raw, OptionalBaseClass.class);
+			MessagePack.unpack(raw).convert(OptionalBaseClass.class);
 		assertTrue(src.f0 == dst.f0);
 		assertTrue(src.f1.f2 == dst.f1.f2);
 	}
@@ -999,7 +994,7 @@ public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
 		byte[] raw = MessagePack.pack(src);
 
 		OptionalBaseClass dst =
-			MessagePack.unpack(raw, OptionalBaseClass.class);
+			MessagePack.unpack(raw).convert(OptionalBaseClass.class);
 		assertTrue(src.f0 == dst.f0);
 		assertTrue(src.f1 == dst.f1);
 	}
@@ -1011,7 +1006,7 @@ public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
 		byte[] raw = MessagePack.pack(src);
 
 		OptionalBaseClass dst =
-			MessagePack.unpack(raw, OptionalBaseClass.class);
+			MessagePack.unpack(raw).convert(OptionalBaseClass.class);
 		assertEquals(src, dst);
 	}
 
@@ -1044,7 +1039,7 @@ public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
 		byte[] raw = MessagePack.pack(src);
 
 		BaseClass2 dst =
-			MessagePack.unpack(raw, BaseClass2.class);
+			MessagePack.unpack(raw).convert(BaseClass2.class);
 		assertTrue(src.f0 == dst.f0);
 		assertTrue(src.f1.f2 == dst.f1.f2);
 	}
@@ -1056,7 +1051,7 @@ public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
 		byte[] raw = MessagePack.pack(src);
 
 		BaseClass2 dst =
-			MessagePack.unpack(raw, BaseClass2.class);
+			MessagePack.unpack(raw).convert(BaseClass2.class);
 		assertEquals(src, dst);
 	}
 
@@ -1087,7 +1082,7 @@ public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
 		byte[] raw = MessagePack.pack(src);
 
 		OptionalBaseClass2 dst =
-			MessagePack.unpack(raw, OptionalBaseClass2.class);
+			MessagePack.unpack(raw).convert(OptionalBaseClass2.class);
 		assertTrue(src.f0 == dst.f0);
 		assertTrue(src.f1.f2 == dst.f1.f2);
 	}
@@ -1100,7 +1095,7 @@ public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
 		byte[] raw = MessagePack.pack(src);
 
 		OptionalBaseClass2 dst =
-			MessagePack.unpack(raw, OptionalBaseClass2.class);
+			MessagePack.unpack(raw).convert(OptionalBaseClass2.class);
 		assertTrue(src.f0 == dst.f0);
 		assertEquals(src.f1, dst.f1);
 	}
@@ -1112,7 +1107,7 @@ public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
 		byte[] raw = MessagePack.pack(src);
 
 		OptionalBaseClass2 dst =
-			MessagePack.unpack(raw, OptionalBaseClass2.class);
+			MessagePack.unpack(raw).convert(OptionalBaseClass2.class);
 		assertEquals(src, dst);
 	}
 
@@ -1149,7 +1144,7 @@ public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
 		byte[] raw = MessagePack.pack(src);
 
 		SampleSubClass dst =
-			MessagePack.unpack(raw, SampleSubClass.class);
+			MessagePack.unpack(raw).convert(SampleSubClass.class);
 		assertTrue(src.f0 == dst.f0);
 		assertTrue(src.f1 == dst.f1);
 		assertTrue(src.f2 != dst.f2);
@@ -1168,7 +1163,7 @@ public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
 		byte[] raw = MessagePack.pack(src);
 
 		SampleSubClass dst =
-			MessagePack.unpack(raw, SampleSubClass.class);
+			MessagePack.unpack(raw).convert(SampleSubClass.class);
 		assertEquals(src, dst);
 	}
 
@@ -1209,7 +1204,7 @@ public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
 		byte[] raw = MessagePack.pack(src);
 
 		SampleOptionalSubClass dst =
-			MessagePack.unpack(raw, SampleOptionalSubClass.class);
+			MessagePack.unpack(raw).convert(SampleOptionalSubClass.class);
 		assertTrue(src.f0 == dst.f0);
 		assertTrue(src.f1 == dst.f1);
 		assertTrue(src.f2 != dst.f2);
@@ -1228,7 +1223,7 @@ public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
 		byte[] raw = MessagePack.pack(src);
 
 		SampleOptionalSubClass dst =
-			MessagePack.unpack(raw, SampleOptionalSubClass.class);
+			MessagePack.unpack(raw).convert(SampleOptionalSubClass.class);
 		assertEquals(src, dst);
 	}
 
@@ -1272,7 +1267,7 @@ public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
 		byte[] raw = MessagePack.pack(src);
 
 		BaseMessagePackableUnpackableClass dst =
-			MessagePack.unpack(raw, BaseMessagePackableUnpackableClass.class);
+			MessagePack.unpack(raw).convert(BaseMessagePackableUnpackableClass.class);
 		assertEquals(src.f0.f0, dst.f0.f0);
 		assertEquals(src.f0.f1, dst.f0.f1);
 		assertEquals(src.f1, dst.f1);
@@ -1288,7 +1283,7 @@ public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
 		byte[] raw = MessagePack.pack(src);
 
 		BaseMessagePackableUnpackableClass dst =
-			MessagePack.unpack(raw, BaseMessagePackableUnpackableClass.class);
+			MessagePack.unpack(raw).convert(BaseMessagePackableUnpackableClass.class);
 		assertEquals(src, dst);
 	}
 
@@ -1343,7 +1338,7 @@ public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
 		byte[] raw = MessagePack.pack(src);
 
 		OptionalBaseMessagePackableUnpackableClass dst =
-			MessagePack.unpack(raw, OptionalBaseMessagePackableUnpackableClass.class);
+			MessagePack.unpack(raw).convert(OptionalBaseMessagePackableUnpackableClass.class);
 		assertEquals(src.f0.f0, dst.f0.f0);
 		assertEquals(src.f0.f1, dst.f0.f1);
 		assertEquals(src.f1, dst.f1);
@@ -1362,7 +1357,7 @@ public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
 		byte[] raw = MessagePack.pack(src);
 
 		OptionalBaseMessagePackableUnpackableClass dst =
-			MessagePack.unpack(raw, OptionalBaseMessagePackableUnpackableClass.class);
+			MessagePack.unpack(raw).convert(OptionalBaseMessagePackableUnpackableClass.class);
 		assertEquals(src.f0, dst.f0);
 		assertEquals(src.f1, dst.f1);
 		assertEquals(src.f2, dst.f2);
@@ -1375,7 +1370,7 @@ public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
 		byte[] raw = MessagePack.pack(src);
 
 		OptionalBaseMessagePackableUnpackableClass dst =
-			MessagePack.unpack(raw, OptionalBaseMessagePackableUnpackableClass.class);
+			MessagePack.unpack(raw).convert(OptionalBaseMessagePackableUnpackableClass.class);
 		assertEquals(src, dst);
 	}
 

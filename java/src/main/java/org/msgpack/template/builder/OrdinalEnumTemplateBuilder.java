@@ -12,7 +12,7 @@ import org.msgpack.Packer;
 import org.msgpack.Template;
 import org.msgpack.Unpacker;
 
-public class OriginalEnumTemplateBuilder extends TemplateBuilder{
+public class OrdinalEnumTemplateBuilder extends TemplateBuilder{
 
 	static class ReflectionOrdinalEnumTemplate extends AbstractTemplate {
 		protected Enum<?>[] entries;

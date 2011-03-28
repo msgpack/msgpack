@@ -16,7 +16,7 @@ public class EnumBuilderSelector implements BuilderSelector {
 	}
 
 
-	OriginalEnumTemplateBuilder builder = new OriginalEnumTemplateBuilder();
+	OrdinalEnumTemplateBuilder builder = new OrdinalEnumTemplateBuilder();
 
 	@Override
 	public TemplateBuilder getTemplateBuilder(Type targetType) {

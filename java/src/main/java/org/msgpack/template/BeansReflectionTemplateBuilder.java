@@ -20,6 +20,11 @@ import org.msgpack.template.ReflectionTemplateBuilder.ObjectFieldEntry;
 import org.msgpack.template.ReflectionTemplateBuilder.ShortFieldEntry;
 import org.msgpack.template.builder.CustomTemplateBuilder;
 
+/**
+ * Class for building java reflection template builder for java beans class.
+ * @author takeshita
+ *
+ */
 public class BeansReflectionTemplateBuilder extends CustomTemplateBuilder{
 
 	IFieldEntryReader reader = new BeansFieldEntryReader();

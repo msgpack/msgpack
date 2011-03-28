@@ -25,10 +25,8 @@ import java.util.Date;
 
 /**
  * 
- * User: takeshita
- * Date: 11/03/08
- * Time: 17:56
- * To change this template use File | Settings | File Templates.
+ * 
+ * @author takeshita
  */
 public abstract class DateTemplate implements Template{
 	

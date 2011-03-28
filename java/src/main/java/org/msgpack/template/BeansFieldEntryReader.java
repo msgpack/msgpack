@@ -22,6 +22,11 @@ import org.msgpack.annotation.Optional;
 import org.msgpack.annotation.Required;
 import org.msgpack.template.builder.TemplateBuildException;
 
+/**
+ * List up Java beans property methods.
+ * @author takeshita
+ *
+ */
 public class BeansFieldEntryReader implements IFieldEntryReader{
 
 

@@ -3,19 +3,17 @@ package org.msgpack.template.builder;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
-import org.msgpack.annotation.MessagePackBeans;
 import org.msgpack.annotation.MessagePackMessage;
 
-public class MessagePackBeansTemplateSelector implements BuilderSelector{
+public class MessagePackMessageBuilderSelector implements BuilderSelector{
 	
-	public static final String NAME = "MessagePackBeansTemplateBuilder";
+	public static final String NAME = "MessagePackMessageTemplateBuilder";
 	
 	
     TemplateBuilder builder;
-	public MessagePackBeansTemplateSelector(TemplateBuilder builder){
+	public MessagePackMessageBuilderSelector(TemplateBuilder builder){
 		this.builder = builder;
 	}
-	
 	
 	public String getName(){
 		return NAME;
@@ -24,7 +22,7 @@ public class MessagePackBeansTemplateSelector implements BuilderSelector{
 	@Override
 	public boolean matchType(Type targetType) {
 		Class<?> target = (Class<?>)targetType;
-		return isAnnotated(target, MessagePackBeans.class);
+		return isAnnotated(target, MessagePackMessage.class);
 	}
 
 	@Override

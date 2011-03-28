@@ -13,7 +13,13 @@ import org.msgpack.template.javassist.BuildContext;
 import org.msgpack.template.javassist.BuildContextBase;
 import org.msgpack.template.javassist.BuildContextFactory;
 
-
+/**
+ * Registry for BuilderSelectors.
+ * You can modify BuilderSelector chain throw this class.
+ * 
+ * @author takeshita
+ *
+ */
 public class BuilderSelectorRegistry {
 	
 	private static BuilderSelectorRegistry instance = new BuilderSelectorRegistry();
@@ -32,18 +38,21 @@ public class BuilderSelectorRegistry {
 
 	private BuilderSelectorRegistry(){
 	}
+	/**
+	 * initialize BuilderSelectors for basic java enviroment.
+	 */
 	private static void initForJava(){
 
 		instance.append(new ArrayTemplateBuilderSelector());
 		
 		if(isSupportJavassist()){
 			instance.append(
-					new MessagePackMessageTemplateSelector(
+					new MessagePackMessageBuilderSelector(
 							new JavassistTemplateBuilder()));
 			instance.forceBuilder = new JavassistTemplateBuilder();
 
 			//Java beans
-			instance.append(new MessagePackBeansTemplateSelector(
+			instance.append(new MessagePackBeansBuilderSelector(
 					new JavassistTemplateBuilder(
 							new BeansFieldEntryReader(),
 							new BuildContextFactory() {
@@ -55,19 +64,19 @@ public class BuilderSelectorRegistry {
 					)));
 		}else{
 			instance.append(
-					new MessagePackMessageTemplateSelector(
+					new MessagePackMessageBuilderSelector(
 							new ReflectionTemplateBuilder()));
 			instance.forceBuilder = new ReflectionTemplateBuilder();
 			
 			//Java beans
-			instance.append(new MessagePackBeansTemplateSelector(
+			instance.append(new MessagePackBeansBuilderSelector(
 					new BeansReflectionTemplateBuilder()));
 		}
 		
 		instance.append(new MessagePackOrdinalEnumBuilderSelector());
 		instance.append(new EnumBuilderSelector());
 	}
-	private static boolean isSupportJavassist(){
+	public static boolean isSupportJavassist(){
 		try {
 			return System.getProperty("java.vm.name").equals("Dalvik");
 		} catch (Exception e) {
@@ -75,7 +84,11 @@ public class BuilderSelectorRegistry {
 		}
 	}
 	
-    
+    /**
+     * Check whether same name BuilderSelector is registered.
+     * @param builderSelectorName
+     * @return
+     */
     public boolean contains(String builderSelectorName){
     	for(BuilderSelector bs : builderSelectors){
     		if(bs.getName().equals(builderSelectorName)){
@@ -84,7 +97,10 @@ public class BuilderSelectorRegistry {
     	}
     	return false;
     }
-    
+    /**
+     * Append BuilderSelector to tail
+     * @param builderSelector
+     */
     public void append(BuilderSelector builderSelector){
     	
     	if(contains(builderSelector.getName())){
@@ -92,6 +108,10 @@ public class BuilderSelectorRegistry {
     	}
     	this.builderSelectors.add(builderSelector);
     }
+    /**
+     * Insert BuiderSelector to head
+     * @param builderSelector
+     */
     public void prepend(BuilderSelector builderSelector){
     	if(contains(builderSelector.getName())){
 			throw new RuntimeException("Duplicate BuilderSelector name:" + builderSelector.getName());
@@ -103,6 +123,11 @@ public class BuilderSelectorRegistry {
     	}
     }
     
+    /**
+     * Insert BuilderSelector
+     * @param index
+     * @param builderSelector
+     */
     public void insert(int index,BuilderSelector builderSelector){
     	if(contains(builderSelector.getName())){
 			throw new RuntimeException("Duplicate BuilderSelector name:" + builderSelector.getName());
@@ -114,7 +139,10 @@ public class BuilderSelectorRegistry {
     		this.builderSelectors.add(builderSelector);
     	}
     }
-    
+    /**
+     * Replace same name BuilderSelector
+     * @param builderSelector
+     */
     public void replace(BuilderSelector builderSelector){
     	String name = builderSelector.getName();
     	int index = getIndex(name);
@@ -122,11 +150,21 @@ public class BuilderSelectorRegistry {
     	builderSelectors.remove(index + 1);
     }
     
+    /**
+     * Insert the BuilderSelector before BuilderSelector named "builderSelectorName".
+     * @param builderSelectorName
+     * @param builderSelector
+     */
     public void insertBefore(String builderSelectorName,BuilderSelector builderSelector){
     	int index = getIndex(builderSelectorName);
     	
     	builderSelectors.add(index,builderSelector);
     }
+    /**
+     * Insert the BuilderSelector after BuilderSelector named "builderSelectorName".
+     * @param builderSelectorName
+     * @param builderSelector
+     */
     public void insertAfter(String builderSelectorName,BuilderSelector builderSelector){
     	int index = getIndex(builderSelectorName);
     	if(index + 1 == builderSelectors.size()){

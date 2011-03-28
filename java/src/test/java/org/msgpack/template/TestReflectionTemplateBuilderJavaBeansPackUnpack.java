@@ -31,8 +31,8 @@ import org.msgpack.annotation.MessagePackOrdinalEnum;
 import org.msgpack.annotation.Optional;
 import org.msgpack.template.TestTemplateBuilderPackConvert.SampleInterface;
 import org.msgpack.template.builder.BuilderSelectorRegistry;
-import org.msgpack.template.builder.MessagePackBeansTemplateSelector;
-import org.msgpack.template.builder.MessagePackMessageTemplateSelector;
+import org.msgpack.template.builder.MessagePackBeansBuilderSelector;
+import org.msgpack.template.builder.MessagePackMessageBuilderSelector;
 import org.msgpack.template.builder.TemplateBuildException;
 import org.msgpack.template.builder.TemplateBuilder;
 
@@ -47,10 +47,10 @@ public class TestReflectionTemplateBuilderJavaBeansPackUnpack extends TestCase {
 		BuilderSelectorRegistry instance = BuilderSelectorRegistry.getInstance();
 
 		instance.replace(
-				new MessagePackMessageTemplateSelector(
+				new MessagePackMessageBuilderSelector(
 						new ReflectionTemplateBuilder()));
 		instance.setForceBuilder( new ReflectionTemplateBuilder());
-		instance.replace(new MessagePackBeansTemplateSelector(
+		instance.replace(new MessagePackBeansBuilderSelector(
 				new BeansReflectionTemplateBuilder()));
 		
 		MessagePack.register(PrimitiveTypeFieldsClass.class);

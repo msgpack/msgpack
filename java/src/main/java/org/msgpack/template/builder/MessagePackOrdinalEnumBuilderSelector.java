@@ -19,7 +19,7 @@ public class MessagePackOrdinalEnumBuilderSelector implements BuilderSelector {
 		return isAnnotated(target, MessagePackOrdinalEnum.class);
 	}
 	
-	OriginalEnumTemplateBuilder builder = new OriginalEnumTemplateBuilder();
+	OrdinalEnumTemplateBuilder builder = new OrdinalEnumTemplateBuilder();
 
 	@Override
 	public TemplateBuilder getTemplateBuilder(Type targetType) {
