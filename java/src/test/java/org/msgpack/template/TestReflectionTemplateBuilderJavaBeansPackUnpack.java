@@ -8,10 +8,12 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
 import org.hamcrest.CoreMatchers;
+import org.hamcrest.Matcher;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -37,6 +39,7 @@ import org.msgpack.template.builder.TemplateBuilder;
 import org.junit.Assert;
 import junit.framework.TestCase;
 import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.assertThat;
 
 public class TestReflectionTemplateBuilderJavaBeansPackUnpack extends TestCase {
 	static {
@@ -77,6 +80,16 @@ public class TestReflectionTemplateBuilderJavaBeansPackUnpack extends TestCase {
 		MessagePack.register(OptionalBaseMessagePackableUnpackableClass.class);
 		MessagePack.register(OptionalMessagePackableUnpackableClass.class);
 	}
+	
+	Matcher<Object> beansEquals(Object actual){
+		return new BeansEquals(actual); 
+	}
+	Matcher<Object> beansEquals(Object actual,String[] ignoreNames){
+		return new BeansEquals(actual,ignoreNames); 
+	}
+	String[] ignoring(String ... strings){
+		return strings;
+	}
 
 	@Test
 	public void testPrimitiveTypeFields00() throws Exception {
@@ -93,13 +106,9 @@ public class TestReflectionTemplateBuilderJavaBeansPackUnpack extends TestCase {
 
 		PrimitiveTypeFieldsClass dst =
 			MessagePack.unpack(raw, PrimitiveTypeFieldsClass.class);
-		assertEquals(src.f0, dst.f0);
-		assertEquals(src.f1, dst.f1);
-		assertEquals(src.f2, dst.f2);
-		assertEquals(src.f3, dst.f3);
-		assertEquals(src.f4, dst.f4);
-		assertEquals(src.f5, dst.f5);
-		assertEquals(src.f6, dst.f6);
+		
+		
+		assertThat(dst,beansEquals(src));
 	}
 
 	@Test
@@ -110,13 +119,8 @@ public class TestReflectionTemplateBuilderJavaBeansPackUnpack extends TestCase {
 
 		PrimitiveTypeFieldsClass dst =
 			MessagePack.unpack(raw, PrimitiveTypeFieldsClass.class);
-		assertEquals(src.f0, dst.f0);
-		assertEquals(src.f1, dst.f1);
-		assertEquals(src.f2, dst.f2);
-		assertEquals(src.f3, dst.f3);
-		assertEquals(src.f4, dst.f4);
-		assertEquals(src.f5, dst.f5);
-		assertEquals(src.f6, dst.f6);
+
+		assertThat(dst,beansEquals(src));
 	}
 
 	@Test
@@ -127,7 +131,8 @@ public class TestReflectionTemplateBuilderJavaBeansPackUnpack extends TestCase {
 
 		PrimitiveTypeFieldsClass dst =
 			MessagePack.unpack(raw, PrimitiveTypeFieldsClass.class);
-		assertEquals(src, dst);
+		
+		assertThat(dst,beansEquals(src));
 	}
 
 	@MessagePackBeans
@@ -215,6 +220,8 @@ public class TestReflectionTemplateBuilderJavaBeansPackUnpack extends TestCase {
 
 		PrimitiveTypeFieldsClass dst =
 			MessagePack.unpack(raw, PrimitiveTypeFieldsClass.class);
+		
+
 		assertEquals(src.f0, dst.f0);
 		assertEquals(src.f1, dst.f1);
 		assertEquals(src.f2, dst.f2);
@@ -232,13 +239,9 @@ public class TestReflectionTemplateBuilderJavaBeansPackUnpack extends TestCase {
 
 		OptionalPrimitiveTypeFieldsClass dst =
 			MessagePack.unpack(raw, OptionalPrimitiveTypeFieldsClass.class);
-		assertEquals(src.f0, dst.f0);
-		assertEquals(src.f1, dst.f1);
-		assertEquals(src.f2, dst.f2);
-		assertEquals(src.f3, dst.f3);
-		assertEquals(src.f4, dst.f4);
-		assertEquals(src.f5, dst.f5);
-		assertEquals(src.f6, dst.f6);
+		
+
+		assertThat(dst,beansEquals(src));
 	}
 
 	@Test
@@ -356,18 +359,10 @@ public class TestReflectionTemplateBuilderJavaBeansPackUnpack extends TestCase {
 
 		GeneralReferenceTypeFieldsClass dst =
 			MessagePack.unpack(raw, GeneralReferenceTypeFieldsClass.class);
-		assertEquals(src.f0, dst.f0);
-		assertEquals(src.f1, dst.f1);
-		assertEquals(src.f2, dst.f2);
-		assertEquals(src.f3, dst.f3);
-		assertEquals(src.f4, dst.f4);
-		assertEquals(src.f5, dst.f5);
-		assertEquals(src.f6, dst.f6);
-		assertEquals(src.f7, dst.f7);
-		assertEquals(src.f8, dst.f8);
-		assertEquals(src.f9[0], dst.f9[0]);
-		assertEquals(src.f9[1], dst.f9[1]);
-		assertEquals(src.f10, dst.f10);
+		
+
+		assertThat(dst,beansEquals(src));
+		
 	}
 
 	@Test
@@ -507,18 +502,9 @@ public class TestReflectionTemplateBuilderJavaBeansPackUnpack extends TestCase {
 
 		GeneralOptionalReferenceTypeFieldsClass dst =
 			MessagePack.unpack(raw, GeneralOptionalReferenceTypeFieldsClass.class);
-		assertEquals(src.f0, dst.f0);
-		assertEquals(src.f1, dst.f1);
-		assertEquals(src.f2, dst.f2);
-		assertEquals(src.f3, dst.f3);
-		assertEquals(src.f4, dst.f4);
-		assertEquals(src.f5, dst.f5);
-		assertEquals(src.f6, dst.f6);
-		assertEquals(src.f7, dst.f7);
-		assertEquals(src.f8, dst.f8);
-		assertEquals(src.f9[0], dst.f9[0]);
-		assertEquals(src.f9[1], dst.f9[1]);
-		assertEquals(src.f10, dst.f10);
+
+
+		assertThat(dst,beansEquals(src));
 	}
 
 	@Test
@@ -541,17 +527,9 @@ public class TestReflectionTemplateBuilderJavaBeansPackUnpack extends TestCase {
 
 		GeneralOptionalReferenceTypeFieldsClass dst =
 			MessagePack.unpack(raw, GeneralOptionalReferenceTypeFieldsClass.class);
-		assertEquals(src.f0, dst.f0);
-		assertEquals(src.f1, dst.f1);
-		assertEquals(src.f2, dst.f2);
-		assertEquals(src.f3, dst.f3);
-		assertEquals(src.f4, dst.f4);
-		assertEquals(src.f5, dst.f5);
-		assertEquals(src.f6, dst.f6);
-		assertEquals(src.f7, dst.f7);
-		assertEquals(src.f8, dst.f8);
-		assertEquals(src.f9, dst.f9);
-		assertEquals(src.f10, dst.f10);
+		
+
+		assertThat(dst,beansEquals(src));
 	}
 
 	@Test
@@ -723,22 +701,11 @@ public class TestReflectionTemplateBuilderJavaBeansPackUnpack extends TestCase {
 
 		SampleListTypes dst =
 			MessagePack.unpack(raw, SampleListTypes.class);
-		for (int i = 0; i < src.integerList.size(); ++i) {
-			assertEquals(src.integerList.get(i), dst.integerList.get(i));
-		}
-		assertEquals(src.stringList.size(), dst.stringList.size());
-		for (int i = 0; i < src.stringList.size(); ++i) {
-			assertEquals(src.stringList.get(i), dst.stringList.get(i));
-		}
-		assertEquals(src.stringListList.size(), dst.stringListList.size());
-		for (int i = 0; i < src.stringListList.size(); ++i) {
-			List<String> srclist = src.stringListList.get(i);
-			List<String> dstlist = dst.stringListList.get(i);
-			assertEquals(srclist.size(), dstlist.size());
-			for (int j = 0; j < srclist.size(); ++j) {
-				assertEquals(srclist.get(j), dstlist.get(j));
-			}
-		}
+
+		//ignore sampleListNestedTypeList,
+		//because SampleListNestedType is not implemented equals() correctly.
+		assertThat(dst,beansEquals(src, ignoring("getF4")));
+		
 		assertEquals(src.sampleListNestedTypeList.size(), dst.sampleListNestedTypeList.size());
 		for (int i = 0; i < src.sampleListNestedTypeList.size(); ++i) {
 			SampleListNestedType s = src.sampleListNestedTypeList.get(i);
@@ -746,12 +713,6 @@ public class TestReflectionTemplateBuilderJavaBeansPackUnpack extends TestCase {
 			assertEquals(s.f0[0], d.f0[0]);
 			assertEquals(s.f0[1], d.f0[1]);
 			assertEquals(s.f1, d.f1);
-		}
-		assertEquals(src.byteBufferList.size(), dst.byteBufferList.size());
-		for (int i = 0; i < src.byteBufferList.size(); ++i) {
-			ByteBuffer s = src.byteBufferList.get(i);
-			ByteBuffer d = dst.byteBufferList.get(i);
-			assertEquals(s, d);
 		}
 	}
 

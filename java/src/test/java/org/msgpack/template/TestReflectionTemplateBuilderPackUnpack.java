@@ -34,6 +34,8 @@ import org.msgpack.template.builder.TemplateBuilder;
 import junit.framework.Assert;
 import junit.framework.TestCase;
 
+import static org.junit.Assert.assertThat;
+
 public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
 	static {
 		//Replace template selectors from javassist to reflection.
@@ -90,6 +92,7 @@ public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
 
 		PrimitiveTypeFieldsClass dst =
 			MessagePack.unpack(raw, PrimitiveTypeFieldsClass.class);
+		
 		assertEquals(src.f0, dst.f0);
 		assertEquals(src.f1, dst.f1);
 		assertEquals(src.f2, dst.f2);
