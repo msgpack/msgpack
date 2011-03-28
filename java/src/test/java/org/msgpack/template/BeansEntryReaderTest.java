@@ -85,7 +85,7 @@ public class BeansEntryReaderTest {
 	BeansFieldEntryReader reader;
 	BeanInfo info;
 	@Test
-	public void isIgnorePropertyDesc(){
+	public void testIgnorePropertyDesc(){
 		BeanDescriptor desc = info.getBeanDescriptor();
 		
 		assertThat(reader.isIgnoreProp(getProp(info,"collect")),is(false));
