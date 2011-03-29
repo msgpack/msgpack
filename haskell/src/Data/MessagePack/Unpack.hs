@@ -36,8 +36,11 @@ import Data.Binary.Get
 import Data.Binary.IEEE754
 import Data.Bits
 import qualified Data.ByteString as B
-import qualified Data.ByteString.Char8 as B8
-import qualified Data.ByteString.Lazy as L
+import qualified Data.ByteString.Lazy as BL
+import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
+import qualified Data.Text.Lazy as TL
+import qualified Data.Text.Lazy.Encoding as TL
 import Data.Int
 import Data.Typeable
 import qualified Data.Vector as V
@@ -45,6 +48,7 @@ import Data.Word
 import Text.Printf
 
 import Data.MessagePack.Assoc
+import Data.MessagePack.Internal.Utf8
 
 -- | Deserializable class
 class Unpackable a where
@@ -57,8 +61,8 @@ class IsByteString s where
 instance IsByteString B.ByteString where
   toBS = id
 
-instance IsByteString L.ByteString where
-  toBS = B.concat . L.toChunks
+instance IsByteString BL.ByteString where
+  toBS = B.concat . BL.toChunks
 
 -- | The exception of unpack
 data UnpackError =
@@ -153,13 +157,19 @@ instance Unpackable Double where
         fail $ printf "invlid double tag: 0x%02X" c
 
 instance Unpackable String where
-  get = parseString (\n -> return . B8.unpack =<< A.take n)
+  get = parseString (\n -> return . decodeUtf8 =<< A.take n)
 
 instance Unpackable B.ByteString where
   get = parseString A.take
 
-instance Unpackable L.ByteString where
-  get = parseString (\n -> do bs <- A.take n; return $ L.fromChunks [bs])
+instance Unpackable BL.ByteString where
+  get = parseString (\n -> return . toLBS =<< A.take n)
+
+instance Unpackable T.Text where
+  get = parseString (\n -> return . T.decodeUtf8With skipChar =<< A.take n)
+
+instance Unpackable TL.Text where
+  get = parseString (\n -> return . TL.decodeUtf8With skipChar . toLBS =<< A.take n)
 
 parseString :: (Int -> A.Parser a) -> A.Parser a
 parseString aget = do
@@ -311,6 +321,3 @@ parseInt32 = return . fromIntegral =<< parseUint32
 
 parseInt64 :: A.Parser Int64
 parseInt64 = return . fromIntegral =<< parseUint64
-
-toLBS :: B.ByteString -> L.ByteString
-toLBS bs = L.fromChunks [bs]

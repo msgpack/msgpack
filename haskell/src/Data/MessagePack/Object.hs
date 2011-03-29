@@ -32,12 +32,17 @@ import Control.Monad
 import Control.Monad.Trans.Error ()
 import qualified Data.Attoparsec as A
 import qualified Data.ByteString as B
-import qualified Data.ByteString.Char8 as C8
+import qualified Data.ByteString.Lazy as BL
+import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
+import qualified Data.Text.Lazy as TL
+import qualified Data.Text.Lazy.Encoding as TL
 import Data.Typeable
 
 import Data.MessagePack.Assoc
 import Data.MessagePack.Pack
 import Data.MessagePack.Unpack
+import Data.MessagePack.Internal.Utf8
 
 -- | Object Representation of MessagePack data.
 data Object
@@ -149,14 +154,29 @@ instance OBJECT Float where
   tryFromObject (ObjectFloat f) = Right f
   tryFromObject _ = tryFromObjectError
 
+instance OBJECT String where
+  toObject = toObject . encodeUtf8
+  tryFromObject obj = liftM decodeUtf8 $ tryFromObject obj
+
 instance OBJECT B.ByteString where
   toObject = ObjectRAW
   tryFromObject (ObjectRAW bs) = Right bs
   tryFromObject _ = tryFromObjectError
 
-instance OBJECT String where
-  toObject = toObject . C8.pack
-  tryFromObject obj = liftM C8.unpack $ tryFromObject obj
+instance OBJECT BL.ByteString where
+  toObject = ObjectRAW . fromLBS
+  tryFromObject (ObjectRAW bs) = Right $ toLBS bs
+  tryFromObject _ = tryFromObjectError
+
+instance OBJECT T.Text where
+  toObject = ObjectRAW . T.encodeUtf8
+  tryFromObject (ObjectRAW bs) = Right $ T.decodeUtf8With skipChar bs
+  tryFromObject _ = tryFromObjectError
+
+instance OBJECT TL.Text where
+  toObject = ObjectRAW . fromLBS . TL.encodeUtf8
+  tryFromObject (ObjectRAW bs) = Right $ TL.decodeUtf8With skipChar $ toLBS bs
+  tryFromObject _ = tryFromObjectError
 
 instance OBJECT a => OBJECT [a] where
   toObject = ObjectArray . map toObject
