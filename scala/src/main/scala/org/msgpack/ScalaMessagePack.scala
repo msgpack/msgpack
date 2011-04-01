@@ -1,7 +1,7 @@
 package org.msgpack
 
 import template._
-import builder.{MessagePackMessageTemplateSelector, BuilderSelectorRegistry}
+import builder.{MessagePackMessageBuilderSelector, BuilderSelectorRegistry}
 import template.javassist.BuildContextFactory
 import collection.mutable.{MutableList, LinkedList}
 import collection.mutable.{Map => MMap,HashMap => MHashMap}
@@ -18,7 +18,7 @@ object ScalaMessagePack {
   {
     // for scala object
     BuilderSelectorRegistry.getInstance.insertBefore(
-      MessagePackMessageTemplateSelector.NAME,
+      MessagePackMessageBuilderSelector.NAME,
       new ScalaTemplateBuilderSelector)
 
     // register scala's list classes

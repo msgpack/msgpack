@@ -3,7 +3,6 @@ package org.msgpack
 import _root_.javassist.{CtClass, CtNewConstructor}
 import annotation._
 import template._
-import builder.TemplateBuildException
 import java.lang.Class
 import collection.immutable.{ListMap, TreeMap}
 import java.lang.reflect.{Type, Modifier, Method, Field}
