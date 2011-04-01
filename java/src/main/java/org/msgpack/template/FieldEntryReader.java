@@ -13,7 +13,6 @@ import org.msgpack.annotation.MessagePackMessage;
 import org.msgpack.annotation.Nullable;
 import org.msgpack.annotation.Optional;
 import org.msgpack.annotation.Required;
-import org.msgpack.template.builder.TemplateBuildException;
 
 public class FieldEntryReader implements IFieldEntryReader{
 

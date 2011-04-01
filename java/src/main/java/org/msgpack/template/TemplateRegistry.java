@@ -28,7 +28,6 @@ import org.msgpack.annotation.MessagePackDelegate;
 import org.msgpack.annotation.MessagePackOrdinalEnum;
 import org.msgpack.template.builder.BuilderSelectorRegistry;
 import org.msgpack.template.builder.CustomTemplateBuilder;
-import org.msgpack.template.builder.TemplateBuildException;
 import org.msgpack.template.builder.TemplateBuilder;
 import org.msgpack.Template;
 import org.msgpack.Templates;

@@ -26,7 +26,6 @@ import org.msgpack.annotation.MessagePackOrdinalEnum;
 import org.msgpack.annotation.Optional;
 import org.msgpack.template.TestTemplateBuilderPackConvert.SampleInterface;
 import org.msgpack.template.builder.BuilderSelectorRegistry;
-import org.msgpack.template.builder.TemplateBuildException;
 import org.msgpack.template.builder.TemplateBuilder;
 
 import junit.framework.Assert;

@@ -383,7 +383,7 @@ public class ReflectionTemplateBuilder extends CustomTemplateBuilder {
 	}
 
 	public Template buildTemplate(Class<?> targetClass, IFieldEntry[] entries) {
-		// TODO　Now it is simply cast.
+		// TODO Now it is simply cast.
 		for(IFieldEntry e : entries) {
 			Field f = ((FieldEntry)e).getField();
 			int mod = f.getModifiers();

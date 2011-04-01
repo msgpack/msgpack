@@ -7,6 +7,7 @@ import org.msgpack.template.FieldList;
 import org.msgpack.template.FieldOption;
 import org.msgpack.template.IFieldEntry;
 import org.msgpack.template.IFieldEntryReader;
+import org.msgpack.template.TemplateBuildException;
 import org.msgpack.template.javassist.BuildContextFactory;
 
 public abstract class CustomTemplateBuilder extends TemplateBuilder {

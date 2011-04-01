@@ -11,6 +11,7 @@ import org.msgpack.MessageTypeException;
 import org.msgpack.Packer;
 import org.msgpack.Template;
 import org.msgpack.Unpacker;
+import org.msgpack.template.TemplateBuildException;
 
 public class OrdinalEnumTemplateBuilder extends TemplateBuilder{
 
