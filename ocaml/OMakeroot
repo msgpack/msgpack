@@ -1,0 +1,45 @@
+########################################################################
+# Permission is hereby granted, free of charge, to any person
+# obtaining a copy of this file, to deal in the File without
+# restriction, including without limitation the rights to use,
+# copy, modify, merge, publish, distribute, sublicense, and/or
+# sell copies of the File, and to permit persons to whom the
+# File is furnished to do so, subject to the following condition:
+#
+# THE FILE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+# OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+# DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+# OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE FILE OR
+# THE USE OR OTHER DEALINGS IN THE FILE.
+
+########################################################################
+# The standard OMakeroot file.
+# You will not normally need to modify this file.
+# By default, your changes should be placed in the
+# OMakefile in this directory.
+#
+# If you decide to modify this file, note that it uses exactly
+# the same syntax as the OMakefile.
+#
+
+#
+# Include the standard installed configuration files.
+# Any of these can be deleted if you are not using them,
+# but you probably want to keep the Common file.
+#
+open build/C
+open build/OCaml
+open build/LaTeX
+
+#
+# The command-line variables are defined *after* the
+# standard configuration has been loaded.
+#
+DefineCommandVars()
+
+#
+# Include the OMakefile in this directory.
+#
+.SUBDIRS: .

@@ -1,0 +1,6 @@
+name="msgpack"
+version="0.1.0"
+description="a library for MessagePack."
+requires="extlib, num"
+archive(byte)="msgpack.cmo"
+archive(native)="msgpack.cmx"
