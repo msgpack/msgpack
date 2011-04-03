@@ -272,10 +272,14 @@ func unpack(reader io.Reader, reflected bool) (v reflect.Value, n int, err os.Er
     return retval, nbytesread, nil
 }
 
+// Reads a value from the reader, unpack and returns it.
 func Unpack(reader io.Reader) (v reflect.Value, n int, err os.Error) {
     return unpack(reader, false)
 }
 
+// Reads unpack a value from the reader, unpack and returns it.  When the
+// value is an array or map, leaves the elements wrapped by corresponding
+// wrapper objects defined in reflect package.
 func UnpackReflected(reader io.Reader) (v reflect.Value, n int, err os.Error) {
     return unpack(reader, true)
 }
