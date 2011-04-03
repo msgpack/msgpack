@@ -1,7 +1,7 @@
 //
 // MessagePack for Java
 //
-// Copyright (C) 2009-2010 FURUHASHI Sadayuki
+// Copyright (C) 2009-2011 FURUHASHI Sadayuki
 //
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -76,6 +76,11 @@ public class Templates {
 		return TBigInteger;
 	}
 
+	public static final Template TBigDecimal = BigDecimalTemplate.getInstance();
+	public static Template tBigDecimal() {
+		return TBigDecimal;
+	}
+
 	public static final Template TFloat = FloatTemplate.getInstance();
 	public static Template tFloat() {
 		return TFloat;
@@ -104,6 +109,11 @@ public class Templates {
 	public static final Template TByteBuffer = ByteBufferTemplate.getInstance();
 	public static Template tByteBuffer() {
 		return TByteBuffer;
+	}
+
+	public static final Template TDate = DateTemplate.getInstance();
+	public static Template tDate() {
+		return TDate;
 	}
 }
 
