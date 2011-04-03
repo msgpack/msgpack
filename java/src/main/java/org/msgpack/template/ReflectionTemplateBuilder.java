@@ -1,7 +1,7 @@
 //
 // MessagePack for Java
 //
-// Copyright (C) 2009-2010 FURUHASHI Sadayuki
+// Copyright (C) 2009-2011 FURUHASHI Sadayuki
 //
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -373,6 +373,22 @@ public class ReflectionTemplateBuilder extends TemplateBuilder {
 		}
 	}
 
+	@Override
+	public Class<?> loadTemplateClass(Class<?> targetClass) {
+		throw new UnsupportedOperationException("Not supported by reflection-based template builder");
+	}
+
+	@Override
+	public Template initializeTemplate(Class<?> targetClass, Class<?> tmplClass, FieldEntry[] entries) {
+		throw new UnsupportedOperationException("Not supported by reflection-based template builder");
+	}
+
+	@Override
+	public void writeTemplateClass(Class<?> targetClass, FieldEntry[] entries,
+			String directoryName) {
+		throw new UnsupportedOperationException("Not supported by reflection-based template builder");
+	}
+
 	public Template buildTemplate(Class<?> targetClass, FieldEntry[] entries) {
 		for(FieldEntry e : entries) {
 			Field f = e.getField();
@@ -448,10 +464,15 @@ public class ReflectionTemplateBuilder extends TemplateBuilder {
 		}
 	}
 
+	@Override
+	public void writeOrdinalEnumTemplateClass(Class<?> targetClass,
+			Enum<?>[] entires, String directoryName) {
+		throw new UnsupportedOperationException("Not supported by reflection-based template builder");
+	}
+
 	public Template buildOrdinalEnumTemplate(Class<?> targetClass, Enum<?>[] entries) {
 		return new ReflectionOrdinalEnumTemplate(entries);
 	}
-
 
 	static class ReflectionObjectArrayTemplate extends AbstractTemplate {
 		private Class<?> componentClass;
@@ -534,6 +555,12 @@ public class ReflectionTemplateBuilder extends TemplateBuilder {
 			}
 			return array;
 		}
+	}
+
+	@Override
+	public void writeArrayTemplateClass(Type arrayType, Type genericBaseType,
+			Class<?> baseClass, int dim, String directoryName) {
+		throw new UnsupportedOperationException("Not supported by reflection-based template builder");
 	}
 
 	public Template buildArrayTemplate(Type arrayType, Type genericBaseType, Class<?> baseClass, int dim) {

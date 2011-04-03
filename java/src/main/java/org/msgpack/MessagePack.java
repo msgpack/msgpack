@@ -1,7 +1,7 @@
 //
 // MessagePack for Java
 //
-// Copyright (C) 2009-2010 FURUHASHI Sadayuki
+// Copyright (C) 2009-2011 FURUHASHI Sadayuki
 //
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import org.msgpack.template.TemplateRegistry;
 import org.msgpack.template.TemplateBuilder;
+import org.msgpack.template.TemplateClassWriter;
 import org.msgpack.template.FieldList;
 
 public class MessagePack {
@@ -144,6 +145,10 @@ public class MessagePack {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	public static void write(Class<?> target, String directoryName) {
+		TemplateClassWriter.write(target, directoryName);
 	}
 
 	public static void register(Class<?> target) {

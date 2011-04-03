@@ -1,7 +1,7 @@
 //
 // MessagePack for Java
 //
-// Copyright (C) 2009-2010 FURUHASHI Sadayuki
+// Copyright (C) 2009-2011 FURUHASHI Sadayuki
 //
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -122,9 +122,33 @@ public class JavassistTemplateBuilder extends TemplateBuilder {
 			this.director = director;
 		}
 
+		protected void write(final String className, final String directoryName) {
+			try {
+				reset(className, false);
+				buildClass();
+				buildConstructor();
+				buildMethodInit();
+				buildPackMethod();
+				buildUnpackMethod();
+				buildConvertMethod();
+				writeClassFile(directoryName);
+			} catch (Exception e) {
+				String code = getBuiltString();
+				if(code != null) {
+					LOG.error("builder: " + code, e);
+					throw new TemplateBuildException("cannot compile: " + code, e);
+				} else {
+					throw new TemplateBuildException(e);
+				}
+			}
+		}
+		protected void writeClassFile(final String directoryName) throws CannotCompileException, IOException {
+			tmplCtClass.writeFile(directoryName);
+		}
+
 		protected Template build(final String className) {
 			try {
-				reset(className);
+				reset(className, true);
 				buildClass();
 				buildConstructor();
 				buildMethodInit();
@@ -143,8 +167,12 @@ public class JavassistTemplateBuilder extends TemplateBuilder {
 			}
 		}
 
-		protected void reset(String className) {
-			tmplName = className + "_$$_Template" + director.nextSeqId();
+		protected void reset(String className, boolean isBuilt) {
+			if (isBuilt) {
+				tmplName = className + "_$$_Template" + director.nextSeqId();
+			} else {
+				tmplName = className + "_$$_Template";
+			}
 			tmplCtClass = director.makeCtClass(tmplName);
 		}
 
@@ -254,6 +282,15 @@ public class JavassistTemplateBuilder extends TemplateBuilder {
 			super(director);
 		}
 
+		public void writeTemplateClass(Class<?> targetClass, FieldEntry[] entries,
+				Template[] templates, final String directoryName) {
+			this.entries = entries;
+			this.templates = templates;
+			this.origClass = targetClass;
+			this.origName = this.origClass.getName();
+			write(this.origName, directoryName);
+		}
+
 		public Template buildTemplate(Class<?> targetClass, FieldEntry[] entries, Template[] templates) {
 			this.entries = entries;
 			this.templates = templates;
@@ -277,6 +314,22 @@ public class JavassistTemplateBuilder extends TemplateBuilder {
 				new CtClass[0],
 				this.tmplCtClass);
 			this.tmplCtClass.addConstructor(newCtCons);
+		}
+
+		protected Template buildInstance(Class<?> targetClass, Class<?> tmplClass, Template[] tmpls) {
+			try {
+				Constructor<?> cons = tmplClass.getConstructor(new Class[] {
+						Class.class,
+						Template[].class
+				});
+				Object tmpl = cons.newInstance(new Object[] {
+						targetClass,
+						tmpls
+				});
+				return (Template)tmpl;
+			} catch (Exception e) {
+				throw new TemplateBuildException(e);
+			}
 		}
 
 		protected Template buildInstance(Class<?> c) throws NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
@@ -544,7 +597,39 @@ public class JavassistTemplateBuilder extends TemplateBuilder {
 		}
 	}
 
+	@Override
+	public Class<?> loadTemplateClass(Class<?> targetClass) {
+		String tmplClassName = targetClass.getName() + "_$$_Template";
+		ClassLoader cl = this.getClass().getClassLoader();// TODO
+		try {
+			return cl.loadClass(tmplClassName);
+		} catch (ClassNotFoundException e) {
+			LOG.debug("Tmplate class not found: " + tmplClassName);
+			return null;
+		}
+	}
+
+	@Override
+	public Template initializeTemplate(Class<?> targetClass, Class<?> tmplClass, FieldEntry[] entries) {
+		Template[] tmpls = toTemplates(entries);
+		BuildContext bc = new BuildContext(this);
+		return bc.buildInstance(targetClass, tmplClass, tmpls);
+	}
+
+	@Override
+	public void writeTemplateClass(Class<?> targetClass, FieldEntry[] entries, String directoryName) {
+		Template[] tmpls = toTemplates(entries);
+		BuildContext bc = new BuildContext(this);
+		bc.writeTemplateClass(targetClass, entries, tmpls, directoryName);
+	}
+
 	public Template buildTemplate(Class<?> targetClass, FieldEntry[] entries) {
+		Template[] tmpls = toTemplates(entries);
+		BuildContext bc = new BuildContext(this);
+		return bc.buildTemplate(targetClass, entries, tmpls);
+	}
+
+	private static Template[] toTemplates(FieldEntry[] from) {
 		// FIXME private / packagefields
 		//for(FieldEntry e : entries) {
 		//	Field f = e.getField();
@@ -554,9 +639,9 @@ public class JavassistTemplateBuilder extends TemplateBuilder {
 		//	}
 		//}
 
-		Template[] tmpls = new Template[entries.length];
-		for(int i=0; i < entries.length; i++) {
-			FieldEntry e = entries[i];
+		Template[] tmpls = new Template[from.length];
+		for(int i=0; i < from.length; i++) {
+			FieldEntry e = from[i];
 			if(!e.isAvailable()) {
 				tmpls[i] = null;
 			} else {
@@ -564,9 +649,7 @@ public class JavassistTemplateBuilder extends TemplateBuilder {
 				tmpls[i] = tmpl;
 			}
 		}
-
-		BuildContext bc = new BuildContext(this);
-		return bc.buildTemplate(targetClass, entries, tmpls);
+		return tmpls;
 	}
 
 	static class JavassistOrdinalEnumTemplate extends ReflectionTemplateBuilder.ReflectionOrdinalEnumTemplate {
@@ -575,8 +658,19 @@ public class JavassistTemplateBuilder extends TemplateBuilder {
 		}
 	}
 
+	@Override
+	public void writeOrdinalEnumTemplateClass(Class<?> targetClass, Enum<?>[] entires, String directoryName) {
+		throw new UnsupportedOperationException("not supported yet.");// TODO
+	}
+
 	public Template buildOrdinalEnumTemplate(Class<?> targetClass, Enum<?>[] entries) {
 		return new JavassistOrdinalEnumTemplate(entries);
+	}
+
+	@Override
+	public void writeArrayTemplateClass(Type arrayType, Type genericBaseType,
+			Class<?> baseClass, int dim, String directoryName) {
+		throw new UnsupportedOperationException("not supported yet.");//TODO
 	}
 
 	public Template buildArrayTemplate(Type arrayType, Type genericBaseType, Class<?> baseClass, int dim) {

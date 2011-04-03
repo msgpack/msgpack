@@ -1,7 +1,7 @@
 //
 // MessagePack for Java
 //
-// Copyright (C) 2009-2010 FURUHASHI Sadayuki
+// Copyright (C) 2009-2011 FURUHASHI Sadayuki
 //
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import org.msgpack.annotation.MessagePackMessage;
 import org.msgpack.annotation.MessagePackDelegate;
 import org.msgpack.annotation.MessagePackOrdinalEnum;
 import org.msgpack.Template;
-import org.msgpack.Templates;
 
 public class TemplateRegistry {
 	private static Map<Type, Template> map;
@@ -110,6 +109,11 @@ public class TemplateRegistry {
 		}
 
 		Class<?> target = (Class<?>)targetType;
+
+		Class<?> tmplClass = TemplateBuilder.load(target);
+		if (tmplClass != null) {
+			return TemplateBuilder.initialize(target, tmplClass);
+		}
 
 		if(target.isArray()) {
 			// FIXME can't distinguish type-erased T<>[]?

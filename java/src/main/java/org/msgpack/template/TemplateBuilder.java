@@ -1,7 +1,7 @@
 //
 // MessagePack for Java
 //
-// Copyright (C) 2009-2010 FURUHASHI Sadayuki
+// Copyright (C) 2009-2011 FURUHASHI Sadayuki
 //
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -108,18 +108,47 @@ public abstract class TemplateBuilder {
 	}
 
 	// Override this method
+	public abstract Class<?> loadTemplateClass(Class<?> targetClass);
+
+	// Override this method
+	public abstract Template initializeTemplate(Class<?> targetClass, Class<?> tmplClass, FieldEntry[] entries);
+
+	// Override this method
+	public abstract void writeTemplateClass(Class<?> targetClass, FieldEntry[] entries, String directoryName);
+
+	// Override this method
 	public abstract Template buildTemplate(Class<?> targetClass, FieldEntry[] entries);
+
+	// Override this method
+	public abstract void writeOrdinalEnumTemplateClass(Class<?> targetClass, Enum<?>[] entires, String directoryName);
 
 	// Override this method
 	public abstract Template buildOrdinalEnumTemplate(Class<?> targetClass, Enum<?>[] entries);
 
 	// Override this method
+	public abstract void writeArrayTemplateClass(Type arrayType, Type genericBaseType,
+			Class<?> baseClass, int dim, String directoryName);
+
+	// Override this method
 	public abstract Template buildArrayTemplate(Type arrayType, Type genericBaseType, Class<?> baseClass, int dim);
 
+	public Template initializeTemplate(Class<?> targetClass, Class<?> tmplClass) {
+		return initializeTemplate(targetClass, tmplClass, readFieldEntries(targetClass, readImplicitFieldOption(targetClass)));
+	}
+
+	public void writeTemplateClass(Class<?> targetClass, FieldList fList, String directoryName) throws NoSuchFieldException {
+		checkValidation(targetClass);
+		writeTemplateClass(targetClass, convertFieldEntries(targetClass, fList), directoryName);
+	}
 
 	public Template buildTemplate(Class<?> targetClass, FieldList flist) throws NoSuchFieldException {
 		checkValidation(targetClass);
 		return buildTemplate(targetClass, convertFieldEntries(targetClass, flist));
+	}
+
+	public void writeTemplateClass(Class<?> targetClass, FieldOption implicitOption, String directoryName) {
+		checkValidation(targetClass);
+		writeTemplateClass(targetClass, readFieldEntries(targetClass, implicitOption), directoryName);
 	}
 
 	public Template buildTemplate(Class<?> targetClass, FieldOption implicitOption) {
@@ -127,15 +156,30 @@ public abstract class TemplateBuilder {
 		return buildTemplate(targetClass, readFieldEntries(targetClass, implicitOption));
 	}
 
+	public void writeTemplateClass(Class<?> targetClass, final String directoryName) {
+		FieldOption implicitOption = readImplicitFieldOption(targetClass);
+		writeTemplateClass(targetClass, implicitOption, directoryName);
+	}
+
 	public Template buildTemplate(Class<?> targetClass) {
 		FieldOption implicitOption = readImplicitFieldOption(targetClass);
 		return buildTemplate(targetClass, implicitOption);
+	}
+
+	public void writeOrdinalEnumTemplateClass(Class<?> targetClass, String directoryName) {
+		checkOrdinalEnumValidation(targetClass);
+		Enum<?>[] entries = (Enum<?>[])targetClass.getEnumConstants();
+		writeOrdinalEnumTemplateClass(targetClass, entries, directoryName);
 	}
 
 	public Template buildOrdinalEnumTemplate(Class<?> targetClass) {
 		checkOrdinalEnumValidation(targetClass);
 		Enum<?>[] entries = (Enum<?>[])targetClass.getEnumConstants();
 		return buildOrdinalEnumTemplate(targetClass, entries);
+	}
+
+	public void writeArrayTemplateClass(Type arrayType, String directoryName) {
+		throw new UnsupportedOperationException("not supported yet.");// TODO
 	}
 
 	public Template buildArrayTemplate(Type arrayType) {
@@ -195,20 +239,49 @@ public abstract class TemplateBuilder {
 		instance = builder;
 	}
 
+	public static Class<?> load(Class<?> targetClass) {
+		return instance.loadTemplateClass(targetClass);
+	}
+
+	public static Template initialize(Class<?> targetClass, Class<?> tmplClass) {
+		return instance.initializeTemplate(targetClass, tmplClass);
+	}
+
+	public static void writeClass(Class<?> targetClass, String directoryName) {
+		instance.writeTemplateClass(targetClass, directoryName);
+	}
+
 	public static Template build(Class<?> targetClass) {
 		return instance.buildTemplate(targetClass);
+	}
+
+	public static void writeClass(Class<?> targetClass, FieldOption implicitOption, String directoryName) {
+		instance.writeTemplateClass(targetClass, implicitOption, directoryName);
 	}
 
 	public static Template build(Class<?> targetClass, FieldOption implicitOption) {
 		return instance.buildTemplate(targetClass, implicitOption);
 	}
 
-	public static Template build(Class<?> targetClass, FieldList flist) throws NoSuchFieldException {
-		return instance.buildTemplate(targetClass, flist);
+	public static void writeClass(Class<?> targetClass, FieldList fList, String directoryName)
+			throws NoSuchFieldException {
+		instance.writeTemplateClass(targetClass, fList, directoryName);
+	}
+
+	public static Template build(Class<?> targetClass, FieldList fList) throws NoSuchFieldException {
+		return instance.buildTemplate(targetClass, fList);
+	}
+
+	public static void writeOrdinalEnumClass(Class<?> targetClass, String directoryName) {
+		instance.writeOrdinalEnumTemplateClass(targetClass, directoryName);
 	}
 
 	public static Template buildOrdinalEnum(Class<?> targetClass) {
 		return instance.buildOrdinalEnumTemplate(targetClass);
+	}
+
+	public static void writeArrayClass(Type arrayType, String directoryName) {
+		throw new UnsupportedOperationException("not supported yet.");// TODO
 	}
 
 	public static Template buildArray(Type arrayType) {
