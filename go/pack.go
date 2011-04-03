@@ -132,16 +132,6 @@ func PackFloat64(writer io.Writer, value float64) (n int, err os.Error) {
     return PackUint64(writer, *(*uint64)(unsafe.Pointer(&value)))
 }
 
-func PackFloat(writer io.Writer, value float) (n int, err os.Error) {
-    switch unsafe.Sizeof(value) {
-    case 4:
-        return PackFloat32(writer, *(*float32)(unsafe.Pointer(&value)))
-    case 8:
-        return PackFloat64(writer, *(*float64)(unsafe.Pointer(&value)))
-    }
-    return 0, os.ENOENT // never get here
-}
-
 func PackBytes(writer io.Writer, value []byte) (n int, err os.Error) {
     if len(value) < 32 {
         n1, err := writer.Write([]byte { 0xa0 | uint8(len(value)) })
@@ -441,16 +431,6 @@ func PackFloat64Array(writer io.Writer, value []float64) (n int, err os.Error) {
     return n, nil
 }
 
-func PackFloatArray(writer io.Writer, value []float) (n int, err os.Error) {
-    switch unsafe.Sizeof(0) {
-    case 4:
-        return PackFloat32Array(writer, *(*[]float32)(unsafe.Pointer(&value)))
-    case 8:
-        return PackFloat64Array(writer, *(*[]float64)(unsafe.Pointer(&value)))
-    }
-    return 0, os.ENOENT // never get here
-}
-
 func PackArray(writer io.Writer, value reflect.ArrayOrSliceValue) (n int, err os.Error) {
     {
         elemType, ok := value.Type().(reflect.ArrayOrSliceType).Elem().(*reflect.UintType)
@@ -563,7 +543,6 @@ func Pack(writer io.Writer, value interface{}) (n int, err os.Error) {
     case int: return PackInt(writer, _value)
     case float32: return PackFloat32(writer, _value)
     case float64: return PackFloat64(writer, _value)
-    case float: return PackFloat(writer, _value)
     case []byte: return PackBytes(writer, _value)
     case []uint16: return PackUint16Array(writer, _value)
     case []uint32: return PackUint32Array(writer, _value)
@@ -576,7 +555,6 @@ func Pack(writer io.Writer, value interface{}) (n int, err os.Error) {
     case []int: return PackIntArray(writer, _value)
     case []float32: return PackFloat32Array(writer, _value)
     case []float64: return PackFloat64Array(writer, _value)
-    case []float: return PackFloatArray(writer, _value)
     default:
         return PackValue(writer, reflect.NewValue(value))
     }
