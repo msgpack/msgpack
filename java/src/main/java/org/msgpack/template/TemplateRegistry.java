@@ -112,7 +112,9 @@ public class TemplateRegistry {
 
 		Class<?> tmplClass = TemplateBuilder.load(target);
 		if (tmplClass != null) {
-			return TemplateBuilder.initialize(target, tmplClass);
+			tmpl = TemplateBuilder.initialize(target, tmplClass);
+			register(target, tmpl);
+			return tmpl;
 		}
 
 		if(target.isArray()) {
