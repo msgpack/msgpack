@@ -1,0 +1,14 @@
+#! /bin/sh
+
+if [ -n "${GIT_DIR}" ]; then
+    hooksdir="./${GIT_DIR}/hooks/"
+else
+    hooksdir="./"
+fi
+
+. "${hooksdir}common.sh"
+
+ticket="$(extractTicketId)"
+if [ -n "${ticket}" ]; then
+    appendMsgTo1stLine "$1" "${ticket}"
+fi
