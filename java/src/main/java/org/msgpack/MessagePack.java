@@ -22,8 +22,8 @@ import java.io.InputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import org.msgpack.template.TemplateRegistry;
-import org.msgpack.template.TemplateBuilder;
 import org.msgpack.template.FieldList;
+import org.msgpack.template.builder.TemplateBuilder;
 
 public class MessagePack {
 	public static byte[] pack(Object obj) {

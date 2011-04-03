@@ -26,13 +26,28 @@ import org.msgpack.annotation.MessagePackOrdinalEnum;
 import org.msgpack.annotation.Optional;
 import org.msgpack.template.TestTemplateBuilderPackConvert.SampleInterface;
 import org.msgpack.template.builder.BuilderSelectorRegistry;
+import org.msgpack.template.builder.MessagePackBeansBuilderSelector;
+import org.msgpack.template.builder.MessagePackMessageBuilderSelector;
 import org.msgpack.template.builder.TemplateBuilder;
 
 import junit.framework.Assert;
 import junit.framework.TestCase;
 
-public class TestTemplateBuilderPackUnpack extends TestCase {
+import static org.junit.Assert.assertThat;
+
+public class TestReflectionTemplateBuilderPackUnpack extends TestCase {
 	static {
+		//Replace template selectors from javassist to reflection.
+		BuilderSelectorRegistry instance = BuilderSelectorRegistry.getInstance();
+
+		instance.replace(
+				new MessagePackMessageBuilderSelector(
+						new ReflectionTemplateBuilder()));
+		instance.setForceBuilder( new ReflectionTemplateBuilder());
+		instance.replace(new MessagePackBeansBuilderSelector(
+				new BeansReflectionTemplateBuilder()));
+		
+		
 		MessagePack.register(PrimitiveTypeFieldsClass.class);
 		MessagePack.register(OptionalPrimitiveTypeFieldsClass.class);
 		MessagePack.register(GeneralReferenceTypeFieldsClass.class);
@@ -76,6 +91,7 @@ public class TestTemplateBuilderPackUnpack extends TestCase {
 
 		PrimitiveTypeFieldsClass dst =
 			MessagePack.unpack(raw, PrimitiveTypeFieldsClass.class);
+		
 		assertEquals(src.f0, dst.f0);
 		assertEquals(src.f1, dst.f1);
 		assertEquals(src.f2, dst.f2);
