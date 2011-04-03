@@ -1,7 +1,7 @@
 //
 // MessagePack for Java
 //
-// Copyright (C) 2009-2010 FURUHASHI Sadayuki
+// Copyright (C) 2009-2011 FURUHASHI Sadayuki
 //
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ public class BuiltInTemplateLoader {
 	public static void load() {
 		AnyTemplate.getInstance();
 		BigIntegerTemplate.getInstance();
+		BigDecimalTemplate.getInstance();
 		BooleanArrayTemplate.getInstance();
 		BooleanTemplate.getInstance();
 		ByteArrayTemplate.getInstance();
@@ -28,6 +29,7 @@ public class BuiltInTemplateLoader {
 		ByteTemplate.getInstance();
 		DoubleArrayTemplate.getInstance();
 		DoubleTemplate.getInstance();
+		DateTemplate.getInstance();
 		FloatArrayTemplate.getInstance();
 		FloatTemplate.getInstance();
 		IntArrayTemplate.getInstance();
