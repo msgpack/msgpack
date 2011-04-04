@@ -1,7 +1,7 @@
 //
 // MessagePack for Java
 //
-// Copyright (C) 2009-2010 FURUHASHI Sadayuki
+// Copyright (C) 2009-2011 FURUHASHI Sadayuki
 //
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -43,14 +43,14 @@ public class DefaultTemplate implements Template {
 	public void pack(Packer pk, Object target) throws IOException {
 		if(messagePackable) {
 			if(target == null) {
-				throw new MessageTypeException("target is null.");
+				throw new MessageTypeException("target is null: " + target.getClass().getName());
 			}
 			((MessagePackable)target).messagePack(pk);
 			return;
 		}
 		Template tmpl = TemplateRegistry.tryLookup(lookupType);
 		if(tmpl == this || tmpl == null) {
-			throw new MessageTypeException();
+			throw new MessageTypeException("Template lookup fail: " + lookupType.getClass().getName());
 		}
 		tmpl.pack(pk, target);
 	}
@@ -69,7 +69,7 @@ public class DefaultTemplate implements Template {
 		}
 		Template tmpl = TemplateRegistry.tryLookup(lookupType);
 		if(tmpl == this || tmpl == null) {
-			throw new MessageTypeException();
+			throw new MessageTypeException("Template lookup fail: " + lookupType.getClass().getName());
 		}
 		return tmpl.unpack(pac, to);
 	}
@@ -88,7 +88,7 @@ public class DefaultTemplate implements Template {
 		}
 		Template tmpl = TemplateRegistry.tryLookup(lookupType);
 		if(tmpl == this || tmpl == null) {
-			throw new MessageTypeException();
+			throw new MessageTypeException("Template lookup fail: " + lookupType.getClass().getName());
 		}
 		return tmpl.convert(from, to);
 	}
