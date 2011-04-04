@@ -73,8 +73,8 @@ doc:
 	mkdir -p doc
 	ocamldoc -d doc -html msgpack.mli
 
-install:
-	ocamlfind install msgpack META msgpack.cmx msgpack.cmo
+install: all
+	ocamlfind install msgpack META *.cmo *.cmx *.cmi
 
 clean:
 	rm -rf *.cm[iox] *.o *~ *.omc .omakedb .omakedb.lock *.cmxa *.a *.opt *.run *.annot runner msgpackCore.*
