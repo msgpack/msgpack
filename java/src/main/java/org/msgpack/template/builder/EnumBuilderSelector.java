@@ -1,7 +1,7 @@
 //
 // MessagePack for Java
 //
-// Copyright (C) 2009-2010 FURUHASHI Sadayuki
+// Copyright (C) 2009-2011 FURUHASHI Sadayuki
 //
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -15,14 +15,29 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 //
-package org.msgpack.annotation;
+package org.msgpack.template.builder;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.reflect.Type;
 
-@Target({ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD})
-@Retention(RetentionPolicy.RUNTIME)
-public @interface Nullable {
+public class EnumBuilderSelector implements BuilderSelector {
+
+	public static final String NAME = "EnumTemplateBuilder";
+	
+	public String getName(){
+		return NAME;
+	}
+	
+	@Override
+	public boolean matchType(Type targetType) {
+		return ((Class<?>)targetType).isEnum();
+	}
+
+
+	OrdinalEnumTemplateBuilder builder = new OrdinalEnumTemplateBuilder();
+
+	@Override
+	public TemplateBuilder getTemplateBuilder(Type targetType) {
+		return builder;
+	}
+
 }

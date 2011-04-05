@@ -22,7 +22,6 @@ import java.io.InputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import org.msgpack.template.TemplateRegistry;
-import org.msgpack.template.TemplateBuilder;
 import org.msgpack.template.TemplateClassWriter;
 import org.msgpack.template.FieldList;
 

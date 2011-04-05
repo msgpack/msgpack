@@ -13,6 +13,10 @@ import org.junit.Test;
 import junit.framework.TestCase;
 
 public class TestArrays extends TestCase {
+	
+	
+	
+	
 	@MessagePackMessage
 	public static class PrimitiveTest {
 		public PrimitiveTest() { }

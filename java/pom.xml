@@ -81,6 +81,20 @@
           <connectionUrl>scm:git://github.com/msgpack/msgpack.git</connectionUrl>
         </configuration>
       </plugin>
+      
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      
     </plugins>
   </build>
 
@@ -132,12 +146,14 @@
       <id>msgpack.org</id>
       <name>Repository at msgpack.org</name>
 	  <url>file://${project.build.directory}/website/maven2/</url>
+	  <!--<url>${deploy-release-url}</url>-->
     </repository>
     <snapshotRepository>
        <uniqueVersion>true</uniqueVersion>
        <id>msgpack.org</id>
        <name>Repository at msgpack.org</name>
 	   <url>file://${project.build.directory}/website/maven2/</url>
+	   <!--<url>${deploy-snapshot-url}</url>-->
     </snapshotRepository>
   </distributionManagement>
 

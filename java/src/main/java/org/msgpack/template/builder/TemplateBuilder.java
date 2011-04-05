@@ -15,7 +15,7 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 //
-package org.msgpack.template;
+package org.msgpack.template.builder;
 
 import java.io.IOException;
 import java.lang.reflect.*;
@@ -25,89 +25,19 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import org.msgpack.*;
 import org.msgpack.annotation.*;
+import org.msgpack.template.FieldList;
+import org.msgpack.template.FieldOption;
+import org.msgpack.template.IFieldEntry;
+import org.msgpack.template.IFieldEntryReader;
+import org.msgpack.template.JavassistTemplateBuilder;
+import org.msgpack.template.ReflectionTemplateBuilder;
 
 public abstract class TemplateBuilder {
-	public static class FieldEntry {
-		private Field field;
-		private FieldOption option;
 
-		public FieldEntry() {
-			this.field = null;
-			this.option = FieldOption.IGNORE;
-		}
-
-		public FieldEntry(FieldEntry e) {
-			this.field = e.field;
-			this.option = e.option;
-		}
-
-		public FieldEntry(Field field, FieldOption option) {
-			this.field = field;
-			this.option = option;
-		}
-
-		public Field getField() {
-			return field;
-		}
-
-		public String getName() {
-			return field.getName();
-		}
-
-		public Class<?> getType() {
-			return field.getType();
-		}
-
-		public String getJavaTypeName() {
-			Class<?> type = field.getType();
-			if(type.isArray()) {
-				return arrayTypeToString(type);
-			} else {
-				return type.getName();
-			}
-		}
-
-		public Type getGenericType() {
-			return field.getGenericType();
-		}
-
-		public FieldOption getOption() {
-			return option;
-		}
-
-		public boolean isAvailable() {
-			return option != FieldOption.IGNORE;
-		}
-
-		public boolean isRequired() {
-			return option == FieldOption.REQUIRED;
-		}
-
-		public boolean isOptional() {
-			return option == FieldOption.OPTIONAL;
-		}
-
-		public boolean isNullable() {
-			return option == FieldOption.NULLABLE;
-		}
-
-		static String arrayTypeToString(Class<?> type) {
-			int dim = 1;
-			Class<?> baseType = type.getComponentType();
-			while(baseType.isArray()) {
-				baseType = baseType.getComponentType();
-				dim += 1;
-			}
-			StringBuilder sb = new StringBuilder();
-			sb.append(baseType.getName());
-			for (int i = 0; i < dim; ++i) {
-				sb.append("[]");
-			}
-			return sb.toString();
-		}
-	}
-
+	public abstract Template buildTemplate(Type targetType);
+	/*
 	// Override this method
+<<<<<<< HEAD:java/src/main/java/org/msgpack/template/TemplateBuilder.java
 	public abstract Class<?> loadTemplateClass(Class<?> targetClass);
 
 	// Override this method
@@ -118,6 +48,9 @@ public abstract class TemplateBuilder {
 
 	// Override this method
 	public abstract Template buildTemplate(Class<?> targetClass, FieldEntry[] entries);
+=======
+	public abstract Template buildTemplate(Class<?> targetClass, IFieldEntry[] entries);
+>>>>>>> 21f0d0bfc47ddc6d9092621705047f3bef385ba5:java/src/main/java/org/msgpack/template/builder/TemplateBuilder.java
 
 	// Override this method
 	public abstract void writeOrdinalEnumTemplateClass(Class<?> targetClass, Enum<?>[] entires, String directoryName);
@@ -131,6 +64,7 @@ public abstract class TemplateBuilder {
 
 	// Override this method
 	public abstract Template buildArrayTemplate(Type arrayType, Type genericBaseType, Class<?> baseClass, int dim);
+<<<<<<< HEAD:java/src/main/java/org/msgpack/template/TemplateBuilder.java
 
 	public Template initializeTemplate(Class<?> targetClass, Class<?> tmplClass) {
 		return initializeTemplate(targetClass, tmplClass, readFieldEntries(targetClass, readImplicitFieldOption(targetClass)));
@@ -140,10 +74,14 @@ public abstract class TemplateBuilder {
 		checkValidation(targetClass);
 		writeTemplateClass(targetClass, convertFieldEntries(targetClass, fList), directoryName);
 	}
+=======
+    
+	public abstract IFieldEntryReader getFieldEntryReader();
+>>>>>>> 21f0d0bfc47ddc6d9092621705047f3bef385ba5:java/src/main/java/org/msgpack/template/builder/TemplateBuilder.java
 
 	public Template buildTemplate(Class<?> targetClass, FieldList flist) throws NoSuchFieldException {
 		checkValidation(targetClass);
-		return buildTemplate(targetClass, convertFieldEntries(targetClass, flist));
+		return buildTemplate(targetClass, getFieldEntryReader().convertFieldEntries(targetClass, flist));
 	}
 
 	public void writeTemplateClass(Class<?> targetClass, FieldOption implicitOption, String directoryName) {
@@ -153,7 +91,7 @@ public abstract class TemplateBuilder {
 
 	public Template buildTemplate(Class<?> targetClass, FieldOption implicitOption) {
 		checkValidation(targetClass);
-		return buildTemplate(targetClass, readFieldEntries(targetClass, implicitOption));
+		return buildTemplate(targetClass, getFieldEntryReader().readFieldEntries(targetClass, implicitOption));
 	}
 
 	public void writeTemplateClass(Class<?> targetClass, final String directoryName) {
@@ -162,7 +100,7 @@ public abstract class TemplateBuilder {
 	}
 
 	public Template buildTemplate(Class<?> targetClass) {
-		FieldOption implicitOption = readImplicitFieldOption(targetClass);
+		FieldOption implicitOption = getFieldEntryReader().readImplicitFieldOption(targetClass);
 		return buildTemplate(targetClass, implicitOption);
 	}
 
@@ -217,8 +155,24 @@ public abstract class TemplateBuilder {
 			return ((Class<?>)arrayType).getComponentType();
 		}
 	}
+	private void checkValidation(Class<?> targetClass) {
+		if(targetClass.isInterface()) {
+			throw new TemplateBuildException("cannot build template of interface");
+		}
+		if(targetClass.isArray()) {
+			throw new TemplateBuildException("cannot build template of array class");
+		}
+		if(targetClass.isPrimitive()) {
+			throw new TemplateBuildException("cannot build template of primitive type");
+		}
+	}
+	private void checkOrdinalEnumValidation(Class<?> targetClass) {
+		if(!targetClass.isEnum()) {
+			throw new TemplateBuildException("tried to build ordinal enum template of non-enum class");
+		}
+	}
 
-
+    
 	private static TemplateBuilder instance;
 	static {
 		instance = selectDefaultTemplateBuilder();
@@ -235,7 +189,7 @@ public abstract class TemplateBuilder {
 		return JavassistTemplateBuilder.getInstance();
 	}
 
-	synchronized static void setInstance(TemplateBuilder builder) {
+	public synchronized static void setInstance(TemplateBuilder builder) {
 		instance = builder;
 	}
 
@@ -286,9 +240,9 @@ public abstract class TemplateBuilder {
 
 	public static Template buildArray(Type arrayType) {
 		return instance.buildArrayTemplate(arrayType);
-	}
+	}*/
 
-
+    /*
 	private static void checkValidation(Class<?> targetClass) {
 		if(targetClass.isInterface()) {
 			throw new TemplateBuildException("cannot build template of interface");
@@ -305,10 +259,10 @@ public abstract class TemplateBuilder {
 		if(!targetClass.isEnum()) {
 			throw new TemplateBuildException("tried to build ordinal enum template of non-enum class");
 		}
-	}
+	}*/
 
-
-	static FieldEntry[] convertFieldEntries(Class<?> targetClass, FieldList flist) throws NoSuchFieldException {
+    /*
+	static IFieldEntry[] convertFieldEntries(Class<?> targetClass, FieldList flist) throws NoSuchFieldException {
 		List<FieldList.Entry> src = flist.getList();
 		FieldEntry[] result = new FieldEntry[src.size()];
 		for(int i=0; i < src.size(); i++) {
@@ -320,9 +274,9 @@ public abstract class TemplateBuilder {
 			}
 		}
 		return result;
-	}
-
-	static FieldEntry[] readFieldEntries(Class<?> targetClass, FieldOption implicitOption) {
+	}*/
+    
+	/*static IFieldEntry[] readFieldEntries(Class<?> targetClass, FieldOption implicitOption) {
 		Field[] allFields = readAllFields(targetClass);
 
 		/* index:
@@ -332,7 +286,7 @@ public abstract class TemplateBuilder {
 		 *             int field_d;   // 4
 		 *   @Index(2) int field_e;   // 2
 		 *             int field_f;   // 5
-		 */
+		 *//*
 		List<FieldEntry> indexed = new ArrayList<FieldEntry>();
 		int maxIndex = -1;
 		for(Field f : allFields) {
@@ -372,8 +326,8 @@ public abstract class TemplateBuilder {
 		}
 
 		return result;
-	}
-
+	}*/
+    /* 
 	private static Field[] readAllFields(Class<?> targetClass) {
 		// order: [fields of super class, ..., fields of this class]
 		List<Field[]> succ = new ArrayList<Field[]>();
@@ -449,6 +403,6 @@ public abstract class TemplateBuilder {
 
 	private static boolean isAnnotated(AccessibleObject ao, Class<? extends Annotation> with) {
 		return ao.getAnnotation(with) != null;
-	}
+	}*/
 }
 

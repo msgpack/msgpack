@@ -11,6 +11,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.hamcrest.CoreMatchers;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import org.msgpack.MessagePack;
@@ -21,6 +23,7 @@ import org.msgpack.MessageUnpackable;
 import org.msgpack.Packer;
 import org.msgpack.Template;
 import org.msgpack.Unpacker;
+import org.msgpack.annotation.MessagePackBeans;
 import org.msgpack.annotation.MessagePackMessage;
 import org.msgpack.annotation.MessagePackOrdinalEnum;
 import org.msgpack.annotation.Optional;
@@ -28,10 +31,11 @@ import org.msgpack.template.TestTemplateBuilderPackConvert.SampleInterface;
 import org.msgpack.template.builder.BuilderSelectorRegistry;
 import org.msgpack.template.builder.TemplateBuilder;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 import junit.framework.TestCase;
+import static org.hamcrest.CoreMatchers.*;
 
-public class TestTemplateBuilderPackUnpack extends TestCase {
+public class TestTemplateBuilderJavaBeansPackUnpack extends TestCase {
 	static {
 		MessagePack.register(PrimitiveTypeFieldsClass.class);
 		MessagePack.register(OptionalPrimitiveTypeFieldsClass.class);
@@ -113,14 +117,71 @@ public class TestTemplateBuilderPackUnpack extends TestCase {
 		assertEquals(src, dst);
 	}
 
+	@MessagePackBeans
 	public static class PrimitiveTypeFieldsClass {
-		public byte f0;
-		public short f1;
-		public int f2;
-		public long f3;
-		public float f4;
-		public double f5;
-		public boolean f6;
+		byte f0;
+		short f1;
+		int f2;
+		long f3;
+		float f4;
+		double f5;
+		boolean f6;
+
+		public byte getF0() {
+			return f0;
+		}
+
+		public void setF0(byte f0) {
+			this.f0 = f0;
+		}
+
+		public short getF1() {
+			return f1;
+		}
+
+		public void setF1(short f1) {
+			this.f1 = f1;
+		}
+
+		public int getF2() {
+			return f2;
+		}
+
+		public void setF2(int f2) {
+			this.f2 = f2;
+		}
+
+		public long getF3() {
+			return f3;
+		}
+
+		public void setF3(long f3) {
+			this.f3 = f3;
+		}
+
+		public float getF4() {
+			return f4;
+		}
+
+		public void setF4(float f4) {
+			this.f4 = f4;
+		}
+
+		public double getF5() {
+			return f5;
+		}
+
+		public void setF5(double f5) {
+			this.f5 = f5;
+		}
+
+		public boolean isF6() {
+			return f6;
+		}
+
+		public void setF6(boolean f6) {
+			this.f6 = f6;
+		}
 
 		public PrimitiveTypeFieldsClass() {
 		}
@@ -178,6 +239,7 @@ public class TestTemplateBuilderPackUnpack extends TestCase {
 		assertEquals(src, dst);
 	}
 
+	@MessagePackBeans
 	public static class OptionalPrimitiveTypeFieldsClass {
 		@Optional
 		public byte f0;
@@ -193,6 +255,70 @@ public class TestTemplateBuilderPackUnpack extends TestCase {
 		public double f5;
 		@Optional
 		public boolean f6;
+
+		@Optional
+		public byte getF0() {
+			return f0;
+		}
+
+		@Optional
+		public void setF0(byte f0) {
+			this.f0 = f0;
+		}
+
+		@Optional
+		public short getF1() {
+			return f1;
+		}
+
+		public void setF1(short f1) {
+			this.f1 = f1;
+		}
+
+		public int getF2() {
+			return f2;
+		}
+
+		@Optional
+		public void setF2(int f2) {
+			this.f2 = f2;
+		}
+
+		@Optional
+		public long getF3() {
+			return f3;
+		}
+
+		public void setF3(long f3) {
+			this.f3 = f3;
+		}
+
+		@Optional
+		public float getF4() {
+			return f4;
+		}
+
+		public void setF4(float f4) {
+			this.f4 = f4;
+		}
+
+		@Optional
+		public double getF5() {
+			return f5;
+		}
+
+		public void setF5(double f5) {
+			this.f5 = f5;
+		}
+
+		@Optional
+		public boolean isF6() {
+			return f6;
+		}
+
+		public void setF6(boolean f6) {
+			this.f6 = f6;
+		}
 
 		public OptionalPrimitiveTypeFieldsClass() {
 		}
@@ -242,6 +368,7 @@ public class TestTemplateBuilderPackUnpack extends TestCase {
 		assertEquals(src, dst);
 	}
 
+	@MessagePackBeans
 	public static class GeneralReferenceTypeFieldsClass {
 		public Byte f0;
 		public Short f1;
@@ -254,6 +381,94 @@ public class TestTemplateBuilderPackUnpack extends TestCase {
 		public String f8;
 		public byte[] f9;
 		public ByteBuffer f10;
+
+		public Byte getF0() {
+			return f0;
+		}
+
+		public void setF0(Byte f0) {
+			this.f0 = f0;
+		}
+
+		public Short getF1() {
+			return f1;
+		}
+
+		public void setF1(Short f1) {
+			this.f1 = f1;
+		}
+
+		public Integer getF2() {
+			return f2;
+		}
+
+		public void setF2(Integer f2) {
+			this.f2 = f2;
+		}
+
+		public Long getF3() {
+			return f3;
+		}
+
+		public void setF3(Long f3) {
+			this.f3 = f3;
+		}
+
+		public Float getF4() {
+			return f4;
+		}
+
+		public void setF4(Float f4) {
+			this.f4 = f4;
+		}
+
+		public Double getF5() {
+			return f5;
+		}
+
+		public void setF5(Double f5) {
+			this.f5 = f5;
+		}
+
+		public Boolean getF6() {
+			return f6;
+		}
+
+		public void setF6(Boolean f6) {
+			this.f6 = f6;
+		}
+
+		public BigInteger getF7() {
+			return f7;
+		}
+
+		public void setF7(BigInteger f7) {
+			this.f7 = f7;
+		}
+
+		public String getF8() {
+			return f8;
+		}
+
+		public void setF8(String f8) {
+			this.f8 = f8;
+		}
+
+		public byte[] getF9() {
+			return f9;
+		}
+
+		public void setF9(byte[] f9) {
+			this.f9 = f9;
+		}
+
+		public ByteBuffer getF10() {
+			return f10;
+		}
+
+		public void setF10(ByteBuffer f10) {
+			this.f10 = f10;
+		}
 
 		public GeneralReferenceTypeFieldsClass() {
 		}
@@ -338,6 +553,7 @@ public class TestTemplateBuilderPackUnpack extends TestCase {
 		assertEquals(src, dst);
 	}
 
+	@MessagePackBeans
 	public static class GeneralOptionalReferenceTypeFieldsClass {
 		@Optional
 		public Byte f0;
@@ -361,6 +577,106 @@ public class TestTemplateBuilderPackUnpack extends TestCase {
 		public byte[] f9;
 		@Optional
 		public ByteBuffer f10;
+
+		@Optional
+		public Byte getF0() {
+			return f0;
+		}
+
+		@Optional
+		public void setF0(Byte f0) {
+			this.f0 = f0;
+		}
+
+		@Optional
+		public Short getF1() {
+			return f1;
+		}
+
+		public void setF1(Short f1) {
+			this.f1 = f1;
+		}
+
+		public Integer getF2() {
+			return f2;
+		}
+
+		@Optional
+		public void setF2(Integer f2) {
+			this.f2 = f2;
+		}
+
+		@Optional
+		public Long getF3() {
+			return f3;
+		}
+
+		public void setF3(Long f3) {
+			this.f3 = f3;
+		}
+
+		@Optional
+		public Float getF4() {
+			return f4;
+		}
+
+		public void setF4(Float f4) {
+			this.f4 = f4;
+		}
+
+		@Optional
+		public Double getF5() {
+			return f5;
+		}
+
+		public void setF5(Double f5) {
+			this.f5 = f5;
+		}
+
+		@Optional
+		public Boolean getF6() {
+			return f6;
+		}
+
+		public void setF6(Boolean f6) {
+			this.f6 = f6;
+		}
+
+		@Optional
+		public BigInteger getF7() {
+			return f7;
+		}
+
+		public void setF7(BigInteger f7) {
+			this.f7 = f7;
+		}
+
+		@Optional
+		public String getF8() {
+			return f8;
+		}
+
+		public void setF8(String f8) {
+			this.f8 = f8;
+		}
+
+		@Optional
+		public byte[] getF9() {
+			return f9;
+		}
+
+		public void setF9(byte[] f9) {
+			this.f9 = f9;
+		}
+
+		@Optional
+		public ByteBuffer getF10() {
+			return f10;
+		}
+
+		public void setF10(ByteBuffer f10) {
+			this.f10 = f10;
+		}
 
 		public GeneralOptionalReferenceTypeFieldsClass() {
 		}
@@ -437,6 +753,7 @@ public class TestTemplateBuilderPackUnpack extends TestCase {
 		assertEquals(src, dst);
 	}
 
+	@MessagePackBeans
 	public static class SampleListTypes {
 		public List<Integer> f0;
 		public List<Integer> f1;
@@ -444,6 +761,54 @@ public class TestTemplateBuilderPackUnpack extends TestCase {
 		public List<List<String>> f3;
 		public List<SampleListNestedType> f4;
 		public List<ByteBuffer> f5;
+
+		public List<Integer> getF0() {
+			return f0;
+		}
+
+		public void setF0(List<Integer> f0) {
+			this.f0 = f0;
+		}
+
+		public List<Integer> getF1() {
+			return f1;
+		}
+
+		public void setF1(List<Integer> f1) {
+			this.f1 = f1;
+		}
+
+		public List<String> getF2() {
+			return f2;
+		}
+
+		public void setF2(List<String> f2) {
+			this.f2 = f2;
+		}
+
+		public List<List<String>> getF3() {
+			return f3;
+		}
+
+		public void setF3(List<List<String>> f3) {
+			this.f3 = f3;
+		}
+
+		public List<SampleListNestedType> getF4() {
+			return f4;
+		}
+
+		public void setF4(List<SampleListNestedType> f4) {
+			this.f4 = f4;
+		}
+
+		public List<ByteBuffer> getF5() {
+			return f5;
+		}
+
+		public void setF5(List<ByteBuffer> f5) {
+			this.f5 = f5;
+		}
 
 		public SampleListTypes() {
 		}
@@ -553,6 +918,7 @@ public class TestTemplateBuilderPackUnpack extends TestCase {
 		assertEquals(src, dst);
 	}
 
+	@MessagePackBeans
 	public static class SampleOptionalListTypes {
 		@Optional
 		public List<Integer> f0;
@@ -567,16 +933,89 @@ public class TestTemplateBuilderPackUnpack extends TestCase {
 		@Optional
 		public List<ByteBuffer> f5;
 
+		@Optional
+		public List<Integer> getF0() {
+			return f0;
+		}
+
+		@Optional
+		public void setF0(List<Integer> f0) {
+			this.f0 = f0;
+		}
+
+		@Optional
+		public List<Integer> getF1() {
+			return f1;
+		}
+
+		public void setF1(List<Integer> f1) {
+			this.f1 = f1;
+		}
+
+		public List<String> getF2() {
+			return f2;
+		}
+
+		@Optional
+		public void setF2(List<String> f2) {
+			this.f2 = f2;
+		}
+
+		@Optional
+		public List<List<String>> getF3() {
+			return f3;
+		}
+
+		public void setF3(List<List<String>> f3) {
+			this.f3 = f3;
+		}
+
+		@Optional
+		public List<SampleOptionalListNestedType> getF4() {
+			return f4;
+		}
+
+		public void setF4(List<SampleOptionalListNestedType> f4) {
+			this.f4 = f4;
+		}
+
+		@Optional
+		public List<ByteBuffer> getF5() {
+			return f5;
+		}
+
+		public void setF5(List<ByteBuffer> f5) {
+			this.f5 = f5;
+		}
+
 		public SampleOptionalListTypes() {
 		}
 	}
 
-	@MessagePackMessage
+	@MessagePackBeans
 	public static class SampleOptionalListNestedType {
 		@Optional
 		public byte[] f0;
 		@Optional
 		public String f1;
+
+		@Optional
+		public byte[] getF0() {
+			return f0;
+		}
+
+		public void setF0(byte[] f0) {
+			this.f0 = f0;
+		}
+
+		@Optional
+		public String getF1() {
+			return f1;
+		}
+
+		public void setF1(String f1) {
+			this.f1 = f1;
+		}
 
 		public SampleOptionalListNestedType() {
 		}
@@ -629,10 +1068,35 @@ public class TestTemplateBuilderPackUnpack extends TestCase {
 		assertEquals(src, dst);
 	}
 
+	@MessagePackBeans
 	public static class SampleMapTypes {
 		public Map<Integer, Integer> f0;
 		public Map<Integer, Integer> f1;
 		public Map<String, Integer> f2;
+
+		public Map<Integer, Integer> getF0() {
+			return f0;
+		}
+
+		public void setF0(Map<Integer, Integer> f0) {
+			this.f0 = f0;
+		}
+
+		public Map<Integer, Integer> getF1() {
+			return f1;
+		}
+
+		public void setF1(Map<Integer, Integer> f1) {
+			this.f1 = f1;
+		}
+
+		public Map<String, Integer> getF2() {
+			return f2;
+		}
+
+		public void setF2(Map<String, Integer> f2) {
+			this.f2 = f2;
+		}
 
 		public SampleMapTypes() {
 		}
@@ -703,6 +1167,7 @@ public class TestTemplateBuilderPackUnpack extends TestCase {
 		assertEquals(src, dst);
 	}
 
+	@MessagePackBeans
 	public static class SampleOptionalMapTypes {
 		@Optional
 		public Map<Integer, Integer> f0;
@@ -711,26 +1176,39 @@ public class TestTemplateBuilderPackUnpack extends TestCase {
 		@Optional
 		public Map<String, Integer> f2;
 
+		@Optional
+		public Map<Integer, Integer> getF0() {
+			return f0;
+		}
+
+		public void setF0(Map<Integer, Integer> f0) {
+			this.f0 = f0;
+		}
+
+		@Optional
+		public Map<Integer, Integer> getF1() {
+			return f1;
+		}
+
+		public void setF1(Map<Integer, Integer> f1) {
+			this.f1 = f1;
+		}
+
+		@Optional
+		public Map<String, Integer> getF2() {
+			return f2;
+		}
+
+		public void setF2(Map<String, Integer> f2) {
+			this.f2 = f2;
+		}
+
 		public SampleOptionalMapTypes() {
 		}
 	}
 
-	@Test
-	public void testFinalClass() throws Exception {
-		try {
-			TemplateBuilder builder = BuilderSelectorRegistry.getInstance().select(FinalModifierClass.class);
-			Assert.assertNull(builder);
-			BuilderSelectorRegistry.getInstance().getForceBuilder().buildTemplate(FinalModifierClass.class);
-			assertTrue(true);
-		} catch (TemplateBuildException e) {
-			fail();
-		}
-		assertTrue(true);
-	}
 
-	public final static class FinalModifierClass {
-	}
-
+	@MessagePackBeans
 	public abstract static class AbstractModifierClass {
 	}
 
@@ -766,14 +1244,15 @@ public class TestTemplateBuilderPackUnpack extends TestCase {
 	@Test
 	public void testEnumTypeForOrdinal00() throws Exception {
 		SampleEnumFieldClass src = new SampleEnumFieldClass();
-		src.f0 = 0;
+		src.f0 = 23;
 		src.f1 = SampleEnum.ONE;
 
 		byte[] raw = MessagePack.pack(src);
 
 		SampleEnumFieldClass dst =
 			MessagePack.unpack(raw, SampleEnumFieldClass.class);
-		assertTrue(src.f1 == dst.f1);
+		Assert.assertThat(dst.f0, is(src.f0));
+		Assert.assertThat(dst.f1, is(src.f1));
 	}
 
 	@Test
@@ -784,13 +1263,30 @@ public class TestTemplateBuilderPackUnpack extends TestCase {
 
 		SampleEnumFieldClass dst =
 			MessagePack.unpack(raw, SampleEnumFieldClass.class);
-		assertEquals(src, dst);
+		Assert.assertThat(dst,is(src));
 	}
 
+	@MessagePackBeans
 	public static class SampleEnumFieldClass {
 		public int f0;
 
 		public SampleEnum f1;
+
+		public int getF0() {
+			return f0;
+		}
+
+		public void setF0(int f0) {
+			this.f0 = f0;
+		}
+
+		public SampleEnum getF1() {
+			return f1;
+		}
+
+		public void setF1(SampleEnum f1) {
+			this.f1 = f1;
+		}
 
 		public SampleEnumFieldClass() {
 		}
@@ -839,12 +1335,31 @@ public class TestTemplateBuilderPackUnpack extends TestCase {
 		assertEquals(src, dst);
 	}
 
+	@MessagePackBeans
 	public static class SampleOptionalEnumFieldClass {
 		@Optional
 		public int f0;
 
 		@Optional
 		public SampleOptionalEnum f1;
+
+		@Optional
+		public int getF0() {
+			return f0;
+		}
+
+		public void setF0(int f0) {
+			this.f0 = f0;
+		}
+
+		@Optional
+		public SampleOptionalEnum getF1() {
+			return f1;
+		}
+
+		public void setF1(SampleOptionalEnum f1) {
+			this.f1 = f1;
+		}
 
 		public SampleOptionalEnumFieldClass() {
 		}
@@ -867,18 +1382,55 @@ public class TestTemplateBuilderPackUnpack extends TestCase {
 
 		FieldModifiersClass dst =
 			MessagePack.unpack(raw, FieldModifiersClass.class);
-		assertTrue(src.f1 == dst.f1);
-		assertTrue(src.f2 != dst.f2);
-		assertTrue(src.f3 != dst.f3);
-		assertTrue(src.f4 != dst.f4);
+		Assert.assertEquals(src.f1,dst.f1);
+		Assert.assertThat(dst.f2, is( not(src.f2)));
+		Assert.assertThat(dst.f3, is( not(src.f3)));
+		Assert.assertThat(dst.f4, is( not(src.f4)));
 	}
 
+	@MessagePackBeans
 	public static class FieldModifiersClass {
 		public int f0;
 		public final int f1 = 1;
 		private int f2;
 		protected int f3;
 		int f4;
+
+		public int getF0() {
+			return f0;
+		}
+
+		public void setF0(int f0) {
+			this.f0 = f0;
+		}
+		
+		private int getF2() {
+			return f2;
+		}
+
+		private void setF2(int f2) {
+			this.f2 = f2;
+		}
+
+		public int getF3() {
+			return f3;
+		}
+
+		protected void setF3(int f3) {
+			this.f3 = f3;
+		}
+
+		public int getF4() {
+			return f4;
+		}
+
+		void setF4(int f4) {
+			this.f4 = f4;
+		}
+
+		public int getF1() {
+			return f1;
+		}
 
 		public FieldModifiersClass() {
 		}
@@ -896,13 +1448,14 @@ public class TestTemplateBuilderPackUnpack extends TestCase {
 
 		OptionalFieldModifiersClass dst =
 			MessagePack.unpack(raw, OptionalFieldModifiersClass.class);
-		assertTrue(src.f0 == dst.f0);
-		assertTrue(src.f1 == dst.f1);
-		assertTrue(src.f2 != dst.f2);
-		assertTrue(src.f3 != dst.f3);
-		assertTrue(src.f4 != dst.f4);
+		Assert.assertThat(dst.f0, is(src.f0));
+		Assert.assertThat(dst.f1, is(src.f1));
+		Assert.assertThat(dst.f2, is(not(src.f2)));
+		Assert.assertThat(dst.f3, is(not(src.f3)));
+		Assert.assertThat(dst.f4, is(not(src.f4)));
 	}
 
+	@MessagePackBeans
 	public static class OptionalFieldModifiersClass {
 		@Optional
 		public int f0;
@@ -911,6 +1464,43 @@ public class TestTemplateBuilderPackUnpack extends TestCase {
 		private int f2;
 		protected int f3;
 		int f4;
+
+		@Optional
+		public int getF0() {
+			return f0;
+		}
+
+		public void setF0(int f0) {
+			this.f0 = f0;
+		}
+
+		private int getF2() {
+			return f2;
+		}
+
+		public void setF2(int f2) {
+			this.f2 = f2;
+		}
+
+		protected int getF3() {
+			return f3;
+		}
+
+		protected void setF3(int f3) {
+			this.f3 = f3;
+		}
+
+		public int getF4() {
+			return f4;
+		}
+
+		void setF4(int f4) {
+			this.f4 = f4;
+		}
+
+		public int getF1() {
+			return f1;
+		}
 
 		public OptionalFieldModifiersClass() {
 		}
@@ -943,16 +1533,42 @@ public class TestTemplateBuilderPackUnpack extends TestCase {
 		assertEquals(src, dst);
 	}
 
+	@MessagePackBeans
 	public static class BaseClass {
 		public int f0;
 		public NestedClass f1;
+
+		public int getF0() {
+			return f0;
+		}
+
+		public void setF0(int f0) {
+			this.f0 = f0;
+		}
+
+		public NestedClass getF1() {
+			return f1;
+		}
+
+		public void setF1(NestedClass f1) {
+			this.f1 = f1;
+		}
 
 		public BaseClass() {
 		}
 	}
 
+	@MessagePackBeans
 	public static class NestedClass {
 		public int f2;
+
+		public int getF2() {
+			return f2;
+		}
+
+		public void setF2(int f2) {
+			this.f2 = f2;
+		}
 
 		public NestedClass() {
 		}
@@ -998,19 +1614,48 @@ public class TestTemplateBuilderPackUnpack extends TestCase {
 		assertEquals(src, dst);
 	}
 
+	@MessagePackBeans
 	public static class OptionalBaseClass {
 		@Optional
 		public int f0;
 		@Optional
 		public OptionalNestedClass f1;
 
+		@Optional
+		public int getF0() {
+			return f0;
+		}
+
+		public void setF0(int f0) {
+			this.f0 = f0;
+		}
+
+		@Optional
+		public OptionalNestedClass getF1() {
+			return f1;
+		}
+
+		public void setF1(OptionalNestedClass f1) {
+			this.f1 = f1;
+		}
+
 		public OptionalBaseClass() {
 		}
 	}
 
+	@MessagePackBeans
 	public static class OptionalNestedClass {
 		@Optional
 		public int f2;
+
+		@Optional
+		public int getF2() {
+			return f2;
+		}
+
+		public void setF2(int f2) {
+			this.f2 = f2;
+		}
 
 		public OptionalNestedClass() {
 		}
@@ -1043,16 +1688,41 @@ public class TestTemplateBuilderPackUnpack extends TestCase {
 		assertEquals(src, dst);
 	}
 
+	@MessagePackBeans
 	public static class BaseClass2 {
 		public int f0;
 		public MessagePackMessageClass2 f1;
+
+		public int getF0() {
+			return f0;
+		}
+
+		public void setF0(int f0) {
+			this.f0 = f0;
+		}
+
+		public MessagePackMessageClass2 getF1() {
+			return f1;
+		}
+
+		public void setF1(MessagePackMessageClass2 f1) {
+			this.f1 = f1;
+		}
 
 		public BaseClass2() {
 		}
 	}
 
-	@MessagePackMessage
+	@MessagePackBeans
 	public static class MessagePackMessageClass2 {
+		public int getF2() {
+			return f2;
+		}
+
+		public void setF2(int f2) {
+			this.f2 = f2;
+		}
+
 		public int f2;
 
 		public MessagePackMessageClass2() {
@@ -1099,20 +1769,48 @@ public class TestTemplateBuilderPackUnpack extends TestCase {
 		assertEquals(src, dst);
 	}
 
+	@MessagePackBeans
 	public static class OptionalBaseClass2 {
 		@Optional
 		public int f0;
 		@Optional
 		public OptionalMessagePackMessageClass2 f1;
 
+		@Optional
+		public int getF0() {
+			return f0;
+		}
+
+		public void setF0(int f0) {
+			this.f0 = f0;
+		}
+
+		@Optional
+		public OptionalMessagePackMessageClass2 getF1() {
+			return f1;
+		}
+
+		public void setF1(OptionalMessagePackMessageClass2 f1) {
+			this.f1 = f1;
+		}
+
 		public OptionalBaseClass2() {
 		}
 	}
 
-	@MessagePackMessage
+	@MessagePackBeans
 	public static class OptionalMessagePackMessageClass2 {
 		@Optional
 		public int f2;
+
+		@Optional
+		public int getF2() {
+			return f2;
+		}
+
+		public void setF2(int f2) {
+			this.f2 = f2;
+		}
 
 		public OptionalMessagePackMessageClass2() {
 		}
@@ -1155,6 +1853,7 @@ public class TestTemplateBuilderPackUnpack extends TestCase {
 		assertEquals(src, dst);
 	}
 
+	@MessagePackBeans
 	public static class SampleSubClass extends SampleSuperClass {
 		public int f0;
 		public final int f1 = 1;
@@ -1162,10 +1861,23 @@ public class TestTemplateBuilderPackUnpack extends TestCase {
 		protected int f3;
 		int f4;
 
+		public int getF0() {
+			return f0;
+		}
+
+		public void setF0(int f0) {
+			this.f0 = f0;
+		}
+
+		public int getF1() {
+			return f1;
+		}
+
 		public SampleSubClass() {
 		}
 	}
 
+	@MessagePackBeans
 	public static class SampleSuperClass {
 		public int f5;
 		public final int f6 = 2;
@@ -1173,6 +1885,14 @@ public class TestTemplateBuilderPackUnpack extends TestCase {
 		private int f7;
 		protected int f8;
 		int f9;
+
+		public int getF5() {
+			return f5;
+		}
+
+		public void setF5(int f5) {
+			this.f5 = f5;
+		}
 
 		public SampleSuperClass() {
 		}
@@ -1215,6 +1935,7 @@ public class TestTemplateBuilderPackUnpack extends TestCase {
 		assertEquals(src, dst);
 	}
 
+	@MessagePackBeans
 	public static class SampleOptionalSubClass extends SampleOptionalSuperClass {
 		@Optional
 		public int f0;
@@ -1222,12 +1943,30 @@ public class TestTemplateBuilderPackUnpack extends TestCase {
 		private int f2;
 		protected int f3;
 		int f4;
+		@Optional
+		public int getF0() {
+			return f0;
+		}
+
+		public void setF0(int f0) {
+			this.f0 = f0;
+		}
 
 		public SampleOptionalSubClass() {
 		}
 	}
 
+	@MessagePackBeans
 	public static class SampleOptionalSuperClass {
+		@Optional
+		public int getF5() {
+			return f5;
+		}
+
+		public void setF5(int f5) {
+			this.f5 = f5;
+		}
+
 		@Optional
 		public int f5;
 		public final int f6 = 2;
@@ -1275,17 +2014,59 @@ public class TestTemplateBuilderPackUnpack extends TestCase {
 		assertEquals(src, dst);
 	}
 
+	@MessagePackBeans
 	public static class BaseMessagePackableUnpackableClass {
 		public MessagePackableUnpackableClass f0;
 		public int f1;
 		public List<MessagePackableUnpackableClass> f2;
 
+		public MessagePackableUnpackableClass getF0() {
+			return f0;
+		}
+
+		public void setF0(MessagePackableUnpackableClass f0) {
+			this.f0 = f0;
+		}
+
+		public int getF1() {
+			return f1;
+		}
+
+		public void setF1(int f1) {
+			this.f1 = f1;
+		}
+
+		public List<MessagePackableUnpackableClass> getF2() {
+			return f2;
+		}
+
+		public void setF2(List<MessagePackableUnpackableClass> f2) {
+			this.f2 = f2;
+		}
+
 		public BaseMessagePackableUnpackableClass() {
 		}
 	}
 
+	@MessagePackBeans
 	public static class MessagePackableUnpackableClass implements
 			MessagePackable, MessageUnpackable {
+		public int getF0() {
+			return f0;
+		}
+
+		public void setF0(int f0) {
+			this.f0 = f0;
+		}
+
+		public int getF1() {
+			return f1;
+		}
+
+		public void setF1(int f1) {
+			this.f1 = f1;
+		}
+
 		public int f0;
 		public int f1;
 
@@ -1362,6 +2143,7 @@ public class TestTemplateBuilderPackUnpack extends TestCase {
 		assertEquals(src, dst);
 	}
 
+	@MessagePackBeans
 	public static class OptionalBaseMessagePackableUnpackableClass {
 		@Optional
 		public OptionalMessagePackableUnpackableClass f0;
@@ -1370,12 +2152,58 @@ public class TestTemplateBuilderPackUnpack extends TestCase {
 		@Optional
 		public List<OptionalMessagePackableUnpackableClass> f2;
 
+		@Optional
+		public OptionalMessagePackableUnpackableClass getF0() {
+			return f0;
+		}
+
+		public void setF0(OptionalMessagePackableUnpackableClass f0) {
+			this.f0 = f0;
+		}
+
+		@Optional
+		public int getF1() {
+			return f1;
+		}
+
+		public void setF1(int f1) {
+			this.f1 = f1;
+		}
+
+		@Optional
+		public List<OptionalMessagePackableUnpackableClass> getF2() {
+			return f2;
+		}
+
+		public void setF2(List<OptionalMessagePackableUnpackableClass> f2) {
+			this.f2 = f2;
+		}
+
 		public OptionalBaseMessagePackableUnpackableClass() {
 		}
 	}
 
+	@MessagePackBeans
 	public static class OptionalMessagePackableUnpackableClass implements
 			MessagePackable, MessageUnpackable {
+		@Optional
+		public int getF0() {
+			return f0;
+		}
+
+		public void setF0(int f0) {
+			this.f0 = f0;
+		}
+
+		@Optional
+		public int getF1() {
+			return f1;
+		}
+
+		public void setF1(int f1) {
+			this.f1 = f1;
+		}
+
 		@Optional
 		public int f0;
 		@Optional

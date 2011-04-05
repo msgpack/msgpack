@@ -26,32 +26,54 @@ import java.lang.annotation.Annotation;
 import org.msgpack.annotation.MessagePackMessage;
 import org.msgpack.annotation.MessagePackDelegate;
 import org.msgpack.annotation.MessagePackOrdinalEnum;
+import org.msgpack.template.builder.BuilderSelectorRegistry;
+import org.msgpack.template.builder.CustomTemplateBuilder;
+import org.msgpack.template.builder.TemplateBuilder;
 import org.msgpack.Template;
 
 public class TemplateRegistry {
 	private static Map<Type, Template> map;
 	private static Map<Type, GenericTemplate> genericMap;
+	
+	private static BuilderSelectorRegistry builderSelectorRegistry;
 
 	static {
 		map = new HashMap<Type, Template>();
 		genericMap = new HashMap<Type, GenericTemplate>();
 		BuiltInTemplateLoader.load();
+		builderSelectorRegistry = BuilderSelectorRegistry.getInstance();
 	}
 
 	public static void register(Class<?> target) { // auto-detect
-		if(target.isEnum()) {
+		TemplateBuilder builder = builderSelectorRegistry.select(target);
+		if(builder != null){
+			register(target,builder.buildTemplate(target));
+		}else{
+			register(target,builderSelectorRegistry.getForceBuilder().buildTemplate(target));
+		}
+		/*if(target.isEnum()) {
 			register(target, TemplateBuilder.buildOrdinalEnum(target));
 		} else {
 			register(target, TemplateBuilder.build(target));
-		}
+		}*/
 	}
 
 	public static void register(Class<?> target, FieldOption implicitOption) {
-		register(target, TemplateBuilder.build(target, implicitOption));
+		TemplateBuilder builder = builderSelectorRegistry.select(target);
+		if(builder != null && builder instanceof CustomTemplateBuilder){
+			register(target, ((CustomTemplateBuilder)builder).buildTemplate(target, implicitOption));
+		}else{
+			throw new TemplateBuildException("cannot build template with filed option");
+		}
 	}
 
 	public static void register(Class<?> target, FieldList flist) throws NoSuchFieldException {
-		register(target, TemplateBuilder.build(target, flist));
+		TemplateBuilder builder = builderSelectorRegistry.select(target);
+		if(builder != null && builder instanceof CustomTemplateBuilder){
+			register(target, ((CustomTemplateBuilder)builder).buildTemplate(target, flist));
+		}else{
+			throw new TemplateBuildException("cannot build template with filed list");
+		}
 	}
 
 	public static synchronized void register(Type rawType, Template tmpl) {
@@ -101,7 +123,7 @@ public class TemplateRegistry {
 			return tmpl;
 		}
 
-		if(targetType instanceof GenericArrayType) {
+		/*if(targetType instanceof GenericArrayType) {
 			// GenericArrayType is not a Class<?>
 			tmpl = TemplateBuilder.buildArray(targetType);
 			register(targetType, tmpl);
@@ -135,7 +157,17 @@ public class TemplateRegistry {
 			tmpl = TemplateBuilder.buildOrdinalEnum(target);
 			register(target, tmpl);
 			return tmpl;
+		}*/
+		// find match TemplateBuilder
+		TemplateBuilder builder = BuilderSelectorRegistry.getInstance().select(targetType);
+		if(builder != null){
+			tmpl = builder.buildTemplate(targetType);
+			register(targetType,tmpl);
+			return tmpl;
 		}
+		
+		
+		Class<?> target = (Class<?>)targetType;
 
 		for(Class<?> i : target.getInterfaces()) {
 			tmpl = map.get(i);
@@ -156,7 +188,7 @@ public class TemplateRegistry {
 			}
 
 			if(forceBuild) {
-				tmpl = TemplateBuilder.build(target);
+				tmpl = builderSelectorRegistry.getForceBuilder().buildTemplate(target);
 				register(target, tmpl);
 				return tmpl;
 			}
@@ -204,8 +236,5 @@ public class TemplateRegistry {
 		return ao.getAnnotation(with) != null;
 	}
 
-	public static void setTemplateBuilder(TemplateBuilder builder) {
-		TemplateBuilder.setInstance(builder);
-	}
 }
 
