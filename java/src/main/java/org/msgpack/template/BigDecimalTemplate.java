@@ -30,7 +30,11 @@ public class BigDecimalTemplate implements Template {
 	@Override
 	public void pack(Packer pk, Object target) throws IOException {
 		BigDecimal temp = (BigDecimal) target;
-		pk.packString(temp.toString());
+		try {
+			pk.packString(temp.toString());
+		} catch (NullPointerException e) {
+			throw new MessageTypeException("target is null.", e);
+		}
 	}
 
 	@Override
