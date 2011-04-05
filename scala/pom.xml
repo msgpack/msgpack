@@ -68,7 +68,7 @@
     <dependency>
         <groupId>org.msgpack</groupId>
         <artifactId>msgpack</artifactId>
-        <version>0.5.2-SNAPSHOT</version>
+        <version>0.5.1-devel</version>
     </dependency>
   </dependencies>
 
