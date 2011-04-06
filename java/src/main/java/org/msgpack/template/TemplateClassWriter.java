@@ -22,7 +22,7 @@ public class TemplateClassWriter {
 		if(target.isEnum()) {
 			throw new UnsupportedOperationException("Not supported yet.");
 		} else {
-			TemplateBuilder.writeClass(target, directoryName);
+			//TemplateBuilder.writeClass(target, directoryName);
 		}
 	}
 }
