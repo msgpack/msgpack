@@ -17,12 +17,55 @@
 //
 package org.msgpack.template;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class TemplateClassWriter {
+	private static final Logger LOG = LoggerFactory.getLogger(TemplateClassWriter.class);
+
 	public static void write(Class<?> target, String directoryName) {
-		if(target.isEnum()) {
+		if (target.isEnum()) {
 			throw new UnsupportedOperationException("Not supported yet.");
 		} else {
 			//TemplateBuilder.writeClass(target, directoryName);
 		}
+		LOG.info("finished writing .class file of template class for " + target.getName());
+	}
+
+	private String directoryName;
+
+	private String[] classNames;
+
+	private TemplateClassWriter() {
+	}
+
+	private void parseOpts(final String[] args) {// TODO
+		if (args.length == 0) {
+			usage();
+		}
+	}
+
+	private void usage() {// TODO
+		System.err.println("java org.msgpack.template.TemplateClassWriter ");
+		System.err.println("");
+	}
+
+	private void writeTemplateClasses() {
+		ClassLoader cl = this.getClass().getClassLoader();// TODO
+		for (String className : classNames) {
+			Class<?> origClass = null;
+			try {
+				origClass = cl.loadClass(className);
+			} catch (ClassNotFoundException e) {
+				throw new TemplateBuildException(e);
+			}
+			write(origClass, directoryName);
+		}
+	}
+
+	public static void main(final String[] args) throws Exception {
+		TemplateClassWriter writer = new TemplateClassWriter();
+		writer.parseOpts(args);
+		writer.writeTemplateClasses();
 	}
 }
