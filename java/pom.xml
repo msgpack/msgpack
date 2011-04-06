@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.msgpack</groupId>
   <artifactId>msgpack</artifactId>
-  <version>0.5.1-devel</version>
+  <version>0.5.2-SNAPSHOT</version>
   <description>MessagePack for Java</description>
 
   <name>MessagePack for Java</name>
@@ -141,19 +141,29 @@
   </repositories>
 
   <distributionManagement>
-    <repository>
+    <!--<repository>
       <uniqueVersion>false</uniqueVersion>
       <id>msgpack.org</id>
       <name>Repository at msgpack.org</name>
 	  <url>file://${project.build.directory}/website/maven2/</url>
-	  <!--<url>${deploy-release-url}</url>-->
     </repository>
     <snapshotRepository>
        <uniqueVersion>true</uniqueVersion>
        <id>msgpack.org</id>
        <name>Repository at msgpack.org</name>
 	   <url>file://${project.build.directory}/website/maven2/</url>
-	   <!--<url>${deploy-snapshot-url}</url>-->
+    </snapshotRepository>-->
+    <repository>
+      <uniqueVersion>false</uniqueVersion>
+      <id>geishatokyo.nexus</id>
+      <name>Repository at gte repository</name>
+	  <url>${deploy-release-url}</url>
+    </repository>
+    <snapshotRepository>
+       <uniqueVersion>true</uniqueVersion>
+       <id>geishatokyo.nexus</id>
+       <name>Repository att gte repository</name>
+	   <url>${deploy-snapshot-url}</url>
     </snapshotRepository>
   </distributionManagement>
 
