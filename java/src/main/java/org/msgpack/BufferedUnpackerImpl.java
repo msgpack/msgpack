@@ -146,10 +146,10 @@ abstract class BufferedUnpackerImpl extends UnpackerImpl {
 			advance(3);
 			return (int)castBuffer.getShort(0);
 		case 0xd2:  // signed int 32
-			more(4);
+			more(5);
 			castBuffer.rewind();
 			castBuffer.put(buffer, offset+1, 4);
-			advance(4);
+			advance(5);
 			return (int)castBuffer.getInt(0);
 		case 0xd3:  // signed int 64
 			more(9);
