@@ -22,8 +22,6 @@ import java.lang.reflect.Array;
 import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.msgpack.AbstractTemplate;
 import org.msgpack.MessagePackObject;
@@ -34,17 +32,12 @@ import org.msgpack.Unpacker;
 import org.msgpack.template.BooleanArrayTemplate;
 import org.msgpack.template.DoubleArrayTemplate;
 import org.msgpack.template.FloatArrayTemplate;
-import org.msgpack.template.IFieldEntry;
-import org.msgpack.template.IFieldEntryReader;
 import org.msgpack.template.IntArrayTemplate;
 import org.msgpack.template.LongArrayTemplate;
 import org.msgpack.template.ShortArrayTemplate;
 import org.msgpack.template.TemplateRegistry;
 
-public class ArrayTemplateBuilder extends TemplateBuilder {
-
-
-
+public class ArrayTemplateBuilder implements TemplateBuilder {
 
 	static class ReflectionObjectArrayTemplate extends AbstractTemplate {
 		private Class<?> componentClass;
@@ -128,6 +121,7 @@ public class ArrayTemplateBuilder extends TemplateBuilder {
 			return array;
 		}
 	}
+
 	@Override
 	public Template buildTemplate(Type arrayType) {
 		Type baseType;

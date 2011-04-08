@@ -22,7 +22,6 @@ import java.io.InputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import org.msgpack.template.TemplateRegistry;
-import org.msgpack.template.TemplateClassWriter;
 import org.msgpack.template.FieldList;
 
 public class MessagePack {
@@ -144,10 +143,6 @@ public class MessagePack {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
-	}
-
-	public static void write(Class<?> target, String directoryName) {
-		TemplateClassWriter.write(target, directoryName);
 	}
 
 	public static void register(Class<?> target) {

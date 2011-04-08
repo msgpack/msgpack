@@ -1,10 +1,9 @@
 package org.msgpack
 
 import template._
-import builder.{MessagePackMessageBuilderSelector, BuilderSelectorRegistry}
-import template.javassist.BuildContextFactory
+import builder.{AnnotationTemplateBuilderSelector, BuilderSelectorRegistry, BuildContextFactory}
 import collection.mutable.{MutableList, LinkedList}
-import collection.mutable.{Map => MMap,HashMap => MHashMap}
+import collection.mutable.{Map => MMap, HashMap => MHashMap}
 ;
 /*
  * Created by IntelliJ IDEA.
@@ -18,7 +17,7 @@ object ScalaMessagePack {
   {
     // for scala object
     BuilderSelectorRegistry.getInstance.insertBefore(
-      MessagePackMessageBuilderSelector.NAME,
+      AnnotationTemplateBuilderSelector.NAME,
       new ScalaTemplateBuilderSelector)
 
     // register scala's list classes

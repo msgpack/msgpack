@@ -15,33 +15,19 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 //
-package org.msgpack.template.javassist;
+package org.msgpack.template.builder;
 
-import java.io.IOException;
-import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Type;
-import java.lang.Thread;
 
 import org.msgpack.*;
 import org.msgpack.template.*;
 
 import javassist.CannotCompileException;
-import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtConstructor;
-import javassist.CtMethod;
 import javassist.CtNewConstructor;
-import javassist.CtNewMethod;
-import javassist.LoaderClassPath;
 import javassist.NotFoundException;
-import javassist.ClassClassPath;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-
 
 public class BeansBuildContext extends BuildContextBase<BeansFieldEntry> {
 	protected BeansFieldEntry[] entries;

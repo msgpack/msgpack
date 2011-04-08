@@ -30,7 +30,7 @@ import org.msgpack.Template;
 import org.msgpack.Unpacker;
 import org.msgpack.template.TemplateBuildException;
 
-public class OrdinalEnumTemplateBuilder extends TemplateBuilder{
+public class OrdinalEnumTemplateBuilder implements TemplateBuilder{
 
 	static class ReflectionOrdinalEnumTemplate extends AbstractTemplate {
 		protected Enum<?>[] entries;
@@ -68,6 +68,7 @@ public class OrdinalEnumTemplateBuilder extends TemplateBuilder{
 			return entries[ord];
 		}
 	}
+
 	@Override
 	public Template buildTemplate(Type targetType) {
 		Class<?> targetClass = (Class<?>)targetType;

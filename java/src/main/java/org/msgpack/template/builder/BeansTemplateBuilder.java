@@ -15,10 +15,9 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 //
-package org.msgpack.template;
+package org.msgpack.template.builder;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 
 import org.msgpack.AbstractTemplate;
 import org.msgpack.MessagePackObject;
@@ -26,27 +25,22 @@ import org.msgpack.MessageTypeException;
 import org.msgpack.Packer;
 import org.msgpack.Template;
 import org.msgpack.Unpacker;
-import org.msgpack.template.ReflectionTemplateBuilder.BooleanFieldEntry;
-import org.msgpack.template.ReflectionTemplateBuilder.ByteFieldEntry;
-import org.msgpack.template.ReflectionTemplateBuilder.DoubleFieldEntry;
-import org.msgpack.template.ReflectionTemplateBuilder.FloatFieldEntry;
-import org.msgpack.template.ReflectionTemplateBuilder.IntFieldEntry;
-import org.msgpack.template.ReflectionTemplateBuilder.LongFieldEntry;
-import org.msgpack.template.ReflectionTemplateBuilder.NullFieldEntry;
-import org.msgpack.template.ReflectionTemplateBuilder.ObjectFieldEntry;
-import org.msgpack.template.ReflectionTemplateBuilder.ShortFieldEntry;
-import org.msgpack.template.builder.CustomTemplateBuilder;
+import org.msgpack.template.BeansFieldEntry;
+import org.msgpack.template.BeansFieldEntryReader;
+import org.msgpack.template.IFieldEntry;
+import org.msgpack.template.IFieldEntryReader;
+import org.msgpack.template.TemplateRegistry;
 
 /**
  * Class for building java reflection template builder for java beans class.
  * @author takeshita
  *
  */
-public class BeansReflectionTemplateBuilder extends CustomTemplateBuilder{
+public class BeansTemplateBuilder extends CustomTemplateBuilder{
 
 	IFieldEntryReader reader = new BeansFieldEntryReader();
 	
-	public BeansReflectionTemplateBuilder(){}
+	public BeansTemplateBuilder(){}
 
 	@Override
 	public IFieldEntryReader getFieldEntryReader(){

@@ -15,7 +15,7 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 //
-package org.msgpack.template;
+package org.msgpack.template.builder;
 
 import java.lang.Thread;
 
@@ -28,8 +28,10 @@ import javassist.NotFoundException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.msgpack.template.builder.CustomTemplateBuilder;
-import org.msgpack.template.javassist.*;
+import org.msgpack.template.FieldEntryReader;
+import org.msgpack.template.IFieldEntry;
+import org.msgpack.template.IFieldEntryReader;
+import org.msgpack.template.TemplateRegistry;
 
 public class JavassistTemplateBuilder extends CustomTemplateBuilder {
 	private static Logger LOG = LoggerFactory.getLogger(JavassistTemplateBuilder.class);

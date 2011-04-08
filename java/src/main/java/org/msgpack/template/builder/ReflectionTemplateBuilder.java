@@ -15,14 +15,18 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 //
-package org.msgpack.template;
+package org.msgpack.template.builder;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
 import org.msgpack.*;
-import org.msgpack.template.builder.CustomTemplateBuilder;
+import org.msgpack.template.FieldEntry;
+import org.msgpack.template.FieldEntryReader;
+import org.msgpack.template.IFieldEntry;
+import org.msgpack.template.IFieldEntryReader;
+import org.msgpack.template.TemplateRegistry;
 
 public class ReflectionTemplateBuilder extends CustomTemplateBuilder {
 	IFieldEntryReader reader = new FieldEntryReader();

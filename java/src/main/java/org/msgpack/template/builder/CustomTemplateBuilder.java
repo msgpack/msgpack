@@ -25,14 +25,11 @@ import org.msgpack.template.FieldOption;
 import org.msgpack.template.IFieldEntry;
 import org.msgpack.template.IFieldEntryReader;
 import org.msgpack.template.TemplateBuildException;
-import org.msgpack.template.javassist.BuildContextFactory;
 
-public abstract class CustomTemplateBuilder extends TemplateBuilder {
-
+public abstract class CustomTemplateBuilder implements TemplateBuilder {
 
 	public abstract IFieldEntryReader getFieldEntryReader();
 
-	
 	public abstract Template buildTemplate(Class<?> targetClass , IFieldEntry[] entries);
 	
 	public Template buildTemplate(Class<?> targetClass ,FieldOption implicitOption ){

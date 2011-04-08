@@ -3,8 +3,7 @@ package org.msgpack
 import annotation.MessagePackMessage
 import template.builder.BuilderSelector
 import java.lang.reflect.Type
-import template.javassist.BuildContextFactory
-import template.JavassistTemplateBuilder
+import template.builder.{JavassistTemplateBuilder, BuildContextFactory}
 import java.lang.annotation.{Annotation => JAnnotation}
 ;
 /*

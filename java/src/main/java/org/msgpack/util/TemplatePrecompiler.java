@@ -15,13 +15,14 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 //
-package org.msgpack.template;
+package org.msgpack.util;
 
+import org.msgpack.template.TemplateBuildException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TemplateClassWriter {
-	private static final Logger LOG = LoggerFactory.getLogger(TemplateClassWriter.class);
+public class TemplatePrecompiler {
+	private static final Logger LOG = LoggerFactory.getLogger(TemplatePrecompiler.class);
 
 	public static void write(Class<?> target, String directoryName) {
 		if (target.isEnum()) {
@@ -36,7 +37,7 @@ public class TemplateClassWriter {
 
 	private String[] classNames;
 
-	private TemplateClassWriter() {
+	private TemplatePrecompiler() {
 	}
 
 	private void parseOpts(final String[] args) {// TODO
@@ -64,7 +65,7 @@ public class TemplateClassWriter {
 	}
 
 	public static void main(final String[] args) throws Exception {
-		TemplateClassWriter writer = new TemplateClassWriter();
+		TemplatePrecompiler writer = new TemplatePrecompiler();
 		writer.parseOpts(args);
 		writer.writeTemplateClasses();
 	}

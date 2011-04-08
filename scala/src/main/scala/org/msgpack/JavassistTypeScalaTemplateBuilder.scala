@@ -7,7 +7,7 @@ import java.lang.Class
 import collection.immutable.{ListMap, TreeMap}
 import java.lang.reflect.{Type, Modifier, Method, Field}
 import java.lang.annotation.{Annotation => JavaAnnotation}
-import javassist.{JavassistTemplate, BuildContextBase, BuildContext}
+import builder.{JavassistTemplateBuilder, JavassistTemplate, BuildContextBase, BuildContext}
 import scala.collection.JavaConverters._
 ;
 /*
