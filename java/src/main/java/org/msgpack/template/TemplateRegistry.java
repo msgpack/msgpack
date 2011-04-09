@@ -20,12 +20,7 @@ package org.msgpack.template;
 import java.util.Map;
 import java.util.HashMap;
 import java.lang.reflect.Type;
-import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.ParameterizedType;
-import java.lang.annotation.Annotation;
-import org.msgpack.annotation.MessagePackMessage;
-import org.msgpack.annotation.MessagePackDelegate;
-import org.msgpack.annotation.MessagePackOrdinalEnum;
 import org.msgpack.template.builder.BuilderSelectorRegistry;
 import org.msgpack.template.builder.CustomTemplateBuilder;
 import org.msgpack.template.builder.TemplateBuilder;
@@ -44,18 +39,13 @@ public class TemplateRegistry {
 		builderSelectorRegistry = BuilderSelectorRegistry.getInstance();
 	}
 
-	public static void register(Class<?> target) { // auto-detect
+	public static void register(Class<?> target) {
 		TemplateBuilder builder = builderSelectorRegistry.select(target);
 		if(builder != null){
 			register(target,builder.buildTemplate(target));
 		}else{
 			register(target,builderSelectorRegistry.getForceBuilder().buildTemplate(target));
 		}
-		/*if(target.isEnum()) {
-			register(target, TemplateBuilder.buildOrdinalEnum(target));
-		} else {
-			register(target, TemplateBuilder.build(target));
-		}*/
 	}
 
 	public static void register(Class<?> target, FieldOption implicitOption) {
@@ -63,7 +53,7 @@ public class TemplateRegistry {
 		if(builder != null && builder instanceof CustomTemplateBuilder){
 			register(target, ((CustomTemplateBuilder)builder).buildTemplate(target, implicitOption));
 		}else{
-			throw new TemplateBuildException("cannot build template with filed option");
+			throw new TemplateBuildException("Cannot build template with filed option");
 		}
 	}
 
@@ -72,7 +62,7 @@ public class TemplateRegistry {
 		if(builder != null && builder instanceof CustomTemplateBuilder){
 			register(target, ((CustomTemplateBuilder)builder).buildTemplate(target, flist));
 		}else{
-			throw new TemplateBuildException("cannot build template with filed list");
+			throw new TemplateBuildException("Cannot build template with filed list");
 		}
 	}
 
@@ -123,50 +113,21 @@ public class TemplateRegistry {
 			return tmpl;
 		}
 
-		/*if(targetType instanceof GenericArrayType) {
-			// GenericArrayType is not a Class<?>
-			tmpl = TemplateBuilder.buildArray(targetType);
-			register(targetType, tmpl);
-			return tmpl;
-		}
-
-		Class<?> target = (Class<?>)targetType;
-
-		Class<?> tmplClass = TemplateBuilder.load(target);
-		if (tmplClass != null) {
-			tmpl = TemplateBuilder.initialize(target, tmplClass);
-			register(target, tmpl);
-			return tmpl;
-		}
-
-		if(target.isArray()) {
-			// FIXME can't distinguish type-erased T<>[]?
-			tmpl = TemplateBuilder.buildArray(target);
-			register(target, tmpl);
-			return tmpl;
-		}
-
-		if(isAnnotated(target, MessagePackMessage.class)) {
-			tmpl = TemplateBuilder.build(target);
-			register(target, tmpl);
-			return tmpl;
-		} else if(isAnnotated(target, MessagePackDelegate.class)) {
-			// TODO DelegateTemplate
-			throw new UnsupportedOperationException("not supported yet. : " + target.getName());
-		} else if(isAnnotated(target, MessagePackOrdinalEnum.class)) {
-			tmpl = TemplateBuilder.buildOrdinalEnum(target);
-			register(target, tmpl);
-			return tmpl;
-		}*/
 		// find match TemplateBuilder
 		TemplateBuilder builder = BuilderSelectorRegistry.getInstance().select(targetType);
 		if(builder != null){
+			tmpl = builder.loadTemplate(targetType);
+			if (tmpl != null) {
+				return tmpl;
+			}
+
 			tmpl = builder.buildTemplate(targetType);
-			register(targetType,tmpl);
-			return tmpl;
+			if (tmpl != null) {
+				register(targetType, tmpl);
+				return tmpl;
+			}
 		}
-		
-		
+
 		Class<?> target = (Class<?>)targetType;
 
 		for(Class<?> i : target.getInterfaces()) {
@@ -212,7 +173,7 @@ public class TemplateRegistry {
 			}
 			return new DefaultTemplate((Class<?>)parameterizedType.getRawType(), parameterizedType);
 		} else {
-			throw new IllegalArgumentException("actual types of the generic type are erased: "+targetType);
+			throw new IllegalArgumentException("Actual types of the generic type are erased: "+targetType);
 		}
 	}
 
@@ -231,10 +192,5 @@ public class TemplateRegistry {
 
 		return gtmpl.build(tmpls);
 	}
-
-	private static boolean isAnnotated(Class<?> ao, Class<? extends Annotation> with) {
-		return ao.getAnnotation(with) != null;
-	}
-
 }
 

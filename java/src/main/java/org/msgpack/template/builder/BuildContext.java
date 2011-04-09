@@ -50,7 +50,7 @@ public class BuildContext extends BuildContextBase<FieldEntry> {
 
 	protected void setSuperClass() throws CannotCompileException, NotFoundException {
 		this.tmplCtClass.setSuperclass(
-				director.getCtClass(JavassistTemplate.class.getName()));
+				director.getCtClass(JavassistTemplateBuilder.JavassistTemplate.class.getName()));
 	}
 
 	protected void buildConstructor() throws CannotCompileException, NotFoundException {
@@ -272,4 +272,22 @@ public class BuildContext extends BuildContextBase<FieldEntry> {
 		return getBuiltString();
 	}
 
+	@Override
+	public void writeTemplate(Class<?> targetClass, FieldEntry[] entries,
+			Template[] templates, String directoryName) {
+		this.entries = entries;
+		this.templates = templates;
+		this.origClass = targetClass;
+		this.origName = this.origClass.getName();
+		write(this.origName, directoryName);
+	}
+
+	@Override
+	public Template loadTemplate(Class<?> targetClass, FieldEntry[] entries, Template[] templates) {
+		this.entries = entries;
+		this.templates = templates;
+		this.origClass = targetClass;
+		this.origName = this.origClass.getName();
+		return load(this.origName);
+	}
 }

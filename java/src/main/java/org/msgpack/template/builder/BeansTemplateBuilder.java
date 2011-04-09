@@ -18,6 +18,7 @@
 package org.msgpack.template.builder;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 
 import org.msgpack.AbstractTemplate;
 import org.msgpack.MessagePackObject;
@@ -299,7 +300,6 @@ public class BeansTemplateBuilder extends CustomTemplateBuilder{
 
 	@Override
 	public Template buildTemplate(Class<?> targetClass, IFieldEntry[] entries) {
-		
 		ReflectionEntry[] refEntries = new ReflectionEntry[entries.length];
 		for(int i = 0;i < entries.length;i++){
 			BeansFieldEntry e = (BeansFieldEntry)entries[i];
@@ -323,10 +323,6 @@ public class BeansTemplateBuilder extends CustomTemplateBuilder{
 				refEntries[i] = new ObjectFieldEntry(e, tmpl);
 			}
 		}
-		
-		
 		return new BeansReflectionTemplate(targetClass,refEntries);
 	}
-	
-	
 }

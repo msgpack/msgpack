@@ -23,5 +23,9 @@ import org.msgpack.Template;
 
 public interface TemplateBuilder {
 	Template buildTemplate(Type targetType);
+
+	void writeTemplate(Type targetType, String directoryName);
+
+	Template loadTemplate(Type targetType);
 }
 

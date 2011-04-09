@@ -77,10 +77,20 @@ public class OrdinalEnumTemplateBuilder implements TemplateBuilder{
 		
 		return new ReflectionOrdinalEnumTemplate(entries);
 	}
+
 	private void checkOrdinalEnumValidation(Class<?> targetClass) {
 		if(!targetClass.isEnum()) {
 			throw new TemplateBuildException("tried to build ordinal enum template of non-enum class");
 		}
 	}
 
+	@Override
+	public void writeTemplate(Type targetType, String directoryName) {
+		throw new UnsupportedOperationException(targetType.toString());
+	}
+
+	@Override
+	public Template loadTemplate(Type targetType) {
+		return null;
+	}
 }

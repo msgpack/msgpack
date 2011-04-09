@@ -42,6 +42,8 @@ public abstract class BuildContextBase<T extends IFieldEntry> {
 
 	protected CtClass tmplCtClass;
 
+	protected abstract Template buildTemplate(Class<?> targetClass, T[] entries, Template[] templates);
+
 	protected abstract void setSuperClass() throws CannotCompileException, NotFoundException;
 
 	protected abstract void buildConstructor() throws CannotCompileException, NotFoundException;
@@ -54,17 +56,21 @@ public abstract class BuildContextBase<T extends IFieldEntry> {
 
 	protected abstract String buildConvertMethodBody();
 
-	protected abstract Template buildInstance(Class<?> c) throws NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException;
+	protected abstract Template buildInstance(Class<?> c)
+			throws NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException;
+
+	protected abstract void writeTemplate(Class<?> targetClass, T[] entries,
+			Template[] templates, String directoryName);
+
+	protected abstract Template loadTemplate(Class<?> targetClass, T[] entries, Template[] templates);
 
 	public BuildContextBase(JavassistTemplateBuilder director) {
 		this.director = director;
 	}
 
-	public abstract Template buildTemplate(Class<?> targetClass, T[] entries, Template[] templates);
-
 	protected Template build(final String className) {
 		try {
-			reset(className);
+			reset(className, false);
 			buildClass();
 			buildConstructor();
 			buildMethodInit();
@@ -76,15 +82,20 @@ public abstract class BuildContextBase<T extends IFieldEntry> {
 			String code = getBuiltString();
 			if(code != null) {
 				LOG.error("builder: " + code, e);
-				throw new TemplateBuildException("cannot compile: " + code, e);
+				throw new TemplateBuildException("Cannot compile: " + code, e);
 			} else {
 				throw new TemplateBuildException(e);
 			}
 		}
 	}
 
-	protected void reset(String className) {
-		tmplName = className + "_$$_Template" + director.nextSeqId();
+	protected void reset(String className, boolean isWritten) {
+		String tmplName = null;
+		if (!isWritten) {
+			tmplName = className + "_$$_Template" + director.nextSeqId();
+		} else {
+			tmplName = className + "_$$_Template";
+		}
 		tmplCtClass = director.makeCtClass(tmplName);
 	}
 
@@ -151,6 +162,10 @@ public abstract class BuildContextBase<T extends IFieldEntry> {
 		return (Class<?>) tmplCtClass.toClass(null, null);
 	}
 
+	protected void saveClass(final String directoryName) throws CannotCompileException, IOException {
+		tmplCtClass.writeFile(directoryName);
+	}
+
 	protected StringBuilder stringBuilder = null;
 
 	protected void resetStringBuilder() {
@@ -171,7 +186,7 @@ public abstract class BuildContextBase<T extends IFieldEntry> {
 		}
 		return stringBuilder.toString();
 	}
-	
+
 	protected String primitivePackName(Class<?> type) {
 		if(type == boolean.class) {
 			return "packBoolean";
@@ -227,5 +242,44 @@ public abstract class BuildContextBase<T extends IFieldEntry> {
 			return "asDouble";
 		}
 		return null;
+	}
+
+	protected void write(final String className, final String directoryName) {
+		try {
+			reset(className, true);
+			buildClass();
+			buildConstructor();
+			buildMethodInit();
+			buildPackMethod();
+			buildUnpackMethod();
+			buildConvertMethod();
+			saveClass(directoryName);
+		} catch (Exception e) {
+			String code = getBuiltString();
+			if(code != null) {
+				LOG.error("builder: " + code, e);
+				throw new TemplateBuildException("Cannot compile: " + code, e);
+			} else {
+				throw new TemplateBuildException(e);
+			}
+		}
+	}
+
+	protected Template load(final String className) {
+		String tmplName = className + "_$$_Template";
+		try {
+			Class<?> tmplClass = getClass().getClassLoader().loadClass(tmplName);
+			return buildInstance(tmplClass);
+		} catch (ClassNotFoundException e) {
+			return null;
+		} catch (Exception e) {
+			String code = getBuiltString();
+			if(code != null) {
+				LOG.error("builder: " + code, e);
+				throw new TemplateBuildException("Cannot compile: " + code, e);
+			} else {
+				throw new TemplateBuildException(e);
+			}
+		}
 	}
 }

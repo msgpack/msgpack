@@ -21,7 +21,12 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
-import org.msgpack.*;
+import org.msgpack.AbstractTemplate;
+import org.msgpack.MessagePackObject;
+import org.msgpack.MessageTypeException;
+import org.msgpack.Packer;
+import org.msgpack.Template;
+import org.msgpack.Unpacker;
 import org.msgpack.template.FieldEntry;
 import org.msgpack.template.FieldEntryReader;
 import org.msgpack.template.IFieldEntry;
@@ -412,7 +417,6 @@ public class ReflectionTemplateBuilder extends CustomTemplateBuilder {
 				res[i] = new ObjectFieldEntry(e, tmpl);
 			}
 		}
-
 		return new ReflectionTemplate(targetClass, res);
 	}
 }

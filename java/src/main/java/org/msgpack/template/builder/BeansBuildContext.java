@@ -50,7 +50,7 @@ public class BeansBuildContext extends BuildContextBase<BeansFieldEntry> {
 
 	protected void setSuperClass() throws CannotCompileException, NotFoundException {
 		this.tmplCtClass.setSuperclass(
-				director.getCtClass(JavassistTemplate.class.getName()));
+				director.getCtClass(JavassistTemplateBuilder.JavassistTemplate.class.getName()));
 	}
 
 	protected void buildConstructor() throws CannotCompileException, NotFoundException {
@@ -272,4 +272,14 @@ public class BeansBuildContext extends BuildContextBase<BeansFieldEntry> {
 		return getBuiltString();
 	}
 
+	@Override
+	public void writeTemplate(Class<?> targetClass, BeansFieldEntry[] entries,
+			Template[] templates, String directoryName) {
+		throw new UnsupportedOperationException(targetClass.getName());
+	}
+
+	@Override
+	public Template loadTemplate(Class<?> targetClass, BeansFieldEntry[] entries, Template[] templates) {
+		throw new UnsupportedOperationException(targetClass.getName());
+	}
 }

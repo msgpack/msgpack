@@ -151,6 +151,7 @@ public class ArrayTemplateBuilder implements TemplateBuilder {
 		return toTemplate(arrayType, baseType, baseClass, dim);
 	
 	}
+
 	private Template toTemplate(Type arrayType, Type genericBaseType, Class<?> baseClass, int dim) {
 		if(dim == 1) {
 			if(baseClass == boolean.class) {
@@ -181,4 +182,13 @@ public class ArrayTemplateBuilder implements TemplateBuilder {
 		}
 	}
 
+	@Override
+	public void writeTemplate(Type targetType, String directoryName) {
+		throw new UnsupportedOperationException(targetType.toString());
+	}
+
+	@Override
+	public Template loadTemplate(Type targetType) {
+		return null;
+	}
 }

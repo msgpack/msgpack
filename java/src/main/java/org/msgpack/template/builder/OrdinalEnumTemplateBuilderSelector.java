@@ -23,7 +23,7 @@ import org.msgpack.annotation.MessagePackOrdinalEnum;
 
 public class OrdinalEnumTemplateBuilderSelector implements BuilderSelector {
 
-	public static final String NAME = "OrdinalEnumBuilder";
+	public static final String NAME = "OrdinalEnumTemplateBuilder";
 
 	OrdinalEnumTemplateBuilder builder = new OrdinalEnumTemplateBuilder();
 

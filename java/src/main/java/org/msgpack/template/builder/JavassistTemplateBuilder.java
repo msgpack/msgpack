@@ -18,6 +18,7 @@
 package org.msgpack.template.builder;
 
 import java.lang.Thread;
+import java.lang.reflect.Type;
 
 import org.msgpack.*;
 
@@ -29,11 +30,22 @@ import javassist.NotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.msgpack.template.FieldEntryReader;
+import org.msgpack.template.FieldOption;
 import org.msgpack.template.IFieldEntry;
 import org.msgpack.template.IFieldEntryReader;
 import org.msgpack.template.TemplateRegistry;
 
 public class JavassistTemplateBuilder extends CustomTemplateBuilder {
+	public static abstract class JavassistTemplate extends AbstractTemplate {
+		public Class<?> targetClass;
+		public Template[] templates;
+
+		public JavassistTemplate(Class<?> targetClass, Template[] templates) {
+			this.targetClass = targetClass;
+			this.templates = templates;
+		}
+	}
+
 	private static Logger LOG = LoggerFactory.getLogger(JavassistTemplateBuilder.class);
 
 	private static JavassistTemplateBuilder instance;
@@ -49,27 +61,24 @@ public class JavassistTemplateBuilder extends CustomTemplateBuilder {
 		getInstance().pool.appendClassPath(new LoaderClassPath(cl));
 	}
 
-	
 	IFieldEntryReader reader = new FieldEntryReader();
-	
+
 	public void setFieldEntryReader(IFieldEntryReader reader){
 		this.reader = reader;
 	}
-	
+
 	BuildContextFactory buildContextFactory = new BuildContextFactory() {
-		
 		@Override
 		public BuildContextBase createBuildContext(JavassistTemplateBuilder builder) {
 			
 			return new BuildContext(builder);
 		}
 	};
+
 	public void setBuildContextFactory(BuildContextFactory factory){
 		this.buildContextFactory = factory;
 	}
-	
-	
-	
+
 	public JavassistTemplateBuilder() {
 		pool = new ClassPool();
 		boolean appended = false;
@@ -96,6 +105,7 @@ public class JavassistTemplateBuilder extends CustomTemplateBuilder {
 			pool.appendSystemPath();
 		}
 	}
+
 	/**
 	 * Replace FieldEntryReader and BuilderContextFactory.
 	 * you can replace field entry rules and generated codes easily.
@@ -107,7 +117,6 @@ public class JavassistTemplateBuilder extends CustomTemplateBuilder {
 		this.reader = reader;
 		this.buildContextFactory = buildContextFactory;
 	}
-
 
 	protected ClassPool pool;
 
@@ -125,7 +134,6 @@ public class JavassistTemplateBuilder extends CustomTemplateBuilder {
 		return seqId++;
 	}
 
-
 	@Override
 	public Template buildTemplate(Class<?> targetClass, IFieldEntry[] entries) {
 		// FIXME private / packagefields
@@ -136,10 +144,15 @@ public class JavassistTemplateBuilder extends CustomTemplateBuilder {
 		//		f.setAccessible(true);
 		//	}
 		//}
+		Template[] tmpls = toTemplate(entries);
+		BuildContextBase bc = getBuildContextFacotry().createBuildContext(this);
+		return bc.buildTemplate(targetClass, entries, tmpls);
+	}
 
-		Template[] tmpls = new Template[entries.length];
-		for(int i=0; i < entries.length; i++) {
-			IFieldEntry e = entries[i];
+	private static Template[] toTemplate(IFieldEntry[] from) {
+		Template[] tmpls = new Template[from.length];
+		for(int i=0; i < from.length; i++) {
+			IFieldEntry e = from[i];
 			if(!e.isAvailable()) {
 				tmpls[i] = null;
 			} else {
@@ -147,9 +160,7 @@ public class JavassistTemplateBuilder extends CustomTemplateBuilder {
 				tmpls[i] = tmpl;
 			}
 		}
-
-		BuildContextBase bc = getBuildContextFacotry().createBuildContext(this);
-		return bc.buildTemplate(targetClass, entries, tmpls);
+		return tmpls;
 	}
 
 	@Override
@@ -161,60 +172,36 @@ public class JavassistTemplateBuilder extends CustomTemplateBuilder {
 		return buildContextFactory;
 	}
 
-	
-    /*
-	static class JavassistOrdinalEnumTemplate extends ReflectionTemplateBuilder.ReflectionOrdinalEnumTemplate {
-		JavassistOrdinalEnumTemplate(Enum<?>[] entries) {
-			super(entries);
-		}
+	@Override
+	public void writeTemplate(Type targetType, String directoryName) {
+		Class<?> targetClass = (Class<?>)targetType;
+		IFieldEntryReader reader = getFieldEntryReader();
+		FieldOption implicitOption = reader.readImplicitFieldOption(targetClass);
+		checkValidation(targetClass);
+		IFieldEntry[] entries = reader.readFieldEntries(targetClass, implicitOption);
+		writeTemplate(targetClass, entries, directoryName);
+	}
+
+	private void writeTemplate(Class<?> targetClass, IFieldEntry[] entries, String directoryName) {
+		Template[] tmpls = toTemplate(entries);
+		BuildContextBase bc = getBuildContextFacotry().createBuildContext(this);
+		bc.writeTemplate(targetClass, entries, tmpls, directoryName);
 	}
 
 	@Override
-	public void writeOrdinalEnumTemplateClass(Class<?> targetClass, Enum<?>[] entires, String directoryName) {
-		throw new UnsupportedOperationException("not supported yet.");// TODO
+	public Template loadTemplate(Type targetType) {
+		Class<?> targetClass = (Class<?>)targetType;
+		IFieldEntryReader reader = getFieldEntryReader();
+		FieldOption implicitOption = reader.readImplicitFieldOption(targetClass);
+		checkValidation(targetClass);
+		IFieldEntry[] entries = reader.readFieldEntries(targetClass, implicitOption);
+		return loadTemplate(targetClass, entries);
 	}
 
-	public Template buildOrdinalEnumTemplate(Class<?> targetClass, Enum<?>[] entries) {
-		return new JavassistOrdinalEnumTemplate(entries);
+	private Template loadTemplate(Class<?> targetClass, IFieldEntry[] entries) {
+		Template[] tmpls = toTemplate(entries);
+		BuildContextBase bc = getBuildContextFacotry().createBuildContext(this);
+		return bc.loadTemplate(targetClass, entries, tmpls);
 	}
-
-	@Override
-	public void writeArrayTemplateClass(Type arrayType, Type genericBaseType,
-			Class<?> baseClass, int dim, String directoryName) {
-		throw new UnsupportedOperationException("not supported yet.");//TODO
-	}
-
-	public Template buildArrayTemplate(Type arrayType, Type genericBaseType, Class<?> baseClass, int dim) {
-		if(dim == 1) {
-			if(baseClass == boolean.class) {
-				return BooleanArrayTemplate.getInstance();
-			} else if(baseClass == short.class) {
-				return ShortArrayTemplate.getInstance();
-			} else if(baseClass == int.class) {
-				return IntArrayTemplate.getInstance();
-			} else if(baseClass == long.class) {
-				return LongArrayTemplate.getInstance();
-			} else if(baseClass == float.class) {
-				return FloatArrayTemplate.getInstance();
-			} else if(baseClass == double.class) {
-				return DoubleArrayTemplate.getInstance();
-			} else {
-				// FIXME
-				Template baseTemplate = TemplateRegistry.lookup(genericBaseType);
-				return new ReflectionTemplateBuilder.ReflectionObjectArrayTemplate(baseClass, baseTemplate);
-			}
-		} else if(dim == 2) {
-			// FIXME
-			Class<?> componentClass = Array.newInstance(baseClass, 0).getClass();
-			Template componentTemplate = buildArrayTemplate(arrayType, genericBaseType, baseClass, dim-1);
-			return new ReflectionTemplateBuilder.ReflectionMultidimentionalArrayTemplate(componentClass, componentTemplate);
-		} else {
-			// FIXME
-			ReflectionTemplateBuilder.ReflectionMultidimentionalArrayTemplate componentTemplate = (ReflectionTemplateBuilder.ReflectionMultidimentionalArrayTemplate)
-				buildArrayTemplate(arrayType, genericBaseType, baseClass, dim-1);
-			Class<?> componentClass = Array.newInstance(componentTemplate.getComponentClass(), 0).getClass();
-			return new ReflectionTemplateBuilder.ReflectionMultidimentionalArrayTemplate(componentClass, componentTemplate);
-		}
-	}*/
 }
 

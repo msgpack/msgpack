@@ -17,56 +17,58 @@
 //
 package org.msgpack.util;
 
-import org.msgpack.template.TemplateBuildException;
+import java.io.File;
+import java.io.IOException;
+import java.util.Properties;
+
+import org.msgpack.template.builder.BuilderSelectorRegistry;
+import org.msgpack.template.builder.TemplateBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class TemplatePrecompiler {
 	private static final Logger LOG = LoggerFactory.getLogger(TemplatePrecompiler.class);
 
-	public static void write(Class<?> target, String directoryName) {
-		if (target.isEnum()) {
-			throw new UnsupportedOperationException("Not supported yet.");
-		} else {
-			//TemplateBuilder.writeClass(target, directoryName);
-		}
-		LOG.info("finished writing .class file of template class for " + target.getName());
-	}
+	//private static final String SRC = "msgpack.template.srcdir";
 
-	private String directoryName;
+	private static final String DIST = "msgpack.template.distdir";
 
-	private String[] classNames;
+	//private static final String DEFAULT_SRC = ".";
+
+	private static final String DEFAULT_DIST = ".";
 
 	private TemplatePrecompiler() {
 	}
 
-	private void parseOpts(final String[] args) {// TODO
-		if (args.length == 0) {
-			usage();
-		}
+	public void saveTemplates(final String[] classFileNames) throws IOException {
+		throw new UnsupportedOperationException("Not supported yet.");// TODO
 	}
 
-	private void usage() {// TODO
-		System.err.println("java org.msgpack.template.TemplateClassWriter ");
-		System.err.println("");
+	public void saveTemplateClass(Class<?> targetClass) throws IOException {
+		LOG.info("Saving template of " + targetClass.getName() + "...");
+		Properties props = System.getProperties();
+		String distDirName = getDirName(props, DIST, DEFAULT_DIST);
+		if (targetClass.isEnum()) {
+			throw new UnsupportedOperationException("Enum not supported yet: " + targetClass.getName());
+		} else {
+			TemplateBuilder builder = BuilderSelectorRegistry.getInstance().select(targetClass);
+			builder.writeTemplate(targetClass, distDirName);
+		}
+		LOG.info("Saved .class file of template class of " + targetClass.getName());
 	}
 
-	private void writeTemplateClasses() {
-		ClassLoader cl = this.getClass().getClassLoader();// TODO
-		for (String className : classNames) {
-			Class<?> origClass = null;
-			try {
-				origClass = cl.loadClass(className);
-			} catch (ClassNotFoundException e) {
-				throw new TemplateBuildException(e);
-			}
-			write(origClass, directoryName);
+	private String getDirName(Properties props, String dirName, String defaultDirName)
+			throws IOException {
+		String dName = props.getProperty(dirName, defaultDirName);
+		File d = new File(dName);
+		if (!d.isDirectory() && !d.exists()) {
+			throw new IOException("Directory not exists: " + dName);
 		}
+		return d.getAbsolutePath();
 	}
 
 	public static void main(final String[] args) throws Exception {
-		TemplatePrecompiler writer = new TemplatePrecompiler();
-		writer.parseOpts(args);
-		writer.writeTemplateClasses();
+		TemplatePrecompiler compiler = new TemplatePrecompiler();// TODO
+		compiler.saveTemplates(args);
 	}
 }

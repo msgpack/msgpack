@@ -31,12 +31,13 @@ public abstract class CustomTemplateBuilder implements TemplateBuilder {
 	public abstract IFieldEntryReader getFieldEntryReader();
 
 	public abstract Template buildTemplate(Class<?> targetClass , IFieldEntry[] entries);
-	
-	public Template buildTemplate(Class<?> targetClass ,FieldOption implicitOption ){
+
+	public Template buildTemplate(Class<?> targetClass, FieldOption implicitOption ){
 		checkValidation(targetClass);
 		return buildTemplate(targetClass,
 				getFieldEntryReader().readFieldEntries(targetClass, implicitOption));
 	}
+
 	public Template buildTemplate(Class<?> targetClass, FieldList flist) throws NoSuchFieldException {
 		checkValidation(targetClass);
 		return buildTemplate(targetClass, getFieldEntryReader().convertFieldEntries(targetClass, flist));
@@ -48,20 +49,29 @@ public abstract class CustomTemplateBuilder implements TemplateBuilder {
 		IFieldEntryReader reader = getFieldEntryReader();
 		FieldOption implicitOption = reader.readImplicitFieldOption(targetClass);
 		checkValidation(targetClass);
-		
 		IFieldEntry[] entries = reader.readFieldEntries(targetClass, implicitOption);
-		
-		return buildTemplate(targetClass,entries);
+		return buildTemplate(targetClass, entries);
 	}
-	private void checkValidation(Class<?> targetClass) {
+
+	protected void checkValidation(Class<?> targetClass) {
 		if(targetClass.isInterface()) {
-			throw new TemplateBuildException("cannot build template of interface");
+			throw new TemplateBuildException("Cannot build template of interface");
 		}
 		if(targetClass.isArray()) {
-			throw new TemplateBuildException("cannot build template of array class");
+			throw new TemplateBuildException("Cannot build template of array class");
 		}
 		if(targetClass.isPrimitive()) {
-			throw new TemplateBuildException("cannot build template of primitive type");
+			throw new TemplateBuildException("Cannot build template of primitive type");
 		}
+	}
+
+	@Override
+	public void writeTemplate(Type targetType, String directoryName) {
+		throw new UnsupportedOperationException(targetType.toString());
+	}
+
+	@Override
+	public Template loadTemplate(Type targetType) {
+		return null;
 	}
 }

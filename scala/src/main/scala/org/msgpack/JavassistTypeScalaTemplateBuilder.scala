@@ -7,7 +7,8 @@ import java.lang.Class
 import collection.immutable.{ListMap, TreeMap}
 import java.lang.reflect.{Type, Modifier, Method, Field}
 import java.lang.annotation.{Annotation => JavaAnnotation}
-import builder.{JavassistTemplateBuilder, JavassistTemplate, BuildContextBase, BuildContext}
+import builder.{JavassistTemplateBuilder, BuildContextBase, BuildContext}
+import builder.JavassistTemplateBuilder.JavassistTemplate
 import scala.collection.JavaConverters._
 ;
 /*
@@ -25,6 +26,23 @@ import scala.collection.JavaConverters._
     var origName : String = null
     var templates : Array[Template] = null
     var minimumArrayLength : Int = 0
+
+    def writeTemplate(targetClass : Class[_] ,  entries : Array[IFieldEntry],
+      templates : Array[Template], directoryName : String) = {
+      this.entries = entries;
+      this.templates = templates;
+      this.origClass = targetClass;
+      this.origName = this.origClass.getName();
+      write(this.origName, directoryName);
+	}
+
+    def loadTemplate(targetClass : Class[_] ,  entries : Array[IFieldEntry], templates : Array[Template]) = {
+      this.entries = entries;
+      this.templates = templates;
+      this.origClass = targetClass;
+      this.origName = this.origClass.getName();
+	  load(this.origName);
+	}
 
     def buildTemplate(targetClass : Class[_] ,  entries : Array[IFieldEntry],  templates : Array[Template]) = {
       this.entries = entries;
