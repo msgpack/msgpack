@@ -21,6 +21,14 @@ namespace msgpack
 			Pack (writer, o);
 		}
 
+		public byte[] Pack (object o)
+		{
+			using (MemoryStream ms = new MemoryStream ()) {
+				Pack (ms, o);
+				return ms.ToArray ();
+			}
+		}
+
 		void Pack (MsgPackWriter writer, object o)
 		{
 			if (o == null) {
@@ -84,6 +92,18 @@ namespace msgpack
 		{
 			MsgPackReader reader = new MsgPackReader (strm);
 			return Unpack (reader);
+		}
+
+		public object Unpack (byte[] buf, int offset, int size)
+		{
+			using (MemoryStream ms = new MemoryStream (buf, offset, size)) {
+				return Unpack (ms);
+			}
+		}
+
+		public object Unpack (byte[] buf)
+		{
+			return Unpack (buf, 0, buf.Length);
 		}
 
 		object Unpack (MsgPackReader reader)
