@@ -6,3 +6,10 @@ ruby/Makefile
 *.6
 _obj
 _test
+/csharp/msgpack.suo
+/csharp/msgpack/bin
+/csharp/msgpack/obj
+/csharp/msgpack/msgpack.csproj.user
+/csharp/msgpack.tests/obj
+/csharp/msgpack.tests/bin
+/csharp/msgpack.tests/msgpack.tests.csproj.user
