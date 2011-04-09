@@ -201,7 +201,7 @@ namespace msgpack
 
 		public void WriteRawHeader (int N)
 		{
-			WriteLengthHeader (N, 32, 0x96, 0xda, 0xdb);
+			WriteLengthHeader (N, 32, 0xa0, 0xda, 0xdb);
 		}
 
 		public void WriteArrayHeader (int N)
