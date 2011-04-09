@@ -1,28 +1,13 @@
-﻿#define NUNIT
-
-using System;
-using System.Text;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System;
 using System.IO;
-
-#if !NUNIT
-#error Currently, Not Supported
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-#else
 using NUnit.Framework;
-using TestClass = NUnit.Framework.TestFixtureAttribute;
-using TestInitialize = NUnit.Framework.SetUpAttribute;
-using TestCleanup = NUnit.Framework.TearDownAttribute;
-using TestMethod = NUnit.Framework.TestAttribute;
-#endif
 
 namespace msgpack.tests
 {
-	[TestClass]
+	[TestFixture]
 	public class ReaderWriterTests
 	{
-		[TestMethod]
+		[Test]
 		public void SignedNumberTest ()
 		{
 			long[] nums = new long[]{
@@ -91,7 +76,7 @@ namespace msgpack.tests
 			}, expectedBytes);
 		}
 
-		[TestMethod]
+		[Test]
 		public void UnsignedNumberTest ()
 		{
 			ulong[] nums = new ulong[]{
@@ -142,7 +127,7 @@ namespace msgpack.tests
 			}, expectedBytes);
 		}
 
-		[TestMethod]
+		[Test]
 		public void NilTest ()
 		{
 			byte[] expectedBytes = new byte[] {
@@ -157,7 +142,7 @@ namespace msgpack.tests
 			}, expectedBytes);
 		}
 
-		[TestMethod]
+		[Test]
 		public void BooleanTest ()
 		{
 			byte[] expectedBytes = new byte[] {
@@ -175,7 +160,7 @@ namespace msgpack.tests
 			}, expectedBytes);
 		}
 
-		[TestMethod]
+		[Test]
 		public void FloatingPointTest ()
 		{
 			byte[] expectedBytes = new byte[] {
@@ -196,7 +181,7 @@ namespace msgpack.tests
 			}, expectedBytes);
 		}
 
-		[TestMethod]
+		[Test]
 		public void RawTest ()
 		{
 			Random rnd = new Random ();
@@ -241,7 +226,7 @@ namespace msgpack.tests
 			}, expectedBytes);
 		}
 
-		[TestMethod]
+		[Test]
 		public void ArrayMapRawHeaderTest ()
 		{
 			int[] list = new int[] {

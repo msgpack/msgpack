@@ -1,33 +1,21 @@
-﻿#define NUNIT
-
-using System;
-using System.Text;
-using System.Collections;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-
-#if !NUNIT
-#error Currently, Not Supported
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-#else
 using NUnit.Framework;
-using TestClass = NUnit.Framework.TestFixtureAttribute;
-using TestMethod = NUnit.Framework.TestAttribute;
-#endif
 
 namespace msgpack.tests
 {
-	[TestClass]
+	[TestFixture]
 	public class BoxingPackerTests
 	{
-		[TestMethod]
+		[Test]
 		public void NullTest ()
 		{
 			BoxingPacker packer = new BoxingPacker ();
 			Assert.IsNull (packer.Unpack (packer.Pack (null)));
 		}
 
-		[TestMethod]
+		[Test]
 		public void PrimitiveTypeTest ()
 		{
 			BoxingPacker packer = new BoxingPacker ();
@@ -38,7 +26,7 @@ namespace msgpack.tests
 			RoundtripTest<bool> (packer, false);
 		}
 
-		[TestMethod]
+		[Test]
 		public void ArrayTest ()
 		{
 			BoxingPacker packer = new BoxingPacker ();
@@ -54,7 +42,7 @@ namespace msgpack.tests
 			});
 		}
 
-		[TestMethod]
+		[Test]
 		public void MapTest ()
 		{
 			BoxingPacker packer = new BoxingPacker ();
