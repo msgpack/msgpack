@@ -28,6 +28,47 @@ namespace msgpack
 		public float ValueFloat { get; private set; }
 		public double ValueDouble { get; private set; }
 
+		public bool IsSigned ()
+		{
+			return this.Type == TypePrefixes.NegativeFixNum ||
+				this.Type == TypePrefixes.PositiveFixNum ||
+				this.Type == TypePrefixes.Int8 ||
+				this.Type == TypePrefixes.Int16 ||
+				this.Type == TypePrefixes.Int32;
+		}
+
+		public bool IsSigned64 ()
+		{
+			return this.Type == TypePrefixes.Int64;
+		}
+
+		public bool IsUnsigned ()
+		{
+			return this.Type == TypePrefixes.UInt8 ||
+				this.Type == TypePrefixes.UInt16 ||
+				this.Type == TypePrefixes.UInt32;
+		}
+
+		public bool IsUnsigned64 ()
+		{
+			return this.Type == TypePrefixes.UInt64;
+		}
+
+		public bool IsRaw ()
+		{
+			return this.Type == TypePrefixes.FixRaw || this.Type == TypePrefixes.Raw16 || this.Type == TypePrefixes.Raw32;
+		}
+
+		public bool IsArray ()
+		{
+			return this.Type == TypePrefixes.FixArray || this.Type == TypePrefixes.Array16 || this.Type == TypePrefixes.Array32;
+		}
+
+		public bool IsMap ()
+		{
+			return this.Type == TypePrefixes.FixMap || this.Type == TypePrefixes.Map16 || this.Type == TypePrefixes.Map32;
+		}
+
 		public bool Read ()
 		{
 			byte[] tmp0 = _tmp0, tmp1 = _tmp1;
