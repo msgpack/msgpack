@@ -29,7 +29,6 @@ import org.msgpack.Template;
 public class TemplateRegistry {
 	private static Map<Type, Template> map;
 	private static Map<Type, GenericTemplate> genericMap;
-	
 	private static BuilderSelectorRegistry builderSelectorRegistry;
 
 	static {
@@ -41,36 +40,41 @@ public class TemplateRegistry {
 
 	public static void register(Class<?> target) {
 		TemplateBuilder builder = builderSelectorRegistry.select(target);
-		if(builder != null){
+		if (builder != null) {
 			register(target,builder.buildTemplate(target));
-		}else{
+		} else {
 			register(target,builderSelectorRegistry.getForceBuilder().buildTemplate(target));
 		}
 	}
 
 	public static void register(Class<?> target, FieldOption implicitOption) {
 		TemplateBuilder builder = builderSelectorRegistry.select(target);
-		if(builder != null && builder instanceof CustomTemplateBuilder){
+		if (builder != null && builder instanceof CustomTemplateBuilder) {
 			register(target, ((CustomTemplateBuilder)builder).buildTemplate(target, implicitOption));
-		}else{
+		} else {
 			throw new TemplateBuildException("Cannot build template with filed option");
 		}
 	}
 
 	public static void register(Class<?> target, FieldList flist) throws NoSuchFieldException {
 		TemplateBuilder builder = builderSelectorRegistry.select(target);
-		if(builder != null && builder instanceof CustomTemplateBuilder){
+		if (builder != null && builder instanceof CustomTemplateBuilder) {
 			register(target, ((CustomTemplateBuilder)builder).buildTemplate(target, flist));
-		}else{
+		} else {
 			throw new TemplateBuildException("Cannot build template with filed list");
 		}
 	}
 
 	public static synchronized void register(Type rawType, Template tmpl) {
-		if(rawType instanceof ParameterizedType) {
+		if (rawType instanceof ParameterizedType) {
 			rawType = ((ParameterizedType)rawType).getRawType();
 		}
 		map.put(rawType, tmpl);
+	}
+
+	public static boolean unregister(Class<?> target) {
+		Template tmpl = map.remove(target);
+		return tmpl != null;
 	}
 
 	public static synchronized void registerGeneric(Type rawType, GenericTemplate gtmpl) {
@@ -81,22 +85,27 @@ public class TemplateRegistry {
 	}
 
 	public static synchronized Template lookup(Type targetType) {
-		return lookupImpl(targetType, false, true);
+		return lookupImpl(targetType, true, false, true);
 	}
 
 	public static synchronized Template lookup(Type targetType, boolean forceBuild) {
-		return lookupImpl(targetType, forceBuild, true);
+		return lookupImpl(targetType, true, forceBuild, true);
+	}
+
+	public static synchronized Template lookup(Type targetType, boolean forceLoad, boolean forceBuild) {
+		return lookupImpl(targetType, forceLoad, forceBuild, true);
 	}
 
 	public static synchronized Template tryLookup(Type targetType) {
-		return lookupImpl(targetType, false, false);
+		return lookupImpl(targetType, true, false, false);
 	}
 
 	public static synchronized Template tryLookup(Type targetType, boolean forceBuild) {
-		return lookupImpl(targetType, forceBuild, false);
+		return lookupImpl(targetType, true, forceBuild, false);
 	}
 
-	private static synchronized Template lookupImpl(Type targetType, boolean forceBuild, boolean fallbackDefault) {
+	private static synchronized Template lookupImpl(Type targetType,
+			boolean forceLoad, boolean forceBuild, boolean fallbackDefault) {
 		Template tmpl;
 
 		if(targetType instanceof ParameterizedType) {
@@ -115,10 +124,13 @@ public class TemplateRegistry {
 
 		// find match TemplateBuilder
 		TemplateBuilder builder = BuilderSelectorRegistry.getInstance().select(targetType);
-		if(builder != null){
-			tmpl = builder.loadTemplate(targetType);
-			if (tmpl != null) {
-				return tmpl;
+		if (builder != null) {
+			if (forceLoad) {
+				tmpl = builder.loadTemplate(targetType);
+				if (tmpl != null) {
+					register(targetType, tmpl);
+					return tmpl;
+				}
 			}
 
 			tmpl = builder.buildTemplate(targetType);

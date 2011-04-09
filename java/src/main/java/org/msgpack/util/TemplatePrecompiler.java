@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.util.Properties;
 
 import org.msgpack.template.builder.BuilderSelectorRegistry;
+import org.msgpack.template.builder.JavassistTemplateBuilder;
 import org.msgpack.template.builder.TemplateBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,35 +30,39 @@ import org.slf4j.LoggerFactory;
 public class TemplatePrecompiler {
 	private static final Logger LOG = LoggerFactory.getLogger(TemplatePrecompiler.class);
 
-	//private static final String SRC = "msgpack.template.srcdir";
+	//public static final String SRC = "msgpack.template.srcdir";
 
-	private static final String DIST = "msgpack.template.distdir";
+	public static final String DIST = "msgpack.template.distdir";
 
-	//private static final String DEFAULT_SRC = ".";
+	//public static final String DEFAULT_SRC = ".";
 
-	private static final String DEFAULT_DIST = ".";
+	public static final String DEFAULT_DIST = ".";
+
+	private static TemplatePrecompiler INSTANCE = null;
 
 	private TemplatePrecompiler() {
 	}
 
-	public void saveTemplates(final String[] classFileNames) throws IOException {
+	public static void saveTemplates(final String[] classFileNames) throws IOException {
 		throw new UnsupportedOperationException("Not supported yet.");// TODO
 	}
 
-	public void saveTemplateClass(Class<?> targetClass) throws IOException {
+	public static void saveTemplateClass(Class<?> targetClass) throws IOException {
+		if (INSTANCE != null) {
+			INSTANCE = new TemplatePrecompiler();
+		}
 		LOG.info("Saving template of " + targetClass.getName() + "...");
 		Properties props = System.getProperties();
 		String distDirName = getDirName(props, DIST, DEFAULT_DIST);
 		if (targetClass.isEnum()) {
 			throw new UnsupportedOperationException("Enum not supported yet: " + targetClass.getName());
 		} else {
-			TemplateBuilder builder = BuilderSelectorRegistry.getInstance().select(targetClass);
-			builder.writeTemplate(targetClass, distDirName);
+			new JavassistTemplateBuilder().writeTemplate(targetClass, distDirName);
 		}
 		LOG.info("Saved .class file of template class of " + targetClass.getName());
 	}
 
-	private String getDirName(Properties props, String dirName, String defaultDirName)
+	private static String getDirName(Properties props, String dirName, String defaultDirName)
 			throws IOException {
 		String dName = props.getProperty(dirName, defaultDirName);
 		File d = new File(dName);
@@ -68,7 +73,6 @@ public class TemplatePrecompiler {
 	}
 
 	public static void main(final String[] args) throws Exception {
-		TemplatePrecompiler compiler = new TemplatePrecompiler();// TODO
-		compiler.saveTemplates(args);
+		TemplatePrecompiler.saveTemplates(args);
 	}
 }

@@ -1,7 +1,5 @@
 package org.msgpack.template;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
@@ -15,16 +13,13 @@ import org.junit.Test;
 
 import org.msgpack.MessagePack;
 import org.msgpack.MessagePackable;
-import org.msgpack.MessagePacker;
 import org.msgpack.MessageTypeException;
 import org.msgpack.MessageUnpackable;
 import org.msgpack.Packer;
-import org.msgpack.Template;
 import org.msgpack.Unpacker;
 import org.msgpack.annotation.MessagePackMessage;
 import org.msgpack.annotation.MessagePackOrdinalEnum;
 import org.msgpack.annotation.Optional;
-import org.msgpack.template.TestTemplateBuilderPackConvert.SampleInterface;
 import org.msgpack.template.builder.BuilderSelectorRegistry;
 import org.msgpack.template.builder.TemplateBuilder;
 
