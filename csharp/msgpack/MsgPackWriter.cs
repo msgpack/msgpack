@@ -15,7 +15,7 @@ namespace msgpack
 			_strm = strm;
 		}
 
-		void Write (byte x)
+		public void Write (byte x)
 		{
 			if (x < 128) {
 				_strm.WriteByte (x);
@@ -27,7 +27,7 @@ namespace msgpack
 			}
 		}
 
-		void Write (ushort x)
+		public void Write (ushort x)
 		{
 			if (x < 0x100) {
 				Write ((byte)x);
@@ -74,7 +74,7 @@ namespace msgpack
 			}
 		}
 
-		void Write (sbyte x)
+		public void Write (sbyte x)
 		{
 			if (x >= -32 && x <= -1) {
 				_strm.WriteByte ((byte)(0xe0 | (byte)x));
@@ -88,7 +88,7 @@ namespace msgpack
 			}
 		}
 
-		void Write (short x)
+		public void Write (short x)
 		{
 			if (x >= sbyte.MinValue && x <= sbyte.MaxValue) {
 				Write ((sbyte)x);

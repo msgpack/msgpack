@@ -44,6 +44,7 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="BoxingPackerTests.cs" />
+    <Compile Include="ObjectPackerTests.cs" />
     <Compile Include="ReaderWriterTests.cs" />
   </ItemGroup>
   <ItemGroup>

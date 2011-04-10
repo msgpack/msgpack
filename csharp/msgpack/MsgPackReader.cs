@@ -37,6 +37,11 @@ namespace msgpack
 				this.Type == TypePrefixes.Int32;
 		}
 
+		public bool IsBoolean ()
+		{
+			return this.Type == TypePrefixes.True || this.Type == TypePrefixes.False;
+		}
+
 		public bool IsSigned64 ()
 		{
 			return this.Type == TypePrefixes.Int64;
@@ -44,7 +49,8 @@ namespace msgpack
 
 		public bool IsUnsigned ()
 		{
-			return this.Type == TypePrefixes.UInt8 ||
+			return this.Type == TypePrefixes.PositiveFixNum ||
+				this.Type == TypePrefixes.UInt8 ||
 				this.Type == TypePrefixes.UInt16 ||
 				this.Type == TypePrefixes.UInt32;
 		}
@@ -132,6 +138,7 @@ namespace msgpack
 					break;
 				case TypePrefixes.PositiveFixNum:
 					ValueSigned = x & 0x7f;
+					ValueUnsigned = (uint)ValueSigned;
 					break;
 				case TypePrefixes.UInt8:
 					x = _strm.ReadByte ();
