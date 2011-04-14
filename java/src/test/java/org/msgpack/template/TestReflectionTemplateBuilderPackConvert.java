@@ -24,9 +24,11 @@ import org.msgpack.Unpacker;
 import org.msgpack.annotation.MessagePackMessage;
 import org.msgpack.annotation.MessagePackOrdinalEnum;
 import org.msgpack.annotation.Optional;
+import org.msgpack.template.builder.BeansTemplateBuilder;
 import org.msgpack.template.builder.BuilderSelectorRegistry;
-import org.msgpack.template.builder.MessagePackBeansBuilderSelector;
-import org.msgpack.template.builder.MessagePackMessageBuilderSelector;
+import org.msgpack.template.builder.BeansTemplateBuilderSelector;
+import org.msgpack.template.builder.AnnotationTemplateBuilderSelector;
+import org.msgpack.template.builder.ReflectionTemplateBuilder;
 import org.msgpack.template.builder.TemplateBuilder;
 
 import junit.framework.Assert;
@@ -38,11 +40,11 @@ public class TestReflectionTemplateBuilderPackConvert extends TestCase {
 		BuilderSelectorRegistry instance = BuilderSelectorRegistry.getInstance();
 
 		instance.replace(
-				new MessagePackMessageBuilderSelector(
+				new AnnotationTemplateBuilderSelector(
 						new ReflectionTemplateBuilder()));
 		instance.setForceBuilder( new ReflectionTemplateBuilder());
-		instance.replace(new MessagePackBeansBuilderSelector(
-				new BeansReflectionTemplateBuilder()));
+		instance.replace(new BeansTemplateBuilderSelector(
+				new BeansTemplateBuilder()));
 		
 		MessagePack.register(PrimitiveTypeFieldsClass.class);
 		MessagePack.register(OptionalPrimitiveTypeFieldsClass.class);
@@ -610,22 +612,18 @@ public class TestReflectionTemplateBuilderPackConvert extends TestCase {
 
 		SampleMapTypes dst =
 			MessagePack.unpack(raw).convert(SampleMapTypes.class);
+		assertEquals(src.f0.size(), dst.f0.size());
+		assertEquals(src.f1.size(), dst.f1.size());
 		Iterator<Integer> srcf1 = src.f1.keySet().iterator();
-		Iterator<Integer> dstf1 = dst.f1.keySet().iterator();
 		while (srcf1.hasNext()) {
 			Integer s1 = srcf1.next();
-			Integer d1 = dstf1.next();
-			assertEquals(s1, d1);
-			assertEquals(src.f1.get(s1), dst.f1.get(d1));
+			assertEquals(src.f1.get(s1), dst.f1.get(s1));
 		}
 		assertEquals(src.f2.size(), dst.f2.size());
 		Iterator<String> srcf2 = src.f2.keySet().iterator();
-		Iterator<String> dstf2 = dst.f2.keySet().iterator();
 		while (srcf2.hasNext()) {
 			String s2 = srcf2.next();
-			String d2 = dstf2.next();
-			assertEquals(s2, d2);
-			assertEquals(src.f2.get(s2), dst.f2.get(d2));
+			assertEquals(src.f2.get(s2), dst.f2.get(s2));
 		}
 	}
 
@@ -666,24 +664,18 @@ public class TestReflectionTemplateBuilderPackConvert extends TestCase {
 
 		SampleOptionalMapTypes dst =
 			MessagePack.unpack(raw).convert(SampleOptionalMapTypes.class);
-		assertEquals(src.f0.size(), dst.f0.size());
+		assertEquals(0, dst.f0.size());
 		assertEquals(src.f1.size(), dst.f1.size());
 		Iterator<Integer> srcf1 = src.f1.keySet().iterator();
-		Iterator<Integer> dstf1 = dst.f1.keySet().iterator();
 		while (srcf1.hasNext()) {
 			Integer s1 = srcf1.next();
-			Integer d1 = dstf1.next();
-			assertEquals(s1, d1);
-			assertEquals(src.f1.get(s1), dst.f1.get(d1));
+			assertEquals(src.f1.get(s1), dst.f1.get(s1));
 		}
 		assertEquals(src.f2.size(), dst.f2.size());
 		Iterator<String> srcf2 = src.f2.keySet().iterator();
-		Iterator<String> dstf2 = dst.f2.keySet().iterator();
 		while (srcf2.hasNext()) {
 			String s2 = srcf2.next();
-			String d2 = dstf2.next();
-			assertEquals(s2, d2);
-			assertEquals(src.f2.get(s2), dst.f2.get(d2));
+			assertEquals(src.f2.get(s2), dst.f2.get(s2));
 		}
 	}
 

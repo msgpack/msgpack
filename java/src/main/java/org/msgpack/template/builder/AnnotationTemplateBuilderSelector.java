@@ -20,32 +20,35 @@ package org.msgpack.template.builder;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
-import org.msgpack.annotation.MessagePackOrdinalEnum;
+import org.msgpack.annotation.MessagePackMessage;
 
-public class MessagePackOrdinalEnumBuilderSelector implements BuilderSelector {
+public class AnnotationTemplateBuilderSelector implements BuilderSelector{
 
-	public static final String NAME = "MessagePackOrdinalEnumBuilderTemplate";
-	
-	public String getName(){
+	public static final String NAME = "AnnotationTemplateBuilder";
+
+    TemplateBuilder builder;
+
+    public AnnotationTemplateBuilderSelector(TemplateBuilder builder){
+		this.builder = builder;
+	}
+
+    @Override
+    public String getName(){
 		return NAME;
 	}
-	
+
 	@Override
 	public boolean matchType(Type targetType) {
-		Class<?> target = (Class<?>)targetType;
-		return isAnnotated(target, MessagePackOrdinalEnum.class);
+		Class<?> targetClass = (Class<?>)targetType;
+		return isAnnotated(targetClass, MessagePackMessage.class);
 	}
-	
-	OrdinalEnumTemplateBuilder builder = new OrdinalEnumTemplateBuilder();
 
 	@Override
 	public TemplateBuilder getTemplateBuilder(Type targetType) {
 		return builder;
 	}
-	
 
-	private boolean isAnnotated(Class<?> ao, Class<? extends Annotation> with) {
-		return ao.getAnnotation(with) != null;
+	public static boolean isAnnotated(Class<?> targetClass, Class<? extends Annotation> with) {
+		return targetClass.getAnnotation(with) != null;
 	}
-
 }

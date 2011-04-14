@@ -1,7 +1,5 @@
 package org.msgpack.template;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
@@ -15,16 +13,13 @@ import org.junit.Test;
 
 import org.msgpack.MessagePack;
 import org.msgpack.MessagePackable;
-import org.msgpack.MessagePacker;
 import org.msgpack.MessageTypeException;
 import org.msgpack.MessageUnpackable;
 import org.msgpack.Packer;
-import org.msgpack.Template;
 import org.msgpack.Unpacker;
 import org.msgpack.annotation.MessagePackMessage;
 import org.msgpack.annotation.MessagePackOrdinalEnum;
 import org.msgpack.annotation.Optional;
-import org.msgpack.template.TestTemplateBuilderPackConvert.SampleInterface;
 import org.msgpack.template.builder.BuilderSelectorRegistry;
 import org.msgpack.template.builder.TemplateBuilder;
 
@@ -599,22 +594,18 @@ public class TestTemplateBuilderPackUnpack extends TestCase {
 
 		SampleMapTypes dst =
 			MessagePack.unpack(raw, SampleMapTypes.class);
+		assertEquals(0, dst.f0.size());
+		assertEquals(src.f1.size(), dst.f1.size());
 		Iterator<Integer> srcf1 = src.f1.keySet().iterator();
-		Iterator<Integer> dstf1 = dst.f1.keySet().iterator();
 		while (srcf1.hasNext()) {
 			Integer s1 = srcf1.next();
-			Integer d1 = dstf1.next();
-			assertEquals(s1, d1);
-			assertEquals(src.f1.get(s1), dst.f1.get(d1));
+			assertEquals(src.f1.get(s1), dst.f1.get(s1));
 		}
 		assertEquals(src.f2.size(), dst.f2.size());
 		Iterator<String> srcf2 = src.f2.keySet().iterator();
-		Iterator<String> dstf2 = dst.f2.keySet().iterator();
 		while (srcf2.hasNext()) {
 			String s2 = srcf2.next();
-			String d2 = dstf2.next();
-			assertEquals(s2, d2);
-			assertEquals(src.f2.get(s2), dst.f2.get(d2));
+			assertEquals(src.f2.get(s2), dst.f2.get(s2));
 		}
 	}
 
@@ -655,24 +646,18 @@ public class TestTemplateBuilderPackUnpack extends TestCase {
 
 		SampleOptionalMapTypes dst =
 			MessagePack.unpack(raw, SampleOptionalMapTypes.class);
-		assertEquals(src.f0.size(), dst.f0.size());
+		assertEquals(0, dst.f0.size());
 		assertEquals(src.f1.size(), dst.f1.size());
 		Iterator<Integer> srcf1 = src.f1.keySet().iterator();
-		Iterator<Integer> dstf1 = dst.f1.keySet().iterator();
 		while (srcf1.hasNext()) {
 			Integer s1 = srcf1.next();
-			Integer d1 = dstf1.next();
-			assertEquals(s1, d1);
-			assertEquals(src.f1.get(s1), dst.f1.get(d1));
+			assertEquals(src.f1.get(s1), dst.f1.get(s1));
 		}
 		assertEquals(src.f2.size(), dst.f2.size());
 		Iterator<String> srcf2 = src.f2.keySet().iterator();
-		Iterator<String> dstf2 = dst.f2.keySet().iterator();
 		while (srcf2.hasNext()) {
 			String s2 = srcf2.next();
-			String d2 = dstf2.next();
-			assertEquals(s2, d2);
-			assertEquals(src.f2.get(s2), dst.f2.get(d2));
+			assertEquals(src.f2.get(s2), dst.f2.get(s2));
 		}
 	}
 

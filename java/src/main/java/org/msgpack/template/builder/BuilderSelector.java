@@ -25,20 +25,9 @@ import java.lang.reflect.Type;
  *
  */
 public interface BuilderSelector {
-	
-	
-	/**
-	 * Name of this.
-	 * @return
-	 */
-	public String getName();
-	
-	
-	public abstract boolean matchType(Type targetType);
-	
-	
-	public abstract TemplateBuilder getTemplateBuilder(Type targetType);
-	
-	
+	String getName();
 
+	boolean matchType(Type targetType);
+
+	TemplateBuilder getTemplateBuilder(Type targetType);
 }

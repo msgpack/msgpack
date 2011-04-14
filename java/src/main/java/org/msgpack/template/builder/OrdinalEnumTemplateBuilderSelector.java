@@ -19,25 +19,27 @@ package org.msgpack.template.builder;
 
 import java.lang.reflect.Type;
 
-public class EnumBuilderSelector implements BuilderSelector {
+import org.msgpack.annotation.MessagePackOrdinalEnum;
 
-	public static final String NAME = "EnumTemplateBuilder";
-	
+public class OrdinalEnumTemplateBuilderSelector implements BuilderSelector {
+
+	public static final String NAME = "OrdinalEnumTemplateBuilder";
+
+	OrdinalEnumTemplateBuilder builder = new OrdinalEnumTemplateBuilder();
+
+	@Override
 	public String getName(){
 		return NAME;
 	}
-	
+
 	@Override
 	public boolean matchType(Type targetType) {
-		return ((Class<?>)targetType).isEnum();
+		Class<?> targetClass = (Class<?>)targetType;
+		return AnnotationTemplateBuilderSelector.isAnnotated(targetClass, MessagePackOrdinalEnum.class);
 	}
-
-
-	OrdinalEnumTemplateBuilder builder = new OrdinalEnumTemplateBuilder();
 
 	@Override
 	public TemplateBuilder getTemplateBuilder(Type targetType) {
 		return builder;
 	}
-
 }

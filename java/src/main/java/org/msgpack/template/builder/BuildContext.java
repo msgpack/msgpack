@@ -15,33 +15,19 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 //
-package org.msgpack.template.javassist;
+package org.msgpack.template.builder;
 
-import java.io.IOException;
-import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Type;
-import java.lang.Thread;
 
 import org.msgpack.*;
 import org.msgpack.template.*;
 
 import javassist.CannotCompileException;
-import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtConstructor;
-import javassist.CtMethod;
 import javassist.CtNewConstructor;
-import javassist.CtNewMethod;
-import javassist.LoaderClassPath;
 import javassist.NotFoundException;
-import javassist.ClassClassPath;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-
 
 public class BuildContext extends BuildContextBase<FieldEntry> {
 	protected IFieldEntry[] entries;
@@ -64,7 +50,7 @@ public class BuildContext extends BuildContextBase<FieldEntry> {
 
 	protected void setSuperClass() throws CannotCompileException, NotFoundException {
 		this.tmplCtClass.setSuperclass(
-				director.getCtClass(JavassistTemplate.class.getName()));
+				director.getCtClass(JavassistTemplateBuilder.JavassistTemplate.class.getName()));
 	}
 
 	protected void buildConstructor() throws CannotCompileException, NotFoundException {
@@ -286,4 +272,22 @@ public class BuildContext extends BuildContextBase<FieldEntry> {
 		return getBuiltString();
 	}
 
+	@Override
+	public void writeTemplate(Class<?> targetClass, FieldEntry[] entries,
+			Template[] templates, String directoryName) {
+		this.entries = entries;
+		this.templates = templates;
+		this.origClass = targetClass;
+		this.origName = this.origClass.getName();
+		write(this.origName, directoryName);
+	}
+
+	@Override
+	public Template loadTemplate(Class<?> targetClass, FieldEntry[] entries, Template[] templates) {
+		this.entries = entries;
+		this.templates = templates;
+		this.origClass = targetClass;
+		this.origName = this.origClass.getName();
+		return load(this.origName);
+	}
 }

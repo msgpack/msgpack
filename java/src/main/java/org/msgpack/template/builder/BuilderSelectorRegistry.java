@@ -22,13 +22,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.msgpack.template.BeansFieldEntryReader;
-import org.msgpack.template.BeansReflectionTemplateBuilder;
-import org.msgpack.template.JavassistTemplateBuilder;
-import org.msgpack.template.ReflectionTemplateBuilder;
-import org.msgpack.template.javassist.BeansBuildContext;
-import org.msgpack.template.javassist.BuildContext;
-import org.msgpack.template.javassist.BuildContextBase;
-import org.msgpack.template.javassist.BuildContextFactory;
 
 /**
  * Registry for BuilderSelectors.
@@ -38,8 +31,9 @@ import org.msgpack.template.javassist.BuildContextFactory;
  *
  */
 public class BuilderSelectorRegistry {
-	
+
 	private static BuilderSelectorRegistry instance = new BuilderSelectorRegistry();
+
 	static{
 		initForJava();
 	}
@@ -50,26 +44,25 @@ public class BuilderSelectorRegistry {
 	
 	TemplateBuilder forceBuilder;
 	
-	
     List<BuilderSelector> builderSelectors = new LinkedList<BuilderSelector>();
 
 	private BuilderSelectorRegistry(){
 	}
+
 	/**
 	 * initialize BuilderSelectors for basic java enviroment.
 	 */
 	private static void initForJava(){
-
 		instance.append(new ArrayTemplateBuilderSelector());
 		
 		if(isSupportJavassist()){
 			instance.append(
-					new MessagePackMessageBuilderSelector(
+					new AnnotationTemplateBuilderSelector(
 							new JavassistTemplateBuilder()));
 			instance.forceBuilder = new JavassistTemplateBuilder();
 
 			//Java beans
-			instance.append(new MessagePackBeansBuilderSelector(
+			instance.append(new BeansTemplateBuilderSelector(
 					new JavassistTemplateBuilder(
 							new BeansFieldEntryReader(),
 							new BuildContextFactory() {
@@ -81,17 +74,17 @@ public class BuilderSelectorRegistry {
 					)));
 		}else{
 			instance.append(
-					new MessagePackMessageBuilderSelector(
+					new AnnotationTemplateBuilderSelector(
 							new ReflectionTemplateBuilder()));
 			instance.forceBuilder = new ReflectionTemplateBuilder();
 			
 			//Java beans
-			instance.append(new MessagePackBeansBuilderSelector(
-					new BeansReflectionTemplateBuilder()));
+			instance.append(new BeansTemplateBuilderSelector(
+					new BeansTemplateBuilder()));
 		}
 		
-		instance.append(new MessagePackOrdinalEnumBuilderSelector());
-		instance.append(new EnumBuilderSelector());
+		instance.append(new OrdinalEnumTemplateBuilderSelector());
+		instance.append(new EnumTemplateBuilderSelector());
 	}
 	public static boolean isSupportJavassist(){
 		try {
