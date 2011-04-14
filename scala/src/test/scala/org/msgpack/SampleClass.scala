@@ -75,3 +75,27 @@ class BasicalTypes{
 
 
 }
+
+object FieldOrder{
+  val None = 0
+  val Offering = 11
+  val BeOffered = 12
+  val Friend = 13
+  val Block = 21
+}
+
+@MessagePackMessage
+class FieldOrder{
+
+  var one : Int = 0
+  var two : String = "aaa"
+  var three : String = "bbb"
+  var four : String = ""
+  var five : Boolean = false
+
+  def six : Int = 1
+  def six_=(v : Int) = one = v
+
+  override def toString = "hogehoge"
+
+}

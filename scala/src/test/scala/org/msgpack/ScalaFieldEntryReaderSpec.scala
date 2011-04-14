@@ -19,6 +19,8 @@ import org.specs.runner.{ JUnitSuiteRunner, JUnit }
 class ScalaFieldEntryReaderSpec extends Specification with JUnit  {
 
   "ScalaFieldEntryReader" should {
+
+
     "check setter " in {
       val reader = new ScalaFieldEntryReader()
 
@@ -66,6 +68,27 @@ class ScalaFieldEntryReaderSpec extends Specification with JUnit  {
       }
 
     }
+
+    "field order" in {
+      var reader = new ScalaFieldEntryReader
+      val c = classOf[FieldOrder]
+
+      println("Methods of FieldOrder class")
+      c.getMethods.foreach(println(_))
+      println("-- end --")
+
+      val props = reader.findPropertyMethods(c)
+
+      var index : Int = 0
+      val names = List("one","two","three","four","five","six")
+      for( p <- props.values){
+        p._1.getName must_== names(index)
+        index += 1
+      }
+
+
+    }
+
 
     "indexing " in {
       val reader = new ScalaFieldEntryReader()
