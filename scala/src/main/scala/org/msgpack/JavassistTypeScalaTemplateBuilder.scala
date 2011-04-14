@@ -87,6 +87,9 @@ import scala.collection.JavaConverters._
         case e : ClassNotFoundException => {
           defCon
         }
+        case e : NoSuchMethodException => {
+          defCon
+        }
       }
     }
 
