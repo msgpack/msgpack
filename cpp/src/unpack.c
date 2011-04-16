@@ -335,10 +335,11 @@ msgpack_zone* msgpack_unpacker_release_zone(msgpack_unpacker* mpac)
 		return NULL;
 	}
 
-	msgpack_zone* old = mpac->z;
-	mpac->z = r;
+	msgpack_zone old = *mpac->z;
+	*mpac->z = *r;
+	*r = old;
 
-	return old;
+	return r;
 }
 
 void msgpack_unpacker_reset_zone(msgpack_unpacker* mpac)
