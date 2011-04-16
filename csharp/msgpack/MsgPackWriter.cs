@@ -8,7 +8,9 @@ namespace msgpack
 	{
 		Stream _strm;
 		Encoding _encoding = Encoding.UTF8;
+		Encoder _encoder = Encoding.UTF8.GetEncoder ();
 		byte[] _tmp = new byte[9];
+		byte[] _buf = new byte[64];
 
 		public MsgPackWriter (Stream strm)
 		{
@@ -238,9 +240,55 @@ namespace msgpack
 			}
 		}
 
-		public void Write (String x)
+		public void Write (string x)
 		{
-			Write (_encoding.GetBytes (x));
+			Write (x, false);
+		}
+		
+		public void Write (string x, bool highProbAscii)
+		{
+			Write (x, _buf, highProbAscii);
+		}
+
+		public void Write (string x, byte[] buf)
+		{
+			Write (x, buf, false);
+		}
+
+		public unsafe void Write (string x, byte[] buf, bool highProbAscii)
+		{
+			Encoder encoder = _encoder;
+			fixed (char *pstr = x)
+			fixed (byte *pbuf = buf) {
+				if (highProbAscii && x.Length <= buf.Length) {
+					bool isAsciiFullCompatible = true;
+					for (int i = 0; i < x.Length; i ++) {
+						int v = (int)pstr[i];
+						if (v > 0x7f) {
+							isAsciiFullCompatible = false;
+							break;
+						}
+						buf[i] = (byte)v;
+					}
+					if (isAsciiFullCompatible) {
+						WriteRawHeader (x.Length);
+						_strm.Write (buf, 0, x.Length);
+						return;
+					}
+				}
+
+				WriteRawHeader (encoder.GetByteCount (pstr, x.Length, true));
+				int str_len = x.Length;
+				char *p = pstr;
+				int convertedChars, bytesUsed;
+				bool completed = true;
+				while (str_len > 0 || !completed) {
+					encoder.Convert (p, str_len, pbuf, buf.Length, false, out convertedChars, out bytesUsed, out completed);
+					_strm.Write (buf, 0, bytesUsed);
+					str_len -= convertedChars;
+					p += convertedChars;
+				}
+			}
 		}
 	}
 }

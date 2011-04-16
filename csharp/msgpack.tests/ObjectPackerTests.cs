@@ -7,12 +7,6 @@ namespace msgpack.tests
 	[TestFixture]
 	public class ObjectPackerTests
 	{
-		public static void Main ()
-		{
-			ObjectPackerTests tests = new ObjectPackerTests ();
-			tests.TestA ();
-		}
-
 		[Test]
 		public void TestA ()
 		{
@@ -26,16 +20,12 @@ namespace msgpack.tests
 		public void TestB ()
 		{
 			ObjectPacker packer = new ObjectPacker ();
-			Dictionary<int, int> dic = new Dictionary<int,int> ();
-			Random rnd = new Random ();
-			int size = rnd.Next () & 0xff;
-			for (int i = 0; i < size; i ++)
-				dic[rnd.Next()] = rnd.Next ();
-			Dictionary<int, int> dic_ = packer.Unpack<Dictionary<int, int>> (packer.Pack (dic));
-			Assert.AreEqual (dic, dic_);
+			TestB_Class obj0 = TestB_Class.Create ();
+			TestB_Class obj1 = packer.Unpack<TestB_Class> (packer.Pack (obj0));
+			obj0.Check (obj1);
 		}
 
-		class TestA_Class
+		public class TestA_Class
 		{
 			public bool a;
 			public byte b;
@@ -89,6 +79,37 @@ namespace msgpack.tests
 				Assert.AreEqual (this.k, other.k);
 				Assert.AreEqual (this.l, other.l);
 				Assert.AreEqual (this.m, other.m);
+			}
+		}
+
+		public class TestB_Class
+		{
+			public TestA_Class x;
+			public TestB_Class nested;
+			public int[] list;
+
+			public static TestB_Class Create ()
+			{
+				return Create (0);
+			}
+
+			static TestB_Class Create (int level)
+			{
+				TestB_Class obj = new TestB_Class ();
+				obj.x = new TestA_Class ();
+				if (level < 10)
+					obj.nested = Create (level + 1);
+				if ((level % 2) == 0)
+					obj.list = new int[] {level, 0, level, int.MaxValue, level};
+				return obj;
+			}
+
+			public void Check (TestB_Class other)
+			{
+				x.Check (other.x);
+				if (nested != null)
+					nested.Check (other.nested);
+				Assert.AreEqual (list, other.list);
 			}
 		}
 	}

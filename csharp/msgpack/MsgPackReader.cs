@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Text;
 
 namespace msgpack
 {
@@ -8,6 +9,10 @@ namespace msgpack
 		Stream _strm;
 		byte[] _tmp0 = new byte[8];
 		byte[] _tmp1 = new byte[8];
+
+		Encoding _encoding = Encoding.UTF8;
+		Decoder _decoder = Encoding.UTF8.GetDecoder ();
+		byte[] _buf = new byte[64];
 
 		public MsgPackReader (Stream strm)
 		{
@@ -212,6 +217,26 @@ namespace msgpack
 		public int ReadValueRaw (byte[] buf, int offset, int count)
 		{
 			return _strm.Read (buf, offset, count);
+		}
+
+		public string ReadRawString ()
+		{
+			return ReadRawString (_buf);
+		}
+
+		public unsafe string ReadRawString (byte[] buf)
+		{
+			if (this.Length < buf.Length) {
+				if (ReadValueRaw (buf, 0, (int)this.Length) != this.Length)
+					throw new FormatException ();
+				return _encoding.GetString (buf, 0, (int)this.Length);
+			}
+
+			// Poor implementation
+			byte[] tmp = new byte[(int)this.Length];
+			if (ReadValueRaw (tmp, 0, tmp.Length) != tmp.Length)
+				throw new FormatException ();
+			return _encoding.GetString (tmp);
 		}
 	}
 }

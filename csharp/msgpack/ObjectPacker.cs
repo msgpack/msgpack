@@ -83,7 +83,7 @@ namespace msgpack
 			ReflectionCacheEntry entry = ReflectionCache.Lookup (t);
 			writer.WriteMapHeader (entry.FieldMap.Count);
 			foreach (KeyValuePair<string, FieldInfo> pair in entry.FieldMap) {
-				writer.Write (pair.Key);
+				writer.Write (pair.Key, _buf);
 				object v = pair.Value.GetValue (o);
 				if (pair.Value.FieldType.IsInterface && v != null) {
 					writer.WriteArrayHeader (2);
@@ -145,8 +145,10 @@ namespace msgpack
 				return unpacker (this, reader);
 
 			if (t.IsArray) {
-				if (!reader.Read () || !reader.IsArray ())
+				if (!reader.Read () || (!reader.IsArray () && reader.Type != TypePrefixes.Nil))
 					throw new FormatException ();
+				if (reader.Type == TypePrefixes.Nil)
+					return null;
 				Type et = t.GetElementType ();
 				Array ary = Array.CreateInstance (et, (int)reader.Length);
 				for (int i = 0; i < ary.Length; i ++)
