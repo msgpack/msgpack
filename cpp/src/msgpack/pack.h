@@ -105,9 +105,6 @@ int msgpack_pack_object(msgpack_packer* pk, msgpack_object d);
 #define msgpack_pack_inline_func_cint(name) \
 	inline int msgpack_pack ## name
 
-#define msgpack_pack_inline_func_cint(name) \
-	inline int msgpack_pack ## name
-
 #define msgpack_pack_inline_func_fixint(name) \
 	inline int msgpack_pack_fix ## name
 

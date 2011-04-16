@@ -43,19 +43,19 @@ public class FieldList {
 			return option;
 		}
 
-		boolean isAvailable() {
+		public boolean isAvailable() {
 			return this.option != FieldOption.IGNORE;
 		}
 
-		boolean isRequired() {
+		public boolean isRequired() {
 			return this.option == FieldOption.REQUIRED;
 		}
 
-		boolean isOptional() {
+		public boolean isOptional() {
 			return this.option == FieldOption.OPTIONAL;
 		}
 
-		boolean isNullable() {
+		public boolean isNullable() {
 			return this.option == FieldOption.NULLABLE;
 		}
 	}
@@ -89,7 +89,7 @@ public class FieldList {
 		}
 	}
 
-	List<Entry> getList() {
+	public List<Entry> getList() {
 		return list;
 	}
 }

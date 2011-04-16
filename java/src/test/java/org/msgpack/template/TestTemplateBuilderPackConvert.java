@@ -24,7 +24,10 @@ import org.msgpack.Unpacker;
 import org.msgpack.annotation.MessagePackMessage;
 import org.msgpack.annotation.MessagePackOrdinalEnum;
 import org.msgpack.annotation.Optional;
+import org.msgpack.template.builder.BuilderSelectorRegistry;
+import org.msgpack.template.builder.TemplateBuilder;
 
+import junit.framework.Assert;
 import junit.framework.TestCase;
 
 public class TestTemplateBuilderPackConvert extends TestCase {
@@ -595,22 +598,18 @@ public class TestTemplateBuilderPackConvert extends TestCase {
 
 		SampleMapTypes dst =
 			MessagePack.unpack(raw).convert(SampleMapTypes.class);
+		assertEquals(0, dst.f0.size());
+		assertEquals(src.f1.size(), dst.f1.size());
 		Iterator<Integer> srcf1 = src.f1.keySet().iterator();
-		Iterator<Integer> dstf1 = dst.f1.keySet().iterator();
 		while (srcf1.hasNext()) {
 			Integer s1 = srcf1.next();
-			Integer d1 = dstf1.next();
-			assertEquals(s1, d1);
-			assertEquals(src.f1.get(s1), dst.f1.get(d1));
+			assertEquals(src.f1.get(s1), dst.f1.get(s1));
 		}
 		assertEquals(src.f2.size(), dst.f2.size());
 		Iterator<String> srcf2 = src.f2.keySet().iterator();
-		Iterator<String> dstf2 = dst.f2.keySet().iterator();
 		while (srcf2.hasNext()) {
 			String s2 = srcf2.next();
-			String d2 = dstf2.next();
-			assertEquals(s2, d2);
-			assertEquals(src.f2.get(s2), dst.f2.get(d2));
+			assertEquals(src.f2.get(s2), dst.f2.get(s2));
 		}
 	}
 
@@ -651,24 +650,18 @@ public class TestTemplateBuilderPackConvert extends TestCase {
 
 		SampleOptionalMapTypes dst =
 			MessagePack.unpack(raw).convert(SampleOptionalMapTypes.class);
-		assertEquals(src.f0.size(), dst.f0.size());
+		assertEquals(0, dst.f0.size());
 		assertEquals(src.f1.size(), dst.f1.size());
 		Iterator<Integer> srcf1 = src.f1.keySet().iterator();
-		Iterator<Integer> dstf1 = dst.f1.keySet().iterator();
 		while (srcf1.hasNext()) {
 			Integer s1 = srcf1.next();
-			Integer d1 = dstf1.next();
-			assertEquals(s1, d1);
-			assertEquals(src.f1.get(s1), dst.f1.get(d1));
+			assertEquals(src.f1.get(s1), dst.f1.get(s1));
 		}
 		assertEquals(src.f2.size(), dst.f2.size());
 		Iterator<String> srcf2 = src.f2.keySet().iterator();
-		Iterator<String> dstf2 = dst.f2.keySet().iterator();
 		while (srcf2.hasNext()) {
 			String s2 = srcf2.next();
-			String d2 = dstf2.next();
-			assertEquals(s2, d2);
-			assertEquals(src.f2.get(s2), dst.f2.get(d2));
+			assertEquals(src.f2.get(s2), dst.f2.get(s2));
 		}
 	}
 
@@ -714,7 +707,9 @@ public class TestTemplateBuilderPackConvert extends TestCase {
 	@Test
 	public void testFinalClass() throws Exception {
 		try {
-			TemplateBuilder.build(FinalModifierClass.class);
+			TemplateBuilder builder = BuilderSelectorRegistry.getInstance().select(FinalModifierClass.class);
+			Assert.assertNull(builder);// no available builder
+			BuilderSelectorRegistry.getInstance().getForceBuilder().buildTemplate(FinalModifierClass.class);
 			assertTrue(true);
 		} catch (TemplateBuildException e) {
 			fail();
@@ -731,7 +726,9 @@ public class TestTemplateBuilderPackConvert extends TestCase {
 	@Test
 	public void testInterfaceType00() throws Exception {
 		try {
-			TemplateBuilder.build(SampleInterface.class);
+			TemplateBuilder builder = BuilderSelectorRegistry.getInstance().select(SampleInterface.class);
+			Assert.assertNull(builder);// no available builder
+			BuilderSelectorRegistry.getInstance().getForceBuilder().buildTemplate(SampleInterface.class);
 			fail();
 		} catch (TemplateBuildException e) {
 			assertTrue(true);
@@ -742,7 +739,9 @@ public class TestTemplateBuilderPackConvert extends TestCase {
 	@Test
 	public void testInterfaceType01() throws Exception {
 		try {
-			TemplateBuilder.build(SampleInterface.class);
+			TemplateBuilder builder = BuilderSelectorRegistry.getInstance().select(SampleInterface.class);
+			Assert.assertNull(builder);// no available builder
+			BuilderSelectorRegistry.getInstance().getForceBuilder().buildTemplate(SampleInterface.class);
 			fail();
 		} catch (TemplateBuildException e) {
 			assertTrue(true);

@@ -1,7 +1,7 @@
 //
 // MessagePack for Java
 //
-// Copyright (C) 2009-2010 FURUHASHI Sadayuki
+// Copyright (C) 2009-2011 FURUHASHI Sadayuki
 //
 //    Licensed under the Apache License, Version 2.0 (the "License");
 //    you may not use this file except in compliance with the License.
@@ -15,24 +15,33 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 //
-package org.msgpack.template;
+package org.msgpack.template.builder;
 
 import java.io.IOException;
-import java.lang.reflect.*;
-import java.util.Map;
-import java.util.HashMap;
-import org.msgpack.*;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 
-public class ReflectionTemplateBuilder extends TemplateBuilder {
-	private static ReflectionTemplateBuilder instance;
-	public synchronized static ReflectionTemplateBuilder getInstance() {
-		if(instance == null) {
-			instance = new ReflectionTemplateBuilder();
-		}
-		return instance;
+import org.msgpack.AbstractTemplate;
+import org.msgpack.MessagePackObject;
+import org.msgpack.MessageTypeException;
+import org.msgpack.Packer;
+import org.msgpack.Template;
+import org.msgpack.Unpacker;
+import org.msgpack.template.FieldEntry;
+import org.msgpack.template.FieldEntryReader;
+import org.msgpack.template.IFieldEntry;
+import org.msgpack.template.IFieldEntryReader;
+import org.msgpack.template.TemplateRegistry;
+
+public class ReflectionTemplateBuilder extends CustomTemplateBuilder {
+	IFieldEntryReader reader = new FieldEntryReader();
+	
+	@Override
+	public IFieldEntryReader getFieldEntryReader(){
+		return reader;
 	}
 
-	private ReflectionTemplateBuilder() {
+	public ReflectionTemplateBuilder() {
 	}
 
 	static abstract class ReflectionFieldEntry extends FieldEntry {
@@ -373,9 +382,10 @@ public class ReflectionTemplateBuilder extends TemplateBuilder {
 		}
 	}
 
-	public Template buildTemplate(Class<?> targetClass, FieldEntry[] entries) {
-		for(FieldEntry e : entries) {
-			Field f = e.getField();
+	public Template buildTemplate(Class<?> targetClass, IFieldEntry[] entries) {
+		// TODO Now it is simply cast.
+		for(IFieldEntry e : entries) {
+			Field f = ((FieldEntry)e).getField();
 			int mod = f.getModifiers();
 			if(!Modifier.isPublic(mod)) {
 				f.setAccessible(true);
@@ -384,7 +394,7 @@ public class ReflectionTemplateBuilder extends TemplateBuilder {
 
 		ReflectionFieldEntry[] res = new ReflectionFieldEntry[entries.length];
 		for(int i=0; i < entries.length; i++) {
-			FieldEntry e = entries[i];
+			FieldEntry e = (FieldEntry)entries[i];
 			Class<?> type = e.getType();
 			if(!e.isAvailable()) {
 				res[i] = new NullFieldEntry(e);
@@ -407,163 +417,7 @@ public class ReflectionTemplateBuilder extends TemplateBuilder {
 				res[i] = new ObjectFieldEntry(e, tmpl);
 			}
 		}
-
 		return new ReflectionTemplate(targetClass, res);
-	}
-
-	static class ReflectionOrdinalEnumTemplate extends AbstractTemplate {
-		protected Enum<?>[] entries;
-		protected Map<Enum<?>, Integer> reverse;
-
-		ReflectionOrdinalEnumTemplate(Enum<?>[] entries) {
-			this.entries = entries;
-			this.reverse = new HashMap<Enum<?>, Integer>();
-			for(int i=0; i < entries.length; i++) {
-				this.reverse.put(entries[i], i);
-			}
-		}
-
-		public void pack(Packer pk, Object target) throws IOException {
-			Integer ord = reverse.get(target);
-			if(ord == null) {
-				throw new MessageTypeException();
-			}
-			pk.pack((int)ord);
-		}
-
-		public Object unpack(Unpacker pac, Object to) throws IOException, MessageTypeException {
-			int ord = pac.unpackInt();
-			if(entries.length <= ord) {
-				throw new MessageTypeException();
-			}
-			return entries[ord];
-		}
-
-		public Object convert(MessagePackObject from, Object to) throws MessageTypeException {
-			int ord = from.asInt();
-			if(entries.length <= ord) {
-				throw new MessageTypeException();
-			}
-			return entries[ord];
-		}
-	}
-
-	public Template buildOrdinalEnumTemplate(Class<?> targetClass, Enum<?>[] entries) {
-		return new ReflectionOrdinalEnumTemplate(entries);
-	}
-
-
-	static class ReflectionObjectArrayTemplate extends AbstractTemplate {
-		private Class<?> componentClass;
-		private Template elementTemplate;
-
-		public ReflectionObjectArrayTemplate(Class<?> componentClass, Template elementTemplate) {
-			this.componentClass = componentClass;
-			this.elementTemplate = elementTemplate;
-		}
-
-		public void pack(Packer pk, Object target) throws IOException {
-			if(!(target instanceof Object[]) || !componentClass.isAssignableFrom(target.getClass().getComponentType())) {
-				throw new MessageTypeException();
-			}
-			Object[] array = (Object[])target;
-			int length = array.length;
-			pk.packArray(length);
-			for(int i=0; i < length; i++) {
-				elementTemplate.pack(pk, array[i]);
-			}
-		}
-
-		public Object unpack(Unpacker pac, Object to) throws IOException {
-			int length = pac.unpackArray();
-			Object[] array = (Object[])Array.newInstance(componentClass, length);
-			for(int i=0; i < length; i++) {
-				array[i] = elementTemplate.unpack(pac, null);
-			}
-			return array;
-		}
-
-		public Object convert(MessagePackObject from, Object to) throws MessageTypeException {
-			MessagePackObject[] src = from.asArray();
-			int length = src.length;
-			Object[] array = (Object[])Array.newInstance(componentClass, length);
-			for(int i=0; i < length; i++) {
-				array[i] = elementTemplate.convert(src[i], null);
-			}
-			return array;
-		}
-	}
-
-	static class ReflectionMultidimentionalArrayTemplate extends AbstractTemplate {
-		private Class<?> componentClass;
-		private Template componentTemplate;
-
-		public ReflectionMultidimentionalArrayTemplate(Class<?> componentClass, Template componentTemplate) {
-			this.componentClass = componentClass;
-			this.componentTemplate = componentTemplate;
-		}
-
-		Class<?> getComponentClass() {
-			return componentClass;
-		}
-
-		public void pack(Packer pk, Object target) throws IOException {
-			Object[] array = (Object[])target;
-			int length = array.length;
-			pk.packArray(length);
-			for(int i=0; i < length; i++) {
-				componentTemplate.pack(pk, array[i]);
-			}
-		}
-
-		public Object unpack(Unpacker pac, Object to) throws IOException, MessageTypeException {
-			int length = pac.unpackArray();
-			Object[] array = (Object[])Array.newInstance(componentClass, length);
-			for(int i=0; i < length; i++) {
-				array[i] = componentTemplate.unpack(pac, null);
-			}
-			return array;
-		}
-
-		public Object convert(MessagePackObject from, Object to) throws MessageTypeException {
-			MessagePackObject[] src = from.asArray();
-			int length = src.length;
-			Object[] array = (Object[])Array.newInstance(componentClass, length);
-			for(int i=0; i < length; i++) {
-				array[i] = componentTemplate.convert(src[i], null);
-			}
-			return array;
-		}
-	}
-
-	public Template buildArrayTemplate(Type arrayType, Type genericBaseType, Class<?> baseClass, int dim) {
-		if(dim == 1) {
-			if(baseClass == boolean.class) {
-				return BooleanArrayTemplate.getInstance();
-			} else if(baseClass == short.class) {
-				return ShortArrayTemplate.getInstance();
-			} else if(baseClass == int.class) {
-				return IntArrayTemplate.getInstance();
-			} else if(baseClass == long.class) {
-				return LongArrayTemplate.getInstance();
-			} else if(baseClass == float.class) {
-				return FloatArrayTemplate.getInstance();
-			} else if(baseClass == double.class) {
-				return DoubleArrayTemplate.getInstance();
-			} else {
-				Template baseTemplate = TemplateRegistry.lookup(genericBaseType);
-				return new ReflectionObjectArrayTemplate(baseClass, baseTemplate);
-			}
-		} else if(dim == 2) {
-			Class<?> componentClass = Array.newInstance(baseClass, 0).getClass();
-			Template componentTemplate = buildArrayTemplate(arrayType, genericBaseType, baseClass, dim-1);
-			return new ReflectionMultidimentionalArrayTemplate(componentClass, componentTemplate);
-		} else {
-			ReflectionMultidimentionalArrayTemplate componentTemplate = (ReflectionMultidimentionalArrayTemplate)
-				buildArrayTemplate(arrayType, genericBaseType, baseClass, dim-1);
-			Class<?> componentClass = Array.newInstance(componentTemplate.getComponentClass(), 0).getClass();
-			return new ReflectionMultidimentionalArrayTemplate(componentClass, componentTemplate);
-		}
 	}
 }
 

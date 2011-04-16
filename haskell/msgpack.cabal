@@ -1,12 +1,12 @@
 Name:               msgpack
-Version:            0.4.0.1
-Synopsis:           A Haskell binding to MessagePack
+Version:            0.6.1.1
+Synopsis:           A Haskell implementation of MessagePack
 Description:
-  A Haskell binding to MessagePack <http://msgpack.org/>
+  A Haskell implementation of MessagePack <http://msgpack.org/>
 
 License:            BSD3
 License-File:       LICENSE
-Copyright:          Copyright (c) 2009-2010, Hideyuki Tanaka
+Copyright:          Copyright (c) 2009-2011, Hideyuki Tanaka
 Category:           Data
 Author:             Hideyuki Tanaka
 Maintainer:         Hideyuki Tanaka <tanaka.hideyuki@gmail.com>
@@ -21,27 +21,29 @@ Extra-source-files:
 
 Library
   Build-depends:    base >=4 && <5,
-                    transformers >= 0.2.1 && < 0.2.2,
-                    MonadCatchIO-transformers >= 0.2.2 && < 0.2.3,
+                    transformers >= 0.2 && < 0.3,
                     bytestring >= 0.9 && < 0.10,
-                    vector >= 0.6.0 && < 0.6.1,
-                    iteratee >= 0.4 && < 0.5,
-                    attoparsec >= 0.8.1 && < 0.8.2,
+                    text >= 0.11 && < 0.12,
+                    vector >= 0.7 && < 0.8,
+                    attoparsec >= 0.8 && < 0.9,
                     binary >= 0.5.0 && < 0.5.1,
                     data-binary-ieee754 >= 0.4 && < 0.5,
                     deepseq >= 1.1 && <1.2,
-                    template-haskell >= 2.4 && < 2.5
+                    template-haskell >= 2.4 && < 2.6
 
   Ghc-options:      -Wall
   Hs-source-dirs:   src
 
   Exposed-modules:
     Data.MessagePack
+    Data.MessagePack.Assoc
     Data.MessagePack.Pack
     Data.MessagePack.Unpack
     Data.MessagePack.Object
-    Data.MessagePack.Iteratee
     Data.MessagePack.Derive
+
+  Other-modules:
+    Data.MessagePack.Internal.Utf8
 
 Source-repository head
   Type:     git

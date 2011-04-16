@@ -7,6 +7,9 @@ import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy.Char8 as L
 import Data.MessagePack
 
+instance Arbitrary a => Arbitrary (Assoc a) where
+  arbitrary = liftM Assoc arbitrary
+
 mid :: (Packable a, Unpackable a) => a -> a
 mid = unpack . pack
 
@@ -36,10 +39,12 @@ prop_mid_pair4 a = a == mid a
   where types = a :: (Int, Int, Int, Int)
 prop_mid_pair5 a = a == mid a
   where types = a :: (Int, Int, Int, Int, Int)
-prop_mid_map_int_double a = a == mid a
+prop_mid_list_int_double a = a == mid a
   where types = a :: [(Int, Double)]
-prop_mid_map_string_string a = a == mid a
+prop_mid_list_string_string a = a == mid a
   where types = a :: [(String, String)]
+prop_mid_map_string_int a = a == mid a
+  where types = a :: Assoc [(String,Int)]
 
 tests =
   [ testGroup "simple"
@@ -56,8 +61,9 @@ tests =
     , testProperty "(int, int, int)" prop_mid_pair3
     , testProperty "(int, int, int, int)" prop_mid_pair4
     , testProperty "(int, int, int, int, int)" prop_mid_pair5
-    , testProperty "[(int, double)]" prop_mid_map_int_double
-    , testProperty "[(string, string)]" prop_mid_map_string_string
+    , testProperty "[(int, double)]" prop_mid_list_int_double
+    , testProperty "[(string, string)]" prop_mid_list_string_string
+    , testProperty "Assoc [(string, int)]" prop_mid_map_string_int
     ]
   ]
 

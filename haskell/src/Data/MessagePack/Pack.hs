@@ -1,6 +1,5 @@
 {-# Language FlexibleInstances #-}
 {-# Language IncoherentInstances #-}
-{-# Language OverlappingInstances #-}
 {-# Language TypeSynonymInstances #-}
 
 --------------------------------------------------------------------
@@ -28,9 +27,15 @@ import Data.Binary.Put
 import Data.Binary.IEEE754
 import Data.Bits
 import qualified Data.ByteString as B
-import qualified Data.ByteString.Char8 as B8
-import qualified Data.ByteString.Lazy as L
+import qualified Data.ByteString.Lazy as BL
+import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
+import qualified Data.Text.Lazy as TL
+import qualified Data.Text.Lazy.Encoding as TL
 import qualified Data.Vector as V
+
+import Data.MessagePack.Assoc
+import Data.MessagePack.Internal.Utf8
 
 -- | Serializable class
 class Packable a where
@@ -38,7 +43,7 @@ class Packable a where
   put :: a -> Put
 
 -- | Pack Haskell data to MessagePack string.
-pack :: Packable a => a -> L.ByteString
+pack :: Packable a => a -> BL.ByteString
 pack = runPut . put
 
 instance Packable Int where
@@ -81,23 +86,35 @@ instance Packable Bool where
   put True = putWord8 0xC3
   put False = putWord8 0xC2
 
+instance Packable Float where
+  put f = do
+    putWord8 0xCA
+    putFloat32be f
+
 instance Packable Double where
   put d = do
     putWord8 0xCB
     putFloat64be d
 
 instance Packable String where
-  put = putString length (putByteString . B8.pack)
+  put = putString encodeUtf8 B.length putByteString
 
 instance Packable B.ByteString where
-  put = putString B.length putByteString
+  put = putString id B.length putByteString
 
-instance Packable L.ByteString where
-  put = putString (fromIntegral . L.length) putLazyByteString
+instance Packable BL.ByteString where
+  put = putString id (fromIntegral . BL.length) putLazyByteString
 
-putString :: (s -> Int) -> (s -> Put) -> s -> Put
-putString lf pf str = do
-  case lf str of
+instance Packable T.Text where
+  put = putString T.encodeUtf8 B.length putByteString
+
+instance Packable TL.Text where
+  put = putString TL.encodeUtf8 (fromIntegral . BL.length) putLazyByteString
+
+putString :: (s -> t) -> (t -> Int) -> (t -> Put) -> s -> Put
+putString cnv lf pf str = do
+  let bs = cnv str
+  case lf bs of
     len | len <= 31 -> do
       putWord8 $ 0xA0 .|. fromIntegral len
     len | len < 0x10000 -> do
@@ -106,7 +123,7 @@ putString lf pf str = do
     len -> do
       putWord8 0xDB
       putWord32be $ fromIntegral len
-  pf str
+  pf bs
 
 instance Packable a => Packable [a] where
   put = putArray length (mapM_ put)
@@ -159,11 +176,11 @@ putArray lf pf arr = do
       putWord32be $ fromIntegral len
   pf arr
 
-instance (Packable k, Packable v) => Packable [(k, v)] where
-  put = putMap length (mapM_ putPair)
+instance (Packable k, Packable v) => Packable (Assoc [(k,v)]) where
+  put = putMap length (mapM_ putPair) . unAssoc
 
-instance (Packable k, Packable v) => Packable (V.Vector (k, v)) where
-  put = putMap V.length (V.mapM_ putPair)
+instance (Packable k, Packable v) => Packable (Assoc (V.Vector (k,v))) where
+  put = putMap V.length (V.mapM_ putPair) . unAssoc
 
 putPair :: (Packable a, Packable b) => (a, b) -> Put
 putPair (a, b) = put a >> put b
@@ -184,3 +201,4 @@ putMap lf pf m = do
 instance Packable a => Packable (Maybe a) where
   put Nothing = put ()
   put (Just a) = put a
+

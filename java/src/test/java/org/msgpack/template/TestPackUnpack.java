@@ -2,6 +2,7 @@ package org.msgpack.template;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -766,6 +767,92 @@ public class TestPackUnpack extends TestCase {
 		unpacker.wrap(bytes);
 		tmpl = new NullableTemplate(new CollectionTemplate(StringTemplate.getInstance()));
 		Collection<String> dst = (Collection<String>) tmpl.unpack(unpacker, null);
+		assertEquals(src, dst);
+	}
+
+	@Test
+	public void testBigDecimal() throws Exception {
+		// String
+		_testBigDecimal(new BigDecimal("0"));
+		_testBigDecimal(new BigDecimal("-0"));
+		_testBigDecimal(new BigDecimal("1"));
+		_testBigDecimal(new BigDecimal("-1"));
+		_testBigDecimal(new BigDecimal("123.456"));
+		_testBigDecimal(new BigDecimal("-123.456"));
+		_testBigDecimal(new BigDecimal("0.123456789"));
+		_testBigDecimal(new BigDecimal("-0.123456789"));
+
+		// char array
+		char[] zero = {'0'};
+		_testBigDecimal(new BigDecimal(zero));
+		char[] one = {'1'};
+		_testBigDecimal(new BigDecimal(one));
+		char[] minusOne = {'-', '1'};
+		_testBigDecimal(new BigDecimal(minusOne));
+		char[] decimal = {'1', '2', '3', '.', '4', '5', '6'};
+		_testBigDecimal(new BigDecimal(decimal));
+		char[] minusDecimal = {'-', '1', '2', '3', '.', '4', '5', '6'};
+		_testBigDecimal(new BigDecimal(minusDecimal));
+		char[] oneOrLessDecimal = {'0', '.', '1', '2', '3'};
+		_testBigDecimal(new BigDecimal(oneOrLessDecimal));
+		char[] minusOneOrLessDecimal = {'-', '0', '.', '1', '2', '3'};
+		_testBigDecimal(new BigDecimal(minusOneOrLessDecimal));
+
+		// int
+		_testBigDecimal(new BigDecimal(0));
+		_testBigDecimal(new BigDecimal(-0));
+		_testBigDecimal(new BigDecimal(1));
+		_testBigDecimal(new BigDecimal(-1));
+		_testBigDecimal(new BigDecimal(Integer.MAX_VALUE));
+		_testBigDecimal(new BigDecimal(Integer.MIN_VALUE));
+
+		// double
+		_testBigDecimal(new BigDecimal((double) 0.0));
+		_testBigDecimal(new BigDecimal((double) -0.0));
+		_testBigDecimal(new BigDecimal((double) 1.0));
+		_testBigDecimal(new BigDecimal((double) -1.0));
+		_testBigDecimal(new BigDecimal((double) 123.456));
+		_testBigDecimal(new BigDecimal((double) -123.456));
+		_testBigDecimal(new BigDecimal((double) 0.123456789));
+		_testBigDecimal(new BigDecimal((double) -0.123456789));
+		_testBigDecimal(new BigDecimal(Double.MAX_VALUE));
+		_testBigDecimal(new BigDecimal(Double.MIN_VALUE));
+	}
+
+	static void _testBigDecimal(BigDecimal src) throws Exception {
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		Template tmpl = BigDecimalTemplate.getInstance();
+		tmpl.pack(new Packer(out), src);
+		ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+		BigDecimal dst = (BigDecimal) tmpl.unpack(new Unpacker(in), null);
+		assertEquals(src, dst);
+	}
+
+	@Test
+	public void testNullBigDecimal() throws Exception {
+		BigDecimal src = null;
+		Template tmpl = BigDecimalTemplate.getInstance();
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		Packer packer = new Packer(out);
+		try {
+			tmpl.pack(packer, src);
+			fail();
+		} catch (Exception e) {
+			assertTrue(e instanceof MessageTypeException);
+		}
+		packer.pack(src);
+		byte[] bytes = out.toByteArray();
+		Unpacker unpacker = new Unpacker();
+		try {
+			unpacker.wrap(bytes);
+			tmpl.unpack(unpacker, null);
+			fail();
+		} catch (Exception e) {
+			assertTrue(e instanceof MessageTypeException);
+		}
+		unpacker.wrap(bytes);
+		tmpl = new NullableTemplate(BigDecimalTemplate.getInstance());
+		BigDecimal dst = (BigDecimal) tmpl.unpack(unpacker, null);
 		assertEquals(src, dst);
 	}
 }
