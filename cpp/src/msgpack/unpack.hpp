@@ -258,17 +258,7 @@ inline object unpacker::data()
 
 inline zone* unpacker::release_zone()
 {
-	if(!msgpack_unpacker_flush_zone(this)) {
-		throw std::bad_alloc();
-	}
-
-	zone* r = new zone();
-
-	msgpack_zone old = *base::z;
-	*base::z = *r;
-	*static_cast<msgpack_zone*>(r) = old;
-
-	return r;
+	return static_cast<msgpack::zone*>(msgpack_unpacker_release_zone(static_cast<msgpack_unpacker*>(this)));
 }
 
 inline void unpacker::reset_zone()
