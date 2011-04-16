@@ -335,11 +335,11 @@ msgpack_zone* msgpack_unpacker_release_zone(msgpack_unpacker* mpac)
 		return NULL;
 	}
 
-	msgpack_zone old = *mpac->z;
-	*mpac->z = *r;
-	*r = old;
+	msgpack_zone* old = mpac->z;
+	mpac->z = r;
+	CTX_CAST(mpac->ctx)->user.z = mpac->z;
 
-	return r;
+	return old;
 }
 
 void msgpack_unpacker_reset_zone(msgpack_unpacker* mpac)
