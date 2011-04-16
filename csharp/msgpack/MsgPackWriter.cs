@@ -42,6 +42,11 @@ namespace msgpack
 			}
 		}
 
+		public void Write (char x)
+		{
+			Write ((ushort)x);
+		}
+
 		public void Write (uint x)
 		{
 			if (x < 0x10000) {

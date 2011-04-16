@@ -61,7 +61,8 @@ namespace msgpack
 				else if (t.Equals (typeof (byte))) writer.Write ((byte)o);
 				else if (t.Equals (typeof (sbyte))) writer.Write ((sbyte)o);
 				else if (t.Equals (typeof (short))) writer.Write ((short)o);
-				else if (t.Equals (typeof (ushort)) || t.Equals (typeof (char))) writer.Write ((ushort)o);
+				else if (t.Equals (typeof (ushort))) writer.Write ((ushort)o);
+				else if (t.Equals (typeof (char))) writer.Write ((ushort)(char)o);
 				else throw new NotSupportedException ();
 				return;
 			}
@@ -111,6 +112,26 @@ namespace msgpack
 				throw new NotSupportedException ();
 			MsgPackReader reader = new MsgPackReader (strm);
 			return (T)Unpack (reader, typeof (T));
+		}
+
+		public object Unpack (Type type, byte[] buf)
+		{
+			return Unpack (type, buf, 0, buf.Length);
+		}
+
+		public object Unpack (Type type, byte[] buf, int offset, int size)
+		{
+			using (MemoryStream ms = new MemoryStream (buf, offset, size)) {
+				return Unpack (type, ms);
+			}
+		}
+
+		public object Unpack (Type type, Stream strm)
+		{
+			if (type.IsPrimitive)
+				throw new NotSupportedException ();
+			MsgPackReader reader = new MsgPackReader (strm);
+			return Unpack (reader, type);
 		}
 
 		object Unpack (MsgPackReader reader, Type t)
