@@ -541,8 +541,8 @@ class ScalaFieldEntry(name : String) extends IFieldEntry{
 
   def getJavaTypeName = {
     if(getType.isArray){
-      //TODO implement here
-      getType.getName()
+      getType.getComponentType.getName + "[]"
+
     }else{
       getType.getName()
     }

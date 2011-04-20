@@ -51,6 +51,7 @@ class ScalaMessagePackTest extends Specification with JUnit /*with ScalaCheck*/ 
       v.doubleVar = 2.5
       v.strVar = "fugafuga"
       v.dateVar = new Date(1233333)
+      v.intArray = Array(1,2,3,4,5)
 
       val b = ScalaMessagePack.pack(v)
       val des : BasicalTypes = ScalaMessagePack.unpack[BasicalTypes](b)
@@ -63,6 +64,7 @@ class ScalaMessagePackTest extends Specification with JUnit /*with ScalaCheck*/ 
       des.doubleVar must be_==(v.doubleVar)
       des.strVar must be_==(v.strVar)
       des.dateVar must be_==(v.dateVar)
+      des.intArray must containAll(v.intArray)
 
 
     }

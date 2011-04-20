@@ -72,7 +72,7 @@ class BasicalTypes{
 
   var dateVar : Date = null
 
-
+  var intArray : Array[Int] = Array()
 
 }
 
