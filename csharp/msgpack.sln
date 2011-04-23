@@ -18,7 +18,6 @@ Global
 		{CE24167B-8F0A-4670-BD1E-3C283311E86B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{CE24167B-8F0A-4670-BD1E-3C283311E86B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CE24167B-8F0A-4670-BD1E-3C283311E86B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CE24167B-8F0A-4670-BD1E-3C283311E86B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

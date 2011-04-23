@@ -42,7 +42,7 @@
     <Compile Include="BoxingPacker.cs" />
     <Compile Include="CompiledPacker.cs" />
     <Compile Include="Compiler\EmitExtensions.cs" />
-    <Compile Include="Compiler\PackerCompiler.cs" />
+    <Compile Include="Compiler\PackILGenerator.cs" />
     <Compile Include="Compiler\Variable.cs" />
     <Compile Include="Compiler\VariableType.cs" />
     <Compile Include="MsgPackReader.cs" />
