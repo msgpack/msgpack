@@ -54,14 +54,9 @@ public class BuilderSelectorRegistry {
 	 */
 	private static void initForJava(){
 		instance.append(new ArrayTemplateBuilderSelector());
-		
 		if(isSupportJavassist()){
-			instance.append(
-					new AnnotationTemplateBuilderSelector(
-							new JavassistTemplateBuilder()));
+			instance.append(new AnnotationTemplateBuilderSelector(new JavassistTemplateBuilder()));
 			instance.forceBuilder = new JavassistTemplateBuilder();
-
-			//Java beans
 			instance.append(new BeansTemplateBuilderSelector(
 					new JavassistTemplateBuilder(
 							new BeansFieldEntryReader(),
@@ -73,22 +68,17 @@ public class BuilderSelectorRegistry {
 							}
 					)));
 		}else{
-			instance.append(
-					new AnnotationTemplateBuilderSelector(
-							new ReflectionTemplateBuilder()));
+			instance.append(new AnnotationTemplateBuilderSelector(new ReflectionTemplateBuilder()));
 			instance.forceBuilder = new ReflectionTemplateBuilder();
-			
-			//Java beans
-			instance.append(new BeansTemplateBuilderSelector(
-					new BeansTemplateBuilder()));
+			instance.append(new BeansTemplateBuilderSelector(new BeansTemplateBuilder()));
 		}
-		
 		instance.append(new OrdinalEnumTemplateBuilderSelector());
 		instance.append(new EnumTemplateBuilderSelector());
 	}
+
 	public static boolean isSupportJavassist(){
 		try {
-			return System.getProperty("java.vm.name").equals("Dalvik");
+			return !System.getProperty("java.vm.name").equals("Dalvik");
 		} catch (Exception e) {
 			return true;
 		}
@@ -112,7 +102,6 @@ public class BuilderSelectorRegistry {
      * @param builderSelector
      */
     public void append(BuilderSelector builderSelector){
-    	
     	if(contains(builderSelector.getName())){
 			throw new RuntimeException("Duplicate BuilderSelector name:" + builderSelector.getName());
     	}

@@ -19,43 +19,92 @@ package org.msgpack.util;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import org.msgpack.template.builder.BuilderSelectorRegistry;
+import javax.tools.DiagnosticCollector;
+import javax.tools.JavaCompiler;
+import javax.tools.JavaFileManager;
+import javax.tools.JavaFileObject;
+import javax.tools.StandardLocation;
+import javax.tools.ToolProvider;
+
 import org.msgpack.template.builder.JavassistTemplateBuilder;
-import org.msgpack.template.builder.TemplateBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class TemplatePrecompiler {
+
 	private static final Logger LOG = LoggerFactory.getLogger(TemplatePrecompiler.class);
 
-	//public static final String SRC = "msgpack.template.srcdir";
+	public static final String DEST = "msgpack.template.destdir";
 
-	public static final String DIST = "msgpack.template.distdir";
+	public static final String DEFAULT_DEST = ".";
 
-	//public static final String DEFAULT_SRC = ".";
-
-	public static final String DEFAULT_DIST = ".";
-
-	private static TemplatePrecompiler INSTANCE = null;
-
-	private TemplatePrecompiler() {
+	public static void saveTemplates(final String[] classNames) throws IOException, ClassNotFoundException {
+		List<String> ret = new ArrayList<String>();
+		for (String className : classNames) {
+			matchClassNames(ret, className);
+		}
+		List<Class<?>> ret0 = toClass(ret);
+		for (Class<?> c : ret0) {
+			saveTemplateClass(c);
+		}
 	}
 
-	public static void saveTemplates(final String[] classFileNames) throws IOException {
-		throw new UnsupportedOperationException("Not supported yet.");// TODO
+	@SuppressWarnings("serial")
+	private static void matchClassNames(List<String> ret, final String className) throws IOException {
+		String packageName = className.substring(0, className.lastIndexOf('.'));
+		String relativedName = className.substring(className.lastIndexOf('.') + 1, className.length());
+		String patName = relativedName.replace("*", "(\\w+)");
+		Pattern pat = Pattern.compile(patName);
+
+		JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+		JavaFileManager fm = compiler.getStandardFileManager(
+		    new DiagnosticCollector<JavaFileObject>(), null, null);
+		HashSet<JavaFileObject.Kind> kind = new HashSet<JavaFileObject.Kind>(){{
+		    add(JavaFileObject.Kind.CLASS);
+		}};
+
+		for (JavaFileObject f : fm.list(StandardLocation.PLATFORM_CLASS_PATH, packageName, kind, false)) {
+			String relatived0 = f.getName();
+			String name0 = relatived0.substring(0, relatived0.length() - ".class".length());
+			Matcher m = pat.matcher(name0);
+			if (m.matches()) {
+				String name = packageName + '.' + name0;
+				if (!ret.contains(name)) {
+					ret.add(name);
+				}
+			}
+		}
+	}
+
+	private static List<Class<?>> toClass(List<String> classNames) throws ClassNotFoundException {
+		List<Class<?>> ret = new ArrayList<Class<?>>(classNames.size());
+		ClassLoader cl = TemplatePrecompiler.class.getClassLoader();
+		for (String className : classNames) {
+			Class<?> c = cl.loadClass(className);
+			ret.add(c);
+		}
+		return ret;
+	}
+
+	public static void saveTemplateClasses(Class<?>[] targetClasses) throws IOException {
+		for (Class<?> c : targetClasses) {
+			saveTemplateClass(c);
+		}
 	}
 
 	public static void saveTemplateClass(Class<?> targetClass) throws IOException {
-		if (INSTANCE != null) {
-			INSTANCE = new TemplatePrecompiler();
-		}
 		LOG.info("Saving template of " + targetClass.getName() + "...");
 		Properties props = System.getProperties();
-		String distDirName = getDirName(props, DIST, DEFAULT_DIST);
+		String distDirName = getDirName(props, DEST, DEFAULT_DEST);
 		if (targetClass.isEnum()) {
-			throw new UnsupportedOperationException("Enum not supported yet: " + targetClass.getName());
+			throw new UnsupportedOperationException("Not supported enum type yet: " + targetClass.getName());
 		} else {
 			new JavassistTemplateBuilder().writeTemplate(targetClass, distDirName);
 		}
