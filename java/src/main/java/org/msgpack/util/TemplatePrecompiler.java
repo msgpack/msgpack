@@ -37,6 +37,12 @@ import org.msgpack.template.builder.JavassistTemplateBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * This class is a template precompiler, which is used for saving templates
+ * that <code>TemplateBuilder</code> generated.  It saves templates as .class files.
+ * Application enables to load the .class files and use templates.
+ *
+ */
 public class TemplatePrecompiler {
 
 	private static final Logger LOG = LoggerFactory.getLogger(TemplatePrecompiler.class);
