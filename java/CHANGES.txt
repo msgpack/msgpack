@@ -1,4 +1,23 @@
 
+Release 0.5.2 - 2011/04/23
+  NEW FEATURES
+    MSGPACK-6 Added TemplatePrecompiler program
+
+    Added built-in templates of BigDecimal and Date classes.
+
+    Added @MessagePackBeans annotation that enables you to serialize/deserialize
+    JavaBeans.
+
+  BUG FIXES
+    MSGPACK-4 Fixes the deserialization routine of Long value
+
+  IMPROVEMENTS
+    #13 Improves handling of ClassLoader on Javasisst template builder.
+
+    MSGPACK-7 Improves compatibility with Java 1.5. Now it runs on JRE 5.
+    It is tested on Jenkins CI: http://ci.msgpack.org/job/java-jre5/
+
+
 Release 0.5.1 - 2010/12/14
   BUG FIXES
     Fixes cast error on GenericArrayType
