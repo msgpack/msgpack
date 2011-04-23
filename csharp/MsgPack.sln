@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "msgpack", "msgpack\msgpack.csproj", "{E1809531-EC2A-4EA6-B0E8-CC815EDFAA2F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MsgPack", "MsgPack\MsgPack.csproj", "{E1809531-EC2A-4EA6-B0E8-CC815EDFAA2F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "msgpack.tests", "msgpack.tests\msgpack.tests.csproj", "{CE24167B-8F0A-4670-BD1E-3C283311E86B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MsgPack.Test", "MsgPack.Test/MsgPack.Test.csproj", "{CE24167B-8F0A-4670-BD1E-3C283311E86B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -8,8 +8,8 @@
     <ProjectGuid>{CE24167B-8F0A-4670-BD1E-3C283311E86B}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>msgpack.tests</RootNamespace>
-    <AssemblyName>msgpack.tests</AssemblyName>
+    <RootNamespace>MsgPack.Test</RootNamespace>
+    <AssemblyName>MsgPack.Test</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -49,9 +49,9 @@
     <Compile Include="ReaderWriterTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\msgpack\msgpack.csproj">
+    <ProjectReference Include="..\MsgPack\MsgPack.csproj">
       <Project>{E1809531-EC2A-4EA6-B0E8-CC815EDFAA2F}</Project>
-      <Name>msgpack</Name>
+      <Name>MsgPack</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

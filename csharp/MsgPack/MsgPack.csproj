@@ -8,8 +8,8 @@
     <ProjectGuid>{E1809531-EC2A-4EA6-B0E8-CC815EDFAA2F}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>msgpack</RootNamespace>
-    <AssemblyName>msgpack</AssemblyName>
+    <RootNamespace>MsgPack</RootNamespace>
+    <AssemblyName>MsgPack</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile>Client</TargetFrameworkProfile>
