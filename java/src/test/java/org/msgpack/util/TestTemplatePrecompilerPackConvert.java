@@ -8,8 +8,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import junit.framework.TestCase;
-
 import org.junit.Test;
 import org.msgpack.MessagePack;
 import org.msgpack.annotation.MessagePackMessage;
@@ -17,12 +15,13 @@ import org.msgpack.annotation.Optional;
 import org.msgpack.template.TemplateBuildException;
 import org.msgpack.template.TemplateRegistry;
 
-public class TestTemplatePrecompilerPackUnpack extends TestCase {
- 
+import junit.framework.TestCase;
+
+public class TestTemplatePrecompilerPackConvert extends TestCase {
+
 	@Test
 	public void testPrimitiveTypeFields00() throws Exception {
 		System.getProperties().setProperty(TemplatePrecompiler.DEST, "./target/test-classes");
-		Class<?> c = PrimitiveTypeFieldsClass.class;
 		TemplatePrecompiler.saveTemplateClass(PrimitiveTypeFieldsClass.class);
 
 		PrimitiveTypeFieldsClass src = new PrimitiveTypeFieldsClass();
@@ -35,10 +34,9 @@ public class TestTemplatePrecompilerPackUnpack extends TestCase {
 		src.f6 = false;
 
 		try {
-			TemplateRegistry.unregister(c);
-			TemplateRegistry.lookup(c);
 			byte[] raw = MessagePack.pack(src);
-			PrimitiveTypeFieldsClass dst = MessagePack.unpack(raw, PrimitiveTypeFieldsClass.class);
+			PrimitiveTypeFieldsClass dst = MessagePack.unpack(raw).convert(
+					PrimitiveTypeFieldsClass.class);
 			assertEquals(src.f0, dst.f0);
 			assertEquals(src.f1, dst.f1);
 			assertEquals(src.f2, dst.f2);
@@ -47,23 +45,21 @@ public class TestTemplatePrecompilerPackUnpack extends TestCase {
 			assertEquals(src.f5, dst.f5);
 			assertEquals(src.f6, dst.f6);
 		} finally {
-			TemplateRegistry.unregister(c);
+			TemplateRegistry.unregister(PrimitiveTypeFieldsClass.class);
 		}
 	}
 
 	@Test
 	public void testPrimitiveTypeFields01() throws Exception {
 		System.getProperties().setProperty(TemplatePrecompiler.DEST, "./target/test-classes");
-		Class<?> c = PrimitiveTypeFieldsClass.class;
 		TemplatePrecompiler.saveTemplateClass(PrimitiveTypeFieldsClass.class);
 
 		PrimitiveTypeFieldsClass src = new PrimitiveTypeFieldsClass();
 
 		try {
-			TemplateRegistry.unregister(c);
-			TemplateRegistry.lookup(c);
 			byte[] raw = MessagePack.pack(src);
-			PrimitiveTypeFieldsClass dst = MessagePack.unpack(raw, PrimitiveTypeFieldsClass.class);
+			PrimitiveTypeFieldsClass dst = MessagePack.unpack(raw).convert(
+					PrimitiveTypeFieldsClass.class);
 			assertEquals(src.f0, dst.f0);
 			assertEquals(src.f1, dst.f1);
 			assertEquals(src.f2, dst.f2);
@@ -72,26 +68,24 @@ public class TestTemplatePrecompilerPackUnpack extends TestCase {
 			assertEquals(src.f5, dst.f5);
 			assertEquals(src.f6, dst.f6);
 		} finally {
-			TemplateRegistry.unregister(c);
+			TemplateRegistry.unregister(PrimitiveTypeFieldsClass.class);	
 		}
 	}
 
 	@Test
 	public void testPrimitiveTypeFields02() throws Exception {
 		System.getProperties().setProperty(TemplatePrecompiler.DEST, "./target/test-classes");
-		Class<?> c = PrimitiveTypeFieldsClass.class;
 		TemplatePrecompiler.saveTemplateClass(PrimitiveTypeFieldsClass.class);
 
 		PrimitiveTypeFieldsClass src = null;
 
 		try {
-			TemplateRegistry.unregister(c);
-			TemplateRegistry.lookup(c);
 			byte[] raw = MessagePack.pack(src);
-			PrimitiveTypeFieldsClass dst = MessagePack.unpack(raw, PrimitiveTypeFieldsClass.class);
+			PrimitiveTypeFieldsClass dst = MessagePack.unpack(raw).convert(
+					PrimitiveTypeFieldsClass.class);
 			assertEquals(src, dst);
 		} finally {
-			TemplateRegistry.unregister(c);
+			TemplateRegistry.unregister(PrimitiveTypeFieldsClass.class);
 		}
 	}
 
@@ -112,7 +106,6 @@ public class TestTemplatePrecompilerPackUnpack extends TestCase {
 	@Test
 	public void testOptionalPrimitiveTypeFields00() throws Exception {
 		System.getProperties().setProperty(TemplatePrecompiler.DEST, "./target/test-classes");
-		Class<?> c = OptionalPrimitiveTypeFieldsClass.class;
 		TemplatePrecompiler.saveTemplateClass(OptionalPrimitiveTypeFieldsClass.class);
 
 		OptionalPrimitiveTypeFieldsClass src = new OptionalPrimitiveTypeFieldsClass();
@@ -125,11 +118,9 @@ public class TestTemplatePrecompilerPackUnpack extends TestCase {
 		src.f6 = false;
 
 		try {
-			TemplateRegistry.unregister(c);
-			TemplateRegistry.lookup(c);
 			byte[] raw = MessagePack.pack(src);
-			OptionalPrimitiveTypeFieldsClass dst =
-				MessagePack.unpack(raw, OptionalPrimitiveTypeFieldsClass.class);
+			PrimitiveTypeFieldsClass dst = MessagePack.unpack(raw).convert(
+					PrimitiveTypeFieldsClass.class);
 			assertEquals(src.f0, dst.f0);
 			assertEquals(src.f1, dst.f1);
 			assertEquals(src.f2, dst.f2);
@@ -138,24 +129,21 @@ public class TestTemplatePrecompilerPackUnpack extends TestCase {
 			assertEquals(src.f5, dst.f5);
 			assertEquals(src.f6, dst.f6);
 		} finally {
-			TemplateRegistry.unregister(c);
+			TemplateRegistry.unregister(OptionalPrimitiveTypeFieldsClass.class);
 		}
 	}
 
 	@Test
 	public void testOptionalPrimitiveTypeFields01() throws Exception {
 		System.getProperties().setProperty(TemplatePrecompiler.DEST, "./target/test-classes");
-		Class<?> c = OptionalPrimitiveTypeFieldsClass.class;
-		TemplatePrecompiler.saveTemplateClass(c);
+		TemplatePrecompiler.saveTemplateClass(OptionalPrimitiveTypeFieldsClass.class);
 
 		OptionalPrimitiveTypeFieldsClass src = new OptionalPrimitiveTypeFieldsClass();
 
 		try {
-			TemplateRegistry.unregister(c);
-			TemplateRegistry.lookup(c);
 			byte[] raw = MessagePack.pack(src);
-			OptionalPrimitiveTypeFieldsClass dst =
-				MessagePack.unpack(raw, OptionalPrimitiveTypeFieldsClass.class);
+			OptionalPrimitiveTypeFieldsClass dst = MessagePack.unpack(raw)
+					.convert(OptionalPrimitiveTypeFieldsClass.class);
 			assertEquals(src.f0, dst.f0);
 			assertEquals(src.f1, dst.f1);
 			assertEquals(src.f2, dst.f2);
@@ -164,27 +152,24 @@ public class TestTemplatePrecompilerPackUnpack extends TestCase {
 			assertEquals(src.f5, dst.f5);
 			assertEquals(src.f6, dst.f6);
 		} finally {
-			TemplateRegistry.unregister(c);			
+			TemplateRegistry.unregister(OptionalPrimitiveTypeFieldsClass.class);	
 		}
 	}
 
 	@Test
 	public void testOptionalPrimitiveTypeFields02() throws Exception {
 		System.getProperties().setProperty(TemplatePrecompiler.DEST, "./target/test-classes");
-		Class<?> c = OptionalPrimitiveTypeFieldsClass.class;
-		TemplatePrecompiler.saveTemplateClass(c);
+		TemplatePrecompiler.saveTemplateClass(OptionalPrimitiveTypeFieldsClass.class);
 
 		OptionalPrimitiveTypeFieldsClass src = null;
 
 		try {
-			TemplateRegistry.unregister(c);
-			TemplateRegistry.lookup(c);
 			byte[] raw = MessagePack.pack(src);
-			OptionalPrimitiveTypeFieldsClass dst =
-				MessagePack.unpack(raw, OptionalPrimitiveTypeFieldsClass.class);
+			OptionalPrimitiveTypeFieldsClass dst = MessagePack.unpack(raw)
+					.convert(OptionalPrimitiveTypeFieldsClass.class);
 			assertEquals(src, dst);
 		} finally {
-			TemplateRegistry.unregister(c);
+			TemplateRegistry.unregister(OptionalPrimitiveTypeFieldsClass.class);
 		}
 	}
 
@@ -212,8 +197,7 @@ public class TestTemplatePrecompilerPackUnpack extends TestCase {
 	@Test
 	public void testGeneralReferenceTypeFieldsClass00() throws Exception {
 		System.getProperties().setProperty(TemplatePrecompiler.DEST, "./target/test-classes");
-		Class<?> c = GeneralReferenceTypeFieldsClass.class;
-		TemplatePrecompiler.saveTemplateClass(c);
+		TemplatePrecompiler.saveTemplateClass(GeneralReferenceTypeFieldsClass.class);
 
 		GeneralReferenceTypeFieldsClass src = new GeneralReferenceTypeFieldsClass();
 		src.f0 = 0;
@@ -229,11 +213,9 @@ public class TestTemplatePrecompilerPackUnpack extends TestCase {
 		src.f10 = ByteBuffer.wrap("muga".getBytes());
 
 		try {
-			TemplateRegistry.unregister(c);
-			TemplateRegistry.lookup(c);
 			byte[] raw = MessagePack.pack(src);
-			GeneralReferenceTypeFieldsClass dst =
-				MessagePack.unpack(raw, GeneralReferenceTypeFieldsClass.class);
+			GeneralReferenceTypeFieldsClass dst = MessagePack.unpack(raw)
+					.convert(GeneralReferenceTypeFieldsClass.class);
 			assertEquals(src.f0, dst.f0);
 			assertEquals(src.f1, dst.f1);
 			assertEquals(src.f2, dst.f2);
@@ -247,27 +229,24 @@ public class TestTemplatePrecompilerPackUnpack extends TestCase {
 			assertEquals(src.f9[1], dst.f9[1]);
 			assertEquals(src.f10, dst.f10);
 		} finally {
-			TemplateRegistry.unregister(c);
+			TemplateRegistry.unregister(GeneralReferenceTypeFieldsClass.class);
 		}
 	}
 
 	@Test
 	public void testGeneralReferenceTypeFieldsClass01() throws Exception {
 		System.getProperties().setProperty(TemplatePrecompiler.DEST, "./target/test-classes");
-		Class<?> c = GeneralReferenceTypeFieldsClass.class;
-		TemplatePrecompiler.saveTemplateClass(c);
+		TemplatePrecompiler.saveTemplateClass(GeneralReferenceTypeFieldsClass.class);
 
 		GeneralReferenceTypeFieldsClass src = null;
 
 		try {
-			TemplateRegistry.unregister(c);
-			TemplateRegistry.lookup(c);
 			byte[] raw = MessagePack.pack(src);
-			GeneralReferenceTypeFieldsClass dst =
-				MessagePack.unpack(raw, GeneralReferenceTypeFieldsClass.class);
+			GeneralReferenceTypeFieldsClass dst = MessagePack.unpack(raw)
+					.convert(GeneralReferenceTypeFieldsClass.class);
 			assertEquals(src, dst);
 		} finally {
-			TemplateRegistry.unregister(c);
+			TemplateRegistry.unregister(GeneralReferenceTypeFieldsClass.class);
 		}
 	}
 
@@ -292,8 +271,7 @@ public class TestTemplatePrecompilerPackUnpack extends TestCase {
 	@Test
 	public void testGeneralOptionalReferenceTypeFieldsClass00() throws Exception {
 		System.getProperties().setProperty(TemplatePrecompiler.DEST, "./target/test-classes");
-		Class<?> c = GeneralOptionalReferenceTypeFieldsClass.class;
-		TemplatePrecompiler.saveTemplateClass(c);
+		TemplatePrecompiler.saveTemplateClass(GeneralOptionalReferenceTypeFieldsClass.class);
 
 		GeneralOptionalReferenceTypeFieldsClass src = new GeneralOptionalReferenceTypeFieldsClass();
 		src.f0 = 0;
@@ -309,11 +287,9 @@ public class TestTemplatePrecompilerPackUnpack extends TestCase {
 		src.f10 = ByteBuffer.wrap("muga".getBytes());
 
 		try {
-			TemplateRegistry.unregister(c);
-			TemplateRegistry.lookup(c);
 			byte[] raw = MessagePack.pack(src);
-			GeneralOptionalReferenceTypeFieldsClass dst =
-				MessagePack.unpack(raw, GeneralOptionalReferenceTypeFieldsClass.class);
+			GeneralOptionalReferenceTypeFieldsClass dst = MessagePack.unpack(
+					raw).convert(GeneralOptionalReferenceTypeFieldsClass.class);
 			assertEquals(src.f0, dst.f0);
 			assertEquals(src.f1, dst.f1);
 			assertEquals(src.f2, dst.f2);
@@ -327,15 +303,14 @@ public class TestTemplatePrecompilerPackUnpack extends TestCase {
 			assertEquals(src.f9[1], dst.f9[1]);
 			assertEquals(src.f10, dst.f10);
 		} finally {
-			TemplateRegistry.unregister(c);
+			TemplateRegistry.unregister(GeneralOptionalReferenceTypeFieldsClass.class);
 		}
 	}
 
 	@Test
 	public void testGeneralOptionalReferenceTypeFieldsClass01() throws Exception {
 		System.getProperties().setProperty(TemplatePrecompiler.DEST, "./target/test-classes");
-		Class<?> c = GeneralOptionalReferenceTypeFieldsClass.class;
-		TemplatePrecompiler.saveTemplateClass(c);
+		TemplatePrecompiler.saveTemplateClass(GeneralOptionalReferenceTypeFieldsClass.class);
 
 		GeneralOptionalReferenceTypeFieldsClass src = new GeneralOptionalReferenceTypeFieldsClass();
 		src.f0 = null;
@@ -351,11 +326,9 @@ public class TestTemplatePrecompilerPackUnpack extends TestCase {
 		src.f10 = null;
 
 		try {
-			TemplateRegistry.unregister(c);
-			TemplateRegistry.lookup(c);
 			byte[] raw = MessagePack.pack(src);
-			GeneralOptionalReferenceTypeFieldsClass dst =
-				MessagePack.unpack(raw, GeneralOptionalReferenceTypeFieldsClass.class);
+			GeneralOptionalReferenceTypeFieldsClass dst = MessagePack.unpack(
+					raw).convert(GeneralOptionalReferenceTypeFieldsClass.class);
 			assertEquals(src.f0, dst.f0);
 			assertEquals(src.f1, dst.f1);
 			assertEquals(src.f2, dst.f2);
@@ -368,27 +341,24 @@ public class TestTemplatePrecompilerPackUnpack extends TestCase {
 			assertEquals(src.f9, dst.f9);
 			assertEquals(src.f10, dst.f10);
 		} finally {
-			TemplateRegistry.unregister(c);
+			TemplateRegistry.unregister(GeneralOptionalReferenceTypeFieldsClass.class);
 		}
 	}
 
 	@Test
 	public void testGeneralOptionalReferenceTypeFieldsClass02() throws Exception {
 		System.getProperties().setProperty(TemplatePrecompiler.DEST, "./target/test-classes");
-		Class<?> c = GeneralOptionalReferenceTypeFieldsClass.class;
-		TemplatePrecompiler.saveTemplateClass(c);
+		TemplatePrecompiler.saveTemplateClass(GeneralOptionalReferenceTypeFieldsClass.class);
 
 		GeneralOptionalReferenceTypeFieldsClass src = null;
 
 		try {
-			TemplateRegistry.unregister(c);
-			TemplateRegistry.lookup(c);
 			byte[] raw = MessagePack.pack(src);
-			GeneralOptionalReferenceTypeFieldsClass dst =
-				MessagePack.unpack(raw, GeneralOptionalReferenceTypeFieldsClass.class);
+			GeneralOptionalReferenceTypeFieldsClass dst = MessagePack.unpack(
+					raw).convert(GeneralOptionalReferenceTypeFieldsClass.class);
 			assertEquals(src, dst);
 		} finally {
-			TemplateRegistry.unregister(c);
+			TemplateRegistry.unregister(GeneralOptionalReferenceTypeFieldsClass.class);
 		}
 	}
 
@@ -450,15 +420,9 @@ public class TestTemplatePrecompilerPackUnpack extends TestCase {
 		src.f5.add(ByteBuffer.wrap("e3".getBytes()));
 
 		try {
-			TemplateRegistry.unregister(SampleListNestedType.class);
-			TemplateRegistry.unregister(SampleListTypes.class);
-			TemplateRegistry.lookup(SampleListNestedType.class);
-			TemplateRegistry.lookup(SampleListTypes.class);
-
 			byte[] raw = MessagePack.pack(src);
-
-			SampleListTypes dst = MessagePack
-					.unpack(raw, SampleListTypes.class);
+			SampleListTypes dst = MessagePack.unpack(raw).convert(
+					SampleListTypes.class);
 			for (int i = 0; i < src.f1.size(); ++i) {
 				assertEquals(src.f1.get(i), dst.f1.get(i));
 			}
@@ -504,15 +468,9 @@ public class TestTemplatePrecompilerPackUnpack extends TestCase {
 		SampleListTypes src = null;
 
 		try {
-			TemplateRegistry.unregister(SampleListNestedType.class);
-			TemplateRegistry.unregister(SampleListTypes.class);
-			TemplateRegistry.lookup(SampleListNestedType.class);
-			TemplateRegistry.lookup(SampleListTypes.class);
-
 			byte[] raw = MessagePack.pack(src);
-
-			SampleListTypes dst =
-				MessagePack.unpack(raw, SampleListTypes.class);
+			SampleListTypes dst = MessagePack.unpack(raw).convert(
+					SampleListTypes.class);
 			assertEquals(src, dst);
 		} finally {
 			TemplateRegistry.unregister(SampleListNestedType.class);
@@ -571,14 +529,9 @@ public class TestTemplatePrecompilerPackUnpack extends TestCase {
 		src.f5.add(ByteBuffer.wrap("e3".getBytes()));
 
 		try {
-			TemplateRegistry.unregister(SampleOptionalListNestedType.class);
-			TemplateRegistry.unregister(SampleOptionalListTypes.class);
-			TemplateRegistry.lookup(SampleOptionalListNestedType.class);
-			TemplateRegistry.lookup(SampleOptionalListTypes.class);
-
 			byte[] raw = MessagePack.pack(src);
-
-			SampleOptionalListTypes dst = MessagePack.unpack(raw, SampleOptionalListTypes.class);
+			SampleOptionalListTypes dst = MessagePack.unpack(raw).convert(
+					SampleOptionalListTypes.class);
 			assertEquals(src.f0.size(), dst.f0.size());
 			assertEquals(src.f1.size(), dst.f1.size());
 			for (int i = 0; i < src.f1.size(); ++i) {
@@ -613,7 +566,7 @@ public class TestTemplatePrecompilerPackUnpack extends TestCase {
 			}
 		} finally {
 			TemplateRegistry.unregister(SampleOptionalListNestedType.class);
-			TemplateRegistry.unregister(SampleOptionalListTypes.class);
+			TemplateRegistry.unregister(SampleOptionalListNestedType.class);
 		}
 	}
 
@@ -632,13 +585,9 @@ public class TestTemplatePrecompilerPackUnpack extends TestCase {
 		src.f5 = new ArrayList<ByteBuffer>();
 
 		try {
-			TemplateRegistry.unregister(SampleOptionalListNestedType.class);
-			TemplateRegistry.unregister(SampleOptionalListTypes.class);
-			TemplateRegistry.lookup(SampleOptionalListNestedType.class);
-			TemplateRegistry.lookup(SampleOptionalListTypes.class);
-
 			byte[] raw = MessagePack.pack(src);
-			SampleOptionalListTypes dst = MessagePack.unpack(raw, SampleOptionalListTypes.class);
+			SampleOptionalListTypes dst = MessagePack.unpack(raw).convert(
+					SampleOptionalListTypes.class);
 			assertEquals(src.f0.size(), dst.f0.size());
 			assertEquals(src.f1, dst.f1);
 			assertEquals(src.f2.size(), dst.f2.size());
@@ -647,7 +596,7 @@ public class TestTemplatePrecompilerPackUnpack extends TestCase {
 			assertEquals(src.f5.size(), dst.f5.size());
 		} finally {
 			TemplateRegistry.unregister(SampleOptionalListNestedType.class);
-			TemplateRegistry.unregister(SampleOptionalListTypes.class);
+			TemplateRegistry.unregister(SampleOptionalListNestedType.class);
 		}
 	}
 
@@ -660,19 +609,13 @@ public class TestTemplatePrecompilerPackUnpack extends TestCase {
 		SampleListTypes src = null;
 
 		try {
-			TemplateRegistry.unregister(SampleOptionalListNestedType.class);
-			TemplateRegistry.unregister(SampleOptionalListTypes.class);
-			TemplateRegistry.lookup(SampleOptionalListNestedType.class);
-			TemplateRegistry.lookup(SampleOptionalListTypes.class);
-
 			byte[] raw = MessagePack.pack(src);
-
-			SampleListTypes dst =
-				MessagePack.unpack(raw, SampleListTypes.class);
+			SampleListTypes dst = MessagePack.unpack(raw).convert(
+					SampleListTypes.class);
 			assertEquals(src, dst);
 		} finally {
 			TemplateRegistry.unregister(SampleOptionalListNestedType.class);
-			TemplateRegistry.unregister(SampleOptionalListTypes.class);
+			TemplateRegistry.unregister(SampleOptionalListNestedType.class);
 		}
 	}
 
@@ -723,12 +666,9 @@ public class TestTemplatePrecompilerPackUnpack extends TestCase {
 		src.f2.put("k3", 3);
 
 		try {
-			TemplateRegistry.unregister(SampleMapTypes.class);
-			TemplateRegistry.lookup(SampleMapTypes.class);
-
 			byte[] raw = MessagePack.pack(src);
-
-			SampleMapTypes dst = MessagePack.unpack(raw, SampleMapTypes.class);
+			SampleMapTypes dst = MessagePack.unpack(raw).convert(
+					SampleMapTypes.class);
 			assertEquals(0, dst.f0.size());
 			assertEquals(src.f1.size(), dst.f1.size());
 			Iterator<Integer> srcf1 = src.f1.keySet().iterator();
@@ -743,7 +683,7 @@ public class TestTemplatePrecompilerPackUnpack extends TestCase {
 				assertEquals(src.f2.get(s2), dst.f2.get(s2));
 			}
 		} finally {
-			TemplateRegistry.unregister(SampleMapTypes.class);	
+			TemplateRegistry.unregister(SampleMapTypes.class);
 		}
 	}
 
@@ -753,14 +693,10 @@ public class TestTemplatePrecompilerPackUnpack extends TestCase {
 		TemplatePrecompiler.saveTemplateClass(SampleMapTypes.class);
 
 		SampleMapTypes src = null;
-		
+
 		try {
-			TemplateRegistry.unregister(SampleMapTypes.class);
-			TemplateRegistry.lookup(SampleMapTypes.class);
-
 			byte[] raw = MessagePack.pack(src);
-
-			SampleMapTypes dst = MessagePack.unpack(raw, SampleMapTypes.class);
+			SampleMapTypes dst = MessagePack.unpack(raw).convert(SampleMapTypes.class);
 			assertEquals(src, dst);
 		} finally {
 			TemplateRegistry.unregister(SampleMapTypes.class);
@@ -794,12 +730,8 @@ public class TestTemplatePrecompilerPackUnpack extends TestCase {
 		src.f2.put("k3", 3);
 
 		try {
-			TemplateRegistry.unregister(SampleOptionalMapTypes.class);
-			TemplateRegistry.lookup(SampleOptionalMapTypes.class);
-
 			byte[] raw = MessagePack.pack(src);
-
-			SampleOptionalMapTypes dst = MessagePack.unpack(raw,
+			SampleOptionalMapTypes dst = MessagePack.unpack(raw).convert(
 					SampleOptionalMapTypes.class);
 			assertEquals(0, dst.f0.size());
 			assertEquals(src.f1.size(), dst.f1.size());
@@ -830,11 +762,8 @@ public class TestTemplatePrecompilerPackUnpack extends TestCase {
 		src.f2 = new HashMap<String, Integer>();
 
 		try {
-			TemplateRegistry.unregister(SampleOptionalMapTypes.class);
-			TemplateRegistry.lookup(SampleOptionalMapTypes.class);
 			byte[] raw = MessagePack.pack(src);
-
-			SampleOptionalMapTypes dst = MessagePack.unpack(raw,
+			SampleOptionalMapTypes dst = MessagePack.unpack(raw).convert(
 					SampleOptionalMapTypes.class);
 			assertEquals(src.f0.size(), dst.f0.size());
 			assertEquals(src.f1, dst.f1);
@@ -850,12 +779,10 @@ public class TestTemplatePrecompilerPackUnpack extends TestCase {
 		TemplatePrecompiler.saveTemplateClass(SampleOptionalMapTypes.class);
 
 		SampleOptionalMapTypes src = null;
-		try {
-			TemplateRegistry.unregister(SampleOptionalMapTypes.class);
-			TemplateRegistry.lookup(SampleOptionalMapTypes.class);
-			byte[] raw = MessagePack.pack(src);
 
-			SampleOptionalMapTypes dst = MessagePack.unpack(raw,
+		try {
+			byte[] raw = MessagePack.pack(src);
+			SampleOptionalMapTypes dst = MessagePack.unpack(raw).convert(
 					SampleOptionalMapTypes.class);
 			assertEquals(src, dst);
 		} finally {
@@ -918,6 +845,7 @@ public class TestTemplatePrecompilerPackUnpack extends TestCase {
 	public void testFieldModifiers() throws Exception {
 		System.getProperties().setProperty(TemplatePrecompiler.DEST, "./target/test-classes");
 		TemplatePrecompiler.saveTemplateClass(FieldModifiersClass.class);
+
 		FieldModifiersClass src = new FieldModifiersClass();
 		src.f0 = 0;
 		src.f2 = 2;
@@ -926,7 +854,8 @@ public class TestTemplatePrecompilerPackUnpack extends TestCase {
 
 		try {
 			byte[] raw = MessagePack.pack(src);
-			FieldModifiersClass dst = MessagePack.unpack(raw, FieldModifiersClass.class);
+			FieldModifiersClass dst = MessagePack.unpack(raw).convert(
+					FieldModifiersClass.class);
 			assertTrue(src.f1 == dst.f1);
 			assertTrue(src.f2 != dst.f2);
 			assertTrue(src.f3 != dst.f3);
@@ -961,7 +890,7 @@ public class TestTemplatePrecompilerPackUnpack extends TestCase {
 
 		try {
 			byte[] raw = MessagePack.pack(src);
-			OptionalFieldModifiersClass dst = MessagePack.unpack(raw,
+			OptionalFieldModifiersClass dst = MessagePack.unpack(raw).convert(
 					OptionalFieldModifiersClass.class);
 			assertTrue(src.f0 == dst.f0);
 			assertTrue(src.f1 == dst.f1);
@@ -1001,7 +930,7 @@ public class TestTemplatePrecompilerPackUnpack extends TestCase {
 
 		try {
 			byte[] raw = MessagePack.pack(src);
-			BaseClass dst = MessagePack.unpack(raw, BaseClass.class);
+			BaseClass dst = MessagePack.unpack(raw).convert(BaseClass.class);
 			assertTrue(src.f0 == dst.f0);
 			assertTrue(src.f1.f2 == dst.f1.f2);
 		} finally {
@@ -1020,7 +949,7 @@ public class TestTemplatePrecompilerPackUnpack extends TestCase {
 
 		try {
 			byte[] raw = MessagePack.pack(src);
-			BaseClass dst = MessagePack.unpack(raw, BaseClass.class);
+			BaseClass dst = MessagePack.unpack(raw).convert(BaseClass.class);
 			assertEquals(src, dst);
 		} finally {
 			TemplateRegistry.unregister(NestedClass.class);
@@ -1059,7 +988,8 @@ public class TestTemplatePrecompilerPackUnpack extends TestCase {
 
 		try {
 			byte[] raw = MessagePack.pack(src);
-			OptionalBaseClass dst = MessagePack.unpack(raw, OptionalBaseClass.class);
+			OptionalBaseClass dst = MessagePack.unpack(raw).convert(
+					OptionalBaseClass.class);
 			assertTrue(src.f0 == dst.f0);
 			assertTrue(src.f1.f2 == dst.f1.f2);
 		} finally {
@@ -1079,7 +1009,7 @@ public class TestTemplatePrecompilerPackUnpack extends TestCase {
 
 		try {
 			byte[] raw = MessagePack.pack(src);
-			OptionalBaseClass dst = MessagePack.unpack(raw,
+			OptionalBaseClass dst = MessagePack.unpack(raw).convert(
 					OptionalBaseClass.class);
 			assertTrue(src.f0 == dst.f0);
 			assertTrue(src.f1 == dst.f1);
@@ -1099,7 +1029,8 @@ public class TestTemplatePrecompilerPackUnpack extends TestCase {
 
 		try {
 			byte[] raw = MessagePack.pack(src);
-			OptionalBaseClass dst = MessagePack.unpack(raw, OptionalBaseClass.class);
+			OptionalBaseClass dst = MessagePack.unpack(raw).convert(
+					OptionalBaseClass.class);
 			assertEquals(src, dst);
 		} finally {
 			TemplateRegistry.unregister(OptionalNestedClass.class);
@@ -1141,7 +1072,7 @@ public class TestTemplatePrecompilerPackUnpack extends TestCase {
 
 		try {
 			byte[] raw = MessagePack.pack(src);
-			BaseClass2 dst = MessagePack.unpack(raw, BaseClass2.class);
+			BaseClass2 dst = MessagePack.unpack(raw).convert(BaseClass2.class);
 			assertTrue(src.f0 == dst.f0);
 			assertTrue(src.f1.f2 == dst.f1.f2);
 		} finally {
@@ -1160,7 +1091,7 @@ public class TestTemplatePrecompilerPackUnpack extends TestCase {
 
 		try {
 			byte[] raw = MessagePack.pack(src);
-			BaseClass2 dst = MessagePack.unpack(raw, BaseClass2.class);
+			BaseClass2 dst = MessagePack.unpack(raw).convert(BaseClass2.class);
 			assertEquals(src, dst);
 		} finally {
 			TemplateRegistry.unregister(MessagePackMessageClass2.class);
@@ -1199,7 +1130,8 @@ public class TestTemplatePrecompilerPackUnpack extends TestCase {
 
 		try {
 			byte[] raw = MessagePack.pack(src);
-			OptionalBaseClass2 dst = MessagePack.unpack(raw, OptionalBaseClass2.class);
+			OptionalBaseClass2 dst = MessagePack.unpack(raw).convert(
+					OptionalBaseClass2.class);
 			assertTrue(src.f0 == dst.f0);
 			assertTrue(src.f1.f2 == dst.f1.f2);
 		} finally {
@@ -1219,7 +1151,8 @@ public class TestTemplatePrecompilerPackUnpack extends TestCase {
 
 		try {
 			byte[] raw = MessagePack.pack(src);
-			OptionalBaseClass2 dst = MessagePack.unpack(raw, OptionalBaseClass2.class);
+			OptionalBaseClass2 dst = MessagePack.unpack(raw).convert(
+					OptionalBaseClass2.class);
 			assertTrue(src.f0 == dst.f0);
 			assertEquals(src.f1, dst.f1);
 		} finally {
@@ -1238,7 +1171,8 @@ public class TestTemplatePrecompilerPackUnpack extends TestCase {
 
 		try {
 			byte[] raw = MessagePack.pack(src);
-			OptionalBaseClass2 dst = MessagePack.unpack(raw, OptionalBaseClass2.class);
+			OptionalBaseClass2 dst = MessagePack.unpack(raw).convert(
+					OptionalBaseClass2.class);
 			assertEquals(src, dst);
 		} finally {
 			TemplateRegistry.unregister(OptionalBaseClass2.class);
@@ -1283,7 +1217,8 @@ public class TestTemplatePrecompilerPackUnpack extends TestCase {
 
 		try {
 			byte[] raw = MessagePack.pack(src);
-			SampleSubClass dst = MessagePack.unpack(raw, SampleSubClass.class);
+			SampleSubClass dst = MessagePack.unpack(raw).convert(
+					SampleSubClass.class);
 			assertTrue(src.f0 == dst.f0);
 			assertTrue(src.f1 == dst.f1);
 			assertTrue(src.f2 != dst.f2);
@@ -1309,7 +1244,8 @@ public class TestTemplatePrecompilerPackUnpack extends TestCase {
 
 		try {
 			byte[] raw = MessagePack.pack(src);
-			SampleSubClass dst = MessagePack.unpack(raw, SampleSubClass.class);
+			SampleSubClass dst = MessagePack.unpack(raw).convert(
+					SampleSubClass.class);
 			assertEquals(src, dst);
 		} finally {
 			TemplateRegistry.unregister(SampleSuperClass.class);
@@ -1359,7 +1295,8 @@ public class TestTemplatePrecompilerPackUnpack extends TestCase {
 
 		try {
 			byte[] raw = MessagePack.pack(src);
-			SampleOptionalSubClass dst = MessagePack.unpack(raw, SampleOptionalSubClass.class);
+			SampleOptionalSubClass dst = MessagePack.unpack(raw).convert(
+					SampleOptionalSubClass.class);
 			assertTrue(src.f0 == dst.f0);
 			assertTrue(src.f1 == dst.f1);
 			assertTrue(src.f2 != dst.f2);
@@ -1385,7 +1322,8 @@ public class TestTemplatePrecompilerPackUnpack extends TestCase {
 
 		try {
 			byte[] raw = MessagePack.pack(src);
-			SampleOptionalSubClass dst = MessagePack.unpack(raw, SampleOptionalSubClass.class);
+			SampleOptionalSubClass dst = MessagePack.unpack(raw).convert(
+					SampleOptionalSubClass.class);
 			assertEquals(src, dst);
 		} finally {
 			TemplateRegistry.unregister(SampleOptionalSuperClass.class);
