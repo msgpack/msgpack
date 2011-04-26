@@ -337,6 +337,7 @@ msgpack_zone* msgpack_unpacker_release_zone(msgpack_unpacker* mpac)
 
 	msgpack_zone* old = mpac->z;
 	mpac->z = r;
+	CTX_CAST(mpac->ctx)->user.z = mpac->z;
 
 	return old;
 }

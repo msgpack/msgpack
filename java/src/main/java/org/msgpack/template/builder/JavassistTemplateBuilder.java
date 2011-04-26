@@ -112,7 +112,7 @@ public class JavassistTemplateBuilder extends CustomTemplateBuilder {
 	 * @param reader
 	 * @param buildContextFactory
 	 */
-	public JavassistTemplateBuilder(IFieldEntryReader reader,BuildContextFactory buildContextFactory ){
+	public JavassistTemplateBuilder(IFieldEntryReader reader, BuildContextFactory buildContextFactory ){
 		this();
 		this.reader = reader;
 		this.buildContextFactory = buildContextFactory;

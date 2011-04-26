@@ -280,6 +280,6 @@ public class BeansBuildContext extends BuildContextBase<BeansFieldEntry> {
 
 	@Override
 	public Template loadTemplate(Class<?> targetClass, BeansFieldEntry[] entries, Template[] templates) {
-		throw new UnsupportedOperationException(targetClass.getName());
+		return null;
 	}
 }
