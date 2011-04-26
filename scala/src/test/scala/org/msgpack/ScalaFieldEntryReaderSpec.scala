@@ -16,9 +16,11 @@ import org.specs.runner.{ JUnitSuiteRunner, JUnit }
  *
  */
 @RunWith(classOf[JUnitSuiteRunner])
-class ScalaFieldEntryReaderSpec extends Specification with JUnit  {
+class ScalaFieldEntryReaderTest extends Specification with JUnit  {
 
   "ScalaFieldEntryReader" should {
+
+
     "check setter " in {
       val reader = new ScalaFieldEntryReader()
 
@@ -54,18 +56,40 @@ class ScalaFieldEntryReaderSpec extends Specification with JUnit  {
 
         val props = reader.findPropertyMethods(c)
 
-        println(props.keys)
+        println("props=" + props.keys)
 
         props.size must be_==(6)
-        props must haveKey("name")
-        props must haveKey("number")
-        props must haveKey("traitName")
-        props must haveKey("traitNum")
-        props must haveKey("sampleClass2Name")
-        props must haveKey("sampleClass2Num")
+        val l = props.toList
+        l(0)._1 must_== "name"
+        l(1)._1 must_== "number"
+        l(2)._1 must_== "sampleClass2Name"
+        l(3)._1 must_== "sampleClass2Num"
+        l(4)._1 must_== "traitName"
+        l(5)._1 must_== "traitNum"
       }
 
     }
+
+    "field order" in {
+      var reader = new ScalaFieldEntryReader
+      val c = classOf[FieldOrder]
+
+      println("Methods of FieldOrder class")
+      c.getMethods.foreach(println(_))
+      println("-- end --")
+
+      val props = reader.findPropertyMethods(c)
+
+      var index : Int = 0
+      val names = List("one","two","three","four","five","six")
+      for( p <- props.values){
+        p._1.getName must_== names(index)
+        index += 1
+      }
+
+
+    }
+
 
     "indexing " in {
       val reader = new ScalaFieldEntryReader()

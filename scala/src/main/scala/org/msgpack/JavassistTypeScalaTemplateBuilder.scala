@@ -3,12 +3,12 @@ package org.msgpack
 import _root_.javassist.{CtClass, CtNewConstructor}
 import annotation._
 import template._
+import builder.JavassistTemplateBuilder.JavassistTemplate
+import builder.{BuildContextBase, JavassistTemplateBuilder}
 import java.lang.Class
 import collection.immutable.{ListMap, TreeMap}
 import java.lang.reflect.{Type, Modifier, Method, Field}
 import java.lang.annotation.{Annotation => JavaAnnotation}
-import builder.{JavassistTemplateBuilder, BuildContextBase, BuildContext}
-import builder.JavassistTemplateBuilder.JavassistTemplate
 import scala.collection.JavaConverters._
 ;
 /*
@@ -103,6 +103,9 @@ import scala.collection.JavaConverters._
         }
       }catch{
         case e : ClassNotFoundException => {
+          defCon
+        }
+        case e : NoSuchMethodException => {
           defCon
         }
       }
@@ -375,7 +378,7 @@ class ScalaFieldEntryReader extends IFieldEntryReader{
     def sameType_?( getter : Method,setter : Method) = {
       getter.getReturnType == setter.getParameterTypes()(0)
     }
-
+    /*
     for(g <- getters){
       setters.get(g._1).map( s => {
         if(sameType_?(g._2,s)){
@@ -390,7 +393,58 @@ class ScalaFieldEntryReader extends IFieldEntryReader{
           props +=( name -> (g._2,s,f))
         }
       })
+    }*/
+    // In some situation, reflection returns wrong ordered getter methods compare with declaration order.
+    // So to avoid such situation, list up props with setter methods
+    /*for(s <- setters){
+      getters.get(s._1).map( g => {
+        if(sameType_?(g,s._2)){
+          val name = s._1
+          val f = try{
+            targetClass.getDeclaredField(name)
+          }catch{
+            case e : NoSuchFieldException => null
+          }
+
+          props +=(name -> (g,s._2,f))
+        }
+      })
+    }*/
+    // order of methods changes depends on call order, NOT declaration.
+
+    def getterAndSetter(name : String) : Option[(Method,Method)] = {
+      if(getters.contains(name) && setters.contains(name)){
+        val getter = getters(name)
+        val setter = setters(name)
+        if(getter.getReturnType == setter.getParameterTypes()(0)){
+          Some(getter -> setter)
+        }else{
+          None
+        }
+      }else None
     }
+    def recursiveFind( clazz : Class[_]) : Unit = {
+      if(clazz.getSuperclass != classOf[Object]){
+        recursiveFind(clazz.getSuperclass)
+      }
+      for(f <- clazz.getDeclaredFields){
+        val name =f.getName
+        getterAndSetter(name) match{
+          case Some((g,s)) => props +=( name -> (g,s,f))
+          case None => {
+            if(name.startsWith("_")){
+              val sname = name.substring(1)
+              getterAndSetter(sname) match{
+                case Some((g,s)) => props +=( sname -> (g,s,f))
+                case None =>
+              }
+            }
+          }
+        }
+      }
+    }
+    recursiveFind(targetClass)
+
     props
   }
 
@@ -522,8 +576,8 @@ class ScalaFieldEntry(name : String) extends IFieldEntry{
 
   def getJavaTypeName = {
     if(getType.isArray){
-      //TODO implement here
-      getType.getName()
+      getType.getComponentType.getName + "[]"
+
     }else{
       getType.getName()
     }
