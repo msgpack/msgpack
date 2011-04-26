@@ -16,7 +16,7 @@ import org.specs.runner.{ JUnitSuiteRunner, JUnit }
  *
  */
 @RunWith(classOf[JUnitSuiteRunner])
-class ScalaFieldEntryReaderSpec extends Specification with JUnit  {
+class ScalaFieldEntryReaderTest extends Specification with JUnit  {
 
   "ScalaFieldEntryReader" should {
 
@@ -56,15 +56,16 @@ class ScalaFieldEntryReaderSpec extends Specification with JUnit  {
 
         val props = reader.findPropertyMethods(c)
 
-        println(props.keys)
+        println("props=" + props.keys)
 
         props.size must be_==(6)
-        props must haveKey("name")
-        props must haveKey("number")
-        props must haveKey("traitName")
-        props must haveKey("traitNum")
-        props must haveKey("sampleClass2Name")
-        props must haveKey("sampleClass2Num")
+        val l = props.toList
+        l(0)._1 must_== "name"
+        l(1)._1 must_== "number"
+        l(2)._1 must_== "sampleClass2Name"
+        l(3)._1 must_== "sampleClass2Num"
+        l(4)._1 must_== "traitName"
+        l(5)._1 must_== "traitNum"
       }
 
     }

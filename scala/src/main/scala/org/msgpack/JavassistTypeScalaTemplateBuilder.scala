@@ -396,7 +396,7 @@ class ScalaFieldEntryReader extends IFieldEntryReader{
     }*/
     // In some situation, reflection returns wrong ordered getter methods compare with declaration order.
     // So to avoid such situation, list up props with setter methods
-    for(s <- setters){
+    /*for(s <- setters){
       getters.get(s._1).map( g => {
         if(sameType_?(g,s._2)){
           val name = s._1
@@ -409,7 +409,42 @@ class ScalaFieldEntryReader extends IFieldEntryReader{
           props +=(name -> (g,s._2,f))
         }
       })
+    }*/
+    // order of methods changes depends on call order, NOT declaration.
+
+    def getterAndSetter(name : String) : Option[(Method,Method)] = {
+      if(getters.contains(name) && setters.contains(name)){
+        val getter = getters(name)
+        val setter = setters(name)
+        if(getter.getReturnType == setter.getParameterTypes()(0)){
+          Some(getter -> setter)
+        }else{
+          None
+        }
+      }else None
     }
+    def recursiveFind( clazz : Class[_]) : Unit = {
+      if(clazz.getSuperclass != classOf[Object]){
+        recursiveFind(clazz.getSuperclass)
+      }
+      for(f <- clazz.getDeclaredFields){
+        val name =f.getName
+        getterAndSetter(name) match{
+          case Some((g,s)) => props +=( name -> (g,s,f))
+          case None => {
+            if(name.startsWith("_")){
+              val sname = name.substring(1)
+              getterAndSetter(sname) match{
+                case Some((g,s)) => props +=( sname -> (g,s,f))
+                case None =>
+              }
+            }
+          }
+        }
+      }
+    }
+    recursiveFind(targetClass)
+
     props
   }
 

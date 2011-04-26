@@ -18,7 +18,7 @@ import scala.collection.mutable.LinkedList
  *
  */
 @RunWith(classOf[JUnitSuiteRunner])
-class CollectionPackSpec extends Specification with JUnit  {
+class CollectionPackTest extends Specification with JUnit  {
 
   "ScalaMessagePack" should {
     "pack scala-list" in {

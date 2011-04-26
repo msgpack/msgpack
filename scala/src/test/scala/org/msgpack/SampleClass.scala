@@ -32,12 +32,15 @@ class SampleClass2 extends SampleClass with SampleTrait {
   @Index(3)
   var sampleClass2Name : String = "sampleclass2"
 
+  // Support getter/setter but must have _{name} field!
+  private var _sampleClass2Num : Int = 0
   @Index(0)
-  def sampleClass2Num : Int = 22
-  def sampleClass2Num_=(v : Int) = {}
+  def sampleClass2Num : Int = _sampleClass2Num
+  def sampleClass2Num_=(v : Int) = {_sampleClass2Num = v}
 
   val notProperty : String ="This is not prop.Only getter"
 
+  private var _wrongValue : Int = 0
   // wrong property
   def wrongValue : Int = 53
   def wrongValue_=(v : String) = {}
