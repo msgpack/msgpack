@@ -68,7 +68,7 @@
     <dependency>
         <groupId>org.msgpack</groupId>
         <artifactId>msgpack</artifactId>
-        <version>0.5.2-SNAPSHOT</version>
+        <version>0.5.2-devel</version>
     </dependency>
   </dependencies>
 
@@ -87,14 +87,14 @@
     </snapshotRepository>-->
     <repository>
       <uniqueVersion>false</uniqueVersion>
-      <id>geishatokyo.nexus</id>
-      <name>Repository at gte repository</name>
+      <id>deploy.release</id>
+      <name>Repository for release</name>
 	  <url>${deploy-release-url}</url>
     </repository>
     <snapshotRepository>
        <uniqueVersion>true</uniqueVersion>
-       <id>geishatokyo.nexus</id>
-       <name>Repository att gte repository</name>
+       <id>deploy.snapshot</id>
+       <name>Repository for snapshot</name>
 	   <url>${deploy-snapshot-url}</url>
     </snapshotRepository>
   </distributionManagement>
