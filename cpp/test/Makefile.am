@@ -34,6 +34,7 @@ streaming_c_SOURCES = streaming_c.cc
 object_SOURCES = object.cc
 
 convert_SOURCES = convert.cc
+convert_CXXFLAGS = -fno-strict-aliasing
 
 buffer_SOURCES = buffer.cc
 buffer_LDADD = -lz
