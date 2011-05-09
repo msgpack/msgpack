@@ -114,7 +114,7 @@ static VALUE MessagePack_Fixnum_to_msgpack(int argc, VALUE *argv, VALUE self)
 {
 	ARG_BUFFER(out, argc, argv);
 #ifdef JRUBY
-	msgpack_pack_long(out, rb_num2long(self));
+	msgpack_pack_long(out, FIXNUM_P(self) ? FIX2LONG(self) : rb_num2ll(self));
 #else
 	msgpack_pack_long(out, FIX2LONG(self));
 #endif
