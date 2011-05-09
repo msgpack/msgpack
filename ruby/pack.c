@@ -113,7 +113,11 @@ static VALUE MessagePack_FalseClass_to_msgpack(int argc, VALUE *argv, VALUE self
 static VALUE MessagePack_Fixnum_to_msgpack(int argc, VALUE *argv, VALUE self)
 {
 	ARG_BUFFER(out, argc, argv);
+#ifdef JRUBY
+	msgpack_pack_long(out, rb_num2long(self));
+#else
 	msgpack_pack_long(out, FIX2LONG(self));
+#endif
 	return out;
 }
 

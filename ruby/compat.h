@@ -28,46 +28,68 @@ extern int s_enc_usascii;
 extern VALUE s_enc_utf8_value;
 #endif
 
-#ifdef RUBY_VM
+/* MRI 1.9 */
+#if defined(RUBY_VM)
 #define COMPAT_RERAISE rb_exc_raise(rb_errinfo())
+
+/* JRuby */
+#elif defined(JRUBY)
+#define COMPAT_RERAISE rb_exc_raise(rb_gv_get("$!"))
+
+/* MRI 1.8 and Rubinius */
 #else
 #define COMPAT_RERAISE rb_exc_raise(ruby_errinfo)
 #endif
 
 
-/* ruby 1.8 and Rubinius */
 #ifndef RBIGNUM_POSITIVE_P
-# ifdef RUBINIUS
-#  define RBIGNUM_POSITIVE_P(b) (rb_funcall(b, rb_intern(">="), 1, INT2FIX(0)) == Qtrue)
-# else
-#  define RBIGNUM_POSITIVE_P(b) (RBIGNUM(b)->sign)
-# endif
+
+/* Rubinius */
+#if defined(RUBINIUS)
+#define RBIGNUM_POSITIVE_P(b) (rb_funcall(b, rb_intern(">="), 1, INT2FIX(0)) == Qtrue)
+
+/* JRuby */
+#elif defined(JRUBY)
+#define RBIGNUM_POSITIVE_P(b) (rb_funcall(b, rb_intern(">="), 1, INT2FIX(0)) == Qtrue)
+#define rb_big2ull(b) rb_num2ull(b)
+/*#define rb_big2ll(b) rb_num2ll(b)*/
+
+/* MRI 1.8 */
+#else
+#define RBIGNUM_POSITIVE_P(b) (RBIGNUM(b)->sign)
+
+#endif
 #endif
 
 
 /* Rubinius */
-#ifdef RUBINIUS
+#if defined(RUBINIUS)
+static inline void rb_gc_enable() { return; }
+static inline void rb_gc_disable() { return; }
+
+/* JRuby */
+#elif defined(JRUBY)
 static inline void rb_gc_enable() { return; }
 static inline void rb_gc_disable() { return; }
 #endif
 
 
-/* ruby 1.8.5 */
+/* MRI 1.8.5 */
 #ifndef RSTRING_PTR
 #define RSTRING_PTR(s) (RSTRING(s)->ptr)
 #endif
 
-/* ruby 1.8.5 */
+/* MRI 1.8.5 */
 #ifndef RSTRING_LEN
 #define RSTRING_LEN(s) (RSTRING(s)->len)
 #endif
 
-/* ruby 1.8.5 */
+/* MRI 1.8.5 */
 #ifndef RARRAY_PTR
 #define RARRAY_PTR(s) (RARRAY(s)->ptr)
 #endif
 
-/* ruby 1.8.5 */
+/* MRI 1.8.5 */
 #ifndef RARRAY_LEN
 #define RARRAY_LEN(s) (RARRAY(s)->len)
 #endif
