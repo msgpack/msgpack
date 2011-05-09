@@ -1,4 +1,15 @@
 
+2011-05-09 version 0.4.5:
+
+  * Improves compatibility with JRuby
+
+2010-11-28 version 0.4.4:
+
+  * Adds Unpacker#feed_each method
+  * Improves compatibility with Rubinius
+  * Improves compatibility with ruby-1.8.5
+  * Encodings of String instances to UTF-8 on Ruby 1.9
+
 2010-06-29 version 0.4.3:
 
   * Adds MessagePack::VERSION constant
