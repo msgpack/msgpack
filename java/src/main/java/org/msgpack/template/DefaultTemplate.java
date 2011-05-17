@@ -50,7 +50,7 @@ public class DefaultTemplate implements Template {
 		}
 		Template tmpl = TemplateRegistry.tryLookup(lookupType);
 		if(tmpl == this || tmpl == null) {
-			throw new MessageTypeException("Template lookup fail: " + lookupType.getClass().getName());
+			throw new MessageTypeException("Template lookup fail: " + lookupType);
 		}
 		tmpl.pack(pk, target);
 	}
@@ -69,7 +69,7 @@ public class DefaultTemplate implements Template {
 		}
 		Template tmpl = TemplateRegistry.tryLookup(lookupType);
 		if(tmpl == this || tmpl == null) {
-			throw new MessageTypeException("Template lookup fail: " + lookupType.getClass().getName());
+			throw new MessageTypeException("Template lookup fail: " + lookupType);
 		}
 		return tmpl.unpack(pac, to);
 	}
@@ -88,7 +88,7 @@ public class DefaultTemplate implements Template {
 		}
 		Template tmpl = TemplateRegistry.tryLookup(lookupType);
 		if(tmpl == this || tmpl == null) {
-			throw new MessageTypeException("Template lookup fail: " + lookupType.getClass().getName());
+			throw new MessageTypeException("Template lookup fail: " + lookupType);
 		}
 		return tmpl.convert(from, to);
 	}
