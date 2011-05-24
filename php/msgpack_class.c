@@ -8,6 +8,8 @@
 #include "msgpack_convert.h"
 #include "msgpack_errors.h"
 
+ZEND_EXTERN_MODULE_GLOBALS(msgpack)
+
 typedef struct {
     zend_object object;
     long php_only;

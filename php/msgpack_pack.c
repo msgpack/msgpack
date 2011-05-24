@@ -9,6 +9,8 @@
 #include "msgpack_pack.h"
 #include "msgpack_errors.h"
 
+ZEND_EXTERN_MODULE_GLOBALS(msgpack)
+
 #include "msgpack/pack_define.h"
 #define msgpack_pack_user smart_str*
 #define msgpack_pack_inline_func(name) \

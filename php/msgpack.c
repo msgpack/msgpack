@@ -19,6 +19,8 @@
 #include "msgpack_errors.h"
 #include "msgpack/version.h"
 
+ZEND_DECLARE_MODULE_GLOBALS(msgpack)
+
 static ZEND_FUNCTION(msgpack_serialize);
 static ZEND_FUNCTION(msgpack_unserialize);
 
