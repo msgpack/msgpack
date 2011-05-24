@@ -26,8 +26,6 @@ ZEND_BEGIN_MODULE_GLOBALS(msgpack)
     zend_bool php_only;
 ZEND_END_MODULE_GLOBALS(msgpack)
 
-ZEND_DECLARE_MODULE_GLOBALS(msgpack)
-
 #ifdef ZTS
 #define MSGPACK_G(v) TSRMG(msgpack_globals_id, zend_msgpack_globals *, v)
 #else

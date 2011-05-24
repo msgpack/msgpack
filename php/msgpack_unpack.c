@@ -8,6 +8,8 @@
 #include "msgpack_unpack.h"
 #include "msgpack_errors.h"
 
+ZEND_EXTERN_MODULE_GLOBALS(msgpack)
+
 #if (PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION < 3)
 #   define Z_ADDREF_PP(ppz)      ZVAL_ADDREF(*(ppz))
 #   define Z_SET_ISREF_PP(ppz)   (*(ppz))->is_ref = 1

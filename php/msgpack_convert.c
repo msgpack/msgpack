@@ -5,6 +5,8 @@
 #include "msgpack_convert.h"
 #include "msgpack_errors.h"
 
+ZEND_EXTERN_MODULE_GLOBALS(msgpack)
+
 #if (PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION < 3)
 #   define Z_REFCOUNT_P(pz)    ((pz)->refcount)
 #   define Z_SET_ISREF_P(pz)   (pz)->is_ref = 1
