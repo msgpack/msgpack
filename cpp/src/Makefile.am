@@ -10,7 +10,8 @@ libmsgpack_la_SOURCES = \
 
 if ENABLE_CXX
 libmsgpack_la_SOURCES += \
-		object.cpp
+		object.cpp \
+		gcc_atomic.cpp
 endif
 
 # -version-info CURRENT:REVISION:AGE
