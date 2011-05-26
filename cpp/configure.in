@@ -50,9 +50,7 @@ AC_CACHE_CHECK([for __sync_* atomic operations], msgpack_cv_atomic_ops, [
 	], [], msgpack_cv_atomic_ops="yes")
 	])
 if test "$msgpack_cv_atomic_ops" != "yes"; then
-	AC_MSG_ERROR([__sync_* atomic operations are not supported.
-
-Note that gcc < 4.1 is not supported.
+	AC_MSG_NOTICE([__sync_* atomic operations are not found. Use libstdc++ instead.
 
 If you are using gcc >= 4.1 and the default target CPU architecture is "i386", try to
 add CFLAGS="-march=i686" and CXXFLAGS="-march=i686" options to ./configure as follows:
