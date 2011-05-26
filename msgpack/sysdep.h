@@ -141,9 +141,25 @@ typedef unsigned int _msgpack_atomic_counter_t;
 	do { uint64_t val = _msgpack_be64(num); memcpy(to, &val, 8); } while(0)
 
 
-#define _msgpack_load16(cast, from) ((cast)_msgpack_be16(*(uint16_t*)from))
-#define _msgpack_load32(cast, from) ((cast)_msgpack_be32(*(uint32_t*)from))
-#define _msgpack_load64(cast, from) ((cast)_msgpack_be64(*(uint64_t*)from))
+#define _msgpack_load16(cast, from) ((cast)_msgpack_be16( \
+                                                         (((uint8_t*)from)[1] << 8) | ((uint8_t*)from)[0]))
+
+#define _msgpack_load32(cast, from) ((cast)_msgpack_be32(               \
+                                                         (((uint8_t*)from)[3] << 24) | \
+                                                         (((uint8_t*)from)[2] << 16) | \
+                                                         (((uint8_t*)from)[1] <<  8) | \
+                                                         (((uint8_t*)from)[0]      ) ))
+
+#define _msgpack_load64(cast, from) ((cast)_msgpack_be64( \
+  (((uint64_t)(((uint8_t*)from)[7])) << 56) |               \
+  (((uint64_t)(((uint8_t*)from)[6])) << 48) |               \
+  (((uint64_t)(((uint8_t*)from)[5])) << 40) |               \
+  (((uint64_t)(((uint8_t*)from)[4])) << 32) |               \
+  (((uint64_t)((uint8_t*)from)[3]) << 24) |                 \
+  (((uint64_t)((uint8_t*)from)[2]) << 16) |                 \
+  (((uint64_t)((uint8_t*)from)[1]) << 8) |                  \
+  (((uint8_t*)from)[0]      )))
+
 
 
 #endif /* msgpack/sysdep.h */
