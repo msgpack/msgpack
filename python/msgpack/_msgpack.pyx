@@ -120,7 +120,7 @@ cdef class Packer(object):
                 ret = msgpack_pack_raw_body(&self.pk, rawval, len(o))
         elif PyUnicode_Check(o):
             if not self.encoding:
-                raise TypeError("Can't encode utf-8 no encoding is specified")
+                raise TypeError("Can't pack unicode object: No encoding is specified")
             o = PyUnicode_AsEncodedString(o, self.encoding, self.unicode_errors)
             rawval = o
             ret = msgpack_pack_raw(&self.pk, len(o))
