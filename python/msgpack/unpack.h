@@ -23,6 +23,8 @@ typedef struct unpack_user {
     int use_list;
     PyObject *object_hook;
     PyObject *list_hook;
+    const char *encoding;
+    const char *unicode_errors;
 } unpack_user;
 
 
@@ -197,7 +199,11 @@ static inline int template_callback_map_end(unpack_user* u, msgpack_unpack_objec
 static inline int template_callback_raw(unpack_user* u, const char* b, const char* p, unsigned int l, msgpack_unpack_object* o)
 {
     PyObject *py;
-    py = PyBytes_FromStringAndSize(p, l);
+    if(u->encoding) {
+        py = PyUnicode_Decode(p, l, u->encoding, u->unicode_errors);
+    } else {
+        py = PyBytes_FromStringAndSize(p, l);
+    }
     if (!py)
         return -1;
     *o = py;
