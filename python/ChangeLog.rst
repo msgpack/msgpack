@@ -1,3 +1,13 @@
+0.1.10
+======
+:release date: NOT RELEASED YET
+
+New feature
+-----------
+* Add ``encoding`` and ``unicode_erros`` option to packer and unpacker.
+  When this option is specified, (un)packs unicode object instead of bytes.
+  This enables using msgpack as a replacement of json.
+
 0.1.9
 ======
 :release date: 2011-01-29

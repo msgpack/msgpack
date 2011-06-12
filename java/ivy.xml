@@ -15,5 +15,7 @@
 
   <dependencies>
     <dependency org="junit" name="junit" rev="4.8.1" conf="test->default"/>
+    <dependency org="javassist" name="javassist" rev="3.12.1.GA"/>
+    <dependency org="org.slf4j" name="slf4j-api" rev="1.4.3"/>
   </dependencies>
 </ivy-module>
