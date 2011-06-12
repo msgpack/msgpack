@@ -1,7 +1,7 @@
 
-AM_CPPFLAGS   = -I../src
-AM_C_CPPFLAGS = -I../src
-AM_LDFLAGS = ../src/libmsgpack.la -lgtest_main -pthread
+AM_CPPFLAGS   = -I$(top_srcdir)/src -I$(top_builddir)/src
+AM_C_CPPFLAGS = -I$(top_srcdir)/src -I$(top_builddir)/src
+AM_LDFLAGS = $(top_builddir)/src/libmsgpack.la -lgtest_main -pthread
 
 check_PROGRAMS = \
 		zone \
