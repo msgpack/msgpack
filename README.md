@@ -16,7 +16,7 @@ Typical small integer (like flags or error code) is saved only in 1 byte, and ty
 
 ## Performance
 
-![Serialization + Deserialization Speed Test](http://msgpack.sourceforge.net/index/speedtest.png)
+![Serialization + Deserialization Speed Test](http://msgpack.org/index/speedtest.png)
 
 In this test, it measured the elapsed time of serializing and deserializing 200,000 target objects. The target object consists of the three integers and 512 bytes string.
 The source code of this test is available from [frsyuki' serializer-speed-test repository.](http://github.com/frsyuki/serializer-speed-test)
@@ -24,14 +24,14 @@ The source code of this test is available from [frsyuki' serializer-speed-test r
 
 ## Getting Started
 
-Usage and other documents about implementations in each language are found at [the web site.](http://msgpack.sourceforge.net/)
+Usage and other documents about implementations in each language are found at [the web site.](http://msgpack.org/)
 
 
 ## Learn More
 
-  - [Project Web Site](http://msgpack.sourceforge.net/)
-  - [MessagePack format specification](http://msgpack.sourceforge.net/spec)
+  - [Project Web Site](http://msgpack.org/)
+  - [MessagePack format specification](http://wiki.msgpack.org/display/MSGPACK/Format+specification)
   - [Repository at github](http://github.com/msgpack/msgpack)
-  - [Wiki](http://msgpack.sourceforge.net/start)
+  - [Wiki](http://wiki.msgpack.org/display/MSGPACK/Home)
   - [MessagePack-RPC](http://github.com/msgpack/msgpack-rpc)
 
