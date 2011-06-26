@@ -3,7 +3,7 @@
 
   <info organisation="org"
     module="${name}" revision="${version}">
-    <ivyauthor name="MessagePack Project" url="http://msgpack.sourceforge.net/"/>
+    <ivyauthor name="MessagePack Project" url="http://msgpack.org/"/>
     <description>MessagePack</description>
   </info>
 
