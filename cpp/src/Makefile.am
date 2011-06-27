@@ -13,6 +13,12 @@ libmsgpack_la_SOURCES += \
 		object.cpp
 endif
 
+if ENABLE_GCC_CXX_ATOMIC
+libmsgpack_la_SOURCES += \
+		gcc_atomic.cpp
+endif
+
+
 # -version-info CURRENT:REVISION:AGE
 libmsgpack_la_LDFLAGS = -version-info 3:0:0
 

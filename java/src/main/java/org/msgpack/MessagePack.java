@@ -26,7 +26,7 @@ import org.msgpack.template.FieldList;
 
 public class MessagePack {
 	public static byte[] pack(Object obj) {
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		ByteArrayOutputStream out = new ByteArrayOutputStream(1024);
 		try {
 			new Packer(out).pack(obj);
 		} catch (IOException e) {
@@ -40,7 +40,7 @@ public class MessagePack {
 	}
 
 	public static byte[] pack(Object obj, Template tmpl) throws MessageTypeException {
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		ByteArrayOutputStream out = new ByteArrayOutputStream(1024);
 		try {
 			new Packer(out).pack(obj, tmpl);
 		} catch (IOException e) {

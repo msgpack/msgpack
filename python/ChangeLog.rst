@@ -4,7 +4,7 @@
 
 New feature
 -----------
-* Add ``encoding`` and ``unicode_erros`` option to packer and unpacker.
+* Add ``encoding`` and ``unicode_errors`` option to packer and unpacker.
   When this option is specified, (un)packs unicode object instead of bytes.
   This enables using msgpack as a replacement of json.
 
