@@ -34,6 +34,7 @@ streaming_c_SOURCES = streaming_c.cc
 object_SOURCES = object.cc
 
 convert_SOURCES = convert.cc
+convert_CXXFLAGS = -fno-strict-aliasing
 
 buffer_SOURCES = buffer.cc
 buffer_LDADD = -lz
@@ -49,6 +50,7 @@ version_SOURCES = version.cc
 msgpackc_test_SOURCES = msgpackc_test.cpp
 
 msgpack_test_SOURCES = msgpack_test.cpp
+msgpack_test_CXXFLAGS = -fno-strict-aliasing
 
 EXTRA_DIST = cases.mpac cases_compact.mpac
 

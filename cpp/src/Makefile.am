@@ -18,6 +18,8 @@ libmsgpack_la_SOURCES += \
 		gcc_atomic.cpp
 endif
 
+libmsgpack_la_CFLAGS = -fno-strict-aliasing
+libmsgpack_la_CXXFLAGS = -fno-strict-aliasing
 
 # -version-info CURRENT:REVISION:AGE
 libmsgpack_la_LDFLAGS = -version-info 3:0:0
@@ -33,8 +35,9 @@ libmsgpackc_la_SOURCES = \
 		vrefbuffer.c \
 		zone.c
 
-libmsgpackc_la_LDFLAGS = -version-info 2:0:0
+libmsgpackc_la_CFLAGS = -fno-strict-aliasing
 
+libmsgpackc_la_LDFLAGS = -version-info 2:0:0
 
 nobase_include_HEADERS = \
 		msgpack/pack_define.h \
