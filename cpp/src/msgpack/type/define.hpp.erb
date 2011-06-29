@@ -34,6 +34,24 @@
 		msgpack::type::make_define(__VA_ARGS__).msgpack_object(o, z); \
 	}
 
+#define MSGPACK_ADD_ENUM(enum)                                  \
+        namespace msgpack {                                     \
+          template <>                                           \
+          inline enum& operator>> (object o, enum& v)           \
+          {                                                     \
+            int tmp;                                            \
+            o >> tmp;                                           \
+            v = static_cast<enum>(tmp);                         \
+            return v;                                           \
+          }                                                     \
+          template <>                                           \
+          void operator<< (object::with_zone& o, const enum& v) \
+          {                                                     \
+            int tmp = static_cast<enum>(v);                     \
+            o << tmp;                                           \
+          }                                                     \
+        }
+
 namespace msgpack {
 namespace type {
 

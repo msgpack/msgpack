@@ -55,8 +55,10 @@ public:
 
 	flags_t flag;
 
-	MSGPACK_DEFINE((int&)flag);
+	MSGPACK_DEFINE(flag);
 };
+
+MSGPACK_ADD_ENUM(enum_member::flags_t);
 
 TEST(convert, enum_member)
 {
