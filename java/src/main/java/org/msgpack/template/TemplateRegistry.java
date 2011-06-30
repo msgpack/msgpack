@@ -72,7 +72,7 @@ public class TemplateRegistry {
 		map.put(rawType, tmpl);
 	}
 
-	public static boolean unregister(Class<?> target) {
+	public static synchronized boolean unregister(Class<?> target) {
 		Template tmpl = map.remove(target);
 		return tmpl != null;
 	}
