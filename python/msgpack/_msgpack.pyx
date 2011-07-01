@@ -203,6 +203,7 @@ def unpackb(object packed, object object_hook=None, object list_hook=None, bint 
 
     if encoding is None:
         enc = NULL
+        err = NULL
     else:
         if isinstance(encoding, unicode):
             bencoding = encoding.encode('ascii')
@@ -267,6 +268,10 @@ cdef class Unpacker(object):
     cdef Py_ssize_t read_size
     cdef bint use_list
     cdef object object_hook
+    cdef object _bencoding
+    cdef object _berrors
+    cdef char *encoding
+    cdef char *unicode_errors
 
     def __cinit__(self):
         self.buf = NULL
@@ -276,7 +281,8 @@ cdef class Unpacker(object):
         self.buf = NULL;
 
     def __init__(self, file_like=None, Py_ssize_t read_size=0, bint use_list=0,
-                 object object_hook=None, object list_hook=None, encoding=None, unicode_errors=None):
+                 object object_hook=None, object list_hook=None,
+                 encoding=None, unicode_errors='strict'):
         if read_size == 0:
             read_size = 1024*1024
         self.use_list = use_list
@@ -303,6 +309,20 @@ cdef class Unpacker(object):
             if not PyCallable_Check(list_hook):
                 raise TypeError("list_hook must be a callable.")
             self.ctx.user.list_hook = <PyObject*>list_hook
+        if encoding is None:
+            self.ctx.user.encoding = NULL
+            self.ctx.user.unicode_errors = NULL
+        else:
+            if isinstance(encoding, unicode):
+                self._bencoding = encoding.encode('ascii')
+            else:
+                self._bencoding = encoding
+            self.ctx.user.encoding = PyBytes_AsString(self._bencoding)
+            if isinstance(unicode_errors, unicode):
+                self._berrors = unicode_errors.encode('ascii')
+            else:
+                self._berrors = unicode_errors
+            self.ctx.user.unicode_errors = PyBytes_AsString(self._berrors)
 
     def feed(self, object next_bytes):
         cdef char* buf
