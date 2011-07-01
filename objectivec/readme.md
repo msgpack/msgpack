@@ -1,5 +1,5 @@
 MessagePack parser for Objective-C / iPhone
---------------------------------------------
+===========================================
 
 This is a wrapper for the C MessagePack parser, building the bridge to Objective-C.
 In a similar way to the JSON framework, this parses MessagePack into NSDictionaries, NSArrays, NSNumbers, NSStrings, and NSNulls.
