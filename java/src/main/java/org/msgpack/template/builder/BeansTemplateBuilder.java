@@ -153,7 +153,7 @@ public class BeansTemplateBuilder extends CustomTemplateBuilder{
 					}
 					pk.packNil();
 				} else {
-					pk.pack(obj);
+				    e.pack(obj, pk);
 				}
 			}
 			
