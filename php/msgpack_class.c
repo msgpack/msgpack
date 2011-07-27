@@ -359,7 +359,7 @@ static ZEND_METHOD(msgpack, unpack)
         ALLOC_INIT_ZVAL(zv);
         php_msgpack_unserialize(zv, str, str_len TSRMLS_CC);
 
-        if (msgpack_convert_object(return_value, object, &zv) != SUCCESS)
+        if (msgpack_convert_template(return_value, object, &zv) != SUCCESS)
         {
             RETURN_NULL();
         }

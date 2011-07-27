@@ -1,5 +1,20 @@
 msgpack extension changelog
 
+Version 0.5.0
+-------------
+	* Fix ZEND_DECLARE_MODULE_GLOBALS:
+	Moved ZEND_DECLARE_MODULE_GLOBALS from header to source file.
+	Added ZEND_EXTERN_MODULE_GLOBALS in source files to avoid undefined
+	_msgpack_globals message.
+	(Contributed by seporaitis)
+	* Add unpack of template converter:
+	Merge https://github.com/msgpack/msgpack/pull/58
+	Fixed memory leaks.
+	Fixed older version.
+	Fixed tests scripts.
+	Added msgpack_unpack function was implemented.
+	(Contributed by ivan)
+
 Version 0.4.0
 -------------
 	* Fix array pack.

@@ -2,7 +2,7 @@
 #ifndef PHP_MSGPACK_H
 #define PHP_MSGPACK_H
 
-#define MSGPACK_EXTENSION_VERSION "0.4.0"
+#define MSGPACK_EXTENSION_VERSION "0.5.0"
 
 #include "ext/standard/php_smart_str.h"
 
@@ -26,7 +26,7 @@ ZEND_BEGIN_MODULE_GLOBALS(msgpack)
     zend_bool php_only;
 ZEND_END_MODULE_GLOBALS(msgpack)
 
-ZEND_DECLARE_MODULE_GLOBALS(msgpack)
+ZEND_EXTERN_MODULE_GLOBALS(msgpack)
 
 #ifdef ZTS
 #define MSGPACK_G(v) TSRMG(msgpack_globals_id, zend_msgpack_globals *, v)
