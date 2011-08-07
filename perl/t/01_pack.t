@@ -10,30 +10,14 @@ sub packit {
 }
 
 sub pis ($$) {
-    local $Test::Builder::Level = $Test::Builder::Level + 1;
     is packit($_[0]), $_[1], 'dump ' . $_[1];
 }
-
-sub PVIV_but_not_POK_nor_IOK {
-    no warnings 'void';
-    my $foo = 42;
-    "$foo"; # upgrade to PVIV
-    $foo = undef;
-    return $foo;
-}
-
-sub upgrade_to_PVXV {
-    my($n) = @_;
-    no warnings 'void';
-    "$n";
-    return $n;
-}
-
 
 my @dat = (
     0,     '00',
     (my $foo="0")+0, '00',
     {2 => undef}, '81 a1 32 c0',
+    do {no warnings; my $foo = 10; "$foo"; $foo = undef; $foo} => 'c0', # PVIV but !POK && !IOK
     1,     '01',
     127,   '7f',
     128,   'cc 80',
@@ -49,16 +33,12 @@ my @dat = (
     -32768, 'd1 80 00',
     -32769, 'd2 ff ff 7f ff',
     1.0,   'cb 3f f0 00 00 00 00 00 00',
-    upgrade_to_PVXV( 1),   '01',
-    upgrade_to_PVXV(-1),   'ff',
-    upgrade_to_PVXV(3.0), 'cb 40 08 00 00 00 00 00 00',
+    do { my $x=3.0;my $y = "$x";$x },   'a1 33', # PVNV
     "",    'a0',
     "a",   'a1 61',
     "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", 'bf 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61',
     "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", 'da 00 20 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61',
-
     undef, 'c0',
-    PVIV_but_not_POK_nor_IOK(), 'c0',
     Data::MessagePack::true(), 'c3',
     Data::MessagePack::false(), 'c2',
     [], '90',
