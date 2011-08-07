@@ -1,5 +1,5 @@
 META.yml
-MYMETA.yml
+MYMETA.*
 Makefile
 Makefile.old
 MessagePack.bs
@@ -15,3 +15,6 @@ MANIFEST
 ppport.h
 .testenv/
 xshelper.h
+*.swp
+*~
+

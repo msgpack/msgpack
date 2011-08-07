@@ -2,10 +2,12 @@
 \bCVS\b
 ^MANIFEST\.
 ^Makefile$
-^MYMETA\.yml$
+^MYMETA\.(?:yml|json)$
 ~$
 ^#
 \.old$
+\.swp$
+~$
 ^blib/
 ^pm_to_blib
 ^MakeMaker-\d
