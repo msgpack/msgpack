@@ -1,7 +1,10 @@
 0.35
 
+    - Fix compatibility with MessagePack RPC spec: stringified numbers
+      (SVs with both POK and IOK/NOK) should be packed as numbers,
+      not strings; thanks to @heavenshell (gfx)
     - address issue/20 (cho45): Data::MessagePack did not finish correctly
-      when was given devided packed data
+      when was given devided packed data (gfx)
 
 0.34
 
