@@ -211,6 +211,9 @@ sub _pack {
         }
 
     }
+    elsif ( $flags & ( B::SVf_NOK | B::SVp_NOK ) ) { # double only
+        return pack_double( $value );
+    }
     elsif ( $flags & B::SVf_POK ) { # raw / check needs before dboule
 
         if ( $Data::MessagePack::PreferInteger ) {
@@ -241,9 +244,6 @@ sub _pack {
 
         return $header . $value;
 
-    }
-    elsif ( $flags & ( B::SVf_NOK | B::SVp_NOK ) ) { # double only
-        return pack_double( $value );
     }
     else {
         _unexpected("data type %s", $b_obj);

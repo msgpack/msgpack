@@ -152,17 +152,7 @@ STATIC_INLINE void _msgpack_pack_sv(enc_t* const enc, SV* const sv, int const de
     if (UNLIKELY(depth <= 0)) Perl_croak(aTHX_ ERR_NESTING_EXCEEDED);
     SvGETMAGIC(sv);
 
-    if (SvPOKp(sv)) {
-        STRLEN const len     = SvCUR(sv);
-        const char* const pv = SvPVX_const(sv);
-
-        if (s_pref_int && try_int(enc, pv, len)) {
-            return;
-        } else {
-            msgpack_pack_raw(enc, len);
-            msgpack_pack_raw_body(enc, pv, len);
-        }
-    } else if (SvNIOKp(sv)) {
+    if (SvNIOKp(sv)) {
         if(SvUOK(sv)) {
             PACK_UV(enc, SvUVX(sv));
         }
@@ -172,6 +162,16 @@ STATIC_INLINE void _msgpack_pack_sv(enc_t* const enc, SV* const sv, int const de
         else {
             /* XXX long double is not supported yet. */
             msgpack_pack_double(enc, (double)SvNVX(sv));
+        }
+    } else if (SvPOKp(sv)) {
+        STRLEN const len     = SvCUR(sv);
+        const char* const pv = SvPVX_const(sv);
+
+        if (s_pref_int && try_int(enc, pv, len)) {
+            return;
+        } else {
+            msgpack_pack_raw(enc, len);
+            msgpack_pack_raw_body(enc, pv, len);
         }
     } else if (SvROK(sv)) {
         _msgpack_pack_rv(enc, SvRV(sv), depth-1);
@@ -233,9 +233,9 @@ STATIC_INLINE void _msgpack_pack_rv(enc_t *enc, SV* sv, int depth) {
         char *pv = svt ? SvPV (sv, len) : 0;
 
         if (len == 1 && *pv == '1')
-            msgpack_pack_true(enc); 
+            msgpack_pack_true(enc);
         else if (len == 1 && *pv == '0')
-            msgpack_pack_false(enc); 
+            msgpack_pack_false(enc);
         else {
             //sv_dump(sv);
             croak("cannot encode reference to scalar '%s' unless the scalar is 0 or 1",
