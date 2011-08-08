@@ -1,4 +1,8 @@
 
+2011-08-08 version 0.4.6:
+
+  * Fixed compile error problem on Mac OS X Lion
+
 2011-05-09 version 0.4.5:
 
   * Improves compatibility with JRuby
