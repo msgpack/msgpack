@@ -728,7 +728,7 @@ msgpack_pack_inline_func(_map)(msgpack_pack_user x, unsigned int n)
 msgpack_pack_inline_func(_raw)(msgpack_pack_user x, size_t l)
 {
 	if(l < 32) {
-		unsigned char d = 0xa0 | l;
+		unsigned char d = 0xa0 | (uint8_t)l;
 		msgpack_pack_append_buffer(x, &TAKE8_8(d), 1);
 	} else if(l < 65536) {
 		unsigned char buf[3];
