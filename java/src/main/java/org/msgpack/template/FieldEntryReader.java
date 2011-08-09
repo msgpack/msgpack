@@ -142,7 +142,7 @@ public class FieldEntryReader implements IFieldEntryReader{
 		} else if(isAnnotated(field, Optional.class)) {
 			return FieldOption.OPTIONAL;
 		} else if(isAnnotated(field, Nullable.class)) {
-			if(field.getDeclaringClass().isPrimitive()) {
+			if(field.getType().isPrimitive()) {
 				return FieldOption.REQUIRED;
 			} else {
 				return FieldOption.NULLABLE;
