@@ -5,6 +5,7 @@ use 5.008001;
 
 our $VERSION = '0.34';
 our $PreferInteger = 0;
+our $Canonical = 0;
 
 sub true () {
     require Data::MessagePack::Boolean;
