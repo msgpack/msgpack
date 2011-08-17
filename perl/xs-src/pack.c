@@ -211,9 +211,32 @@ STATIC_INLINE void _msgpack_pack_rv(enc_t *enc, SV* sv, int depth) {
 
         msgpack_pack_map(enc, count);
 
-        while ((he = hv_iternext(hval))) {
-            _msgpack_pack_sv(enc, hv_iterkeysv(he), depth);
-            _msgpack_pack_sv(enc, HeVAL(he), depth);
+        if (SvTRUE(get_sv("Data::MessagePack::Canonical", 0))) {
+            AV* keys = newAV();
+            av_extend(keys, count);
+
+            while ((he = hv_iternext(hval))) {
+                av_push(keys, SvREFCNT_inc(hv_iterkeysv(he)));
+            }
+
+            int len = av_len(keys) + 1;
+            sortsv(AvARRAY(keys), len, Perl_sv_cmp);
+
+            int i;
+            for (i=0; i<len; i++) {
+                SV** svp = av_fetch(keys, i, FALSE);
+                he = hv_fetch_ent(hval, *svp, 0, 0);
+
+                _msgpack_pack_sv(enc, hv_iterkeysv(he), depth);
+                _msgpack_pack_sv(enc, HeVAL(he), depth);
+            }
+
+            av_undef(keys);
+        } else {
+            while ((he = hv_iternext(hval))) {
+                _msgpack_pack_sv(enc, hv_iterkeysv(he), depth);
+                _msgpack_pack_sv(enc, HeVAL(he), depth);
+            }
         }
     } else if (svt == SVt_PVAV) {
         AV* ary = (AV*)sv;
