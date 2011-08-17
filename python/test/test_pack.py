@@ -7,6 +7,8 @@ from nose.plugins.skip import SkipTest
 
 from msgpack import packs, unpacks
 
+from StringIO import StringIO
+
 def check(data):
     re = unpacks(packs(data))
     assert_equal(re, data)
@@ -31,6 +33,10 @@ def testPackUnicode():
         ]
     for td in test_data:
         re = unpacks(packs(td, encoding='utf-8'), encoding='utf-8')
+        assert_equal(re, td)
+        packer = Packer(encoding='utf-8')
+        data = packer.pack(td)
+        re = Unpacker(StringIO(data), encoding='utf-8').unpack()
         assert_equal(re, td)
 
 def testPackUTF32():

@@ -4,7 +4,9 @@
 from nose import main
 from nose.tools import *
 
-from msgpack import packs, unpacks
+from msgpack import packs, unpacks, Unpacker, Packer
+
+from io import BytesIO
 
 def check(data):
     re = unpacks(packs(data))
@@ -31,13 +33,16 @@ def testPackUnicode():
     for td in test_data:
         re = unpacks(packs(td, encoding='utf-8'), encoding='utf-8')
         assert_equal(re, td)
+        packer = Packer(encoding='utf-8')
+        data = packer.pack(td)
+        re = Unpacker(BytesIO(data), encoding='utf-8').unpack()
+        assert_equal(re, td)
 
 def testPackUTF32():
     test_data = [
         "", "abcd", ("defgh",), "Русский текст",
         ]
     for td in test_data:
-        print(packs(td, encoding='utf-32'))
         re = unpacks(packs(td, encoding='utf-32'), encoding='utf-32')
         assert_equal(re, td)
 
