@@ -61,7 +61,7 @@ dmp_append_buf(enc_t* const enc, const void* const buf, STRLEN const len)
 #define DMP_CANONICAL "Canonical"
 
 /* interpreter global variables */
-#define MY_CXT_KEY "Data::MessagePack::_guts" XS_VERSION
+#define MY_CXT_KEY "Data::MessagePack::_pack_guts" XS_VERSION
 typedef struct {
     bool prefer_int;
     bool canonical;
@@ -168,16 +168,16 @@ STATIC_INLINE int try_int(enc_t* enc, const char *p, size_t len) {
 }
 
 
-STATIC_INLINE void _msgpack_pack_rv(enc_t *enc, SV* sv, int depth);
+STATIC_INLINE void _msgpack_pack_rv(pTHX_ enc_t *enc, SV* sv, int depth);
 
 STATIC_INLINE void _msgpack_pack_sv(enc_t* const enc, SV* const sv, int const depth) {
     dTHX;
-    dMY_CXT;
     assert(sv);
     if (UNLIKELY(depth <= 0)) Perl_croak(aTHX_ ERR_NESTING_EXCEEDED);
     SvGETMAGIC(sv);
 
     if (SvPOKp(sv)) {
+        dMY_CXT;
         STRLEN const len     = SvCUR(sv);
         const char* const pv = SvPVX_const(sv);
 
@@ -199,7 +199,7 @@ STATIC_INLINE void _msgpack_pack_sv(enc_t* const enc, SV* const sv, int const de
             msgpack_pack_double(enc, (double)SvNVX(sv));
         }
     } else if (SvROK(sv)) {
-        _msgpack_pack_rv(enc, SvRV(sv), depth-1);
+        _msgpack_pack_rv(aTHX_ enc, SvRV(sv), depth-1);
     } else if (!SvOK(sv)) {
         msgpack_pack_nil(enc);
     } else if (isGV(sv)) {
@@ -210,9 +210,14 @@ STATIC_INLINE void _msgpack_pack_sv(enc_t* const enc, SV* const sv, int const de
     }
 }
 
-STATIC_INLINE void _msgpack_pack_rv(enc_t *enc, SV* sv, int depth) {
+STATIC_INLINE
+void _msgpack_pack_he(pTHX_ enc_t* enc, HV* hv, HE* he, int depth) {
+    _msgpack_pack_sv(enc, hv_iterkeysv(he),   depth);
+    _msgpack_pack_sv(enc, hv_iterval(hv, he), depth);
+}
+
+STATIC_INLINE void _msgpack_pack_rv(pTHX_ enc_t *enc, SV* sv, int depth) {
     svtype svt;
-    dTHX;
     assert(sv);
     SvGETMAGIC(sv);
     svt = SvTYPE(sv);
@@ -238,30 +243,26 @@ STATIC_INLINE void _msgpack_pack_rv(enc_t *enc, SV* sv, int depth) {
         msgpack_pack_map(enc, count);
 
         if (MY_CXT.canonical) {
-            AV* keys = newAV();
+            AV* const keys = newAV();
+            sv_2mortal((SV*)keys);
             av_extend(keys, count);
 
             while ((he = hv_iternext(hval))) {
                 av_push(keys, SvREFCNT_inc(hv_iterkeysv(he)));
             }
 
-            int len = av_len(keys) + 1;
+            int const len = av_len(keys) + 1;
             sortsv(AvARRAY(keys), len, Perl_sv_cmp);
 
             int i;
             for (i=0; i<len; i++) {
-                SV** svp = av_fetch(keys, i, FALSE);
-                he = hv_fetch_ent(hval, *svp, 0, 0);
-
-                _msgpack_pack_sv(enc, hv_iterkeysv(he), depth);
-                _msgpack_pack_sv(enc, HeVAL(he), depth);
+                SV* sv = *av_fetch(keys, i, TRUE);
+                he = hv_fetch_ent(hval, sv, FALSE, 0U);
+                _msgpack_pack_he(aTHX_ enc, hval, he, depth);
             }
-
-            av_undef(keys);
         } else {
             while ((he = hv_iternext(hval))) {
-                _msgpack_pack_sv(enc, hv_iterkeysv(he), depth);
-                _msgpack_pack_sv(enc, HeVAL(he), depth);
+                _msgpack_pack_he(aTHX_ enc, hval, he, depth);
             }
         }
     } else if (svt == SVt_PVAV) {
