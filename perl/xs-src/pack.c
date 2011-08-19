@@ -46,6 +46,9 @@ STATIC_INLINE void need(enc_t* const enc, STRLEN const len);
 
 #define ERR_NESTING_EXCEEDED "perl structure exceeds maximum nesting level (max_depth set too low?)"
 
+#define DMP_PREF_INT  "PreferInteger"
+#define DMP_CANONICAL "Canonical"
+
 /* interpreter global variables */
 #define MY_CXT_KEY "Data::MessagePack::_guts" XS_VERSION
 typedef struct {
@@ -65,34 +68,24 @@ STATIC_INLINE void need(enc_t* const enc, STRLEN const len)
     }
 }
 
-static int pref_int_set(pTHX_ SV* sv, MAGIC* mg PERL_UNUSED_DECL) {
+static int dmp_config_set(pTHX_ SV* sv, MAGIC* mg) {
     dMY_CXT;
-    MY_CXT.prefer_int = SvTRUE(sv) ? true : false;
+    assert(mg->mg_ptr);
+    if(strEQ(mg->mg_ptr, DMP_PREF_INT)) {
+        MY_CXT.prefer_int = SvTRUE(sv) ? true : false;
+    }
+    else if(strEQ(mg->mg_ptr, DMP_CANONICAL)) {
+        MY_CXT.canonical = SvTRUE(sv) ? true : false;
+    }
+    else {
+        assert(0);
+    }
     return 0;
 }
 
-MGVTBL pref_int_vtbl = {
+MGVTBL dmp_config_vtbl = {
     NULL,
-    pref_int_set,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-#ifdef MGf_LOCAL
-    NULL,
-#endif
-};
-
-static int canonical_set(pTHX_ SV* sv, MAGIC* mg PERL_UNUSED_DECL) {
-    dMY_CXT;
-    MY_CXT.canonical = SvTRUE(sv) ? true : false;
-    return 0;
-}
-
-MGVTBL canonical_vtbl = {
-    NULL,
-    canonical_set,
+    dmp_config_set,
     NULL,
     NULL,
     NULL,
@@ -108,12 +101,14 @@ void init_Data__MessagePack_pack(pTHX_ bool const cloning PERL_UNUSED_DECL) {
     MY_CXT.prefer_int = false;
     MY_CXT.canonical  = false;
 
-    SV* var = get_sv("Data::MessagePack::PreferInteger", TRUE);
-    sv_magicext(var, NULL, PERL_MAGIC_ext, &pref_int_vtbl, NULL, 0);
+    SV* var = get_sv("Data::MessagePack::" DMP_PREF_INT, TRUE);
+    sv_magicext(var, NULL, PERL_MAGIC_ext, &dmp_config_vtbl,
+            DMP_PREF_INT, 0);
     SvSETMAGIC(var);
 
-    var = get_sv("Data::MessagePack::Canonical", TRUE);
-    sv_magicext(var, NULL, PERL_MAGIC_ext, &canonical_vtbl, NULL, 0);
+    var = get_sv("Data::MessagePack::" DMP_CANONICAL, TRUE);
+    sv_magicext(var, NULL, PERL_MAGIC_ext, &dmp_config_vtbl,
+            DMP_CANONICAL, 0);
     SvSETMAGIC(var);
 }
 
