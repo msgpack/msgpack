@@ -18,14 +18,25 @@ typedef struct {
     SV *sv;          /* result scalar */
 } enc_t;
 
-STATIC_INLINE void need(enc_t* const enc, STRLEN const len);
+STATIC_INLINE void
+dmp_append_buf(enc_t* const enc, const void* const buf, STRLEN const len)
+{
+    if (enc->cur + len >= enc->end) {
+        dTHX;
+        STRLEN const cur = enc->cur - SvPVX_const(enc->sv);
+        sv_grow (enc->sv, cur + (len < (cur >> 2) ? cur >> 2 : len) + 1);
+        enc->cur = SvPVX_mutable(enc->sv) + cur;
+        enc->end = SvPVX_const(enc->sv) + SvLEN (enc->sv) - 1;
+    }
+
+    memcpy(enc->cur, buf, len);
+    enc->cur += len;
+}
 
 #define msgpack_pack_user enc_t*
 
 #define msgpack_pack_append_buffer(enc, buf, len) \
-    need(enc, len);                               \
-    memcpy(enc->cur, buf, len);                   \
-    enc->cur += len;
+            dmp_append_buf(enc, buf, len)
 
 #include "msgpack/pack_template.h"
 
@@ -57,16 +68,6 @@ typedef struct {
 } my_cxt_t;
 START_MY_CXT
 
-STATIC_INLINE void need(enc_t* const enc, STRLEN const len)
-{
-    if (enc->cur + len >= enc->end) {
-        dTHX;
-        STRLEN const cur = enc->cur - SvPVX_const(enc->sv);
-        sv_grow (enc->sv, cur + (len < (cur >> 2) ? cur >> 2 : len) + 1);
-        enc->cur = SvPVX_mutable(enc->sv) + cur;
-        enc->end = SvPVX_const(enc->sv) + SvLEN (enc->sv) - 1;
-    }
-}
 
 static int dmp_config_set(pTHX_ SV* sv, MAGIC* mg) {
     dMY_CXT;
