@@ -46,6 +46,13 @@ STATIC_INLINE void need(enc_t* const enc, STRLEN const len);
 
 #define ERR_NESTING_EXCEEDED "perl structure exceeds maximum nesting level (max_depth set too low?)"
 
+/* interpreter global variables */
+#define MY_CXT_KEY "Data::MessagePack::_guts" XS_VERSION
+typedef struct {
+    bool prefer_int;
+    bool canonical;
+} my_cxt_t;
+START_MY_CXT
 
 STATIC_INLINE void need(enc_t* const enc, STRLEN const len)
 {
@@ -58,15 +65,9 @@ STATIC_INLINE void need(enc_t* const enc, STRLEN const len)
     }
 }
 
-
-static int s_pref_int = 0;
-
-STATIC_INLINE int pref_int_set(pTHX_ SV* sv, MAGIC* mg PERL_UNUSED_DECL) {
-    if (SvTRUE(sv)) {
-        s_pref_int = 1;
-    } else {
-        s_pref_int = 0;
-    }
+static int pref_int_set(pTHX_ SV* sv, MAGIC* mg PERL_UNUSED_DECL) {
+    dMY_CXT;
+    MY_CXT.prefer_int = SvTRUE(sv) ? true : false;
     return 0;
 }
 
@@ -83,9 +84,36 @@ MGVTBL pref_int_vtbl = {
 #endif
 };
 
-void init_Data__MessagePack_pack(pTHX_ bool const cloning) {
-    SV* var = get_sv("Data::MessagePack::PreferInteger", 0);
+static int canonical_set(pTHX_ SV* sv, MAGIC* mg PERL_UNUSED_DECL) {
+    dMY_CXT;
+    MY_CXT.canonical = SvTRUE(sv) ? true : false;
+    return 0;
+}
+
+MGVTBL canonical_vtbl = {
+    NULL,
+    canonical_set,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+#ifdef MGf_LOCAL
+    NULL,
+#endif
+};
+
+void init_Data__MessagePack_pack(pTHX_ bool const cloning PERL_UNUSED_DECL) {
+    MY_CXT_INIT;
+    MY_CXT.prefer_int = false;
+    MY_CXT.canonical  = false;
+
+    SV* var = get_sv("Data::MessagePack::PreferInteger", TRUE);
     sv_magicext(var, NULL, PERL_MAGIC_ext, &pref_int_vtbl, NULL, 0);
+    SvSETMAGIC(var);
+
+    var = get_sv("Data::MessagePack::Canonical", TRUE);
+    sv_magicext(var, NULL, PERL_MAGIC_ext, &canonical_vtbl, NULL, 0);
     SvSETMAGIC(var);
 }
 
@@ -148,6 +176,7 @@ STATIC_INLINE void _msgpack_pack_rv(enc_t *enc, SV* sv, int depth);
 
 STATIC_INLINE void _msgpack_pack_sv(enc_t* const enc, SV* const sv, int const depth) {
     dTHX;
+    dMY_CXT;
     assert(sv);
     if (UNLIKELY(depth <= 0)) Perl_croak(aTHX_ ERR_NESTING_EXCEEDED);
     SvGETMAGIC(sv);
@@ -156,7 +185,7 @@ STATIC_INLINE void _msgpack_pack_sv(enc_t* const enc, SV* const sv, int const de
         STRLEN const len     = SvCUR(sv);
         const char* const pv = SvPVX_const(sv);
 
-        if (s_pref_int && try_int(enc, pv, len)) {
+        if (MY_CXT.prefer_int && try_int(enc, pv, len)) {
             return;
         } else {
             msgpack_pack_raw(enc, len);
@@ -205,13 +234,14 @@ STATIC_INLINE void _msgpack_pack_rv(enc_t *enc, SV* sv, int depth) {
                            SvPV_nolen(sv_2mortal(newRV_inc(sv))));
         }
     } else if (svt == SVt_PVHV) {
+        dMY_CXT;
         HV* hval = (HV*)sv;
         int count = hv_iterinit(hval);
         HE* he;
 
         msgpack_pack_map(enc, count);
 
-        if (SvTRUE(get_sv("Data::MessagePack::Canonical", 0))) {
+        if (MY_CXT.canonical) {
             AV* keys = newAV();
             av_extend(keys, count);
 
@@ -256,9 +286,9 @@ STATIC_INLINE void _msgpack_pack_rv(enc_t *enc, SV* sv, int depth) {
         char *pv = svt ? SvPV (sv, len) : 0;
 
         if (len == 1 && *pv == '1')
-            msgpack_pack_true(enc); 
+            msgpack_pack_true(enc);
         else if (len == 1 && *pv == '0')
-            msgpack_pack_false(enc); 
+            msgpack_pack_false(enc);
         else {
             //sv_dump(sv);
             croak("cannot encode reference to scalar '%s' unless the scalar is 0 or 1",
