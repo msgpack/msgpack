@@ -33,6 +33,14 @@ if ( !__PACKAGE__->can('pack') ) { # this idea comes from Text::Xslate
     }
 }
 
+sub new {
+    my($class) = @_;
+    return bless {}, $class;
+}
+
+sub encode; *encode = __PACKAGE__->can('pack');
+sub decode; *decode = __PACKAGE__->can('unpack');
+
 1;
 __END__
 
