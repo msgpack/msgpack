@@ -182,7 +182,12 @@ sub _pack {
             : $num < 2 ** 32 - 1 ? CORE::pack( 'CN', 0xdf,  $num )
             : _unexpected("number %d", $num)
         ;
-        return join( '', $header, map { _pack( $_ ) } %$value );
+
+        if ($Data::MessagePack::Canonical) {
+            return join( '', $header, map { _pack( $_ ), _pack($value->{$_}) } sort { $a cmp $b } keys %$value );
+        } else {
+            return join( '', $header, map { _pack( $_ ) } %$value );
+        }
     }
 
     elsif ( ref( $value ) eq 'Data::MessagePack::Boolean' ) {
