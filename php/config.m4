@@ -7,7 +7,7 @@ dnl without editing.
 dnl Check PHP version:
 
 AC_MSG_CHECKING(PHP version)
-AC_TRY_COMPILE([#include "php/main/php_version.h"], [
+AC_TRY_COMPILE([#include "$phpincludedir/main/php_version.h"], [
 #if PHP_MAJOR_VERSION < 5
 #error  this extension requires at least PHP version 5 or newer
 #endif
