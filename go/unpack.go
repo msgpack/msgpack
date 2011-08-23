@@ -6,7 +6,7 @@ import (
 	"unsafe"
 	"strconv"
 	"reflect"
-        "fmt"
+	"fmt"
 )
 
 func readByte(reader io.Reader) (v uint8, err os.Error) {
@@ -150,7 +150,7 @@ func unpack(reader io.Reader, reflected bool) (v reflect.Value, n int, err os.Er
 	if e != nil {
 		return reflect.Value{}, 0, e
 	}
-        fmt.Printf("unpack byte: %x\n", c)
+	fmt.Printf("unpack byte: %x\n", c)
 	nbytesread += 1
 	if c < 0x80 || c >= 0xe0 {
 		retval = reflect.ValueOf(int8(c))
