@@ -1,5 +1,5 @@
 Name:               msgpack
-Version:            0.6.1.1
+Version:            0.6.1.2
 Synopsis:           A Haskell implementation of MessagePack
 Description:
   A Haskell implementation of MessagePack <http://msgpack.org/>
@@ -21,11 +21,11 @@ Extra-source-files:
 
 Library
   Build-depends:    base >=4 && <5,
-                    transformers >= 0.2 && < 0.3,
+                    mtl >= 2.0 && < 2.1,
                     bytestring >= 0.9 && < 0.10,
                     text >= 0.11 && < 0.12,
-                    vector >= 0.7 && < 0.8,
-                    attoparsec >= 0.8 && < 0.9,
+                    vector >= 0.7 && < 0.10,
+                    attoparsec >= 0.8 && < 0.10,
                     binary >= 0.5.0 && < 0.5.1,
                     data-binary-ieee754 >= 0.4 && < 0.5,
                     deepseq >= 1.1 && <1.2,

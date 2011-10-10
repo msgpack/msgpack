@@ -29,7 +29,6 @@ module Data.MessagePack.Object(
 import Control.DeepSeq
 import Control.Exception
 import Control.Monad
-import Control.Monad.Trans.Error ()
 import qualified Data.Attoparsec as A
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
