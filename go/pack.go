@@ -699,6 +699,8 @@ func PackValue(writer io.Writer, value reflect.Value) (n int, err os.Error) {
 		return PackArray(writer, _value)
 	case reflect.Map:
 		return PackMap(writer, _value)
+	case reflect.String:
+		return PackBytes(writer, []byte(_value.String()))
 	case reflect.Interface:
 		__value := reflect.ValueOf(_value.Interface())
 
@@ -765,6 +767,8 @@ func Pack(writer io.Writer, value interface{}) (n int, err os.Error) {
 		return PackFloat32Array(writer, _value)
 	case []float64:
 		return PackFloat64Array(writer, _value)
+	case string:
+		return PackBytes(writer, []byte(_value))
 	default:
 		return PackValue(writer, reflect.ValueOf(value))
 	}
