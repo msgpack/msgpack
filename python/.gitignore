@@ -1,7 +1,0 @@
-MANIFEST
-build/*
-dist/*
-*.pyc
-*.pyo
-msgpack/__version__.py
-msgpack/_msgpack.c

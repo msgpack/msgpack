@@ -1,5 +1,10 @@
 msgpack extension changelog
 
+Version 0.5.1
+-------------
+	* Fixed include path for version check.
+	(Contributed by duedal)
+
 Version 0.5.0
 -------------
 	* Fix ZEND_DECLARE_MODULE_GLOBALS:
