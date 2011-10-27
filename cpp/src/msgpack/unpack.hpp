@@ -226,12 +226,12 @@ inline bool unpacker::next(unpacked* result)
 	}
 
 	if(ret == 0) {
-		result->zone().reset();
+		if (result->zone().get() != 0) result->zone().reset();
 		result->get() = object();
 		return false;
 
 	} else {
-		result->zone().reset( release_zone() );
+		if (result->zone().get() != 0) result->zone().reset( release_zone() );
 		result->get() = data();
 		reset();
 		return true;
