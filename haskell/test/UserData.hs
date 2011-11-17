@@ -1,27 +1,26 @@
 {-# Language TemplateHaskell #-}
 
 import Data.MessagePack
-import Data.MessagePack.Derive
 
 data T
   = A Int String
   | B Double
   deriving (Show, Eq)
 
-$(deriveObject ''T)
+deriveObject ''T
 
 data U
   = C { c1 :: Int, c2 :: String }
   | D { d1 :: Double }
   deriving (Show, Eq)
 
-$(deriveObject ''U)
+deriveObject ''U
 
 data V
   = E String | F
   deriving (Show, Eq)
 
-$(deriveObject ''V)
+deriveObject ''V
 
 test :: (OBJECT a, Show a, Eq a) => a -> IO ()
 test v = do
@@ -33,6 +32,7 @@ test v = do
   print oa
   print (fromObject oa == v)
 
+main :: IO ()
 main = do
   test $ A 123 "hoge"
   test $ B 3.14
