@@ -22,6 +22,13 @@ data V
 
 deriveObject ''V
 
+data W a
+  = G a String
+  | H { hHoge :: Int, h_age :: a }
+  deriving (Show, Eq)
+
+deriveObject ''W
+
 test :: (OBJECT a, Show a, Eq a) => a -> IO ()
 test v = do
   let bs = pack v
@@ -40,4 +47,6 @@ main = do
   test $ D 3.14
   test $ E "hello"
   test $ F
+  test $ G (E "hello") "world"
+  test $ H 123 F
   return ()

@@ -22,14 +22,14 @@ import Data.MessagePack.Object
 derivePack :: Name -> Q [Dec]
 derivePack tyName = do
   info <- reify tyName
-  case info of
-    TyConI (DataD _ {- cxt -} name _ {- tyVarBndr -} cons _ {- derivings -}) -> do
-      [d|
-       instance Packable $(conT name) where
-         put v = $(caseE [| v |] (map alt cons))
-       |]
+  d <- case info of
+    TyConI (DataD _ {- cxt -} name tyVars cons _ {- derivings -}) -> do
+      ds <- [d| put v = $(caseE [| v |] (map alt cons)) |]
+      instanceD (cx tyVars) (ct ''Packable name tyVars) $
+        map return ds
 
     _ -> error $ "cant derive Packable: " ++ show tyName
+  return [d]
 
   where
     alt (NormalC conName elms) = do
@@ -51,17 +51,18 @@ derivePack tyName = do
 
     alt c = error $ "unsupported constructor: " ++ pprint c
 
+
 deriveUnpack :: Name -> Q [Dec]
 deriveUnpack tyName = do
   info <- reify tyName
-  case info of
-    TyConI (DataD _ {- cxt -} name _ {- tyVarBndr -} cons _ {- derivings -}) -> do
-      [d|
-       instance Unpackable $(conT name) where
-         get = $(foldl1 (\x y -> [| $x `mplus` $y |]) $ map alt cons)
-       |]
+  d <- case info of
+    TyConI (DataD _ {- cxt -} name tyVars cons _ {- derivings -}) -> do
+      ds <- [d| get = $(foldl1 (\x y -> [| $x `mplus` $y |]) $ map alt cons) |]
+      instanceD (cx tyVars) (ct ''Unpackable name tyVars) $
+        map return ds
 
-    _ -> error $ "cant derive Packable: " ++ show tyName
+    _ -> error $ "cant derive Unpackable: " ++ show tyName
+  return [d]
 
   where
     alt (NormalC conName elms) = do
@@ -85,11 +86,16 @@ deriveUnpack tyName = do
                               $(varE var) |]
 
 deriveObject :: Name -> Q [Dec]
-deriveObject typName = do
-  g <- derivePack typName
-  p <- deriveUnpack typName
-  o <- [d| instance OBJECT $(conT typName) where |]
-  return $ g ++ p ++ o
+deriveObject tyName = do
+  g <- derivePack tyName
+  p <- deriveUnpack tyName
+  info <- reify tyName
+  o <- case info of
+    TyConI (DataD _ {- cxt -} name tyVars cons _ {- derivings -}) ->
+      -- use default implement
+      instanceD (cx tyVars) (ct ''OBJECT name tyVars) []
+    _ -> error $ "cant derive Object: " ++ show tyName
+  return $ g ++ p ++ [o]
 
 failN Nothing = mzero
 failN (Just a) =
@@ -97,7 +103,18 @@ failN (Just a) =
     Left _ -> mzero
     Right v -> return v
 
+cx tyVars =
+  cxt [ classP cl [varT tv]
+      | cl <- [''Packable, ''Unpackable, ''OBJECT]
+      , PlainTV tv <- tyVars ]
+
+ct tc tyName tyVars =
+  appT (conT tc) $ foldl appT (conT tyName) $
+  map (\(PlainTV n) -> varT n) tyVars
+
 key conName fname
+  | (prefix ++ "_") `isPrefixOf` sFname && length sFname > length prefix + 1 =
+    drop (length prefix + 1) sFname  
   | prefix `isPrefixOf` sFname && length sFname > length prefix =
     uncapital $ drop (length prefix) sFname
   | otherwise = sFname
