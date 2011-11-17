@@ -11,7 +11,7 @@ deriveObject ''T
 
 data U
   = C { c1 :: Int, c2 :: String }
-  | D { d1 :: Double }
+  | D { z1 :: Double }
   deriving (Show, Eq)
 
 deriveObject ''U

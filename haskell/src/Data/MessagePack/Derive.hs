@@ -9,7 +9,10 @@ module Data.MessagePack.Derive (
 
 import Control.Monad
 import Control.Monad.Error () -- for MonadPlus instance of Either e
+import Data.Char
+import Data.List
 import Language.Haskell.TH
+import Language.Haskell.TH.Syntax
 
 import Data.MessagePack.Assoc
 import Data.MessagePack.Pack
@@ -40,7 +43,7 @@ derivePack tyName = do
       match (conP conName $ map varP vars)
         (normalB
          [| put $ Assoc
-              $(listE [ [| ( $(return $ LitE $ StringL $ show fname)
+              $(listE [ [| ( $(return $ LitE $ StringL $ key conName fname)
                            , toObject $(varE v)) |]
                       | (v, (fname, _, _)) <- zip vars elms])
           |])
@@ -71,21 +74,15 @@ deriveUnpack tyName = do
       var <- newName "v"
       vars <- replicateM (length elms) (newName "w")
       doE $ [ bindS (conP 'Assoc [varP var]) [| get |] ]
-            ++ zipWith (binds var) vars elms ++
+            ++ zipWith (binds conName var) vars elms ++
             [ noBindS [| return $(foldl appE (conE conName) $ map varE vars) |] ]
 
     alt c = error $ "unsupported constructor: " ++ pprint c
 
-    binds var res (fname, _, _) =
+    binds conName var res (fname, _, _) =
       bindS (varP res)
-            [| failN $ lookup $(return $ LitE $ StringL $ show fname) $(varE var) |]
-
-failN Nothing = mzero
-failN (Just a) =
-  case tryFromObject a of
-    Left _ -> mzero
-    Right v -> return v
-
+            [| failN $ lookup $(return $ LitE $ StringL $ key conName fname)
+                              $(varE var) |]
 
 deriveObject :: Name -> Q [Dec]
 deriveObject typName = do
@@ -93,3 +90,19 @@ deriveObject typName = do
   p <- deriveUnpack typName
   o <- [d| instance OBJECT $(conT typName) where |]
   return $ g ++ p ++ o
+
+failN Nothing = mzero
+failN (Just a) =
+  case tryFromObject a of
+    Left _ -> mzero
+    Right v -> return v
+
+key conName fname
+  | prefix `isPrefixOf` sFname && length sFname > length prefix =
+    uncapital $ drop (length prefix) sFname
+  | otherwise = sFname
+  where
+    prefix = map toLower $ nameBase conName
+    sFname = nameBase fname
+    uncapital (c:cs) | isUpper c = toLower c : cs
+    uncapital cs = cs
