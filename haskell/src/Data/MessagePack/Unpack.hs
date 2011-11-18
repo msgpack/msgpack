@@ -193,42 +193,42 @@ instance Unpackable a => Unpackable (V.Vector a) where
 instance (Unpackable a1, Unpackable a2) => Unpackable (a1, a2) where
   get = parseArray f where
     f 2 = get >>= \a1 -> get >>= \a2 -> return (a1, a2)
-    f n = fail $ printf "wrong tupple size: expected 2 but got " n
+    f n = fail $ printf "wrong tupple size: expected 2 but got %d" n
 
 instance (Unpackable a1, Unpackable a2, Unpackable a3) => Unpackable (a1, a2, a3) where
   get = parseArray f where
     f 3 = get >>= \a1 -> get >>= \a2 -> get >>= \a3 -> return (a1, a2, a3)
-    f n = fail $ printf "wrong tupple size: expected 3 but got " n
+    f n = fail $ printf "wrong tupple size: expected 3 but got %d" n
 
 instance (Unpackable a1, Unpackable a2, Unpackable a3, Unpackable a4) => Unpackable (a1, a2, a3, a4) where
   get = parseArray f where
     f 4 = get >>= \a1 -> get >>= \a2 -> get >>= \a3 -> get >>= \a4 -> return (a1, a2, a3, a4)
-    f n = fail $ printf "wrong tupple size: expected 4 but got " n
+    f n = fail $ printf "wrong tupple size: expected 4 but got %d" n
 
 instance (Unpackable a1, Unpackable a2, Unpackable a3, Unpackable a4, Unpackable a5) => Unpackable (a1, a2, a3, a4, a5) where
   get = parseArray f where
     f 5 = get >>= \a1 -> get >>= \a2 -> get >>= \a3 -> get >>= \a4 -> get >>= \a5 -> return (a1, a2, a3, a4, a5)
-    f n = fail $ printf "wrong tupple size: expected 5 but got " n
+    f n = fail $ printf "wrong tupple size: expected 5 but got %d" n
 
 instance (Unpackable a1, Unpackable a2, Unpackable a3, Unpackable a4, Unpackable a5, Unpackable a6) => Unpackable (a1, a2, a3, a4, a5, a6) where
   get = parseArray f where
     f 6 = get >>= \a1 -> get >>= \a2 -> get >>= \a3 -> get >>= \a4 -> get >>= \a5 -> get >>= \a6 -> return (a1, a2, a3, a4, a5, a6)
-    f n = fail $ printf "wrong tupple size: expected 6 but got " n
+    f n = fail $ printf "wrong tupple size: expected 6 but got %d" n
 
 instance (Unpackable a1, Unpackable a2, Unpackable a3, Unpackable a4, Unpackable a5, Unpackable a6, Unpackable a7) => Unpackable (a1, a2, a3, a4, a5, a6, a7) where
   get = parseArray f where
     f 7 = get >>= \a1 -> get >>= \a2 -> get >>= \a3 -> get >>= \a4 -> get >>= \a5 -> get >>= \a6 -> get >>= \a7 -> return (a1, a2, a3, a4, a5, a6, a7)
-    f n = fail $ printf "wrong tupple size: expected 7 but got " n
+    f n = fail $ printf "wrong tupple size: expected 7 but got %d" n
 
 instance (Unpackable a1, Unpackable a2, Unpackable a3, Unpackable a4, Unpackable a5, Unpackable a6, Unpackable a7, Unpackable a8) => Unpackable (a1, a2, a3, a4, a5, a6, a7, a8) where
   get = parseArray f where
     f 8 = get >>= \a1 -> get >>= \a2 -> get >>= \a3 -> get >>= \a4 -> get >>= \a5 -> get >>= \a6 -> get >>= \a7 -> get >>= \a8 -> return (a1, a2, a3, a4, a5, a6, a7, a8)
-    f n = fail $ printf "wrong tupple size: expected 8 but got " n
+    f n = fail $ printf "wrong tupple size: expected 8 but got %d" n
 
 instance (Unpackable a1, Unpackable a2, Unpackable a3, Unpackable a4, Unpackable a5, Unpackable a6, Unpackable a7, Unpackable a8, Unpackable a9) => Unpackable (a1, a2, a3, a4, a5, a6, a7, a8, a9) where
   get = parseArray f where
     f 9 = get >>= \a1 -> get >>= \a2 -> get >>= \a3 -> get >>= \a4 -> get >>= \a5 -> get >>= \a6 -> get >>= \a7 -> get >>= \a8 -> get >>= \a9 -> return (a1, a2, a3, a4, a5, a6, a7, a8, a9)
-    f n = fail $ printf "wrong tupple size: expected 9 but got " n
+    f n = fail $ printf "wrong tupple size: expected 9 but got %d" n
 
 parseArray :: (Int -> A.Parser a) -> A.Parser a
 parseArray aget = do
