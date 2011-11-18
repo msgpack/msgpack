@@ -2,25 +2,26 @@
 {-# Language FlexibleInstances #-}
 
 module Data.MessagePack.Derive (
+  -- | deriving OBJECT
   derivePack,
   deriveUnpack,
   deriveObject,
   ) where
 
 import Control.Monad
-import Control.Monad.Error () -- for MonadPlus instance of Either e
+import Control.Monad.Error () -- MonadPlus instance for Either e
 import Data.Char
 import Data.List
+import qualified Data.Text as T
 import Language.Haskell.TH
-import Language.Haskell.TH.Syntax
 
 import Data.MessagePack.Assoc
 import Data.MessagePack.Pack
 import Data.MessagePack.Unpack
 import Data.MessagePack.Object
 
-derivePack :: Name -> Q [Dec]
-derivePack tyName = do
+derivePack :: Bool -> Name -> Q [Dec]
+derivePack asObject tyName = do
   info <- reify tyName
   d <- case info of
     TyConI (DataD _ {- cxt -} name tyVars cons _ {- derivings -}) -> do
@@ -40,20 +41,25 @@ derivePack tyName = do
 
     alt (RecC conName elms) = do
       vars <- replicateM (length elms) (newName "v")
-      match (conP conName $ map varP vars)
+      if asObject
+        then
+        match (conP conName $ map varP vars)
         (normalB
          [| put $ Assoc
-              $(listE [ [| ( $(return $ LitE $ StringL $ key conName fname)
+              $(listE [ [| ( $(return $ LitE $ StringL $ key conName fname) :: T.Text
                            , toObject $(varE v)) |]
                       | (v, (fname, _, _)) <- zip vars elms])
           |])
         []
+        else
+        match (conP conName $ map varP vars)
+        (normalB [| put $(tupE $ map varE vars) |])
+        []
 
     alt c = error $ "unsupported constructor: " ++ pprint c
 
-
-deriveUnpack :: Name -> Q [Dec]
-deriveUnpack tyName = do
+deriveUnpack :: Bool -> Name -> Q [Dec]
+deriveUnpack asObject tyName = do
   info <- reify tyName
   d <- case info of
     TyConI (DataD _ {- cxt -} name tyVars cons _ {- derivings -}) -> do
@@ -74,21 +80,27 @@ deriveUnpack tyName = do
     alt (RecC conName elms) = do
       var <- newName "v"
       vars <- replicateM (length elms) (newName "w")
-      doE $ [ bindS (conP 'Assoc [varP var]) [| get |] ]
+      if asObject
+        then
+        doE $ [ bindS (conP 'Assoc [varP var]) [| get |] ]
             ++ zipWith (binds conName var) vars elms ++
             [ noBindS [| return $(foldl appE (conE conName) $ map varE vars) |] ]
+        else
+        doE [ bindS (tupP $ map varP vars) [| get |]
+            , noBindS [| return $(foldl appE (conE conName) $ map varE vars) |]
+            ]
 
     alt c = error $ "unsupported constructor: " ++ pprint c
 
     binds conName var res (fname, _, _) =
       bindS (varP res)
-            [| failN $ lookup $(return $ LitE $ StringL $ key conName fname)
+            [| failN $ lookup ($(return $ LitE $ StringL $ key conName fname) :: T.Text)
                               $(varE var) |]
 
-deriveObject :: Name -> Q [Dec]
-deriveObject tyName = do
-  g <- derivePack tyName
-  p <- deriveUnpack tyName
+deriveObject :: Bool -> Name -> Q [Dec]
+deriveObject asObject tyName = do
+  g <- derivePack asObject tyName
+  p <- deriveUnpack asObject tyName
   info <- reify tyName
   o <- case info of
     TyConI (DataD _ {- cxt -} name tyVars cons _ {- derivings -}) ->

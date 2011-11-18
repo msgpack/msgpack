@@ -1,4 +1,5 @@
-{-# Language TemplateHaskell #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 import Data.MessagePack
 
@@ -7,27 +8,27 @@ data T
   | B Double
   deriving (Show, Eq)
 
-deriveObject ''T
+deriveObject True ''T
 
 data U
   = C { c1 :: Int, c2 :: String }
   | D { z1 :: Double }
   deriving (Show, Eq)
 
-deriveObject ''U
+deriveObject True ''U
 
 data V
   = E String | F
   deriving (Show, Eq)
 
-deriveObject ''V
+deriveObject True ''V
 
 data W a
   = G a String
   | H { hHoge :: Int, h_age :: a }
   deriving (Show, Eq)
 
-deriveObject ''W
+deriveObject True ''W
 
 test :: (OBJECT a, Show a, Eq a) => a -> IO ()
 test v = do
