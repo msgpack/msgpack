@@ -15,6 +15,7 @@
 //
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -30,12 +31,13 @@ namespace MsgPack.Compiler
 			Func<MemberInfo,string> memberNameFormatter,
 			Func<Type, MethodInfo> lookupPackMethod)
 		{
-			if (type.IsPrimitive || type.IsInterface)
+			if ((type.IsPrimitive || type.IsInterface) && !type.IsMap())
 				throw new NotSupportedException ();
 
 			Variable arg_writer = Variable.CreateArg (0);
 			Variable arg_obj = Variable.CreateArg (1);
 			Variable local_i = Variable.CreateLocal (il.DeclareLocal (typeof (int)));
+
 
 			if (!type.IsValueType) { // null check
 				Label notNullLabel = il.DefineLabel ();
@@ -51,7 +53,11 @@ namespace MsgPack.Compiler
 				EmitPackArrayCode (mi, il, type, arg_writer, arg_obj, local_i, lookupPackMethod);
 				goto FinallyProcess;
 			}
-
+            if (type.IsMap())
+            {
+                EmitPackMapCode(mi, il, type, arg_writer, arg_obj, lookupPackMethod);
+                goto FinallyProcess;
+            }
 			// MsgPackWriter.WriteMapHeader
 			MemberInfo[] members = targetMemberSelector (type);
 			il.EmitLd (arg_writer);
@@ -75,6 +81,61 @@ namespace MsgPack.Compiler
 FinallyProcess:
       il.Emit (OpCodes.Ret);
 		}
+
+        /// <summary>
+        /// Emits IL code to pack a Map based on IDictionary.
+        /// </summary>
+        /// <param name="mi">Current method info.</param>
+        /// <param name="il">il buffer/generator</param>
+        /// <param name="type">Current type</param>
+        /// <param name="arg_writer">packer object</param>
+        /// <param name="arg_obj">current object</param>
+        /// <param name="lookupPackMethod">dictionary to look for methods</param>
+        static void EmitPackMapCode(MethodInfo mi, ILGenerator il, Type type, Variable arg_writer, Variable arg_obj, Func<Type, MethodInfo> lookupPackMethod)
+        {
+            Variable local_enumerator = Variable.CreateLocal(il.DeclareLocal(typeof(IDictionaryEnumerator)));
+            Variable local_keyvalue = Variable.CreateLocal(il.DeclareLocal(typeof(object)));
+            Label work = il.DefineLabel();
+            Label getNext = il.DefineLabel();
+            Label end = il.DefineLabel();
+
+            il.EmitLd(arg_writer);
+            // 1. Get length of the dictionary
+            il.EmitLd(arg_obj);
+            il.Emit(OpCodes.Callvirt, typeof(ICollection).GetMethod("get_Count"));
+            // 2. Write dictionary header
+            il.Emit(OpCodes.Callvirt, typeof(MsgPackWriter).GetMethod("WriteMapHeader", new Type[] { typeof(int) }));
+            // 3. Loop each member.
+            // 3.1. Get The enumerator
+            il.EmitLd(arg_obj);
+            il.Emit(OpCodes.Callvirt, typeof(IDictionary).GetMethod("GetEnumerator"));
+            il.EmitSt(local_enumerator);
+            var foreachblocklabel = il.BeginExceptionBlock();
+            il.Emit(OpCodes.Br_S, getNext);
+            il.MarkLabel(work);
+            // 3.2 Extract the element
+            il.EmitLd(local_enumerator);
+            il.Emit(OpCodes.Callvirt, typeof(IDictionaryEnumerator).GetProperty("Key").GetGetMethod());
+            il.EmitSt(local_keyvalue);
+            EmitPackMemberValueCode(type.GetGenericArguments()[0], il, arg_writer, local_keyvalue, null, null, type, mi, lookupPackMethod);
+            il.EmitLd(local_enumerator);
+            il.Emit(OpCodes.Callvirt, typeof(IDictionaryEnumerator).GetProperty("Value").GetGetMethod());
+            il.EmitSt(local_keyvalue);
+            EmitPackMemberValueCode(type.GetGenericArguments()[1], il, arg_writer, local_keyvalue, null, null, type, mi, lookupPackMethod);
+
+            // 3.3 GetNext
+            il.MarkLabel(getNext);
+            il.EmitLd(local_enumerator);
+            il.Emit(OpCodes.Callvirt, typeof(IEnumerator).GetMethod("MoveNext"));
+            il.Emit(OpCodes.Brtrue_S, work);
+            // 3.4 Finish the loop
+            il.Emit(OpCodes.Leave, end);
+            il.BeginFinallyBlock();
+            il.EmitLd(local_enumerator);
+            il.Emit(OpCodes.Callvirt, typeof(IDisposable).GetMethod("Dispose"));
+            il.EndExceptionBlock();
+            il.MarkLabel(end);
+        }
 
 		static void EmitPackArrayCode (MethodInfo mi, ILGenerator il, Type t, Variable var_writer, Variable var_obj, Variable var_loop, Func<Type, MethodInfo> lookupPackMethod)
 		{
@@ -381,6 +442,17 @@ FinallyProcess:
 				return ((PropertyInfo)mi).PropertyType;
 			throw new ArgumentException ();
 		}
+
+        /// <summary>
+        /// Checks if a type is elegible for "Map" serialization.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        static bool IsMap(this Type type)
+        {
+            // Checks we can assign it to an IDictionary
+            return typeof (IDictionary).IsAssignableFrom(type);
+        }
 		#endregion
 	}
 }
