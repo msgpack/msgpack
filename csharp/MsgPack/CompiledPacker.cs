@@ -372,7 +372,7 @@ namespace MsgPack
 				BindingFlags baseFlags = BindingFlags.Instance | BindingFlags.Public;
 				List<MemberInfo> list = new List<MemberInfo> ();
 				list.AddRange (t.GetFields (baseFlags));
-                list.AddRange( t.GetProperties(baseFlags));
+				list.AddRange( t.GetProperties(baseFlags));
 				// TODO: Add NonSerialized Attribute Filter ?
 				return list.ToArray ();
 			}
