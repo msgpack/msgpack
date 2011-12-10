@@ -23,6 +23,9 @@
         case MSGPACK_OBJECT_NEGATIVE_INTEGER:
             return [[NSNumber alloc] initWithLongLong:obj.via.i64];
             break;
+        case MSGPACK_OBJECT_FLOAT:
+            return [[NSNumber alloc] initWithFloat:obj.via.dec];
+            break;
         case MSGPACK_OBJECT_DOUBLE:
             return [[NSNumber alloc] initWithDouble:obj.via.dec];
             break;

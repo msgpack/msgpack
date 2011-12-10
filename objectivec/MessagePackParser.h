@@ -11,6 +11,5 @@
 @interface MessagePackParser : NSObject
 
 + (id)parseData:(NSData*)data;
-+ (NSData*)pack:(id)obj;
 
 @end
