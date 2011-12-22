@@ -254,5 +254,13 @@ namespace MsgPack
 				throw new FormatException ();
 			return _encoding.GetString (tmp);
 		}
+
+	    public Guid ReadRawGuid()
+	    {
+	        ReadValueRaw(_buf, 0, 16);
+	        var guidBytes = new byte[16];
+            Array.ConstrainedCopy(_buf, 0, guidBytes, 0, 16);
+            return new Guid(guidBytes);
+	    }
 	}
 }

@@ -13,7 +13,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -24,7 +23,7 @@ using MsgPack.Compiler;
 
 namespace MsgPack
 {
-	public class CompiledPacker
+	public class CompiledPacker : IMsgPacker
 	{
 		static PackerBase _publicFieldPacker, _allFieldPacker;
 		PackerBase _packer;
@@ -293,11 +292,24 @@ namespace MsgPack
 			{
 				TypeBuilder tb;
 				MethodBuilder mb;
-				CreatePackMethodBuilder (typeof (T), out tb, out mb);
-				_packMethods.Add (typeof (T), mb);
-				CreatePacker (typeof (T), mb);
-				MethodInfo mi = ToCallableMethodInfo (typeof (T), tb, true);
-				return (Action<MsgPackWriter, T>)Delegate.CreateDelegate (typeof (Action<MsgPackWriter, T>), mi);
+			    Type typeofT = typeof (T);
+                var existingType = DynamicModuleBuilder.GetType(typeofT.FullName + "PackerType");
+			    MethodInfo existingMethod = null;
+                if (existingType != null)
+			         existingMethod = existingType.GetMethod("Pack");
+
+                if (existingMethod == null)
+                {
+                    CreatePackMethodBuilder(typeofT, out tb, out mb);
+                    CreatePacker(typeofT, mb);
+                    existingMethod = ToCallableMethodInfo(typeof(T), tb, true);
+                }
+                if (!_packMethods.ContainsKey(typeofT))
+                {
+                    _packMethods.Add(typeofT, existingMethod);
+                }
+
+                return (Action<MsgPackWriter, T>)Delegate.CreateDelegate(typeof(Action<MsgPackWriter, T>), existingMethod);
 			}
 
 			protected override Func<MsgPackReader, T> CreateUnpacker_Internal<T> ()
@@ -379,7 +391,7 @@ namespace MsgPack
 
 			static void CreatePackMethodBuilder (Type t, out TypeBuilder tb, out MethodBuilder mb)
 			{
-				tb = DynamicModuleBuilder.DefineType (t.Name + "PackerType", TypeAttributes.Public);
+				tb = DynamicModuleBuilder.DefineType (t.FullName + "PackerType", TypeAttributes.Public);
 				mb = tb.DefineMethod ("Pack", MethodAttributes.Static | MethodAttributes.Public, typeof (void), new Type[] {typeof (MsgPackWriter), t});
 			}
 
@@ -538,6 +550,13 @@ namespace MsgPack
 					UnpackFailed ();
 				return reader.ReadRawString ();
 			}
+
+            internal static Guid Unpack_Guid(MsgPackReader reader)
+            {
+                if (!reader.Read() || !reader.IsRaw())
+                    UnpackFailed();
+                return reader.ReadRawGuid();
+            }
 
 			internal static void UnpackFailed ()
 			{

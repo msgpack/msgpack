@@ -22,7 +22,7 @@ using System.Reflection;
 
 namespace MsgPack
 {
-	public class BoxingPacker
+    public class BoxingPacker : IMsgPacker
 	{
 		static Type KeyValuePairDefinitionType;
 
@@ -31,7 +31,21 @@ namespace MsgPack
 			KeyValuePairDefinitionType = typeof (KeyValuePair<object,object>).GetGenericTypeDefinition ();
 		}
 
-		public void Pack (Stream strm, object o)
+
+        #region Pack Generic
+        public byte[] Pack<T>(T o)
+        {
+            return Pack((object) o);
+        }
+
+        public void Pack<T>(Stream strm, T o)
+        {
+            Pack(strm, (object) o);
+        }
+        #endregion
+
+        #region Pack
+        public void Pack (Stream strm, object o)
 		{
 			MsgPackWriter writer = new MsgPackWriter (strm);
 			Pack (writer, o);
@@ -44,6 +58,7 @@ namespace MsgPack
 				return ms.ToArray ();
 			}
 		}
+        #endregion
 
 		void Pack (MsgPackWriter writer, object o)
 		{
@@ -104,7 +119,34 @@ namespace MsgPack
 			}
 		}
 
-		public object Unpack (Stream strm)
+        #region Unpack generic
+        public T Unpack<T>(byte[] buf)
+        {
+            return (T) Unpack(buf);
+        }
+        public T Unpack<T>(byte[] buf, int offset, int size)
+        {
+            return (T) Unpack(buf, offset, size);
+        }
+        public T Unpack<T>(Stream strm)
+        {
+            return (T) Unpack(strm);
+        }
+
+        #endregion
+
+        #region Unpack
+        // Note: I don't know why the unpack doesn't attach this to an object
+        public object Unpack(Type t, byte[] buf)
+        { throw new NotImplementedException();}
+
+        public object Unpack(Type t, byte[] buf, int offset, int size)
+        {throw new NotImplementedException();}
+
+        public object Unpack(Type t, Stream strm)
+        {throw new NotImplementedException();}
+
+        public object Unpack (Stream strm)
 		{
 			MsgPackReader reader = new MsgPackReader (strm);
 			return Unpack (reader);
@@ -121,8 +163,9 @@ namespace MsgPack
 		{
 			return Unpack (buf, 0, buf.Length);
 		}
+        #endregion
 
-		object Unpack (MsgPackReader reader)
+        object Unpack (MsgPackReader reader)
 		{
 			if (!reader.Read ())
 				throw new FormatException ();

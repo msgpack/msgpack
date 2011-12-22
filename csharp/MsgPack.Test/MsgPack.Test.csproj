@@ -45,6 +45,9 @@
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="BoxingPackerTests.cs" />
     <Compile Include="CompiledPackerTests.cs" />
+    <Compile Include="CompiledPackerMethodBuilderTests.cs" />
+    <Compile Include="CompiledPackerDynamicMethodTests.cs" />
+    <Compile Include="DataTypesTestsBase.cs" />
     <Compile Include="ObjectPackerTests.cs" />
     <Compile Include="ReaderWriterTests.cs" />
   </ItemGroup>

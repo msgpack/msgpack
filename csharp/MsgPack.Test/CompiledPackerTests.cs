@@ -62,15 +62,6 @@ namespace MsgPack.Test
             Assert.AreEqual(new byte[]{130,161,97,161,98,161,99,161,100},res);
         }
 
-        [Test]
-        public void DictionaryInDictionary_WorksAsMap()
-        {
-            var dict = new Dictionary<string, Dictionary<string,string>> { { "a", new Dictionary<string,string>{{"b","c"}} }};
-
-            var res = _dynImpl.Pack<Dictionary<string, Dictionary<string, string>>>(dict);
-
-            Assert.AreEqual(new byte[] { 129, 161, 97, 129, 161, 98, 161, 99 }, res);
-        }
 
 		void TestA (CompiledPacker packer)
 		{

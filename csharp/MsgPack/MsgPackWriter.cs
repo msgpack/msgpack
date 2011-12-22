@@ -33,6 +33,11 @@ namespace MsgPack
 			_strm = strm;
 		}
 
+        public void Write(Guid x)
+        {
+            Write(x.ToString().Replace("-", string.Empty));
+        }
+
 		public void Write (byte x)
 		{
 			if (x < 128) {

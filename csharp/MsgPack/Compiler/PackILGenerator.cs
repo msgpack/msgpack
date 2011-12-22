@@ -188,7 +188,7 @@ FinallyProcess:
 				il.EmitLd (elementIdx);
 				il.Emit (OpCodes.Ldelem, type);
 			}
-			if (type.IsPrimitive) {
+			if (type.IsPrimitive || type == typeof(Guid)) {
 				mi = typeof(MsgPackWriter).GetMethod("Write", new Type[]{type});
 			} else {
 				if (currentType == type) {

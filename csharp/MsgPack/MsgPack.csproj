@@ -45,6 +45,7 @@
     <Compile Include="Compiler\PackILGenerator.cs" />
     <Compile Include="Compiler\Variable.cs" />
     <Compile Include="Compiler\VariableType.cs" />
+    <Compile Include="IMsgPacker.cs" />
     <Compile Include="MsgPackReader.cs" />
     <Compile Include="MsgPackWriter.cs" />
     <Compile Include="ObjectPacker.cs" />
