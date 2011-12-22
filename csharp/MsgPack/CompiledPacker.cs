@@ -483,6 +483,9 @@ namespace MsgPack
 
 				mi = type.GetMethod ("Unpack_String", flags);
 				unpackMethods.Add (typeof (string), mi);
+
+                mi = type.GetMethod("Unpack_Guid", flags);
+                unpackMethods.Add(typeof(Guid), mi);
 			}
 
 			internal static int Unpack_Signed (MsgPackReader reader)

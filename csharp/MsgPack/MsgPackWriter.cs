@@ -35,7 +35,7 @@ namespace MsgPack
 
         public void Write(Guid x)
         {
-            Write(x.ToString().Replace("-", string.Empty));
+            Write(x.ToString("N"));
         }
 
 		public void Write (byte x)

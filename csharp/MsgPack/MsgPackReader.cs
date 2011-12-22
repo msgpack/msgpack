@@ -257,10 +257,10 @@ namespace MsgPack
 
 	    public Guid ReadRawGuid()
 	    {
-	        ReadValueRaw(_buf, 0, 16);
-	        var guidBytes = new byte[16];
-            Array.ConstrainedCopy(_buf, 0, guidBytes, 0, 16);
-            return new Guid(guidBytes);
+	        var guidAsString = ReadRawString();
+            return String.IsNullOrWhiteSpace(guidAsString) 
+                ? Guid.Empty 
+                : Guid.ParseExact(guidAsString,"N");
 	    }
 	}
 }

@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using NUnit.Framework;
 
 namespace MsgPack.Test
@@ -26,6 +24,38 @@ namespace MsgPack.Test
                      48,48,48,48,48,48,48,48,48,48,48,48,48,48,48,48,
                      48,48,48,48,48,48,48,48,48,48,48,48,48,48,48,48// Guid.Empty
             }, res);
+        }
+
+        [Test]
+        public void UnPack_Guid()
+        {
+            var buf = new byte[] {
+            0x81, // Map length 1
+                0xa6, // Raw length 6
+                     0x4d,0x79,0x47,0x75,0x69,0x64, // MyGuid
+                0xda,0x00,0x20, // Raw length 32
+                     48,49,48,50,48,51,48,52,48,48,48,48,48,48,48,48,
+                     48,48,48,48,48,48,48,48,48,48,48,48,48,48,48,48// Guid.Empty
+            };
+
+            var res = _packer.Unpack<TestGuid>(buf);
+
+            Assert.AreEqual(Guid.Parse("01020304000000000000000000000000"), res.MyGuid);
+        }
+
+        [Test]
+        public void UnPack_NullGuid()
+        {
+            var buf = new byte[] {
+            0x81, // Map length 1
+                0xa6, // Raw length 6
+                     0x4d,0x79,0x47,0x75,0x69,0x64, // MyGuid
+                0xa0 // Raw length 0
+            };
+
+            var res = _packer.Unpack<TestGuid>(buf);
+
+            Assert.AreEqual(Guid.Empty, res.MyGuid);
         }
 
 

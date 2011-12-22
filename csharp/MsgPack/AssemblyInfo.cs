@@ -24,5 +24,5 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyCopyright ("Copyright © 2011 Kazuki Oikawa")]
 
 [assembly: ComVisible (false)]
-[assembly: AssemblyVersion ("0.1.*")]
+[assembly: AssemblyVersion ("0.1.1")]
 [assembly: InternalsVisibleTo (MsgPack.CompiledPacker.MethodBuilderPacker.AssemblyName)]
