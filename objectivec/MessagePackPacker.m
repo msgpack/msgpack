@@ -36,11 +36,11 @@
 		case kCFNumberFloat32Type:
 		case kCFNumberFloatType:
 		case kCFNumberCGFloatType:
-			msgpack_pack_int8(pk, num.floatValue);
+			msgpack_pack_float(pk, num.floatValue);
 			break;
 		case kCFNumberFloat64Type:
 		case kCFNumberDoubleType:
-			msgpack_pack_int8(pk, num.doubleValue);
+			msgpack_pack_double(pk, num.doubleValue);
 			break;
 		case kCFNumberCharType: {
 			int theValue = num.intValue;
