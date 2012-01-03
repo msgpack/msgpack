@@ -1,3 +1,9 @@
+PROJECT HAS MOVED
+====
+The official msgpack project has now accepted this project of mine into their repo, so for the latest code you should go here:
+
+https://github.com/msgpack/msgpack-objectivec
+
 MessagePack for Objective-C / iPhone
 ============
 
