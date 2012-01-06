@@ -316,11 +316,15 @@ namespace MsgPack
 			{
 				TypeBuilder tb;
 				MethodBuilder mb;
-				CreateUnpackMethodBuilder (typeof (T), out tb, out mb);
-				_unpackMethods.Add (typeof (T), mb);
-				CreateUnpacker (typeof (T), mb);
-				MethodInfo mi = ToCallableMethodInfo (typeof (T), tb, false);
-				return (Func<MsgPackReader, T>)Delegate.CreateDelegate (typeof (Func<MsgPackReader, T>), mi);
+                MethodInfo mi;
+                if (!_unpackMethods.TryGetValue(typeof(T), out mi))
+                {
+                    CreateUnpackMethodBuilder(typeof (T), out tb, out mb);
+                    _unpackMethods.Add(typeof (T), mb);
+                    CreateUnpacker(typeof (T), mb);
+                    mi = ToCallableMethodInfo(typeof (T), tb, false);
+                }
+			    return (Func<MsgPackReader, T>)Delegate.CreateDelegate (typeof (Func<MsgPackReader, T>), mi);
 			}
 
 			void CreatePacker (Type t, MethodBuilder mb)
@@ -397,7 +401,7 @@ namespace MsgPack
 
 			static void CreateUnpackMethodBuilder (Type t, out TypeBuilder tb, out MethodBuilder mb)
 			{
-				tb = DynamicModuleBuilder.DefineType (t.Name + "UnpackerType", TypeAttributes.Public);
+				tb = DynamicModuleBuilder.DefineType (t.FullName + "UnpackerType", TypeAttributes.Public);
 				mb = tb.DefineMethod ("Unpack", MethodAttributes.Static | MethodAttributes.Public, t, new Type[] {typeof (MsgPackReader)});
 			}
 
@@ -491,7 +495,11 @@ namespace MsgPack
 			internal static int Unpack_Signed (MsgPackReader reader)
 			{
 				if (!reader.Read () || !reader.IsSigned ())
-					UnpackFailed ();
+                {
+                    if (reader.Type == TypePrefixes.Nil)
+                        return 0;
+                    UnpackFailed();
+                }
 				return reader.ValueSigned;
 			}
 
@@ -510,7 +518,11 @@ namespace MsgPack
 			internal static uint Unpack_Unsigned (MsgPackReader reader)
 			{
 				if (!reader.Read () || !reader.IsUnsigned ())
-					UnpackFailed ();
+                {
+                    if (reader.Type == TypePrefixes.Nil)
+                        return 0;
+                    UnpackFailed();
+                }
 				return reader.ValueUnsigned;
 			}
 
@@ -550,14 +562,23 @@ namespace MsgPack
 			internal static string Unpack_String (MsgPackReader reader)
 			{
 				if (!reader.Read () || !reader.IsRaw ())
-					UnpackFailed ();
+                {
+                    if (reader.Type == TypePrefixes.Nil)
+                        return null;
+                    UnpackFailed();
+                }
 				return reader.ReadRawString ();
 			}
+
 
             internal static Guid Unpack_Guid(MsgPackReader reader)
             {
                 if (!reader.Read() || !reader.IsRaw())
+                {
+                    if (reader.Type == TypePrefixes.Nil)
+                        return Guid.Empty;
                     UnpackFailed();
+                }
                 return reader.ReadRawGuid();
             }
 

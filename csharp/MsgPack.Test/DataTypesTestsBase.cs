@@ -10,6 +10,23 @@ namespace MsgPack.Test
         protected IMsgPacker _packer;
 
         [Test]
+        public void Unpack_NullString()
+        {
+            var buf = new byte[] {0xa0};
+            var res = _packer.Unpack<string>(buf);
+            Assert.IsNotNull(res);
+            Assert.AreEqual(0,res.Length);
+        }
+
+        [Test]
+        public void Unpack_EmptyString()
+        {
+            var buf = new byte[] { 0xc0 };
+            var res = _packer.Unpack<string>(buf);
+            Assert.IsNull(res);
+        }
+
+        [Test]
         public void Pack_Guid()
         {
             var obj = new TestGuid {MyGuid = Guid.Empty};
@@ -44,13 +61,28 @@ namespace MsgPack.Test
         }
 
         [Test]
-        public void UnPack_NullGuid()
+        public void UnPack_EmptyGuid()
         {
             var buf = new byte[] {
             0x81, // Map length 1
                 0xa6, // Raw length 6
                      0x4d,0x79,0x47,0x75,0x69,0x64, // MyGuid
                 0xa0 // Raw length 0
+            };
+
+            var res = _packer.Unpack<TestGuid>(buf);
+
+            Assert.AreEqual(Guid.Empty, res.MyGuid);
+        }
+
+        [Test]
+        public void UnPack_NullGuid()
+        {
+            var buf = new byte[] {
+            0x81, // Map length 1
+                0xa6, // Raw length 6
+                     0x4d,0x79,0x47,0x75,0x69,0x64, // MyGuid
+                0xc0 // Raw length 0
             };
 
             var res = _packer.Unpack<TestGuid>(buf);
@@ -80,6 +112,23 @@ namespace MsgPack.Test
         }
 
         [Test]
+        public void UnPack_EmptyDictionary()
+        {
+            var testData = new byte[] {0x80};
+            var res = _packer.Unpack<Dictionary<string,int>>(testData);
+            Assert.IsNotNull(res);
+            Assert.IsEmpty(res);
+        }
+
+        [Test]
+        public void UnPack_DictionaryInAClass()
+        {
+            var testData = new byte[] { 0x81, 0xa2, 0x4d,0x64,0x80  };
+            var res = _packer.Unpack<TestDictionary1>(testData);
+            Assert.IsNotNull(res);
+        }
+
+        [Test,Ignore]
         public void Pack_AChar()
         {
             char myChar = 'a';
@@ -110,6 +159,11 @@ namespace MsgPack.Test
         public class TestChar
         {
             public char MyChar { get; set; }
+        }
+
+        public class TestDictionary1
+        {
+            public Dictionary<string,int> Md { get; set; }
         }
         #endregion
     }
