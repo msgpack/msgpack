@@ -1,7 +1,6 @@
-package msgpack_test
+package msgpack
 
 import (
-	. "msgpack"
 	"testing"
 	"bytes"
 	"reflect"
