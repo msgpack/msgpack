@@ -20,7 +20,7 @@ endif
 
 
 # -version-info CURRENT:REVISION:AGE
-libmsgpack_la_LDFLAGS = -version-info 3:0:0
+libmsgpack_la_LDFLAGS = -version-info 3:0:0 -no-undefined
 
 
 # backward compatibility
@@ -33,7 +33,7 @@ libmsgpackc_la_SOURCES = \
 		vrefbuffer.c \
 		zone.c
 
-libmsgpackc_la_LDFLAGS = -version-info 2:0:0
+libmsgpackc_la_LDFLAGS = -version-info 2:0:0 -no-undefined
 
 
 nobase_include_HEADERS = \
