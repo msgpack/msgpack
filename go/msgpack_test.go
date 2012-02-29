@@ -73,6 +73,35 @@ func TestPackUint8(t *testing.T) {
 	}
 }
 
+func TestPackBytes(t *testing.T) {
+	for _, i := range []struct {
+		s string
+		b []byte
+	}{
+		{"a", []byte("\xa1a")},
+		{"hello", []byte("\xa5hello")},
+		{"world world world", []byte("\xb1world world world")},
+		{"world world world world world world", []byte("\xda\x00#world world world world world world")},
+	} {
+
+                b := &bytes.Buffer{}
+
+		_, err := PackBytes(b, []byte(i.s))
+		if err != nil {
+			t.Error("err != nil")
+		}
+
+		v, _, e := Unpack(b)
+		if e != nil {
+			t.Error("err != nil")
+		}
+
+		if !equal(v, reflect.ValueOf([]byte(i.s))) {
+			t.Error("unpack(pack(%s)) != %s", i.s)
+		}
+	}
+}
+
 func TestPackUint16(t *testing.T) {
 	b := &bytes.Buffer{}
 	for _, i := range []uint16{0, 1, 2, 125, 126, 127, 128, 253, 254, 255, 256, 65533, 65534, 65535} {
