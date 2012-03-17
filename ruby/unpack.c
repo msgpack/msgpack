@@ -112,7 +112,7 @@ static inline int template_callback_array(unpack_user* u, unsigned int n, VALUE*
 { *o = rb_ary_new2(n); return 0; }
 
 static inline int template_callback_array_item(unpack_user* u, VALUE* c, VALUE o)
-{ rb_ary_push(*c, o); return 0; }  // FIXME set value directry RARRAY_PTR(obj)[RARRAY_LEN(obj)++]
+{ rb_ary_push(*c, o); return 0; }
 
 static inline int template_callback_map(unpack_user* u, unsigned int n, VALUE* o)
 { *o = rb_hash_new(); return 0; }

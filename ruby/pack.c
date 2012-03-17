@@ -219,11 +219,12 @@ static VALUE MessagePack_Array_to_msgpack(int argc, VALUE *argv, VALUE self)
 {
 	ARG_BUFFER(out, argc, argv);
 	// FIXME check sizeof(long) > sizeof(unsigned int) && RARRAY_LEN(self) > UINT_MAX
-	msgpack_pack_array(out, (unsigned int)RARRAY_LEN(self));
-	VALUE* p = RARRAY_PTR(self);
-	VALUE* const pend = p + RARRAY_LEN(self);
-	for(;p != pend; ++p) {
-		rb_funcall(*p, s_to_msgpack, 1, out);
+	unsigned int ary_length = (unsigned int)RARRAY_LEN(self);
+	unsigned int i = 0;
+	msgpack_pack_array(out, ary_length);
+	for(; i < ary_length; ++i) {
+		VALUE p = rb_ary_entry(self, i);
+		rb_funcall(p, s_to_msgpack, 1, out);
 	}
 	return out;
 }
