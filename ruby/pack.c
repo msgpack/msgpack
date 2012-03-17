@@ -40,8 +40,8 @@ static ID s_append;
 #include "msgpack/pack_template.h"
 
 
-#ifndef RUBY_VM
-#include "st.h"  // ruby hash
+#ifdef HAVE_RUBY_ST_H
+#include "ruby/st.h"  // ruby hash
 #endif
 
 #define ARG_BUFFER(name, argc, argv) \
