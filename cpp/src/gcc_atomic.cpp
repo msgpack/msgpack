@@ -5,12 +5,12 @@
 
 int _msgpack_sync_decr_and_fetch(volatile _msgpack_atomic_counter_t* ptr)
 {
-	return  __gnu_cxx::__exchange_and_add(ptr, -1);
+	return  __gnu_cxx::__exchange_and_add(ptr, -1) - 1;
 }
 
 int _msgpack_sync_incr_and_fetch(volatile _msgpack_atomic_counter_t* ptr)
 {
-	return  __gnu_cxx::__exchange_and_add(ptr, 1);
+	return  __gnu_cxx::__exchange_and_add(ptr, 1) + 1;
 }
 
 
