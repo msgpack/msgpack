@@ -311,7 +311,7 @@ inline void unpack(unpacked* result,
 
 	unpack_return ret = (unpack_return)msgpack_unpack(
 			data, len, offset, z.get(),
-			reinterpret_cast<msgpack_object*>(&obj));
+			&obj);
 
 	switch(ret) {
 	case UNPACK_SUCCESS:
@@ -339,7 +339,7 @@ inline unpack_return unpack(const char* data, size_t len, size_t* off,
 		zone* z, object* result)
 {
 	return (unpack_return)msgpack_unpack(data, len, off,
-			z, reinterpret_cast<msgpack_object*>(result));
+			z, result);
 }
 
 // obsolete
