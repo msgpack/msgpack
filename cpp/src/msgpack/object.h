@@ -44,12 +44,19 @@ typedef enum {
 } msgpack_object_type;
 
 
+#ifdef __cplusplus
+namespace msgpack { struct object; }
+	typedef msgpack::object* msgpack_object_ptr;
+#else
+	typedef struct msgpack_object* msgpack_object_ptr;
+#endif
+  
 struct msgpack_object;
 struct msgpack_object_kv;
 
 typedef struct {
 	uint32_t size;
-	struct msgpack_object* ptr;
+	msgpack_object_ptr ptr;
 } msgpack_object_array;
 
 typedef struct {
