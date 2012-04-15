@@ -93,6 +93,7 @@ AC_SUBST(VERSION_MINOR, $minor)
 
 
 AC_OUTPUT([Makefile
+		   msgpack.pc
 		   src/Makefile
 		   src/msgpack/version.h
 		   test/Makefile])
