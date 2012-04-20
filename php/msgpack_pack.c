@@ -255,27 +255,34 @@ inline static void msgpack_serialize_array(
 
     if (object)
     {
-        if (MSGPACK_G(php_only))
+        if (n == 0)
         {
-            if (Z_ISREF_P(val))
-            {
-                msgpack_pack_map(buf, n + 2);
-                msgpack_pack_nil(buf);
-                msgpack_pack_long(buf, MSGPACK_SERIALIZE_TYPE_REFERENCE);
-            }
-            else
-            {
-                msgpack_pack_map(buf, n + 1);
-            }
-
-            msgpack_pack_nil(buf);
-
-            msgpack_serialize_string(buf, class_name, name_len);
+            msgpack_pack_map(buf, n);
         }
         else
         {
-            msgpack_pack_array(buf, n);
-            hash = 0;
+            if (MSGPACK_G(php_only))
+            {
+                if (Z_ISREF_P(val))
+                {
+                    msgpack_pack_map(buf, n + 2);
+                    msgpack_pack_nil(buf);
+                    msgpack_pack_long(buf, MSGPACK_SERIALIZE_TYPE_REFERENCE);
+                }
+                else
+                {
+                    msgpack_pack_map(buf, n + 1);
+                }
+
+                msgpack_pack_nil(buf);
+
+                msgpack_serialize_string(buf, class_name, name_len);
+            }
+            else
+            {
+                msgpack_pack_array(buf, n);
+                hash = 0;
+            }
         }
     }
     else if (n == 0)
@@ -301,67 +308,100 @@ inline static void msgpack_serialize_array(
 
     if (n > 0)
     {
-        char *key;
-        uint key_len;
-        int key_type;
-        ulong key_index;
-        zval **data;
-        HashPosition pos;
-
-        zend_hash_internal_pointer_reset_ex(ht, &pos);
-        for (;; zend_hash_move_forward_ex(ht, &pos))
+        if (object || hash)
         {
-            key_type = zend_hash_get_current_key_ex(
-                ht, &key, &key_len, &key_index, 0, &pos);
+            char *key;
+            uint key_len;
+            int key_type;
+            ulong key_index;
+            zval **data;
+            HashPosition pos;
 
-            if (key_type == HASH_KEY_NON_EXISTANT)
+            zend_hash_internal_pointer_reset_ex(ht, &pos);
+            for (;; zend_hash_move_forward_ex(ht, &pos))
             {
-                break;
-            }
-            if (incomplete_class && strcmp(key, MAGIC_MEMBER) == 0)
-            {
-                continue;
-            }
+                key_type = zend_hash_get_current_key_ex(
+                    ht, &key, &key_len, &key_index, 0, &pos);
 
-            if (hash)
-            {
-                switch (key_type)
+                if (key_type == HASH_KEY_NON_EXISTANT)
                 {
-                    case HASH_KEY_IS_LONG:
-                        msgpack_pack_long(buf, key_index);
-                        break;
-                    case HASH_KEY_IS_STRING:
-                        msgpack_serialize_string(buf, key, key_len - 1);
-                        break;
-                    default:
-                        msgpack_serialize_string(buf, "", sizeof(""));
-                        MSGPACK_WARNING(
-                            "[msgpack] (%s) key is not string nor array",
-                            __FUNCTION__);
-                        break;
+                    break;
                 }
-            }
-
-            if (zend_hash_get_current_data_ex(
-                    ht, (void *)&data, &pos) != SUCCESS ||
-                !data || data == &val ||
-                (Z_TYPE_PP(data) == IS_ARRAY &&
-                 Z_ARRVAL_PP(data)->nApplyCount > 1))
-            {
-                msgpack_pack_nil(buf);
-            }
-            else
-            {
-                if (Z_TYPE_PP(data) == IS_ARRAY)
+                if (incomplete_class && strcmp(key, MAGIC_MEMBER) == 0)
                 {
-                    Z_ARRVAL_PP(data)->nApplyCount++;
+                    continue;
                 }
 
-                msgpack_serialize_zval(buf, *data, var_hash TSRMLS_CC);
-
-                if (Z_TYPE_PP(data) == IS_ARRAY)
+                if (hash)
                 {
-                    Z_ARRVAL_PP(data)->nApplyCount--;
+                    switch (key_type)
+                    {
+                        case HASH_KEY_IS_LONG:
+                            msgpack_pack_long(buf, key_index);
+                            break;
+                        case HASH_KEY_IS_STRING:
+                            msgpack_serialize_string(buf, key, key_len - 1);
+                            break;
+                        default:
+                            msgpack_serialize_string(buf, "", sizeof(""));
+                            MSGPACK_WARNING(
+                                "[msgpack] (%s) key is not string nor array",
+                                __FUNCTION__);
+                            break;
+                    }
+                }
+
+                if (zend_hash_get_current_data_ex(
+                        ht, (void *)&data, &pos) != SUCCESS ||
+                    !data || data == &val ||
+                    (Z_TYPE_PP(data) == IS_ARRAY &&
+                     Z_ARRVAL_PP(data)->nApplyCount > 1))
+                {
+                    msgpack_pack_nil(buf);
+                }
+                else
+                {
+                    if (Z_TYPE_PP(data) == IS_ARRAY)
+                    {
+                        Z_ARRVAL_PP(data)->nApplyCount++;
+                    }
+
+                    msgpack_serialize_zval(buf, *data, var_hash TSRMLS_CC);
+
+                    if (Z_TYPE_PP(data) == IS_ARRAY)
+                    {
+                        Z_ARRVAL_PP(data)->nApplyCount--;
+                    }
+                }
+            }
+        }
+        else
+        {
+            zval **data;
+            uint i;
+
+            for (i = 0; i < n; i++)
+            {
+                if (zend_hash_index_find(ht, i, (void *)&data) != SUCCESS ||
+                    !data || data == &val ||
+                    (Z_TYPE_PP(data) == IS_ARRAY &&
+                     Z_ARRVAL_PP(data)->nApplyCount > 1))
+                {
+                    msgpack_pack_nil(buf);
+                }
+                else
+                {
+                    if (Z_TYPE_PP(data) == IS_ARRAY)
+                    {
+                        Z_ARRVAL_PP(data)->nApplyCount++;
+                    }
+
+                    msgpack_serialize_zval(buf, *data, var_hash TSRMLS_CC);
+
+                    if (Z_TYPE_PP(data) == IS_ARRAY)
+                    {
+                        Z_ARRVAL_PP(data)->nApplyCount--;
+                    }
                 }
             }
         }
@@ -399,7 +439,7 @@ inline static void msgpack_serialize_object(
             msgpack_pack_nil(buf);
             msgpack_pack_long(buf, MSGPACK_SERIALIZE_TYPE_CUSTOM_OBJECT);
 
-            msgpack_serialize_string(buf, ce->name, ce->name_length);
+            msgpack_serialize_string(buf, (char *)ce->name, ce->name_length);
             msgpack_pack_raw(buf, serialized_length);
             msgpack_pack_raw_body(buf, serialized_data, serialized_length);
         }

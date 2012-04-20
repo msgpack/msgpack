@@ -54,7 +54,7 @@ typedef struct
     MSGPACK_UNSERIALIZE_FINISH_ITEM(_unpack, 2);
 
 inline static void msgpack_var_push(
-    php_unserialize_data_t *var_hashx, zval **rval)
+    msgpack_unserialize_data_t *var_hashx, zval **rval)
 {
     var_entries *var_hash, *prev = NULL;
 
@@ -91,7 +91,7 @@ inline static void msgpack_var_push(
 }
 
 inline static int msgpack_var_access(
-    php_unserialize_data_t *var_hashx, long id, zval ***store)
+    msgpack_unserialize_data_t *var_hashx, long id, zval ***store)
 {
     var_entries *var_hash = var_hashx->first;
 
@@ -118,7 +118,7 @@ inline static int msgpack_var_access(
 }
 
 inline static void msgpack_stack_push(
-    php_unserialize_data_t *var_hashx, zval **rval, zend_bool save)
+    msgpack_unserialize_data_t *var_hashx, zval **rval, zend_bool save)
 {
     var_entries *var_hash, *prev = NULL;
 
@@ -162,7 +162,7 @@ inline static void msgpack_stack_push(
 }
 
 inline static void msgpack_stack_pop(
-    php_unserialize_data_t *var_hashx, long count)
+    msgpack_unserialize_data_t *var_hashx, long count)
 {
     long i;
     var_entries *var_hash = var_hashx->first_dtor;
@@ -280,14 +280,14 @@ inline static zend_class_entry* msgpack_unserialize_class(
     return ce;
 }
 
-void msgpack_unserialize_var_init(php_unserialize_data_t *var_hashx)
+void msgpack_unserialize_var_init(msgpack_unserialize_data_t *var_hashx)
 {
     var_hashx->first = 0;
     var_hashx->first_dtor = 0;
 }
 
 void msgpack_unserialize_var_destroy(
-    php_unserialize_data_t *var_hashx, zend_bool err)
+    msgpack_unserialize_data_t *var_hashx, zend_bool err)
 {
     void *next;
     long i;
@@ -487,7 +487,7 @@ int msgpack_unserialize_array(
 
     array_init(*obj);
 
-    if (count) unpack->stack[unpack->deps++] = count;
+    unpack->stack[unpack->deps++] = count;
 
     return 0;
 }
@@ -505,11 +505,24 @@ int msgpack_unserialize_array_item(
 int msgpack_unserialize_map(
     msgpack_unserialize_data *unpack, unsigned int count, zval **obj)
 {
+    TSRMLS_FETCH();
     MSGPACK_UNSERIALIZE_ALLOC_VALUE(unpack);
 
-    if (count) unpack->stack[unpack->deps++] = count;
+    unpack->stack[unpack->deps++] = count;
 
     unpack->type = MSGPACK_SERIALIZE_TYPE_NONE;
+
+    if (count == 0)
+    {
+        if (MSGPACK_G(php_only))
+        {
+            object_init(*obj);
+        }
+        else
+        {
+            array_init(*obj);
+        }
+    }
 
     return 0;
 }
@@ -669,6 +682,7 @@ int msgpack_unserialize_map_item(
                     "[msgpack] (%s) illegal offset type, skip this decoding",
                     __FUNCTION__);
             }
+            zval_ptr_dtor(&key);
             break;
         case IS_STRING:
             if (zend_symtable_update(
@@ -680,16 +694,39 @@ int msgpack_unserialize_map_item(
                     "[msgpack] (%s) illegal offset type, skip this decoding",
                     __FUNCTION__);
             }
+            zval_ptr_dtor(&key);
             break;
         default:
-            zval_ptr_dtor(&val);
-            MSGPACK_WARNING(
-                "[msgpack] (%s) illegal offset type, skip this decoding",
-                __FUNCTION__);
+            MSGPACK_WARNING("[msgpack] (%s) illegal key type", __FUNCTION__);
+
+            if (MSGPACK_G(illegal_key_insert))
+            {
+                if (zend_hash_next_index_insert(
+                        HASH_OF(*container), &key, sizeof(key), NULL) == FAILURE)
+                {
+                    zval_ptr_dtor(&val);
+                }
+                if (zend_hash_next_index_insert(
+                        HASH_OF(*container), &val, sizeof(val), NULL) == FAILURE)
+                {
+                    zval_ptr_dtor(&val);
+                }
+            }
+            else
+            {
+                convert_to_string(key);
+                if (zend_symtable_update(
+                        HASH_OF(*container),
+                        Z_STRVAL_P(key), Z_STRLEN_P(key) + 1,
+                        &val, sizeof(val), NULL) == FAILURE)
+                {
+                    zval_ptr_dtor(&val);
+                }
+                zval_ptr_dtor(&key);
+            }
             break;
     }
 
-    zval_ptr_dtor(&key);
     msgpack_stack_pop(unpack->var_hash, 2);
 
     deps = unpack->deps - 1;

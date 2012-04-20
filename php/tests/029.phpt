@@ -44,4 +44,5 @@ header Version => %s
 
 Directive => Local Value => Master Value
 msgpack.error_display => On => On
+msgpack.illegal_key_insert => Off => Off
 msgpack.php_only => On => On

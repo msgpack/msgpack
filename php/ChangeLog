@@ -1,5 +1,9 @@
 msgpack extension changelog
 
+Version 0.5.2
+-------------
+	* Support PHP 5.4.x version.
+
 Version 0.5.1
 -------------
 	* Fixed include path for version check.

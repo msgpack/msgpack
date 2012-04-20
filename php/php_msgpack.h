@@ -2,7 +2,7 @@
 #ifndef PHP_MSGPACK_H
 #define PHP_MSGPACK_H
 
-#define MSGPACK_EXTENSION_VERSION "0.5.1"
+#define MSGPACK_EXTENSION_VERSION "0.5.2"
 
 #include "ext/standard/php_smart_str.h"
 
@@ -24,6 +24,7 @@ extern zend_module_entry msgpack_module_entry;
 ZEND_BEGIN_MODULE_GLOBALS(msgpack)
     zend_bool error_display;
     zend_bool php_only;
+    zend_bool illegal_key_insert;
 ZEND_END_MODULE_GLOBALS(msgpack)
 
 ZEND_EXTERN_MODULE_GLOBALS(msgpack)
