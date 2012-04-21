@@ -2,13 +2,13 @@ package msgpack
 
 import (
 	"io"
-	"os"
-	"unsafe"
 	"reflect"
+	"unsafe"
+	"syscall"
 )
 
 // Packs a given value and writes it into the specified writer.
-func PackUint8(writer io.Writer, value uint8) (n int, err os.Error) {
+func PackUint8(writer io.Writer, value uint8) (n int, err error) {
 	if value < 128 {
 		return writer.Write([]byte{byte(value)})
 	}
@@ -16,7 +16,7 @@ func PackUint8(writer io.Writer, value uint8) (n int, err os.Error) {
 }
 
 // Packs a given value and writes it into the specified writer.
-func PackUint16(writer io.Writer, value uint16) (n int, err os.Error) {
+func PackUint16(writer io.Writer, value uint16) (n int, err error) {
 	if value < 128 {
 		return writer.Write([]byte{byte(value)})
 	} else if value < 256 {
@@ -26,7 +26,7 @@ func PackUint16(writer io.Writer, value uint16) (n int, err os.Error) {
 }
 
 // Packs a given value and writes it into the specified writer.
-func PackUint32(writer io.Writer, value uint32) (n int, err os.Error) {
+func PackUint32(writer io.Writer, value uint32) (n int, err error) {
 	if value < 128 {
 		return writer.Write([]byte{byte(value)})
 	} else if value < 256 {
@@ -38,7 +38,7 @@ func PackUint32(writer io.Writer, value uint32) (n int, err os.Error) {
 }
 
 // Packs a given value and writes it into the specified writer.
-func PackUint64(writer io.Writer, value uint64) (n int, err os.Error) {
+func PackUint64(writer io.Writer, value uint64) (n int, err error) {
 	if value < 128 {
 		return writer.Write([]byte{byte(value)})
 	} else if value < 256 {
@@ -51,7 +51,7 @@ func PackUint64(writer io.Writer, value uint64) (n int, err os.Error) {
 	return writer.Write([]byte{0xcf, byte(value >> 56), byte(value >> 48), byte(value >> 40), byte(value >> 32), byte(value >> 24), byte(value >> 16), byte(value >> 8), byte(value)})
 }
 
-func PackUint(writer io.Writer, value uint) (n int, err os.Error) {
+func PackUint(writer io.Writer, value uint) (n int, err error) {
 	// Packs a given value and writes it into the specified writer.
 	switch unsafe.Sizeof(value) {
 	case 4:
@@ -59,11 +59,11 @@ func PackUint(writer io.Writer, value uint) (n int, err os.Error) {
 	case 8:
 		return PackUint64(writer, *(*uint64)(unsafe.Pointer(&value)))
 	}
-	return 0, os.ENOENT // never get here
+	return 0, syscall.ENOENT // never get here
 }
 
 // Packs a given value and writes it into the specified writer.
-func PackInt8(writer io.Writer, value int8) (n int, err os.Error) {
+func PackInt8(writer io.Writer, value int8) (n int, err error) {
 	if value < -32 {
 		return writer.Write([]byte{0xd0, byte(value)})
 	}
@@ -71,7 +71,7 @@ func PackInt8(writer io.Writer, value int8) (n int, err os.Error) {
 }
 
 // Packs a given value and writes it into the specified writer.
-func PackInt16(writer io.Writer, value int16) (n int, err os.Error) {
+func PackInt16(writer io.Writer, value int16) (n int, err error) {
 	if value < -128 || value >= 128 {
 		return writer.Write([]byte{0xd1, byte(uint16(value) >> 8), byte(value)})
 	} else if value < -32 {
@@ -81,7 +81,7 @@ func PackInt16(writer io.Writer, value int16) (n int, err os.Error) {
 }
 
 // Packs a given value and writes it into the specified writer.
-func PackInt32(writer io.Writer, value int32) (n int, err os.Error) {
+func PackInt32(writer io.Writer, value int32) (n int, err error) {
 	if value < -32768 || value >= 32768 {
 		return writer.Write([]byte{0xd2, byte(uint32(value) >> 24), byte(uint32(value) >> 16), byte(uint32(value) >> 8), byte(value)})
 	} else if value < -128 {
@@ -95,7 +95,7 @@ func PackInt32(writer io.Writer, value int32) (n int, err os.Error) {
 }
 
 // Packs a given value and writes it into the specified writer.
-func PackInt64(writer io.Writer, value int64) (n int, err os.Error) {
+func PackInt64(writer io.Writer, value int64) (n int, err error) {
 	if value < -2147483648 || value >= 2147483648 {
 		return writer.Write([]byte{0xd3, byte(uint64(value) >> 56), byte(uint64(value) >> 48), byte(uint64(value) >> 40), byte(uint64(value) >> 32), byte(uint64(value) >> 24), byte(uint64(value) >> 16), byte(uint64(value) >> 8), byte(value)})
 	} else if value < -32768 || value >= 32768 {
@@ -109,23 +109,23 @@ func PackInt64(writer io.Writer, value int64) (n int, err os.Error) {
 }
 
 // Packs a given value and writes it into the specified writer.
-func PackInt(writer io.Writer, value int) (n int, err os.Error) {
+func PackInt(writer io.Writer, value int) (n int, err error) {
 	switch unsafe.Sizeof(value) {
 	case 4:
 		return PackInt32(writer, *(*int32)(unsafe.Pointer(&value)))
 	case 8:
 		return PackInt64(writer, *(*int64)(unsafe.Pointer(&value)))
 	}
-	return 0, os.ENOENT // never get here
+	return 0, syscall.ENOENT // never get here
 }
 
 // Packs a given value and writes it into the specified writer.
-func PackNil(writer io.Writer) (n int, err os.Error) {
+func PackNil(writer io.Writer) (n int, err error) {
 	return writer.Write([]byte{0xc0})
 }
 
 // Packs a given value and writes it into the specified writer.
-func PackBool(writer io.Writer, value bool) (n int, err os.Error) {
+func PackBool(writer io.Writer, value bool) (n int, err error) {
 	var code byte
 	if value {
 		code = 0xc3
@@ -136,17 +136,17 @@ func PackBool(writer io.Writer, value bool) (n int, err os.Error) {
 }
 
 // Packs a given value and writes it into the specified writer.
-func PackFloat32(writer io.Writer, value float32) (n int, err os.Error) {
+func PackFloat32(writer io.Writer, value float32) (n int, err error) {
 	return PackUint32(writer, *(*uint32)(unsafe.Pointer(&value)))
 }
 
 // Packs a given value and writes it into the specified writer.
-func PackFloat64(writer io.Writer, value float64) (n int, err os.Error) {
+func PackFloat64(writer io.Writer, value float64) (n int, err error) {
 	return PackUint64(writer, *(*uint64)(unsafe.Pointer(&value)))
 }
 
 // Packs a given value and writes it into the specified writer.
-func PackBytes(writer io.Writer, value []byte) (n int, err os.Error) {
+func PackBytes(writer io.Writer, value []byte) (n int, err error) {
 	if len(value) < 32 {
 		n1, err := writer.Write([]byte{0xa0 | uint8(len(value))})
 		if err != nil {
@@ -171,7 +171,7 @@ func PackBytes(writer io.Writer, value []byte) (n int, err os.Error) {
 }
 
 // Packs a given value and writes it into the specified writer.
-func PackUint16Array(writer io.Writer, value []uint16) (n int, err os.Error) {
+func PackUint16Array(writer io.Writer, value []uint16) (n int, err error) {
 	if len(value) < 16 {
 		n, err := writer.Write([]byte{0x90 | byte(len(value))})
 		if err != nil {
@@ -213,7 +213,7 @@ func PackUint16Array(writer io.Writer, value []uint16) (n int, err os.Error) {
 }
 
 // Packs a given value and writes it into the specified writer.
-func PackUint32Array(writer io.Writer, value []uint32) (n int, err os.Error) {
+func PackUint32Array(writer io.Writer, value []uint32) (n int, err error) {
 	if len(value) < 16 {
 		n, err := writer.Write([]byte{0x90 | byte(len(value))})
 		if err != nil {
@@ -255,7 +255,7 @@ func PackUint32Array(writer io.Writer, value []uint32) (n int, err os.Error) {
 }
 
 // Packs a given value and writes it into the specified writer.
-func PackUint64Array(writer io.Writer, value []uint64) (n int, err os.Error) {
+func PackUint64Array(writer io.Writer, value []uint64) (n int, err error) {
 	if len(value) < 16 {
 		n, err := writer.Write([]byte{0x90 | byte(len(value))})
 		if err != nil {
@@ -297,18 +297,18 @@ func PackUint64Array(writer io.Writer, value []uint64) (n int, err os.Error) {
 }
 
 // Packs a given value and writes it into the specified writer.
-func PackUintArray(writer io.Writer, value []uint) (n int, err os.Error) {
+func PackUintArray(writer io.Writer, value []uint) (n int, err error) {
 	switch unsafe.Sizeof(0) {
 	case 4:
 		return PackUint32Array(writer, *(*[]uint32)(unsafe.Pointer(&value)))
 	case 8:
 		return PackUint64Array(writer, *(*[]uint64)(unsafe.Pointer(&value)))
 	}
-	return 0, os.ENOENT // never get here
+	return 0, syscall.ENOENT // never get here
 }
 
 // Packs a given value and writes it into the specified writer.
-func PackInt8Array(writer io.Writer, value []int8) (n int, err os.Error) {
+func PackInt8Array(writer io.Writer, value []int8) (n int, err error) {
 	if len(value) < 16 {
 		n, err := writer.Write([]byte{0x90 | byte(len(value))})
 		if err != nil {
@@ -350,7 +350,7 @@ func PackInt8Array(writer io.Writer, value []int8) (n int, err os.Error) {
 }
 
 // Packs a given value and writes it into the specified writer.
-func PackInt16Array(writer io.Writer, value []int16) (n int, err os.Error) {
+func PackInt16Array(writer io.Writer, value []int16) (n int, err error) {
 	if len(value) < 16 {
 		n, err := writer.Write([]byte{0x90 | byte(len(value))})
 		if err != nil {
@@ -392,7 +392,7 @@ func PackInt16Array(writer io.Writer, value []int16) (n int, err os.Error) {
 }
 
 // Packs a given value and writes it into the specified writer.
-func PackInt32Array(writer io.Writer, value []int32) (n int, err os.Error) {
+func PackInt32Array(writer io.Writer, value []int32) (n int, err error) {
 	if len(value) < 16 {
 		n, err := writer.Write([]byte{0x90 | byte(len(value))})
 		if err != nil {
@@ -434,7 +434,7 @@ func PackInt32Array(writer io.Writer, value []int32) (n int, err os.Error) {
 }
 
 // Packs a given value and writes it into the specified writer.
-func PackInt64Array(writer io.Writer, value []int64) (n int, err os.Error) {
+func PackInt64Array(writer io.Writer, value []int64) (n int, err error) {
 	if len(value) < 16 {
 		n, err := writer.Write([]byte{0x90 | byte(len(value))})
 		if err != nil {
@@ -476,18 +476,18 @@ func PackInt64Array(writer io.Writer, value []int64) (n int, err os.Error) {
 }
 
 // Packs a given value and writes it into the specified writer.
-func PackIntArray(writer io.Writer, value []int) (n int, err os.Error) {
+func PackIntArray(writer io.Writer, value []int) (n int, err error) {
 	switch unsafe.Sizeof(0) {
 	case 4:
 		return PackInt32Array(writer, *(*[]int32)(unsafe.Pointer(&value)))
 	case 8:
 		return PackInt64Array(writer, *(*[]int64)(unsafe.Pointer(&value)))
 	}
-	return 0, os.ENOENT // never get here
+	return 0, syscall.ENOENT // never get here
 }
 
 // Packs a given value and writes it into the specified writer.
-func PackFloat32Array(writer io.Writer, value []float32) (n int, err os.Error) {
+func PackFloat32Array(writer io.Writer, value []float32) (n int, err error) {
 	if len(value) < 16 {
 		n, err := writer.Write([]byte{0x90 | byte(len(value))})
 		if err != nil {
@@ -529,7 +529,7 @@ func PackFloat32Array(writer io.Writer, value []float32) (n int, err os.Error) {
 }
 
 // Packs a given value and writes it into the specified writer.
-func PackFloat64Array(writer io.Writer, value []float64) (n int, err os.Error) {
+func PackFloat64Array(writer io.Writer, value []float64) (n int, err error) {
 	if len(value) < 16 {
 		n, err := writer.Write([]byte{0x90 | byte(len(value))})
 		if err != nil {
@@ -571,7 +571,7 @@ func PackFloat64Array(writer io.Writer, value []float64) (n int, err os.Error) {
 }
 
 // Packs a given value and writes it into the specified writer.
-func PackArray(writer io.Writer, value reflect.Value) (n int, err os.Error) {
+func PackArray(writer io.Writer, value reflect.Value) (n int, err error) {
 	{
 		elemType := value.Type().Elem()
 		if (elemType.Kind() == reflect.Uint || elemType.Kind() == reflect.Uint8 || elemType.Kind() == reflect.Uint16 || elemType.Kind() == reflect.Uint32 || elemType.Kind() == reflect.Uint64 || elemType.Kind() == reflect.Uintptr) &&
@@ -622,7 +622,7 @@ func PackArray(writer io.Writer, value reflect.Value) (n int, err os.Error) {
 }
 
 // Packs a given value and writes it into the specified writer.
-func PackMap(writer io.Writer, value reflect.Value) (n int, err os.Error) {
+func PackMap(writer io.Writer, value reflect.Value) (n int, err error) {
 	keys := value.MapKeys()
 	if value.Len() < 16 {
 		n, err := writer.Write([]byte{0x80 | byte(len(keys))})
@@ -680,7 +680,7 @@ func PackMap(writer io.Writer, value reflect.Value) (n int, err os.Error) {
 }
 
 // Packs a given value and writes it into the specified writer.
-func PackValue(writer io.Writer, value reflect.Value) (n int, err os.Error) {
+func PackValue(writer io.Writer, value reflect.Value) (n int, err error) {
 	if !value.IsValid() || value.Type() == nil {
 		return PackNil(writer)
 	}
@@ -710,7 +710,7 @@ func PackValue(writer io.Writer, value reflect.Value) (n int, err os.Error) {
 }
 
 // Packs a given value and writes it into the specified writer.
-func Pack(writer io.Writer, value interface{}) (n int, err os.Error) {
+func Pack(writer io.Writer, value interface{}) (n int, err error) {
 	if value == nil {
 		return PackNil(writer)
 	}
