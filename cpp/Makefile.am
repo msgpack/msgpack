@@ -13,6 +13,9 @@ DOC_FILES = \
 EXTRA_DIST = \
 		$(DOC_FILES)
 
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = msgpack.pc
+
 doxygen:
 	./preprocess clean
 	cd src && $(MAKE) doxygen
