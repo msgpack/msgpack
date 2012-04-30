@@ -174,7 +174,7 @@ func unpack(reader io.Reader, reflected bool) (v reflect.Value, n int, err error
 		}
 		nbytesread += n
 	} else if c >= 0xa0 && c <= 0xbf {
-		data := make([]byte, c&0xf)
+		data := make([]byte, c&0x1f)
 		n, e := reader.Read(data)
 		nbytesread += n
 		if e != nil {

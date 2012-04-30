@@ -1,7 +1,6 @@
-package msgpack_test
+package msgpack
 
 import (
-	. "msgpack"
 	"testing"
 	"bytes"
 	"reflect"
@@ -71,6 +70,35 @@ func TestPackUint8(t *testing.T) {
 	}
 	if bytes.Compare(b.Bytes(), []byte{0x00, 0x01, 0x02, 0x7d, 0x7e, 0x7f, 0xcc, 0x80, 0xcc, 0xfd, 0xcc, 0xfe, 0xcc, 0xff}) != 0 {
 		t.Error("wrong output", b.Bytes())
+	}
+}
+
+func TestPackBytes(t *testing.T) {
+	for _, i := range []struct {
+		s string
+		b []byte
+	}{
+		{"a", []byte("\xa1a")},
+		{"hello", []byte("\xa5hello")},
+		{"world world world", []byte("\xb1world world world")},
+		{"world world world world world world", []byte("\xda\x00#world world world world world world")},
+	} {
+
+                b := &bytes.Buffer{}
+
+		_, err := PackBytes(b, []byte(i.s))
+		if err != nil {
+			t.Error("err != nil")
+		}
+
+		v, _, e := Unpack(b)
+		if e != nil {
+			t.Error("err != nil")
+		}
+
+		if !equal(v, reflect.ValueOf([]byte(i.s))) {
+			t.Error("unpack(pack(%s)) != %s", i.s)
+		}
 	}
 }
 
@@ -247,7 +275,14 @@ func TestPackMap(t *testing.T) {
 	if err != nil {
 		t.Error("err != nil")
 	}
-	if bytes.Compare(b.Bytes(), []byte{0x83, 0x00, 0x01, 0x04, 0x05, 0x02, 0x03}) != 0 {
+
+        // map ordering is no longer deterministic -- check all possible orderings :(
+	if bytes.Compare(b.Bytes(), []byte{0x83, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05}) != 0 &&
+	   bytes.Compare(b.Bytes(), []byte{0x83, 0x00, 0x01, 0x04, 0x05, 0x02, 0x03}) != 0 &&
+	   bytes.Compare(b.Bytes(), []byte{0x83, 0x02, 0x03, 0x00, 0x01, 0x04, 0x05}) != 0 &&
+	   bytes.Compare(b.Bytes(), []byte{0x83, 0x02, 0x03, 0x04, 0x05, 0x00, 0x01}) != 0 &&
+	   bytes.Compare(b.Bytes(), []byte{0x83, 0x04, 0x05, 0x00, 0x01, 0x02, 0x03}) != 0 &&
+	   bytes.Compare(b.Bytes(), []byte{0x83, 0x04, 0x05, 0x02, 0x03, 0x00, 0x01}) != 0 {
 		t.Error("wrong output", b.Bytes())
 	}
 }

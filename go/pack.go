@@ -2,9 +2,9 @@ package msgpack
 
 import (
 	"io"
+	"os"
 	"reflect"
 	"unsafe"
-	"syscall"
 )
 
 // Packs a given value and writes it into the specified writer.
@@ -59,7 +59,7 @@ func PackUint(writer io.Writer, value uint) (n int, err error) {
 	case 8:
 		return PackUint64(writer, *(*uint64)(unsafe.Pointer(&value)))
 	}
-	return 0, syscall.ENOENT // never get here
+	return 0, os.ErrNotExist // never get here
 }
 
 // Packs a given value and writes it into the specified writer.
@@ -116,7 +116,7 @@ func PackInt(writer io.Writer, value int) (n int, err error) {
 	case 8:
 		return PackInt64(writer, *(*int64)(unsafe.Pointer(&value)))
 	}
-	return 0, syscall.ENOENT // never get here
+	return 0, os.ErrNotExist // never get here
 }
 
 // Packs a given value and writes it into the specified writer.
@@ -304,7 +304,7 @@ func PackUintArray(writer io.Writer, value []uint) (n int, err error) {
 	case 8:
 		return PackUint64Array(writer, *(*[]uint64)(unsafe.Pointer(&value)))
 	}
-	return 0, syscall.ENOENT // never get here
+	return 0, os.ErrNotExist // never get here
 }
 
 // Packs a given value and writes it into the specified writer.
@@ -483,7 +483,7 @@ func PackIntArray(writer io.Writer, value []int) (n int, err error) {
 	case 8:
 		return PackInt64Array(writer, *(*[]int64)(unsafe.Pointer(&value)))
 	}
-	return 0, syscall.ENOENT // never get here
+	return 0, os.ErrNotExist // never get here
 }
 
 // Packs a given value and writes it into the specified writer.
