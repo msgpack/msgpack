@@ -289,13 +289,13 @@ func TestPackMap(t *testing.T) {
 
 func TestPack(t *testing.T) {
 	b := &bytes.Buffer{}
-	for _, i := range [](interface{}){nil, false, true, 0, 1, 2, 3, 127, -32, -1, -33, 128} {
+	for _, i := range [](interface{}){nil, false, true, 0, 1, 2, 3, 127, -32, -1, -33, 128, "astring"} {
 		_, err := Pack(b, i)
 		if err != nil {
 			t.Error("err != nil")
 		}
 	}
-	if bytes.Compare(b.Bytes(), []byte{0xc0, 0xc2, 0xc3, 0x00, 0x01, 0x02, 0x03, 0x7f, 0xf0, 0xff, 0xd0, 0xef, 0xd1, 0x00, 0x80}) == 0 {
+	if bytes.Compare(b.Bytes(), []byte{0xc0, 0xc2, 0xc3, 0x00, 0x01, 0x02, 0x03, 0x7f, 0xe0, 0xff, 0xd0, 0xdf, 0xd1, 0x00, 0x80, 0xA7, 'a', 's', 't', 'r', 'i', 'n', 'g'}) != 0 {
 		t.Error("wrong output")
 	}
 }
