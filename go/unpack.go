@@ -2,13 +2,12 @@ package msgpack
 
 import (
 	"io"
-	"os"
-	"unsafe"
-	"strconv"
 	"reflect"
+	"strconv"
+	"unsafe"
 )
 
-func readByte(reader io.Reader) (v uint8, err os.Error) {
+func readByte(reader io.Reader) (v uint8, err error) {
 	data := [1]byte{}
 	_, e := reader.Read(data[0:])
 	if e != nil {
@@ -17,7 +16,7 @@ func readByte(reader io.Reader) (v uint8, err os.Error) {
 	return data[0], nil
 }
 
-func readUint16(reader io.Reader) (v uint16, n int, err os.Error) {
+func readUint16(reader io.Reader) (v uint16, n int, err error) {
 	data := [2]byte{}
 	n, e := reader.Read(data[0:])
 	if e != nil {
@@ -26,7 +25,7 @@ func readUint16(reader io.Reader) (v uint16, n int, err os.Error) {
 	return (uint16(data[0]) << 8) | uint16(data[1]), n, nil
 }
 
-func readUint32(reader io.Reader) (v uint32, n int, err os.Error) {
+func readUint32(reader io.Reader) (v uint32, n int, err error) {
 	data := [4]byte{}
 	n, e := reader.Read(data[0:])
 	if e != nil {
@@ -35,7 +34,7 @@ func readUint32(reader io.Reader) (v uint32, n int, err os.Error) {
 	return (uint32(data[0]) << 24) | (uint32(data[1]) << 16) | (uint32(data[2]) << 8) | uint32(data[3]), n, nil
 }
 
-func readUint64(reader io.Reader) (v uint64, n int, err os.Error) {
+func readUint64(reader io.Reader) (v uint64, n int, err error) {
 	data := [8]byte{}
 	n, e := reader.Read(data[0:])
 	if e != nil {
@@ -44,7 +43,7 @@ func readUint64(reader io.Reader) (v uint64, n int, err os.Error) {
 	return (uint64(data[0]) << 56) | (uint64(data[1]) << 48) | (uint64(data[2]) << 40) | (uint64(data[3]) << 32) | (uint64(data[4]) << 24) | (uint64(data[5]) << 16) | (uint64(data[6]) << 8) | uint64(data[7]), n, nil
 }
 
-func readInt16(reader io.Reader) (v int16, n int, err os.Error) {
+func readInt16(reader io.Reader) (v int16, n int, err error) {
 	data := [2]byte{}
 	n, e := reader.Read(data[0:])
 	if e != nil {
@@ -53,7 +52,7 @@ func readInt16(reader io.Reader) (v int16, n int, err os.Error) {
 	return (int16(data[0]) << 8) | int16(data[1]), n, nil
 }
 
-func readInt32(reader io.Reader) (v int32, n int, err os.Error) {
+func readInt32(reader io.Reader) (v int32, n int, err error) {
 	data := [4]byte{}
 	n, e := reader.Read(data[0:])
 	if e != nil {
@@ -62,7 +61,7 @@ func readInt32(reader io.Reader) (v int32, n int, err os.Error) {
 	return (int32(data[0]) << 24) | (int32(data[1]) << 16) | (int32(data[2]) << 8) | int32(data[3]), n, nil
 }
 
-func readInt64(reader io.Reader) (v int64, n int, err os.Error) {
+func readInt64(reader io.Reader) (v int64, n int, err error) {
 	data := [8]byte{}
 	n, e := reader.Read(data[0:])
 	if e != nil {
@@ -71,7 +70,7 @@ func readInt64(reader io.Reader) (v int64, n int, err os.Error) {
 	return (int64(data[0]) << 56) | (int64(data[1]) << 48) | (int64(data[2]) << 40) | (int64(data[3]) << 32) | (int64(data[4]) << 24) | (int64(data[5]) << 16) | (int64(data[6]) << 8) | int64(data[7]), n, nil
 }
 
-func unpackArray(reader io.Reader, nelems uint) (v reflect.Value, n int, err os.Error) {
+func unpackArray(reader io.Reader, nelems uint) (v reflect.Value, n int, err error) {
 	retval := make([]interface{}, nelems)
 	nbytesread := 0
 	var i uint
@@ -86,7 +85,7 @@ func unpackArray(reader io.Reader, nelems uint) (v reflect.Value, n int, err os.
 	return reflect.ValueOf(retval), nbytesread, nil
 }
 
-func unpackArrayReflected(reader io.Reader, nelems uint) (v reflect.Value, n int, err os.Error) {
+func unpackArrayReflected(reader io.Reader, nelems uint) (v reflect.Value, n int, err error) {
 	retval := make([]reflect.Value, nelems)
 	nbytesread := 0
 	var i uint
@@ -101,7 +100,7 @@ func unpackArrayReflected(reader io.Reader, nelems uint) (v reflect.Value, n int
 	return reflect.ValueOf(retval), nbytesread, nil
 }
 
-func unpackMap(reader io.Reader, nelems uint) (v reflect.Value, n int, err os.Error) {
+func unpackMap(reader io.Reader, nelems uint) (v reflect.Value, n int, err error) {
 	retval := make(map[interface{}]interface{})
 	nbytesread := 0
 	var i uint
@@ -121,7 +120,7 @@ func unpackMap(reader io.Reader, nelems uint) (v reflect.Value, n int, err os.Er
 	return reflect.ValueOf(retval), nbytesread, nil
 }
 
-func unpackMapReflected(reader io.Reader, nelems uint) (v reflect.Value, n int, err os.Error) {
+func unpackMapReflected(reader io.Reader, nelems uint) (v reflect.Value, n int, err error) {
 	retval := make(map[interface{}]reflect.Value)
 	nbytesread := 0
 	var i uint
@@ -141,7 +140,7 @@ func unpackMapReflected(reader io.Reader, nelems uint) (v reflect.Value, n int, 
 	return reflect.ValueOf(retval), nbytesread, nil
 }
 
-func unpack(reader io.Reader, reflected bool) (v reflect.Value, n int, err os.Error) {
+func unpack(reader io.Reader, reflected bool) (v reflect.Value, n int, err error) {
 	var retval reflect.Value
 	var nbytesread int = 0
 
@@ -354,13 +353,13 @@ func unpack(reader io.Reader, reflected bool) (v reflect.Value, n int, err os.Er
 }
 
 // Reads a value from the reader, unpack and returns it.
-func Unpack(reader io.Reader) (v reflect.Value, n int, err os.Error) {
+func Unpack(reader io.Reader) (v reflect.Value, n int, err error) {
 	return unpack(reader, false)
 }
 
 // Reads unpack a value from the reader, unpack and returns it.  When the
 // value is an array or map, leaves the elements wrapped by corresponding
 // wrapper objects defined in reflect package.
-func UnpackReflected(reader io.Reader) (v reflect.Value, n int, err os.Error) {
+func UnpackReflected(reader io.Reader) (v reflect.Value, n int, err error) {
 	return unpack(reader, true)
 }
