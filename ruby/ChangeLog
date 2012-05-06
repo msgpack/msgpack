@@ -1,4 +1,12 @@
 
+2012-05-05 version 0.4.7:
+
+  * Fixed serialization of double values on ARM OABI architectures
+  * Fixed byteorder problem on big-endian platforms
+  * Don't use MRI internals in the Ruby extension for Rubinius
+  * Detect whether st.h is present and don't use RUBY_VM as the condition for
+    Rubinius
+
 2011-08-08 version 0.4.6:
 
   * Fixed compile error problem on Mac OS X Lion
