@@ -44,6 +44,7 @@ static ID s_append;
 #include "ruby/st.h"  // ruby hash on Ruby 1.9
 #elif defined(HAVE_ST_H)
 #include "st.h"       // ruby hash on Ruby 1.8
+#endif
 
 #define ARG_BUFFER(name, argc, argv) \
 	VALUE name; \
