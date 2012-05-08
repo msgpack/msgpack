@@ -15,6 +15,7 @@
 //
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -30,12 +31,13 @@ namespace MsgPack.Compiler
 			Func<MemberInfo,string> memberNameFormatter,
 			Func<Type, MethodInfo> lookupPackMethod)
 		{
-			if (type.IsPrimitive || type.IsInterface)
+			if ((type.IsPrimitive || type.IsInterface) && !type.IsMap())
 				throw new NotSupportedException ();
 
 			Variable arg_writer = Variable.CreateArg (0);
 			Variable arg_obj = Variable.CreateArg (1);
-			Variable local_i = Variable.CreateLocal (il.DeclareLocal (typeof (int)));
+			
+
 
 			if (!type.IsValueType) { // null check
 				Label notNullLabel = il.DefineLabel ();
@@ -47,33 +49,40 @@ namespace MsgPack.Compiler
 				il.MarkLabel (notNullLabel);
 			}
 
-			if (type.IsArray) {
-				EmitPackArrayCode (mi, il, type, arg_writer, arg_obj, local_i, lookupPackMethod);
-				goto FinallyProcess;
-			}
+            if (type.IsArray)
+            {
+                EmitPackArrayCode(mi, il, type, arg_writer, arg_obj, Variable.CreateLocal(il.DeclareLocal(typeof(int))), lookupPackMethod);
+                goto FinallyProcess;
+            }
+            if (type.IsMap())
+            {
+                //EmitPackDictCode(mi, il, type, arg_writer, arg_obj, lookupPackMethod);
+                Compiler.DictionaryILGenerator.EmitPackIL(mi, il, type, arg_writer, arg_obj, lookupPackMethod);
+                goto FinallyProcess;
+            }
+            // MsgPackWriter.WriteMapHeader
+            MemberInfo[] members = targetMemberSelector(type);
+            il.EmitLd(arg_writer);
+            il.EmitLdc(members.Length);
+            il.Emit(OpCodes.Callvirt, typeof(MsgPackWriter).GetMethod("WriteMapHeader", new Type[] { typeof(int) }));
 
-			// MsgPackWriter.WriteMapHeader
-			MemberInfo[] members = targetMemberSelector (type);
-			il.EmitLd (arg_writer);
-			il.EmitLdc (members.Length);
-			il.Emit (OpCodes.Callvirt, typeof (MsgPackWriter).GetMethod("WriteMapHeader", new Type[]{typeof (int)}));
+            for (int i = 0; i < members.Length; i++)
+            {
+                MemberInfo m = members[i];
+                Type mt = m.GetMemberType();
 
-			for (int i = 0; i < members.Length; i ++) {
-				MemberInfo m = members[i];
-				Type mt = m.GetMemberType ();
+                // write field-name
+                il.EmitLd(arg_writer);
+                il.EmitLdstr(memberNameFormatter(m));
+                il.EmitLd_True();
+                il.Emit(OpCodes.Call, typeof(MsgPackWriter).GetMethod("Write", new Type[] { typeof(string), typeof(bool) }));
 
-				// write field-name
-				il.EmitLd (arg_writer);
-				il.EmitLdstr (memberNameFormatter (m));
-				il.EmitLd_True ();
-				il.Emit (OpCodes.Call, typeof (MsgPackWriter).GetMethod("Write", new Type[]{typeof (string), typeof (bool)}));
-
-				// write value
-				EmitPackMemberValueCode (mt, il, arg_writer, arg_obj, m, null, type, mi, lookupPackMethod);
-			}
+                // write value
+                EmitPackMemberValueCode(mt, il, arg_writer, arg_obj, m, null, type, mi, lookupPackMethod);
+            }
 
 FinallyProcess:
-      il.Emit (OpCodes.Ret);
+            il.Emit (OpCodes.Ret);
 		}
 
 		static void EmitPackArrayCode (MethodInfo mi, ILGenerator il, Type t, Variable var_writer, Variable var_obj, Variable var_loop, Func<Type, MethodInfo> lookupPackMethod)
@@ -116,7 +125,7 @@ FinallyProcess:
 
 		/// <param name="m">(optional)</param>
 		/// <param name="elementIdx">(optional)</param>
-		static void EmitPackMemberValueCode (Type type, ILGenerator il, Variable var_writer, Variable var_obj,
+		public static void EmitPackMemberValueCode (Type type, ILGenerator il, Variable var_writer, Variable var_obj,
 			MemberInfo m, Variable elementIdx, Type currentType, MethodInfo currentMethod, Func<Type, MethodInfo> lookupPackMethod)
 		{
 			MethodInfo mi;
@@ -127,7 +136,7 @@ FinallyProcess:
 				il.EmitLd (elementIdx);
 				il.Emit (OpCodes.Ldelem, type);
 			}
-			if (type.IsPrimitive) {
+			if (type.IsPrimitive || type == typeof(Guid)) {
 				mi = typeof(MsgPackWriter).GetMethod("Write", new Type[]{type});
 			} else {
 				if (currentType == type) {
@@ -150,10 +159,17 @@ FinallyProcess:
 		{
 			if (type.IsArray) {
 				EmitUnpackArrayCode (type, mi, il, targetMemberSelector, memberNameFormatter, lookupUnpackMethod);
-			} else {
+			}
+            else if (type.IsMap())
+            {
+                DictionaryILGenerator.EmitUnpackIL(type, mi, il, targetMemberSelector, memberNameFormatter, lookupUnpackMethod);
+            }
+            else {
 				EmitUnpackMapCode (type, mi, il, targetMemberSelector, memberNameFormatter, lookupUnpackMethod, lookupMemberMapping, lookupMemberMappingMethod);
 			}
 		}
+
+
 
 		static void EmitUnpackMapCode (Type type, MethodInfo mi, ILGenerator il,
 			Func<Type,MemberInfo[]> targetMemberSelector,
@@ -337,7 +353,7 @@ FinallyProcess:
 			il.Emit (OpCodes.Ret);
 		}
 
-		static void EmitUnpackReadAndTypeCheckCode (ILGenerator il, Variable msgpackReader, MethodInfo typeCheckMethod, MethodInfo failedMethod, bool nullCheckAndReturn)
+		public static void EmitUnpackReadAndTypeCheckCode (ILGenerator il, Variable msgpackReader, MethodInfo typeCheckMethod, MethodInfo failedMethod, bool nullCheckAndReturn)
 		{
 			Label lblFailed = il.DefineLabel ();
 			Label lblNullReturn = nullCheckAndReturn ? il.DefineLabel () : default(Label);
@@ -381,6 +397,17 @@ FinallyProcess:
 				return ((PropertyInfo)mi).PropertyType;
 			throw new ArgumentException ();
 		}
+
+        /// <summary>
+        /// Checks if a type is elegible for "Map" serialization.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        static bool IsMap(this Type type)
+        {
+            // Checks we can assign it to an IDictionary
+            return typeof (IDictionary).IsAssignableFrom(type);
+        }
 		#endregion
 	}
 }

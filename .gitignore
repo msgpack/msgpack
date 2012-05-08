@@ -9,7 +9,9 @@ _test
 /csharp/MsgPack.suo
 /csharp/MsgPack/bin
 /csharp/MsgPack/obj
-/csharp/MsgPack/MsgPack.csproj.user
+/csharp/*.user
 /csharp/MsgPack.Test/obj
 /csharp/MsgPack.Test/bin
-/csharp/MsgPack.Test/MsgPack.Test.csproj.user
+/csharp/*.typemock*
+/csharp/_Resharper.*
+

@@ -14,15 +14,21 @@
 // limitations under the License.
 //
 
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
+using System;
+using System.Collections.Generic;
+using NUnit.Framework;
+using TestA_Class = MsgPack.Test.ObjectPackerTests.TestA_Class;
+using TestB_Class = MsgPack.Test.ObjectPackerTests.TestB_Class;
 
-[assembly: AssemblyTitle ("MsgPack")]
-[assembly: AssemblyProduct ("MsgPack")]
-[assembly: AssemblyDescription ("MessagePack Serializer for .NET")]
-[assembly: AssemblyCopyright ("Copyright © 2011 Kazuki Oikawa")]
-
-[assembly: ComVisible (false)]
-[assembly: AssemblyVersion ("0.1.1")]
-[assembly: InternalsVisibleTo (MsgPack.CompiledPacker.MethodBuilderPacker.AssemblyName)]
+namespace MsgPack.Test
+{
+	[TestFixture]
+    public class CompiledPackerDynamicMethodTests : DataTypesTestsBase
+	{
+        [TestFixtureSetUp]
+        public void SetUpFixture()
+        {
+            _packer = new CompiledPacker (true);
+        }
+	}
+}

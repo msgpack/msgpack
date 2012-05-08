@@ -254,5 +254,13 @@ namespace MsgPack
 				throw new FormatException ();
 			return _encoding.GetString (tmp);
 		}
+
+	    public Guid ReadRawGuid()
+	    {
+	        var guidAsString = ReadRawString();
+            return String.IsNullOrWhiteSpace(guidAsString) 
+                ? Guid.Empty 
+                : Guid.ParseExact(guidAsString,"N");
+	    }
 	}
 }

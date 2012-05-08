@@ -20,7 +20,8 @@ using System.Text;
 
 namespace MsgPack
 {
-	public class MsgPackWriter
+    // This class is sealed to use Call instead of Callvirt
+	public sealed class MsgPackWriter
 	{
 		Stream _strm;
 		Encoding _encoding = Encoding.UTF8;
@@ -32,6 +33,11 @@ namespace MsgPack
 		{
 			_strm = strm;
 		}
+
+        public void Write(Guid x)
+        {
+            Write(x.ToString("N"));
+        }
 
 		public void Write (byte x)
 		{

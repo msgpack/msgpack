@@ -13,7 +13,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -24,7 +23,7 @@ using MsgPack.Compiler;
 
 namespace MsgPack
 {
-	public class CompiledPacker
+	public class CompiledPacker : IMsgPacker
 	{
 		static PackerBase _publicFieldPacker, _allFieldPacker;
 		PackerBase _packer;
@@ -293,22 +292,39 @@ namespace MsgPack
 			{
 				TypeBuilder tb;
 				MethodBuilder mb;
-				CreatePackMethodBuilder (typeof (T), out tb, out mb);
-				_packMethods.Add (typeof (T), mb);
-				CreatePacker (typeof (T), mb);
-				MethodInfo mi = ToCallableMethodInfo (typeof (T), tb, true);
-				return (Action<MsgPackWriter, T>)Delegate.CreateDelegate (typeof (Action<MsgPackWriter, T>), mi);
+			    Type typeofT = typeof (T);
+                var existingType = DynamicModuleBuilder.GetType(typeofT.FullName + "PackerType");
+			    MethodInfo existingMethod = null;
+                if (existingType != null)
+			         existingMethod = existingType.GetMethod("Pack");
+
+                if (existingMethod == null)
+                {
+                    CreatePackMethodBuilder(typeofT, out tb, out mb);
+                    CreatePacker(typeofT, mb);
+                    existingMethod = ToCallableMethodInfo(typeof(T), tb, true);
+                }
+                if (!_packMethods.ContainsKey(typeofT))
+                {
+                    _packMethods.Add(typeofT, existingMethod);
+                }
+
+                return (Action<MsgPackWriter, T>)Delegate.CreateDelegate(typeof(Action<MsgPackWriter, T>), existingMethod);
 			}
 
 			protected override Func<MsgPackReader, T> CreateUnpacker_Internal<T> ()
 			{
 				TypeBuilder tb;
 				MethodBuilder mb;
-				CreateUnpackMethodBuilder (typeof (T), out tb, out mb);
-				_unpackMethods.Add (typeof (T), mb);
-				CreateUnpacker (typeof (T), mb);
-				MethodInfo mi = ToCallableMethodInfo (typeof (T), tb, false);
-				return (Func<MsgPackReader, T>)Delegate.CreateDelegate (typeof (Func<MsgPackReader, T>), mi);
+                MethodInfo mi;
+                if (!_unpackMethods.TryGetValue(typeof(T), out mi))
+                {
+                    CreateUnpackMethodBuilder(typeof (T), out tb, out mb);
+                    _unpackMethods.Add(typeof (T), mb);
+                    CreateUnpacker(typeof (T), mb);
+                    mi = ToCallableMethodInfo(typeof (T), tb, false);
+                }
+			    return (Func<MsgPackReader, T>)Delegate.CreateDelegate (typeof (Func<MsgPackReader, T>), mi);
 			}
 
 			void CreatePacker (Type t, MethodBuilder mb)
@@ -372,19 +388,20 @@ namespace MsgPack
 				BindingFlags baseFlags = BindingFlags.Instance | BindingFlags.Public;
 				List<MemberInfo> list = new List<MemberInfo> ();
 				list.AddRange (t.GetFields (baseFlags));
+				list.AddRange( t.GetProperties(baseFlags));
 				// TODO: Add NonSerialized Attribute Filter ?
 				return list.ToArray ();
 			}
 
 			static void CreatePackMethodBuilder (Type t, out TypeBuilder tb, out MethodBuilder mb)
 			{
-				tb = DynamicModuleBuilder.DefineType (t.Name + "PackerType", TypeAttributes.Public);
+				tb = DynamicModuleBuilder.DefineType (t.FullName + "PackerType", TypeAttributes.Public);
 				mb = tb.DefineMethod ("Pack", MethodAttributes.Static | MethodAttributes.Public, typeof (void), new Type[] {typeof (MsgPackWriter), t});
 			}
 
 			static void CreateUnpackMethodBuilder (Type t, out TypeBuilder tb, out MethodBuilder mb)
 			{
-				tb = DynamicModuleBuilder.DefineType (t.Name + "UnpackerType", TypeAttributes.Public);
+				tb = DynamicModuleBuilder.DefineType (t.FullName + "UnpackerType", TypeAttributes.Public);
 				mb = tb.DefineMethod ("Unpack", MethodAttributes.Static | MethodAttributes.Public, t, new Type[] {typeof (MsgPackReader)});
 			}
 
@@ -470,12 +487,19 @@ namespace MsgPack
 
 				mi = type.GetMethod ("Unpack_String", flags);
 				unpackMethods.Add (typeof (string), mi);
+
+                mi = type.GetMethod("Unpack_Guid", flags);
+                unpackMethods.Add(typeof(Guid), mi);
 			}
 
 			internal static int Unpack_Signed (MsgPackReader reader)
 			{
 				if (!reader.Read () || !reader.IsSigned ())
-					UnpackFailed ();
+                {
+                    if (reader.Type == TypePrefixes.Nil)
+                        return 0;
+                    UnpackFailed();
+                }
 				return reader.ValueSigned;
 			}
 
@@ -494,7 +518,11 @@ namespace MsgPack
 			internal static uint Unpack_Unsigned (MsgPackReader reader)
 			{
 				if (!reader.Read () || !reader.IsUnsigned ())
-					UnpackFailed ();
+                {
+                    if (reader.Type == TypePrefixes.Nil)
+                        return 0;
+                    UnpackFailed();
+                }
 				return reader.ValueUnsigned;
 			}
 
@@ -534,9 +562,25 @@ namespace MsgPack
 			internal static string Unpack_String (MsgPackReader reader)
 			{
 				if (!reader.Read () || !reader.IsRaw ())
-					UnpackFailed ();
+                {
+                    if (reader.Type == TypePrefixes.Nil)
+                        return null;
+                    UnpackFailed();
+                }
 				return reader.ReadRawString ();
 			}
+
+
+            internal static Guid Unpack_Guid(MsgPackReader reader)
+            {
+                if (!reader.Read() || !reader.IsRaw())
+                {
+                    if (reader.Type == TypePrefixes.Nil)
+                        return Guid.Empty;
+                    UnpackFailed();
+                }
+                return reader.ReadRawGuid();
+            }
 
 			internal static void UnpackFailed ()
 			{

@@ -14,6 +14,8 @@
 // limitations under the License.
 //
 
+using System;
+using System.Collections.Generic;
 using NUnit.Framework;
 using TestA_Class = MsgPack.Test.ObjectPackerTests.TestA_Class;
 using TestB_Class = MsgPack.Test.ObjectPackerTests.TestB_Class;
@@ -49,6 +51,17 @@ namespace MsgPack.Test
 		{
 			TestB (_dynImpl);
 		}
+
+        [Test]
+        public void Dictionary_WorksAsMap()
+        {
+            var dict = new Dictionary<string, string> { { "a", "b" }, { "c", "d" } };
+
+            var res = _dynImpl.Pack<Dictionary<string, string>>(dict);
+
+            Assert.AreEqual(new byte[]{130,161,97,161,98,161,99,161,100},res);
+        }
+
 
 		void TestA (CompiledPacker packer)
 		{
