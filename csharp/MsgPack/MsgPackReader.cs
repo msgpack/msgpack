@@ -248,10 +248,11 @@ namespace MsgPack
 				return _encoding.GetString (buf, 0, (int)this.Length);
 			}
 
-			// Poor implementation
 			byte[] tmp = new byte[(int)this.Length];
-			if (ReadValueRaw (tmp, 0, tmp.Length) != tmp.Length)
-				throw new FormatException ();
+			int read_len = 0;
+			while (read_len != tmp.Length)
+				read_len += ReadValueRaw (tmp, read_len, tmp.Length - read_len);
+			
 			return _encoding.GetString (tmp);
 		}
 	}
