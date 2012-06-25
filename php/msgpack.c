@@ -140,7 +140,11 @@ PS_SERIALIZER_ENCODE_FUNC(msgpack)
 
     PHP_VAR_SERIALIZE_INIT(var_hash);
 
+#if (PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION < 4)
     msgpack_serialize_zval(&buf, PS(http_session_vars), &var_hash TSRMLS_CC);
+#else
+    msgpack_serialize_zval(&buf, PS(http_session_vars), var_hash TSRMLS_CC);
+#endif
 
     if (newlen)
     {
@@ -167,7 +171,7 @@ PS_SERIALIZER_DECODE_FUNC(msgpack)
     zval **value;
     size_t off = 0;
     msgpack_unpack_t mp;
-    php_unserialize_data_t var_hash;
+    struct php_unserialize_data var_hash;
 
     ALLOC_INIT_ZVAL(tmp);
 
@@ -176,7 +180,7 @@ PS_SERIALIZER_DECODE_FUNC(msgpack)
     msgpack_unserialize_var_init(&var_hash);
 
     mp.user.retval = (zval *)tmp;
-    mp.user.var_hash = (php_unserialize_data_t *)&var_hash;
+    mp.user.var_hash = (struct php_unserialize_data *)&var_hash;
 
     ret = template_execute(&mp, (char *)val, (size_t)vallen, &off);
 
@@ -223,7 +227,11 @@ PHP_MSGPACK_API void php_msgpack_serialize(smart_str *buf, zval *val TSRMLS_DC)
 
     PHP_VAR_SERIALIZE_INIT(var_hash);
 
+#if (PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION < 4)
     msgpack_serialize_zval(buf, val, &var_hash TSRMLS_CC);
+#else
+    msgpack_serialize_zval(buf, val, var_hash TSRMLS_CC);
+#endif
 
     PHP_VAR_SERIALIZE_DESTROY(var_hash);
 }
@@ -234,7 +242,7 @@ PHP_MSGPACK_API void php_msgpack_unserialize(
     int ret;
     size_t off = 0;
     msgpack_unpack_t mp;
-    php_unserialize_data_t var_hash;
+    struct php_unserialize_data var_hash;
 
     if (str_len <= 0)
     {
@@ -246,7 +254,7 @@ PHP_MSGPACK_API void php_msgpack_unserialize(
     msgpack_unserialize_var_init(&var_hash);
 
     mp.user.retval = (zval *)return_value;
-    mp.user.var_hash = (php_unserialize_data_t *)&var_hash;
+    mp.user.var_hash = (struct php_unserialize_data *)&var_hash;
 
     ret = template_execute(&mp, str, (size_t)str_len, &off);
 

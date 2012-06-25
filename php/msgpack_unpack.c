@@ -54,7 +54,7 @@ typedef struct
     MSGPACK_UNSERIALIZE_FINISH_ITEM(_unpack, 2);
 
 inline static void msgpack_var_push(
-    php_unserialize_data_t *var_hashx, zval **rval)
+    struct php_unserialize_data *var_hashx, zval **rval)
 {
     var_entries *var_hash, *prev = NULL;
 
@@ -91,7 +91,7 @@ inline static void msgpack_var_push(
 }
 
 inline static int msgpack_var_access(
-    php_unserialize_data_t *var_hashx, long id, zval ***store)
+    struct php_unserialize_data *var_hashx, long id, zval ***store)
 {
     var_entries *var_hash = var_hashx->first;
 
@@ -118,7 +118,7 @@ inline static int msgpack_var_access(
 }
 
 inline static void msgpack_stack_push(
-    php_unserialize_data_t *var_hashx, zval **rval, zend_bool save)
+    struct php_unserialize_data *var_hashx, zval **rval, zend_bool save)
 {
     var_entries *var_hash, *prev = NULL;
 
@@ -162,7 +162,7 @@ inline static void msgpack_stack_push(
 }
 
 inline static void msgpack_stack_pop(
-    php_unserialize_data_t *var_hashx, long count)
+    struct php_unserialize_data *var_hashx, long count)
 {
     long i;
     var_entries *var_hash = var_hashx->first_dtor;
@@ -280,14 +280,14 @@ inline static zend_class_entry* msgpack_unserialize_class(
     return ce;
 }
 
-void msgpack_unserialize_var_init(php_unserialize_data_t *var_hashx)
+void msgpack_unserialize_var_init(struct php_unserialize_data *var_hashx)
 {
     var_hashx->first = 0;
     var_hashx->first_dtor = 0;
 }
 
 void msgpack_unserialize_var_destroy(
-    php_unserialize_data_t *var_hashx, zend_bool err)
+    struct php_unserialize_data *var_hashx, zend_bool err)
 {
     void *next;
     long i;

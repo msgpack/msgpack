@@ -19,14 +19,14 @@ typedef enum
 typedef struct {
     zval *retval;
     long deps;
-    php_unserialize_data_t *var_hash;
+    struct php_unserialize_data *var_hash;
     long stack[MSGPACK_EMBED_STACK_SIZE];
     int type;
 } msgpack_unserialize_data;
 
-void msgpack_unserialize_var_init(php_unserialize_data_t *var_hashx);
+void msgpack_unserialize_var_init(struct php_unserialize_data *var_hashx);
 void msgpack_unserialize_var_destroy(
-    php_unserialize_data_t *var_hashx, zend_bool err);
+    struct php_unserialize_data *var_hashx, zend_bool err);
 
 void msgpack_unserialize_init(msgpack_unserialize_data *unpack);
 
