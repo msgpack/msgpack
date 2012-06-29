@@ -37,17 +37,17 @@ extern "C" {
 typedef enum {
 	CS_HEADER            = 0x00,  // nil
 
-	//CS_                = 0x01,
+	//CS_                = 0x01,  // reserved (string)
 	//CS_                = 0x02,  // false
 	//CS_                = 0x03,  // true
 
-	//CS_                = 0x04,
-	//CS_                = 0x05,
-	//CS_                = 0x06,
-	//CS_                = 0x07,
+	//CS_                = 0x04,  // reserved
+	//CS_                = 0x05,  // reserved
+	//CS_                = 0x06,  // crc32
+	//CS_                = 0x07,  // reserved
+	//CS_                = 0x08,  // reserved
+	//CS_                = 0x09,  // reserved
 
-	//CS_                = 0x08,
-	//CS_                = 0x09,
 	CS_FLOAT             = 0x0a,
 	CS_DOUBLE            = 0x0b,
 	CS_UINT_8            = 0x0c,

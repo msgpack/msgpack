@@ -153,24 +153,24 @@ typedef unsigned int _msgpack_atomic_counter_t;
 #define _msgpack_be64(x) (x)
 
 #define _msgpack_load16(cast, from) ((cast)( \
-        (((uint16_t)((uint8_t*)from)[0]) << 8) | \
-        (((uint16_t)((uint8_t*)from)[1])     ) ))
+        (((uint16_t)((uint8_t*)from)[1]) << 8) | \
+        (((uint16_t)((uint8_t*)from)[0])     ) ))
 
 #define _msgpack_load32(cast, from) ((cast)( \
-        (((uint32_t)((uint8_t*)from)[0]) << 24) | \
-        (((uint32_t)((uint8_t*)from)[1]) << 16) | \
-        (((uint32_t)((uint8_t*)from)[2]) <<  8) | \
-        (((uint32_t)((uint8_t*)from)[3])      ) ))
+        (((uint32_t)((uint8_t*)from)[3]) << 24) | \
+        (((uint32_t)((uint8_t*)from)[2]) << 16) | \
+        (((uint32_t)((uint8_t*)from)[1]) <<  8) | \
+        (((uint32_t)((uint8_t*)from)[0])      ) ))
 
 #define _msgpack_load64(cast, from) ((cast)( \
-        (((uint64_t)((uint8_t*)from)[0]) << 56) | \
-        (((uint64_t)((uint8_t*)from)[1]) << 48) | \
-        (((uint64_t)((uint8_t*)from)[2]) << 40) | \
-        (((uint64_t)((uint8_t*)from)[3]) << 32) | \
-        (((uint64_t)((uint8_t*)from)[4]) << 24) | \
-        (((uint64_t)((uint8_t*)from)[5]) << 16) | \
-        (((uint64_t)((uint8_t*)from)[6]) << 8)  | \
-        (((uint64_t)((uint8_t*)from)[7])     )  ))
+        (((uint64_t)((uint8_t*)from)[7]) << 56) | \
+        (((uint64_t)((uint8_t*)from)[6]) << 48) | \
+        (((uint64_t)((uint8_t*)from)[5]) << 40) | \
+        (((uint64_t)((uint8_t*)from)[4]) << 32) | \
+        (((uint64_t)((uint8_t*)from)[3]) << 24) | \
+        (((uint64_t)((uint8_t*)from)[2]) << 16) | \
+        (((uint64_t)((uint8_t*)from)[1]) << 8)  | \
+        (((uint64_t)((uint8_t*)from)[0])     )  ))
 #endif
 
 
@@ -190,6 +190,18 @@ typedef unsigned int _msgpack_atomic_counter_t;
     ({ cast val; memcpy(&val, (char*)from, 8); _msgpack_be64(val); })
 */
 
+/* This is little endian agnostic as uint32 store handles that.
+   Probably use a faster crc32() with a crc lookup table.
+ */
+#define _msgpack_packsv_crc(crc, x)  \
+  _msgpack_data_crc(crc, SvPVX_const(x->sv), x->cur)
+
+#define _msgpack_data_crc(crc, from, to)				  \
+    { unsigned char c; unsigned char *buf = (char *)from;		  \
+      while(buf < to) {							  \
+	  /* PerlIO_printf(Perl_debug_log, "0x%x ", *buf); */		  \
+	  c = *buf++; crc = (crc >> 1) + ((crc & 1) << 15); crc += c;     \
+	  crc &= 0xffff; }}
 
 #endif /* msgpack/sysdep.h */
 
