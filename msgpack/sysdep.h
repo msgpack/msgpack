@@ -196,12 +196,20 @@ typedef unsigned int _msgpack_atomic_counter_t;
 #define _msgpack_packsv_crc(crc, x)  \
   _msgpack_data_crc(crc, SvPVX_const(x->sv), x->cur)
 
+#ifdef CRC_INLINED
 #define _msgpack_data_crc(crc, from, to)				  \
     { unsigned char c; unsigned char *buf = (char *)from;		  \
       while(buf < to) {							  \
-	  /* PerlIO_printf(Perl_debug_log, "0x%x ", *buf); */		  \
 	  c = *buf++; crc = (crc >> 1) + ((crc & 1) << 15); crc += c;     \
 	  crc &= 0xffff; }}
+#else
+uint32_t
+crc32(uint32_t crc, const void *buf, size_t size);
+
+#define _msgpack_data_crc(crc, from, to)				  \
+  crc = crc32(crc, (void *)from, (void*)to - (void*)from);
+#endif
+
 
 #endif /* msgpack/sysdep.h */
 
