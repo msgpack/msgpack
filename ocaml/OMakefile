@@ -1,8 +1,0 @@
-NATIVE_ENABLED = true
-BYTE_ENABLED = true
-
-.PHONY: clean
-.SUBDIRS: ocaml proof
-
-clean:
-	rm -rf *.vo *.glob *~ *.omc .omakedb .omakedb.lock
