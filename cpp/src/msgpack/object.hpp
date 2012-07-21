@@ -34,16 +34,14 @@ class type_error : public std::bad_cast { };
 
 
 namespace type {
-	enum object_type {
-		NIL					= MSGPACK_OBJECT_NIL,
-		BOOLEAN				= MSGPACK_OBJECT_BOOLEAN,
-		POSITIVE_INTEGER	= MSGPACK_OBJECT_POSITIVE_INTEGER,
-		NEGATIVE_INTEGER	= MSGPACK_OBJECT_NEGATIVE_INTEGER,
-		DOUBLE				= MSGPACK_OBJECT_DOUBLE,
-		RAW					= MSGPACK_OBJECT_RAW,
-		ARRAY				= MSGPACK_OBJECT_ARRAY,
-		MAP					= MSGPACK_OBJECT_MAP,
-	};
+	const msgpack_object_type NIL              = MSGPACK_OBJECT_NIL;
+	const msgpack_object_type BOOLEAN          = MSGPACK_OBJECT_BOOLEAN;
+	const msgpack_object_type POSITIVE_INTEGER = MSGPACK_OBJECT_POSITIVE_INTEGER;
+	const msgpack_object_type NEGATIVE_INTEGER = MSGPACK_OBJECT_NEGATIVE_INTEGER;
+	const msgpack_object_type DOUBLE           = MSGPACK_OBJECT_DOUBLE;
+	const msgpack_object_type RAW              = MSGPACK_OBJECT_RAW;
+	const msgpack_object_type ARRAY            = MSGPACK_OBJECT_ARRAY;
+	const msgpack_object_type MAP              = MSGPACK_OBJECT_MAP;
 }
 
 
@@ -65,21 +63,7 @@ struct object_raw {
 	const char* ptr;
 };
 
-struct object {
-	union union_type {
-		bool boolean;
-		uint64_t u64;
-		int64_t  i64;
-		double   dec;
-		object_array array;
-		object_map map;
-		object_raw raw;
-		object_raw ref;  // obsolete
-	};
-
-	type::object_type type;
-	union_type via;
-
+struct object : msgpack_object {
 	bool is_nil() const { return type == type::NIL; }
 
 	template <typename T>
