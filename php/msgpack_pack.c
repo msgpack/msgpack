@@ -23,6 +23,25 @@
 #   define Z_ISREF_P(pz) PZVAL_IS_REF(pz)
 #endif
 
+// from php soap extension
+static int is_map(zval *array)
+{
+	int i, count = zend_hash_num_elements(Z_ARRVAL_P(array));
+
+	zend_hash_internal_pointer_reset(Z_ARRVAL_P(array));
+	for (i = 0; i < count; i++) {
+		char *str_index;
+		ulong num_index;
+
+		if (zend_hash_get_current_key(Z_ARRVAL_P(array), &str_index, &num_index, 0) == HASH_KEY_IS_STRING ||
+		    num_index != i) {
+			return 1;
+		}
+		zend_hash_move_forward(Z_ARRVAL_P(array));
+	}
+	return 0;
+}
+
 inline static int msgpack_var_add(
     HashTable *var_hash, zval *var, void *var_old TSRMLS_DC)
 {
@@ -296,7 +315,7 @@ inline static void msgpack_serialize_array(
         msgpack_pack_nil(buf);
         msgpack_pack_long(buf, MSGPACK_SERIALIZE_TYPE_REFERENCE);
     }
-    else if (ht->nNumOfElements == ht->nNextFreeElement)
+    else if (!is_map(val) && ht->nNumOfElements == ht->nNextFreeElement)
     {
         hash = 0;
         msgpack_pack_array(buf, n);
