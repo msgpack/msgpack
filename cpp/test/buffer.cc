@@ -68,8 +68,5 @@ TEST(buffer, zbuffer)
 	zbuf.write("a", 1);
 
 	zbuf.flush();
-
-	char* data = zbuf.data();
-	size_t size = zbuf.size();
 }
 
