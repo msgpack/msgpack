@@ -191,7 +191,8 @@ typedef unsigned int _msgpack_atomic_counter_t;
 */
 
 /* This is little endian agnostic as uint32 store handles that.
-   Probably use a faster crc32() with a crc lookup table.
+   If not CRC_INLINED use the zlib crc32() with word stepper and a
+   crc lookup table.
  */
 #define _msgpack_packsv_crc(crc, x)  \
   _msgpack_data_crc(crc, SvPVX_const(x->sv), x->cur)
@@ -203,8 +204,7 @@ typedef unsigned int _msgpack_atomic_counter_t;
 	  c = *buf++; crc = (crc >> 1) + ((crc & 1) << 15); crc += c;     \
 	  crc &= 0xffff; }}
 #else
-uint32_t
-crc32(uint32_t crc, const void *buf, size_t size);
+#include <zlib.h>
 
 #define _msgpack_data_crc(crc, from, to)				  \
   crc = crc32(crc, (void *)from, (void*)to - (void*)from);
@@ -212,4 +212,3 @@ crc32(uint32_t crc, const void *buf, size_t size);
 
 
 #endif /* msgpack/sysdep.h */
-
