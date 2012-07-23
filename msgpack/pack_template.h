@@ -332,7 +332,7 @@ msgpack_pack_inline_func_fixint(_crc)(msgpack_pack_user x)
 {
 	unsigned char buf[5];
         uint32_t crc = 0;
-        _msgpack_packsv_crc(crc, x);
+        _msgpack_crc_user(crc, x);
 	buf[0] = 0xc6; _msgpack_store32(&buf[1], crc);
 	msgpack_pack_append_buffer(x, buf, 5);
 }
@@ -385,7 +385,7 @@ msgpack_pack_inline_func(_crc)(msgpack_pack_user x)
 {
 	unsigned char buf[5];
         uint32_t crc = 0;
-        _msgpack_packsv_crc(crc, x);
+        _msgpack_crc_user(crc, x);
 	buf[0] = 0xc6; _msgpack_store32(&buf[1], crc);
 	msgpack_pack_append_buffer(x, buf, 5);
 }
