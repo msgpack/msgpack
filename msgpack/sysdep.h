@@ -202,5 +202,13 @@ typedef unsigned int _msgpack_atomic_counter_t;
 	  crc &= 0xffff; }}
 #endif
 
+/* https://github.com/antirez/smaz */
+#define USE_SMAZ
+/* do not compress strings shorter than */
+#define SMAZ_MIN 16
+#if SMAZ_MIN > 0xff
+#error SMAZ_MIN > 0xff
+#endif
+
 #endif /* msgpack/sysdep.h */
 
