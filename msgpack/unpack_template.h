@@ -191,7 +191,7 @@ msgpack_unpack_func(int, _execute)(msgpack_unpack_struct(_context)* ctx, const c
 				push_fixed_value(_uint8, *(uint8_t*)p);
 			SWITCH_RANGE(0xe0, 0xff)  // Negative Fixnum
 				push_fixed_value(_int8, *(int8_t*)p);
-			SWITCH_RANGE(0xc0, 0xdf)  // Variable
+			SWITCH_RANGE(0xc0, 0xdf)  // variable
 				switch(*p) {
 				case 0xc0:  // nil
 					push_simple_value(_nil);
@@ -201,12 +201,12 @@ msgpack_unpack_func(int, _execute)(msgpack_unpack_struct(_context)* ctx, const c
 					push_simple_value(_false);
 				case 0xc3:  // true
 					push_simple_value(_true);
-				//case 0xc4:
-				//case 0xc5:
-				//case 0xc6:
-				//case 0xc7:
-				//case 0xc8:
-				//case 0xc9:
+				//case 0xc4: // reserved
+				//case 0xc5: // reserved
+				//case 0xc6: // crc uint32 at the very end
+				//case 0xc7: // reserved
+				//case 0xc8: // reserved
+				//case 0xc9: // reserved
 				case 0xca:  // float
 				case 0xcb:  // double
 				case 0xcc:  // unsigned int  8
@@ -375,6 +375,16 @@ _finish:
 	++p;
 	ret = 1;
 	/*printf("-- finish --\n"); */
+	if (*p == 0xc6)
+	{
+	  uint32_t crc = 0, num;
+	  _msgpack_data_crc(crc, data, p);
+	  p++;
+	  num = _msgpack_load32(uint32_t, p);
+	  p += 4;
+	  if (num != crc)
+	    ret = -2;
+	}
 	goto _end;
 
 _failed:
