@@ -44,12 +44,8 @@ extern VALUE s_enc_utf8_value;
 
 #ifndef RBIGNUM_POSITIVE_P
 
-/* Rubinius */
-#if defined(RUBINIUS)
-#define RBIGNUM_POSITIVE_P(b) (rb_funcall(b, rb_intern(">="), 1, INT2FIX(0)) == Qtrue)
-
 /* JRuby */
-#elif defined(JRUBY)
+#if defined(JRUBY)
 #define RBIGNUM_POSITIVE_P(b) (rb_funcall(b, rb_intern(">="), 1, INT2FIX(0)) == Qtrue)
 #define rb_big2ull(b) rb_num2ull(b)
 /*#define rb_big2ll(b) rb_num2ll(b)*/
@@ -62,13 +58,8 @@ extern VALUE s_enc_utf8_value;
 #endif
 
 
-/* Rubinius */
-#if defined(RUBINIUS)
-static inline void rb_gc_enable() { return; }
-static inline void rb_gc_disable() { return; }
-
 /* JRuby */
-#elif defined(JRUBY)
+#if defined(JRUBY)
 static inline void rb_gc_enable() { return; }
 static inline void rb_gc_disable() { return; }
 #endif
