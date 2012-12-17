@@ -20,6 +20,9 @@
  * @{
  * @}
  */
+
+#pragma GCC diagnostic ignored "-Wunused-function"
+
 #include "msgpack/object.h"
 #include "msgpack/zone.h"
 #include "msgpack/pack.h"
