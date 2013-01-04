@@ -124,16 +124,6 @@ private:
 	with_zone();
 };
 
-class managed_object : public object, private zone {
-public:
-	managed_object() { }
-	~managed_object() { }
-public:
-	zone& get_zone() { return *(zone*)this; }
-	const zone& get_zone() const { return *(const zone*)this; }
-private:
-	managed_object(const managed_object&);
-};
 
 bool operator==(const object x, const object y);
 bool operator!=(const object x, const object y);
