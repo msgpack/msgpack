@@ -40,10 +40,18 @@ struct unpack_error : public std::runtime_error {
 
 class unpacked {
 public:
+#ifdef __GXX_EXPERIMENTAL_CXX0X__
+  typedef std::unique_ptr<msgpack::zone> ZonePtr;
+  #define Move(x) std::move(x)
+#else
+  typedef std::auto_ptr<msgpack::zone> ZonePtr;
+  #define Move(x) (x)
+#endif
+
 	unpacked() { }
 
-	unpacked(object obj, std::auto_ptr<msgpack::zone> z) :
-		m_obj(obj), m_zone(z) { }
+	unpacked(object obj, ZonePtr& z) :
+		m_obj(obj), m_zone(Move(z)) { }
 
 	object& get()
 		{ return m_obj; }
@@ -51,15 +59,15 @@ public:
 	const object& get() const
 		{ return m_obj; }
 
-	std::auto_ptr<msgpack::zone>& zone()
+	ZonePtr& zone()
 		{ return m_zone; }
 
-	const std::auto_ptr<msgpack::zone>& zone() const
+	const ZonePtr& zone() const
 		{ return m_zone; }
 
 private:
 	object m_obj;
-	std::auto_ptr<msgpack::zone> m_zone;
+	ZonePtr m_zone;
 };
 
 
@@ -231,7 +239,8 @@ inline bool unpacker::next(unpacked* result)
 		return false;
 
 	} else {
-		result->zone().reset( release_zone() );
+		result->zone().reset();
+		result->zone() = unpacked::ZonePtr( release_zone() );
 		result->get() = data();
 		reset();
 		return true;
@@ -307,7 +316,7 @@ inline void unpack(unpacked* result,
 		const char* data, size_t len, size_t* offset)
 {
 	msgpack::object obj;
-	std::auto_ptr<msgpack::zone> z(new zone());
+	unpacked::ZonePtr z(new zone());
 
 	unpack_return ret = (unpack_return)msgpack_unpack(
 			data, len, offset, z.get(),
@@ -316,12 +325,12 @@ inline void unpack(unpacked* result,
 	switch(ret) {
 	case UNPACK_SUCCESS:
 		result->get() = obj;
-		result->zone() = z;
+		result->zone() = Move(z);
 		return;
 
 	case UNPACK_EXTRA_BYTES:
 		result->get() = obj;
-		result->zone() = z;
+		result->zone() = Move(z);
 		return;
 
 	case UNPACK_CONTINUE:

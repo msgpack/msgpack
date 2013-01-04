@@ -115,17 +115,36 @@ inline packer<Stream>& operator<< (packer<Stream>& o, const type::fix_uint64& v)
 
 
 inline void operator<< (object& o, type::fix_int8 v)
-	{ v.get() < 0 ? o.type = type::NEGATIVE_INTEGER, o.via.i64 = v.get() : o.type = type::POSITIVE_INTEGER, o.via.u64 = v.get(); }
+{
+    if ( v.get() < 0 )
+        o.type = type::NEGATIVE_INTEGER, o.via.i64 = v.get();
+    else
+        o.type = type::POSITIVE_INTEGER, o.via.u64 = v.get();
+}
 
 inline void operator<< (object& o, type::fix_int16 v)
-	{ v.get() < 0 ? o.type = type::NEGATIVE_INTEGER, o.via.i64 = v.get() : o.type = type::POSITIVE_INTEGER, o.via.u64 = v.get(); }
+{
+    if ( v.get() < 0 )
+        o.type = type::NEGATIVE_INTEGER, o.via.i64 = v.get();
+    else
+        o.type = type::POSITIVE_INTEGER, o.via.u64 = v.get();
+}
 
 inline void operator<< (object& o, type::fix_int32 v)
-	{ v.get() < 0 ? o.type = type::NEGATIVE_INTEGER, o.via.i64 = v.get() : o.type = type::POSITIVE_INTEGER, o.via.u64 = v.get(); }
+{
+    if ( v.get() < 0 )
+        o.type = type::NEGATIVE_INTEGER, o.via.i64 = v.get();
+    else
+        o.type = type::POSITIVE_INTEGER, o.via.u64 = v.get();
+}
 
 inline void operator<< (object& o, type::fix_int64 v)
-	{ v.get() < 0 ? o.type = type::NEGATIVE_INTEGER, o.via.i64 = v.get() : o.type = type::POSITIVE_INTEGER, o.via.u64 = v.get(); }
-
+{
+    if ( v.get() < 0 )
+        o.type = type::NEGATIVE_INTEGER, o.via.i64 = v.get();
+    else
+        o.type = type::POSITIVE_INTEGER, o.via.u64 = v.get();
+}
 
 inline void operator<< (object& o, type::fix_uint8 v)
 	{ o.type = type::POSITIVE_INTEGER, o.via.u64 = v.get(); }

@@ -142,20 +142,44 @@ inline packer<Stream>& operator<< (packer<Stream>& o, const unsigned long long& 
 
 
 inline void operator<< (object& o, signed char v)
-	{ v < 0 ? o.type = type::NEGATIVE_INTEGER, o.via.i64 = v : o.type = type::POSITIVE_INTEGER, o.via.u64 = v; }
+{
+    if ( v < 0 )
+        o.type = type::NEGATIVE_INTEGER, o.via.i64 = v;
+    else
+        o.type = type::POSITIVE_INTEGER, o.via.u64 = v;
+}
 
 inline void operator<< (object& o, signed short v)
-	{ v < 0 ? o.type = type::NEGATIVE_INTEGER, o.via.i64 = v : o.type = type::POSITIVE_INTEGER, o.via.u64 = v; }
+{
+    if ( v < 0 )
+        o.type = type::NEGATIVE_INTEGER, o.via.i64 = v;
+    else
+        o.type = type::POSITIVE_INTEGER, o.via.u64 = v;
+}
 
 inline void operator<< (object& o, signed int v)
-	{ v < 0 ? o.type = type::NEGATIVE_INTEGER, o.via.i64 = v : o.type = type::POSITIVE_INTEGER, o.via.u64 = v; }
+{
+    if ( v < 0 )
+        o.type = type::NEGATIVE_INTEGER, o.via.i64 = v;
+    else
+        o.type = type::POSITIVE_INTEGER, o.via.u64 = v;
+}
 
 inline void operator<< (object& o, signed long v)
-	{ v < 0 ? o.type = type::NEGATIVE_INTEGER, o.via.i64 = v : o.type = type::POSITIVE_INTEGER, o.via.u64 = v; }
+{
+    if ( v < 0 )
+        o.type = type::NEGATIVE_INTEGER, o.via.i64 = v;
+    else
+        o.type = type::POSITIVE_INTEGER, o.via.u64 = v;
+}
 
 inline void operator<< (object& o, signed long long v)
-	{ v < 0 ? o.type = type::NEGATIVE_INTEGER, o.via.i64 = v : o.type = type::POSITIVE_INTEGER, o.via.u64 = v; }
-
+{
+    if ( v < 0 )
+        o.type = type::NEGATIVE_INTEGER, o.via.i64 = v;
+    else
+        o.type = type::POSITIVE_INTEGER, o.via.u64 = v;
+}
 
 inline void operator<< (object& o, unsigned char v)
 	{ o.type = type::POSITIVE_INTEGER, o.via.u64 = v; }
