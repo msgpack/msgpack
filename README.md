@@ -22,4 +22,5 @@ This repository is divided to multiple implementation probjects on https://githu
   * Erlang: https://github.com/msgpack/msgpack-erlang
   * Smalltalk: https://github.com/msgpack/msgpack-smalltalk
   * JavaScript: https://github.com/msgpack/msgpack-javascript
+  * Matlab: https://github.com/yida/msgpack-matlab
 
