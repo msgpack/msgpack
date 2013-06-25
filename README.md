@@ -7,7 +7,7 @@ This repository is divided to multiple implementation probjects on https://githu
 
   * Node.JS: https://github.com/msgpack/msgpack-node
   * D: https://github.com/msgpack/msgpack-d
-  * Go: https://github.com/ugorji/go-msgpack
+  * Go: https://github.com/ugorji/go
   * Python: https://github.com/msgpack/msgpack-python
   * Ruby: https://github.com/msgpack/msgpack-ruby
   * Java: https://github.com/msgpack/msgpack-java
