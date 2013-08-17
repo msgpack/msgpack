@@ -1,4 +1,3 @@
-<a name="spec"/>
 # MessagePack specification
 
 MessagePack is an object serialization specification like JSON.
