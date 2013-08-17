@@ -1,5 +1,8 @@
 # MessagePack format specification
 
+This spec is updated. See spec.md for the updated version.
+
+
 MessagePack saves type-information to the serialized data. Thus each data is stored in **type-data** or **type-length-data** style.
 MessagePack supports following types:
 
