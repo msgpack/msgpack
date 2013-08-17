@@ -2,23 +2,27 @@
 
 MessagePack is an object serialization specification like JSON.
 
-MessagePack has two concepts: **type system** and **formats**. **Serialization** is conversion from application types into MessagePack formats via MessagePack types. **Deserialization** is conversion from MessagePack formats into application types via MessagePack types.
+MessagePack has two concepts: **type system** and **formats**.
+
+Serialization is conversion from application objects into MessagePack formats via MessagePack type system.
+
+Deserialization is conversion from MessagePack formats into application objects via MessagePack type system.
 
     Serlialization:
-        Application types (objects in memory)
-        -->  MessagePack types
+        Application objects
+        -->  MessagePack type system
         -->  MessagePack formats (byte array)
 
     Deserialization:
         MessagePack formats (byte array)
-        -->  MessagePack types
-        -->  Application types (object in memory)
+        -->  MessagePack type system
+        -->  Application objects
 
 This document describes the MessagePack type system, MesagePack formats and conversion of them.
 
 ## Table of contents
 
-* [MessagePack specification](#spec)
+* MessagePack specification
   * [Type system](#types)
       * [Limitation](#types-limitation)
       * [Extension type](#types-extension-type)
