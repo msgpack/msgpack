@@ -20,6 +20,7 @@ This repository is divided to multiple implementation probjects on https://githu
   * OCaml: https://github.com/msgpack/msgpack-ocaml
   * C/C++: https://github.com/msgpack/msgpack-c
   * Erlang: https://github.com/msgpack/msgpack-erlang
+  * Elixir: https://github.com/yrashk/exmsgpack
   * Smalltalk: https://github.com/msgpack/msgpack-smalltalk
   * JavaScript: https://github.com/msgpack/msgpack-javascript
   * Matlab: https://github.com/yida/msgpack-matlab
