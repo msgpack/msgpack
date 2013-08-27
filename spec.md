@@ -251,14 +251,13 @@ Float format family stores an floating point number in 5 bytes or 9 bytes.
     
     float 64 stores a floating point number in IEEE 754 double precision floating point number format:
     +--------+--------+--------+--------+--------+--------+--------+--------+--------+
-    |  0xca  |YYYYYYYY|YYYYYYYY|YYYYYYYY|YYYYYYYY|YYYYYYYY|YYYYYYYY|YYYYYYYY|YYYYYYYY|
+    |  0xcb  |YYYYYYYY|YYYYYYYY|YYYYYYYY|YYYYYYYY|YYYYYYYY|YYYYYYYY|YYYYYYYY|YYYYYYYY|
     +--------+--------+--------+--------+--------+--------+--------+--------+--------+
     
     where
-    * XXXXXXXX_XXXXXXXX_XXXXXXXX_XXXXXXXX is a big-endian IEEE 754 single precision
-      floating point number
-    * YYYYYYYY_YYYYYYYY_YYYYYYYY_YYYYYYYY_YYYYYYYY_YYYYYYYY_YYYYYYYY_YYYYYYYY is a big-endian
-      IEEE 754 double precision floating point number
+    * XXXXXXXX_XXXXXXXX_XXXXXXXX_XXXXXXXX is a big-endian IEEE 754 single precision floating point number
+    * YYYYYYYY_YYYYYYYY_YYYYYYYY_YYYYYYYY_YYYYYYYY_YYYYYYYY_YYYYYYYY_YYYYYYYY is a big-endian
+      IEEE 754 double precision floating point number
 
 
 <a name="formats-str"/>
