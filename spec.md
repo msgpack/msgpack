@@ -321,7 +321,7 @@ Bin format family stores an byte array in 2, 3, or 5 bytes of extra bytes in add
 <a name="formats-array"/>
 ### array format family
 
-Array format family stores a sequence of key-value pairs in 1, 3, or 5 bytes of extra bytes in addition to the elements.
+Array format family stores a sequence of elements in 1, 3, or 5 bytes of extra bytes in addition to the elements.
 
     fixarray stores an array whose length is upto 15 elements:
     +--------+~~~~~~~~~~~~~~~~~+
