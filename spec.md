@@ -58,7 +58,7 @@ This document describes the MessagePack type system, MesagePack formats and conv
       * **Binary** extending Raw type represents a byte array
   * **Array** represents a sequence of objects
   * **Map** represents key-value pairs of objects
-  * **Extended** implements Extension interface: represents a tuple of type information and a byte array where type informatin is an integer whose meaning is defined by applications
+  * **Extended** implements Extension interface: represents a tuple of type information and a byte array where type information is an integer whose meaning is defined by applications
 * Interfaces
   * **Extension** represents a tuple of an integer and a byte array where the integer represents type information and the byte array represents data. The format of the data is defined by concrete types
 
