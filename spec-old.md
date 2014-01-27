@@ -1,6 +1,6 @@
-# MessagePack format specification
+# MessagePack specification v1.0
 
-**This spec is updated. See [spec.md](spec.md) for the updated version.**
+**This specification has been replaced by [Version 2.0](spec.md).**
 
 
 MessagePack saves type-information to the serialized data. Thus each data is stored in **type-data** or **type-length-data** style.
