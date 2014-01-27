@@ -291,6 +291,11 @@ Str format family stores an byte array in 1, 2, 3, or 5 bytes of extra bytes in 
     * ZZZZZZZZ_ZZZZZZZZ is a 16-bit big-endian unsigned integer which represents N
     * AAAAAAAA_AAAAAAAA_AAAAAAAA_AAAAAAAA is a 32-bit big-endian unsigned integer which represents N
     * N is the length of data
+    * data is encoded in UTF-8 format
+
+Not all sequences of bytes are valid UTF-8 strings.
+When sending data, only valid UTF-8 should be sent.
+When receiving data, implementations should handle invalid UTF-8 data, such as by raising an error.
 
 <a name="formats-bin"/>
 ### bin format family
