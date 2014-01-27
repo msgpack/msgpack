@@ -211,7 +211,7 @@ Int format family stores an integer in 1, 2, 3, 5, or 9 bytes.
     
     uint 32 stores a 32-bit big-endian unsigned integer
     +--------+--------+--------+--------+--------+
-    |  0xce  |ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ
+    |  0xce  |ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|
     +--------+--------+--------+--------+--------+
     
     uint 64 stores a 64-bit big-endian unsigned integer
@@ -246,7 +246,7 @@ Float format family stores an floating point number in 5 bytes or 9 bytes.
 
     float 32 stores a floating point number in IEEE 754 single precision floating point number format:
     +--------+--------+--------+--------+--------+
-    |  0xca  |XXXXXXXX|XXXXXXXX|XXXXXXXX|XXXXXXXX
+    |  0xca  |XXXXXXXX|XXXXXXXX|XXXXXXXX|XXXXXXXX|
     +--------+--------+--------+--------+--------+
     
     float 64 stores a floating point number in IEEE 754 double precision floating point number format:
