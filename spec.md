@@ -8,7 +8,7 @@ Serialization is conversion from application objects into MessagePack formats vi
 
 Deserialization is conversion from MessagePack formats into application objects via MessagePack type system.
 
-    Serlialization:
+    Serialization:
         Application objects
         -->  MessagePack type system
         -->  MessagePack formats (byte array)
