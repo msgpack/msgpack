@@ -18,7 +18,7 @@ Deserialization is conversion from MessagePack formats into application objects 
         -->  MessagePack type system
         -->  Application objects
 
-This document describes the MessagePack type system, MesagePack formats and conversion of them.
+This document describes the MessagePack type system, MessagePack formats and conversion of them.
 
 ## Table of contents
 
@@ -242,7 +242,7 @@ Int format family stores an integer in 1, 2, 3, 5, or 9 bytes.
 <a name="formats-float"/>
 ### float format family
 
-Float format family stores an floating point number in 5 bytes or 9 bytes.
+Float format family stores a floating point number in 5 bytes or 9 bytes.
 
     float 32 stores a floating point number in IEEE 754 single precision floating point number format:
     +--------+--------+--------+--------+--------+
