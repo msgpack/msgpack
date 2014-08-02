@@ -13,6 +13,8 @@ If you'd like to show your msgpack implementation to the [msgpack.org](http://ms
 
 first, install tocmd gem
 
+	gem install redcarpet
+	gem install pygments.rb
 	gem install tocmd
 
 then execute the following command:
