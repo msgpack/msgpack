@@ -1,0 +1,691 @@
+
+	    <html>
+	      <head>
+				  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+	        <title>spec</title>
+					
+					<link href="toc/style/github-bf51422f4bb36427d391e4b75a1daa083c2d840e.css" media="all" rel="stylesheet" type="text/css"/>
+					<link href="toc/style/github2-d731afd4f624c99a4b19ad69f3083cd6d02b81d5.css" media="all" rel="stylesheet" type="text/css"/>
+					<link href="toc/css/zTreeStyle/zTreeStyle.css" media="all" rel="stylesheet" type="text/css"/>
+			
+				  <style>
+					pre {
+					    counter-reset: line-numbering;
+					    border: solid 1px #d9d9d9;
+					    border-radius: 0;
+					    background: #fff;
+					    padding: 0;
+					    line-height: 23px;
+					    margin-bottom: 30px;
+					    white-space: pre;
+					    overflow-x: auto;
+					    word-break: inherit;
+					    word-wrap: inherit;
+					}
+
+					pre a::before {
+					  content: counter(line-numbering);
+					  counter-increment: line-numbering;
+					  padding-right: 1em; /* space after numbers */
+					  width: 25px;
+					  text-align: right;
+					  opacity: 0.7;
+					  display: inline-block;
+					  color: #aaa;
+					  background: #eee;
+					  margin-right: 16px;
+					  padding: 2px 10px;
+					  font-size: 13px;
+					  -webkit-touch-callout: none;
+					  -webkit-user-select: none;
+					  -khtml-user-select: none;
+					  -moz-user-select: none;
+					  -ms-user-select: none;
+					  user-select: none;
+					}
+
+					pre a:first-of-type::before {
+					  padding-top: 10px;
+					}
+
+					pre a:last-of-type::before {
+					  padding-bottom: 10px;
+					}
+
+					pre a:only-of-type::before {
+					  padding: 10px;
+					}
+			
+					.highlight { background-color: #ffffcc } /* RIGHT */
+					</style>
+	      </head>
+	      <body>
+				  <div>
+							<div style='width:25%;'>
+									<ul id="tree" class="ztree" style='width:100%'>
+		
+									</ul>
+							</div>
+			        <div id='readme' style='width:70%;margin-left:20%;'>
+			          	<article class='markdown-body'>
+			            	<style>.highlight .hll { background-color: #ffffcc }
+.highlight  { background: #f0f0f0; }
+.highlight .c { color: #60a0b0; font-style: italic } /* Comment */
+.highlight .err { border: 1px solid #FF0000 } /* Error */
+.highlight .k { color: #007020; font-weight: bold } /* Keyword */
+.highlight .o { color: #666666 } /* Operator */
+.highlight .cm { color: #60a0b0; font-style: italic } /* Comment.Multiline */
+.highlight .cp { color: #007020 } /* Comment.Preproc */
+.highlight .c1 { color: #60a0b0; font-style: italic } /* Comment.Single */
+.highlight .cs { color: #60a0b0; background-color: #fff0f0 } /* Comment.Special */
+.highlight .gd { color: #A00000 } /* Generic.Deleted */
+.highlight .ge { font-style: italic } /* Generic.Emph */
+.highlight .gr { color: #FF0000 } /* Generic.Error */
+.highlight .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.highlight .gi { color: #00A000 } /* Generic.Inserted */
+.highlight .go { color: #888888 } /* Generic.Output */
+.highlight .gp { color: #c65d09; font-weight: bold } /* Generic.Prompt */
+.highlight .gs { font-weight: bold } /* Generic.Strong */
+.highlight .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.highlight .gt { color: #0044DD } /* Generic.Traceback */
+.highlight .kc { color: #007020; font-weight: bold } /* Keyword.Constant */
+.highlight .kd { color: #007020; font-weight: bold } /* Keyword.Declaration */
+.highlight .kn { color: #007020; font-weight: bold } /* Keyword.Namespace */
+.highlight .kp { color: #007020 } /* Keyword.Pseudo */
+.highlight .kr { color: #007020; font-weight: bold } /* Keyword.Reserved */
+.highlight .kt { color: #902000 } /* Keyword.Type */
+.highlight .m { color: #40a070 } /* Literal.Number */
+.highlight .s { color: #4070a0 } /* Literal.String */
+.highlight .na { color: #4070a0 } /* Name.Attribute */
+.highlight .nb { color: #007020 } /* Name.Builtin */
+.highlight .nc { color: #0e84b5; font-weight: bold } /* Name.Class */
+.highlight .no { color: #60add5 } /* Name.Constant */
+.highlight .nd { color: #555555; font-weight: bold } /* Name.Decorator */
+.highlight .ni { color: #d55537; font-weight: bold } /* Name.Entity */
+.highlight .ne { color: #007020 } /* Name.Exception */
+.highlight .nf { color: #06287e } /* Name.Function */
+.highlight .nl { color: #002070; font-weight: bold } /* Name.Label */
+.highlight .nn { color: #0e84b5; font-weight: bold } /* Name.Namespace */
+.highlight .nt { color: #062873; font-weight: bold } /* Name.Tag */
+.highlight .nv { color: #bb60d5 } /* Name.Variable */
+.highlight .ow { color: #007020; font-weight: bold } /* Operator.Word */
+.highlight .w { color: #bbbbbb } /* Text.Whitespace */
+.highlight .mb { color: #40a070 } /* Literal.Number.Bin */
+.highlight .mf { color: #40a070 } /* Literal.Number.Float */
+.highlight .mh { color: #40a070 } /* Literal.Number.Hex */
+.highlight .mi { color: #40a070 } /* Literal.Number.Integer */
+.highlight .mo { color: #40a070 } /* Literal.Number.Oct */
+.highlight .sb { color: #4070a0 } /* Literal.String.Backtick */
+.highlight .sc { color: #4070a0 } /* Literal.String.Char */
+.highlight .sd { color: #4070a0; font-style: italic } /* Literal.String.Doc */
+.highlight .s2 { color: #4070a0 } /* Literal.String.Double */
+.highlight .se { color: #4070a0; font-weight: bold } /* Literal.String.Escape */
+.highlight .sh { color: #4070a0 } /* Literal.String.Heredoc */
+.highlight .si { color: #70a0d0; font-style: italic } /* Literal.String.Interpol */
+.highlight .sx { color: #c65d09 } /* Literal.String.Other */
+.highlight .sr { color: #235388 } /* Literal.String.Regex */
+.highlight .s1 { color: #4070a0 } /* Literal.String.Single */
+.highlight .ss { color: #517918 } /* Literal.String.Symbol */
+.highlight .bp { color: #007020 } /* Name.Builtin.Pseudo */
+.highlight .vc { color: #bb60d5 } /* Name.Variable.Class */
+.highlight .vg { color: #bb60d5 } /* Name.Variable.Global */
+.highlight .vi { color: #bb60d5 } /* Name.Variable.Instance */
+.highlight .il { color: #40a070 } /* Literal.Number.Integer.Long */</style>
+<h1>MessagePack specification</h1>
+
+<p>MessagePack is an object serialization specification like JSON.</p>
+
+<p>MessagePack has two concepts: <strong>type system</strong> and <strong>formats</strong>.</p>
+
+<p>Serialization is conversion from application objects into MessagePack formats via MessagePack type system.</p>
+
+<p>Deserialization is conversion from MessagePack formats into application objects via MessagePack type system.</p>
+<div class="highlight"><pre><span class="n">Serialization</span><span class="o">:</span>
+    <span class="n">Application</span> <span class="n">objects</span>
+    <span class="o">--&gt;</span>  <span class="n">MessagePack</span> <span class="n">type</span> <span class="n">system</span>
+    <span class="o">--&gt;</span>  <span class="n">MessagePack</span> <span class="n">formats</span> <span class="o">(</span><span class="n">byte</span> <span class="n">array</span><span class="o">)</span>
+
+<span class="n">Deserialization</span><span class="o">:</span>
+    <span class="n">MessagePack</span> <span class="n">formats</span> <span class="o">(</span><span class="n">byte</span> <span class="n">array</span><span class="o">)</span>
+    <span class="o">--&gt;</span>  <span class="n">MessagePack</span> <span class="n">type</span> <span class="n">system</span>
+    <span class="o">--&gt;</span>  <span class="n">Application</span> <span class="n">objects</span>
+</pre></div>
+<p>This document describes the MessagePack type system, MessagePack formats and conversion of them.</p>
+
+<h2>Table of contents</h2>
+
+<ul>
+<li>MessagePack specification
+
+<ul>
+<li><a href="#types">Type system</a>
+
+<ul>
+<li><a href="#types-limitation">Limitation</a></li>
+<li><a href="#types-extension-type">Extension type</a></li>
+</ul></li>
+<li><a href="#formats">Formats</a>
+
+<ul>
+<li><a href="#formats-overview">Overview</a></li>
+<li><a href="#formats-notation">Notation in diagrams</a></li>
+<li><a href="#formats-nil">nil format family</a></li>
+<li><a href="#formats-bool">bool format family</a></li>
+<li><a href="#formats-int">int format family</a></li>
+<li><a href="#formats-float">float format family</a></li>
+<li><a href="#formats-str">str format family</a></li>
+<li><a href="#formats-bin">bin format family</a></li>
+<li><a href="#formats-array">array format family</a></li>
+<li><a href="#formats-map">map format family</a></li>
+<li><a href="#formats-ext">ext format family</a></li>
+</ul></li>
+<li><a href="#serialization">Serialization: type to format conversion</a></li>
+<li><a href="#deserialization">Deserialization: format to type conversion</a></li>
+<li><a href="#future">Future discussion</a></li>
+<li><a href="#future-profiles">Profile</a></li>
+<li><a href="#impl">Implementation guidelines</a></li>
+<li><a href="#impl-upgrade">Upgrade MessagePack specification</a></li>
+</ul></li>
+</ul>
+
+<p><a name="types"></a></p>
+
+<h2>Type system</h2>
+
+<ul>
+<li>Types
+
+<ul>
+<li><strong>Integer</strong> represents an integer</li>
+<li><strong>Nil</strong> represents nil</li>
+<li><strong>Boolean</strong> represents true or false</li>
+<li><strong>Float</strong> represents a floating point number</li>
+<li><strong>Raw</strong>
+
+<ul>
+<li><strong>String</strong> extending Raw type represents a UTF-8 string</li>
+<li><strong>Binary</strong> extending Raw type represents a byte array</li>
+</ul></li>
+<li><strong>Array</strong> represents a sequence of objects</li>
+<li><strong>Map</strong> represents key-value pairs of objects</li>
+<li><strong>Extended</strong> implements Extension interface: represents a tuple of type information and a byte array where type information is an integer whose meaning is defined by applications</li>
+</ul></li>
+<li>Interfaces
+
+<ul>
+<li><strong>Extension</strong> represents a tuple of an integer and a byte array where the integer represents type information and the byte array represents data. The format of the data is defined by concrete types</li>
+</ul></li>
+</ul>
+
+<p><a name="types-limitation"></a></p>
+
+<h3>Limitation</h3>
+
+<ul>
+<li>a value of an Integer object is limited from <code>-(2^63)</code> upto <code>(2^64)-1</code></li>
+<li>a value of a Float object is IEEE 754 single or double precision floating-point number</li>
+<li>maximum length of a Binary object is <code>(2^32)-1</code></li>
+<li>maximum byte size of a String object is <code>(2^32)-1</code></li>
+<li>String objects may contain invalid byte sequence and the behavior of a deserializer depends on the actual implementation when it received invalid byte sequence
+
+<ul>
+<li>Deserializers should provide functionality to get the original byte array so that applications can decide how to handle the object</li>
+</ul></li>
+<li>maximum number of elements of an Array object is <code>(2^32)-1</code></li>
+<li>maximum number of key-value associations of a Map object is <code>(2^32)-1</code></li>
+</ul>
+
+<p><a name="types-extension-type"></a></p>
+
+<h3>Extension type</h3>
+
+<p>MessagePack allows applications to define application-specific types using the Extended type.
+Extended type consists of an integer and a byte array where the integer represents a kind of types and the byte array represents data.</p>
+
+<p>Applications can assign <code>0</code> to <code>127</code> to store application-specific type information.</p>
+
+<p>MessagePack reserves <code>-1</code> to <code>-128</code> for future extension to add predefined types which will be described in separated documents.</p>
+<div class="highlight"><pre><span class="cp">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">127</span><span class="cp">]</span><span class="x">: application-specific types</span>
+<span class="cp">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">128</span><span class="cp">]</span><span class="x">: reserved for predefined types</span>
+</pre></div>
+<p><a name="formats"></a></p>
+
+<h2>Formats</h2>
+
+<p><a name="formats-overview"></a></p>
+
+<h3>Overview</h3>
+
+<table>
+  <tr><th>format name</th><th>first byte (in binary)</th><th>first byte (in hex)</th></th></tr>
+  <tr><td>positive fixint</td><td>0xxxxxxx</td><td>0x00 - 0x7f</td></tr>
+  <tr><td>fixmap</td><td>1000xxxx</td><td>0x80 - 0x8f</td></tr>
+  <tr><td>fixarray</td><td>1001xxxx</td><td>0x90 - 0x9f</td></tr>
+  <tr><td>fixstr</td><td>101xxxxx</td><td>0xa0 - 0xbf</td></tr>
+  <tr><td>nil</td><td>11000000</td><td>0xc0</td></tr>
+  <tr><td>(never used)</td><td>11000001</td><td>0xc1</td></tr>
+  <tr><td>false</td><td>11000010</td><td>0xc2</td></tr>
+  <tr><td>true</td><td>11000011</td><td>0xc3</td></tr>
+  <tr><td>bin 8</td><td>11000100</td><td>0xc4</td></tr>
+  <tr><td>bin 16</td><td>11000101</td><td>0xc5</td></tr>
+  <tr><td>bin 32</td><td>11000110</td><td>0xc6</td></tr>
+  <tr><td>ext 8</td><td>11000111</td><td>0xc7</td></tr>
+  <tr><td>ext 16</td><td>11001000</td><td>0xc8</td></tr>
+  <tr><td>ext 32</td><td>11001001</td><td>0xc9</td></tr>
+  <tr><td>float 32</td><td>11001010</td><td>0xca</td></tr>
+  <tr><td>float 64</td><td>11001011</td><td>0xcb</td></tr>
+  <tr><td>uint 8</td><td>11001100</td><td>0xcc</td></tr>
+  <tr><td>uint 16</td><td>11001101</td><td>0xcd</td></tr>
+  <tr><td>uint 32</td><td>11001110</td><td>0xce</td></tr>
+  <tr><td>uint 64</td><td>11001111</td><td>0xcf</td></tr>
+  <tr><td>int 8</td><td>11010000</td><td>0xd0</td></tr>
+  <tr><td>int 16</td><td>11010001</td><td>0xd1</td></tr>
+  <tr><td>int 32</td><td>11010010</td><td>0xd2</td></tr>
+  <tr><td>int 64</td><td>11010011</td><td>0xd3</td></tr>
+  <tr><td>fixext 1</td><td>11010100</td><td>0xd4</td></tr>
+  <tr><td>fixext 2</td><td>11010101</td><td>0xd5</td></tr>
+  <tr><td>fixext 4</td><td>11010110</td><td>0xd6</td></tr>
+  <tr><td>fixext 8</td><td>11010111</td><td>0xd7</td></tr>
+  <tr><td>fixext 16</td><td>11011000</td><td>0xd8</td></tr>
+  <tr><td>str 8</td><td>11011001</td><td>0xd9</td></tr>
+  <tr><td>str 16</td><td>11011010</td><td>0xda</td></tr>
+  <tr><td>str 32</td><td>11011011</td><td>0xdb</td></tr>
+  <tr><td>array 16</td><td>11011100</td><td>0xdc</td></tr>
+  <tr><td>array 32</td><td>11011101</td><td>0xdd</td></tr>
+  <tr><td>map 16</td><td>11011110</td><td>0xde</td></tr>
+  <tr><td>map 32</td><td>11011111</td><td>0xdf</td></tr>
+  <tr><td>negative fixint</td><td>111xxxxx</td><td>0xe0 - 0xff</td></tr>
+</table>
+
+<p><a name="formats-notation"></a></p>
+
+<h3>Notation in diagrams</h3>
+<div class="highlight"><pre><span class="vg">one</span><span class="w"> </span><span class="nl">byte:</span>
+<span class="o">+--------+</span>
+<span class="o">|</span><span class="w">        </span><span class="o">|</span>
+<span class="o">+--------+</span>
+
+<span class="vg">a</span><span class="w"> </span><span class="vg">variable</span><span class="w"> </span><span class="vg">number</span><span class="w"> </span><span class="vg">of</span><span class="w"> </span><span class="nl">bytes:</span>
+<span class="o">+========+</span>
+<span class="o">|</span><span class="w">        </span><span class="o">|</span>
+<span class="o">+========+</span>
+
+<span class="vg">variable</span><span class="w"> </span><span class="vg">number</span><span class="w"> </span><span class="vg">of</span><span class="w"> </span><span class="vg">objects</span><span class="w"> </span><span class="vg">stored</span><span class="w"> </span><span class="vg">in</span><span class="w"> </span><span class="vg">MessagePack</span><span class="w"> </span><span class="nl">format:</span>
+<span class="o">+~~~~~~~~~~~~~~~~~+</span>
+<span class="o">|</span><span class="w">                 </span><span class="o">|</span>
+<span class="o">+~~~~~~~~~~~~~~~~~+</span>
+</pre></div>
+<p><code>X</code>, <code>Y</code>, <code>Z</code> and <code>A</code> are the symbols that will be replaced by an actual bit.</p>
+
+<p><a name="formats-nil"></a></p>
+
+<h3>nil format</h3>
+
+<p>Nil format stores nil in 1 byte.</p>
+<div class="highlight"><pre><span class="nl">nil:</span>
+<span class="o">+--------+</span>
+<span class="o">|</span><span class="w">  </span><span class="il">0</span><span class="vg">xc0</span><span class="w">  </span><span class="o">|</span>
+<span class="o">+--------+</span>
+</pre></div>
+<p><a name="formats-bool"></a></p>
+
+<h3>bool format family</h3>
+
+<p>Bool format family stores false or true in 1 byte.</p>
+<div class="highlight"><pre><span class="nl">false:</span>
+<span class="o">+--------+</span>
+<span class="o">|</span><span class="w">  </span><span class="il">0</span><span class="vg">xc2</span><span class="w">  </span><span class="o">|</span>
+<span class="o">+--------+</span>
+
+<span class="nl">true:</span>
+<span class="o">+--------+</span>
+<span class="o">|</span><span class="w">  </span><span class="il">0</span><span class="vg">xc3</span><span class="w">  </span><span class="o">|</span>
+<span class="o">+--------+</span>
+</pre></div>
+<p><a name="formats-int"></a></p>
+
+<h3>int format family</h3>
+
+<p>Int format family stores an integer in 1, 2, 3, 5, or 9 bytes.</p>
+<div class="highlight"><pre><span class="vg">positive</span><span class="w"> </span><span class="vg">fixnum</span><span class="w"> </span><span class="vg">stores</span><span class="w"> </span><span class="il">7</span><span class="o">-</span><span class="vg">bit</span><span class="w"> </span><span class="vg">positive</span><span class="w"> </span><span class="vg">integer</span>
+<span class="o">+--------+</span>
+<span class="o">|</span><span class="il">0</span><span class="vg">XXXXXXX</span><span class="o">|</span>
+<span class="o">+--------+</span>
+
+<span class="vg">negative</span><span class="w"> </span><span class="vg">fixnum</span><span class="w"> </span><span class="vg">stores</span><span class="w"> </span><span class="il">5</span><span class="o">-</span><span class="vg">bit</span><span class="w"> </span><span class="vg">negative</span><span class="w"> </span><span class="vg">integer</span>
+<span class="o">+--------+</span>
+<span class="o">|</span><span class="il">111</span><span class="vg">YYYYY</span><span class="o">|</span>
+<span class="o">+--------+</span>
+
+<span class="o">*</span><span class="w"> </span><span class="il">0</span><span class="vg">XXXXXXX</span><span class="w"> </span><span class="vg">is</span><span class="w"> </span><span class="il">8</span><span class="o">-</span><span class="vg">bit</span><span class="w"> </span><span class="vg">unsigned</span><span class="w"> </span><span class="vg">integer</span>
+<span class="o">*</span><span class="w"> </span><span class="il">111</span><span class="vg">YYYYY</span><span class="w"> </span><span class="vg">is</span><span class="w"> </span><span class="il">8</span><span class="o">-</span><span class="vg">bit</span><span class="w"> </span><span class="vg">signed</span><span class="w"> </span><span class="vg">integer</span>
+
+<span class="vg">uint</span><span class="w"> </span><span class="il">8</span><span class="w"> </span><span class="vg">stores</span><span class="w"> </span><span class="vg">a</span><span class="w"> </span><span class="il">8</span><span class="o">-</span><span class="vg">bit</span><span class="w"> </span><span class="vg">unsigned</span><span class="w"> </span><span class="vg">integer</span>
+<span class="o">+--------+--------+</span>
+<span class="o">|</span><span class="w">  </span><span class="il">0</span><span class="vg">xcc</span><span class="w">  </span><span class="o">|</span><span class="vg">ZZZZZZZZ</span><span class="o">|</span>
+<span class="o">+--------+--------+</span>
+
+<span class="vg">uint</span><span class="w"> </span><span class="il">16</span><span class="w"> </span><span class="vg">stores</span><span class="w"> </span><span class="vg">a</span><span class="w"> </span><span class="il">16</span><span class="o">-</span><span class="vg">bit</span><span class="w"> </span><span class="vg">big</span><span class="o">-</span><span class="vg">endian</span><span class="w"> </span><span class="vg">unsigned</span><span class="w"> </span><span class="vg">integer</span>
+<span class="o">+--------+--------+--------+</span>
+<span class="o">|</span><span class="w">  </span><span class="il">0</span><span class="vg">xcd</span><span class="w">  </span><span class="o">|</span><span class="vg">ZZZZZZZZ</span><span class="o">|</span><span class="vg">ZZZZZZZZ</span><span class="o">|</span>
+<span class="o">+--------+--------+--------+</span>
+
+<span class="vg">uint</span><span class="w"> </span><span class="il">32</span><span class="w"> </span><span class="vg">stores</span><span class="w"> </span><span class="vg">a</span><span class="w"> </span><span class="il">32</span><span class="o">-</span><span class="vg">bit</span><span class="w"> </span><span class="vg">big</span><span class="o">-</span><span class="vg">endian</span><span class="w"> </span><span class="vg">unsigned</span><span class="w"> </span><span class="vg">integer</span>
+<span class="o">+--------+--------+--------+--------+--------+</span>
+<span class="o">|</span><span class="w">  </span><span class="il">0</span><span class="vg">xce</span><span class="w">  </span><span class="o">|</span><span class="vg">ZZZZZZZZ</span><span class="o">|</span><span class="vg">ZZZZZZZZ</span><span class="o">|</span><span class="vg">ZZZZZZZZ</span><span class="o">|</span><span class="vg">ZZZZZZZZ</span>
+<span class="o">+--------+--------+--------+--------+--------+</span>
+
+<span class="vg">uint</span><span class="w"> </span><span class="il">64</span><span class="w"> </span><span class="vg">stores</span><span class="w"> </span><span class="vg">a</span><span class="w"> </span><span class="il">64</span><span class="o">-</span><span class="vg">bit</span><span class="w"> </span><span class="vg">big</span><span class="o">-</span><span class="vg">endian</span><span class="w"> </span><span class="vg">unsigned</span><span class="w"> </span><span class="vg">integer</span>
+<span class="o">+--------+--------+--------+--------+--------+--------+--------+--------+--------+</span>
+<span class="o">|</span><span class="w">  </span><span class="il">0</span><span class="vg">xcf</span><span class="w">  </span><span class="o">|</span><span class="vg">ZZZZZZZZ</span><span class="o">|</span><span class="vg">ZZZZZZZZ</span><span class="o">|</span><span class="vg">ZZZZZZZZ</span><span class="o">|</span><span class="vg">ZZZZZZZZ</span><span class="o">|</span><span class="vg">ZZZZZZZZ</span><span class="o">|</span><span class="vg">ZZZZZZZZ</span><span class="o">|</span><span class="vg">ZZZZZZZZ</span><span class="o">|</span><span class="vg">ZZZZZZZZ</span><span class="o">|</span>
+<span class="o">+--------+--------+--------+--------+--------+--------+--------+--------+--------+</span>
+
+<span class="vg">int</span><span class="w"> </span><span class="il">8</span><span class="w"> </span><span class="vg">stores</span><span class="w"> </span><span class="vg">a</span><span class="w"> </span><span class="il">8</span><span class="o">-</span><span class="vg">bit</span><span class="w"> </span><span class="vg">signed</span><span class="w"> </span><span class="vg">integer</span>
+<span class="o">+--------+--------+</span>
+<span class="o">|</span><span class="w">  </span><span class="il">0</span><span class="vg">xd0</span><span class="w">  </span><span class="o">|</span><span class="vg">ZZZZZZZZ</span><span class="o">|</span>
+<span class="o">+--------+--------+</span>
+
+<span class="vg">int</span><span class="w"> </span><span class="il">16</span><span class="w"> </span><span class="vg">stores</span><span class="w"> </span><span class="vg">a</span><span class="w"> </span><span class="il">16</span><span class="o">-</span><span class="vg">bit</span><span class="w"> </span><span class="vg">big</span><span class="o">-</span><span class="vg">endian</span><span class="w"> </span><span class="vg">signed</span><span class="w"> </span><span class="vg">integer</span>
+<span class="o">+--------+--------+--------+</span>
+<span class="o">|</span><span class="w">  </span><span class="il">0</span><span class="vg">xd1</span><span class="w">  </span><span class="o">|</span><span class="vg">ZZZZZZZZ</span><span class="o">|</span><span class="vg">ZZZZZZZZ</span><span class="o">|</span>
+<span class="o">+--------+--------+--------+</span>
+
+<span class="vg">int</span><span class="w"> </span><span class="il">32</span><span class="w"> </span><span class="vg">stores</span><span class="w"> </span><span class="vg">a</span><span class="w"> </span><span class="il">32</span><span class="o">-</span><span class="vg">bit</span><span class="w"> </span><span class="vg">big</span><span class="o">-</span><span class="vg">endian</span><span class="w"> </span><span class="vg">signed</span><span class="w"> </span><span class="vg">integer</span>
+<span class="o">+--------+--------+--------+--------+--------+</span>
+<span class="o">|</span><span class="w">  </span><span class="il">0</span><span class="vg">xd2</span><span class="w">  </span><span class="o">|</span><span class="vg">ZZZZZZZZ</span><span class="o">|</span><span class="vg">ZZZZZZZZ</span><span class="o">|</span><span class="vg">ZZZZZZZZ</span><span class="o">|</span><span class="vg">ZZZZZZZZ</span><span class="o">|</span>
+<span class="o">+--------+--------+--------+--------+--------+</span>
+
+<span class="vg">int</span><span class="w"> </span><span class="il">64</span><span class="w"> </span><span class="vg">stores</span><span class="w"> </span><span class="vg">a</span><span class="w"> </span><span class="il">64</span><span class="o">-</span><span class="vg">bit</span><span class="w"> </span><span class="vg">big</span><span class="o">-</span><span class="vg">endian</span><span class="w"> </span><span class="vg">signed</span><span class="w"> </span><span class="vg">integer</span>
+<span class="o">+--------+--------+--------+--------+--------+--------+--------+--------+--------+</span>
+<span class="o">|</span><span class="w">  </span><span class="il">0</span><span class="vg">xd3</span><span class="w">  </span><span class="o">|</span><span class="vg">ZZZZZZZZ</span><span class="o">|</span><span class="vg">ZZZZZZZZ</span><span class="o">|</span><span class="vg">ZZZZZZZZ</span><span class="o">|</span><span class="vg">ZZZZZZZZ</span><span class="o">|</span><span class="vg">ZZZZZZZZ</span><span class="o">|</span><span class="vg">ZZZZZZZZ</span><span class="o">|</span><span class="vg">ZZZZZZZZ</span><span class="o">|</span><span class="vg">ZZZZZZZZ</span><span class="o">|</span>
+<span class="o">+--------+--------+--------+--------+--------+--------+--------+--------+--------+</span>
+</pre></div>
+<p><a name="formats-float"></a></p>
+
+<h3>float format family</h3>
+
+<p>Float format family stores a floating point number in 5 bytes or 9 bytes.</p>
+<div class="highlight"><pre><span class="vg">float</span><span class="w"> </span><span class="il">32</span><span class="w"> </span><span class="vg">stores</span><span class="w"> </span><span class="vg">a</span><span class="w"> </span><span class="vg">floating</span><span class="w"> </span><span class="vg">point</span><span class="w"> </span><span class="vg">number</span><span class="w"> </span><span class="vg">in</span><span class="w"> </span><span class="vg">IEEE</span><span class="w"> </span><span class="il">754</span><span class="w"> </span><span class="vg">single</span><span class="w"> </span><span class="vg">precision</span><span class="w"> </span><span class="vg">floating</span><span class="w"> </span><span class="vg">point</span><span class="w"> </span><span class="vg">number</span><span class="w"> </span><span class="nl">format:</span>
+<span class="o">+--------+--------+--------+--------+--------+</span>
+<span class="o">|</span><span class="w">  </span><span class="il">0</span><span class="vg">xca</span><span class="w">  </span><span class="o">|</span><span class="vg">XXXXXXXX</span><span class="o">|</span><span class="vg">XXXXXXXX</span><span class="o">|</span><span class="vg">XXXXXXXX</span><span class="o">|</span><span class="vg">XXXXXXXX</span>
+<span class="o">+--------+--------+--------+--------+--------+</span>
+
+<span class="vg">float</span><span class="w"> </span><span class="il">64</span><span class="w"> </span><span class="vg">stores</span><span class="w"> </span><span class="vg">a</span><span class="w"> </span><span class="vg">floating</span><span class="w"> </span><span class="vg">point</span><span class="w"> </span><span class="vg">number</span><span class="w"> </span><span class="vg">in</span><span class="w"> </span><span class="vg">IEEE</span><span class="w"> </span><span class="il">754</span><span class="w"> </span><span class="vg">double</span><span class="w"> </span><span class="vg">precision</span><span class="w"> </span><span class="vg">floating</span><span class="w"> </span><span class="vg">point</span><span class="w"> </span><span class="vg">number</span><span class="w"> </span><span class="nl">format:</span>
+<span class="o">+--------+--------+--------+--------+--------+--------+--------+--------+--------+</span>
+<span class="o">|</span><span class="w">  </span><span class="il">0</span><span class="vg">xcb</span><span class="w">  </span><span class="o">|</span><span class="vg">YYYYYYYY</span><span class="o">|</span><span class="vg">YYYYYYYY</span><span class="o">|</span><span class="vg">YYYYYYYY</span><span class="o">|</span><span class="vg">YYYYYYYY</span><span class="o">|</span><span class="vg">YYYYYYYY</span><span class="o">|</span><span class="vg">YYYYYYYY</span><span class="o">|</span><span class="vg">YYYYYYYY</span><span class="o">|</span><span class="vg">YYYYYYYY</span><span class="o">|</span>
+<span class="o">+--------+--------+--------+--------+--------+--------+--------+--------+--------+</span>
+
+<span class="vg">where</span>
+<span class="o">*</span><span class="w"> </span><span class="vg">XXXXXXXX_XXXXXXXX_XXXXXXXX_XXXXXXXX</span><span class="w"> </span><span class="vg">is</span><span class="w"> </span><span class="vg">a</span><span class="w"> </span><span class="vg">big</span><span class="o">-</span><span class="vg">endian</span><span class="w"> </span><span class="vg">IEEE</span><span class="w"> </span><span class="il">754</span><span class="w"> </span><span class="vg">single</span><span class="w"> </span><span class="vg">precision</span><span class="w"> </span><span class="vg">floating</span><span class="w"> </span><span class="vg">point</span><span class="w"> </span><span class="vg">number</span>
+<span class="o">*</span><span class="w"> </span><span class="vg">YYYYYYYY_YYYYYYYY_YYYYYYYY_YYYYYYYY_YYYYYYYY_YYYYYYYY_YYYYYYYY_YYYYYYYY</span><span class="w"> </span><span class="vg">is</span><span class="w"> </span><span class="vg">a</span><span class="w"> </span><span class="vg">big</span><span class="o">-</span><span class="vg">endian</span>
+<span class="w">  </span><span class="vg">IEEE</span><span class="w"> </span><span class="il">754</span><span class="w"> </span><span class="vg">double</span><span class="w"> </span><span class="vg">precision</span><span class="w"> </span><span class="vg">floating</span><span class="w"> </span><span class="vg">point</span><span class="w"> </span><span class="vg">number</span>
+</pre></div>
+<p><a name="formats-str"></a></p>
+
+<h3>str format family</h3>
+
+<p>Str format family stores an byte array in 1, 2, 3, or 5 bytes of extra bytes in addition to the size of the byte array.</p>
+<div class="highlight"><pre><span class="vg">fixstr</span><span class="w"> </span><span class="vg">stores</span><span class="w"> </span><span class="vg">a</span><span class="w"> </span><span class="vg">byte</span><span class="w"> </span><span class="vg">array</span><span class="w"> </span><span class="vg">whose</span><span class="w"> </span><span class="vg">length</span><span class="w"> </span><span class="vg">is</span><span class="w"> </span><span class="vg">upto</span><span class="w"> </span><span class="il">31</span><span class="w"> </span><span class="nl">bytes:</span>
+<span class="o">+--------+========+</span>
+<span class="o">|</span><span class="il">101</span><span class="vg">XXXXX</span><span class="o">|</span><span class="w">  </span><span class="vg">data</span><span class="w">  </span><span class="o">|</span>
+<span class="o">+--------+========+</span>
+
+<span class="vg">str</span><span class="w"> </span><span class="il">8</span><span class="w"> </span><span class="vg">stores</span><span class="w"> </span><span class="vg">a</span><span class="w"> </span><span class="vg">byte</span><span class="w"> </span><span class="vg">array</span><span class="w"> </span><span class="vg">whose</span><span class="w"> </span><span class="vg">length</span><span class="w"> </span><span class="vg">is</span><span class="w"> </span><span class="vg">upto</span><span class="w"> </span><span class="p">(</span><span class="il">2</span><span class="o">^</span><span class="il">8</span><span class="p">)</span><span class="il">-1</span><span class="w"> </span><span class="nl">bytes:</span>
+<span class="o">+--------+--------+========+</span>
+<span class="o">|</span><span class="w">  </span><span class="il">0</span><span class="vg">xd9</span><span class="w">  </span><span class="o">|</span><span class="vg">YYYYYYYY</span><span class="o">|</span><span class="w">  </span><span class="vg">data</span><span class="w">  </span><span class="o">|</span>
+<span class="o">+--------+--------+========+</span>
+
+<span class="vg">str</span><span class="w"> </span><span class="il">16</span><span class="w"> </span><span class="vg">stores</span><span class="w"> </span><span class="vg">a</span><span class="w"> </span><span class="vg">byte</span><span class="w"> </span><span class="vg">array</span><span class="w"> </span><span class="vg">whose</span><span class="w"> </span><span class="vg">length</span><span class="w"> </span><span class="vg">is</span><span class="w"> </span><span class="vg">upto</span><span class="w"> </span><span class="p">(</span><span class="il">2</span><span class="o">^</span><span class="il">16</span><span class="p">)</span><span class="il">-1</span><span class="w"> </span><span class="nl">bytes:</span>
+<span class="o">+--------+--------+--------+========+</span>
+<span class="o">|</span><span class="w">  </span><span class="il">0</span><span class="vg">xda</span><span class="w">  </span><span class="o">|</span><span class="vg">ZZZZZZZZ</span><span class="o">|</span><span class="vg">ZZZZZZZZ</span><span class="o">|</span><span class="w">  </span><span class="vg">data</span><span class="w">  </span><span class="o">|</span>
+<span class="o">+--------+--------+--------+========+</span>
+
+<span class="vg">str</span><span class="w"> </span><span class="il">32</span><span class="w"> </span><span class="vg">stores</span><span class="w"> </span><span class="vg">a</span><span class="w"> </span><span class="vg">byte</span><span class="w"> </span><span class="vg">array</span><span class="w"> </span><span class="vg">whose</span><span class="w"> </span><span class="vg">length</span><span class="w"> </span><span class="vg">is</span><span class="w"> </span><span class="vg">upto</span><span class="w"> </span><span class="p">(</span><span class="il">2</span><span class="o">^</span><span class="il">32</span><span class="p">)</span><span class="il">-1</span><span class="w"> </span><span class="nl">bytes:</span>
+<span class="o">+--------+--------+--------+--------+--------+========+</span>
+<span class="o">|</span><span class="w">  </span><span class="il">0</span><span class="vg">xdb</span><span class="w">  </span><span class="o">|</span><span class="vg">AAAAAAAA</span><span class="o">|</span><span class="vg">AAAAAAAA</span><span class="o">|</span><span class="vg">AAAAAAAA</span><span class="o">|</span><span class="vg">AAAAAAAA</span><span class="o">|</span><span class="w">  </span><span class="vg">data</span><span class="w">  </span><span class="o">|</span>
+<span class="o">+--------+--------+--------+--------+--------+========+</span>
+
+<span class="vg">where</span>
+<span class="o">*</span><span class="w"> </span><span class="vg">XXXXX</span><span class="w"> </span><span class="vg">is</span><span class="w"> </span><span class="vg">a</span><span class="w"> </span><span class="il">5</span><span class="o">-</span><span class="vg">bit</span><span class="w"> </span><span class="vg">unsigned</span><span class="w"> </span><span class="vg">integer</span><span class="w"> </span><span class="vg">which</span><span class="w"> </span><span class="vg">represents</span><span class="w"> </span><span class="vg">N</span>
+<span class="o">*</span><span class="w"> </span><span class="vg">YYYYYYYY</span><span class="w"> </span><span class="vg">is</span><span class="w"> </span><span class="vg">a</span><span class="w"> </span><span class="il">8</span><span class="o">-</span><span class="vg">bit</span><span class="w"> </span><span class="vg">unsigned</span><span class="w"> </span><span class="vg">integer</span><span class="w"> </span><span class="vg">which</span><span class="w"> </span><span class="vg">represents</span><span class="w"> </span><span class="vg">N</span>
+<span class="o">*</span><span class="w"> </span><span class="vg">ZZZZZZZZ_ZZZZZZZZ</span><span class="w"> </span><span class="vg">is</span><span class="w"> </span><span class="vg">a</span><span class="w"> </span><span class="il">16</span><span class="o">-</span><span class="vg">bit</span><span class="w"> </span><span class="vg">big</span><span class="o">-</span><span class="vg">endian</span><span class="w"> </span><span class="vg">unsigned</span><span class="w"> </span><span class="vg">integer</span><span class="w"> </span><span class="vg">which</span><span class="w"> </span><span class="vg">represents</span><span class="w"> </span><span class="vg">N</span>
+<span class="o">*</span><span class="w"> </span><span class="vg">AAAAAAAA_AAAAAAAA_AAAAAAAA_AAAAAAAA</span><span class="w"> </span><span class="vg">is</span><span class="w"> </span><span class="vg">a</span><span class="w"> </span><span class="il">32</span><span class="o">-</span><span class="vg">bit</span><span class="w"> </span><span class="vg">big</span><span class="o">-</span><span class="vg">endian</span><span class="w"> </span><span class="vg">unsigned</span><span class="w"> </span><span class="vg">integer</span><span class="w"> </span><span class="vg">which</span><span class="w"> </span><span class="vg">represents</span><span class="w"> </span><span class="vg">N</span>
+<span class="o">*</span><span class="w"> </span><span class="vg">N</span><span class="w"> </span><span class="vg">is</span><span class="w"> </span><span class="vg">the</span><span class="w"> </span><span class="vg">length</span><span class="w"> </span><span class="vg">of</span><span class="w"> </span><span class="vg">data</span>
+</pre></div>
+<p><a name="formats-bin"></a></p>
+
+<h3>bin format family</h3>
+
+<p>Bin format family stores an byte array in 2, 3, or 5 bytes of extra bytes in addition to the size of the byte array.</p>
+<div class="highlight"><pre><span class="vg">bin</span><span class="w"> </span><span class="il">8</span><span class="w"> </span><span class="vg">stores</span><span class="w"> </span><span class="vg">a</span><span class="w"> </span><span class="vg">byte</span><span class="w"> </span><span class="vg">array</span><span class="w"> </span><span class="vg">whose</span><span class="w"> </span><span class="vg">length</span><span class="w"> </span><span class="vg">is</span><span class="w"> </span><span class="vg">upto</span><span class="w"> </span><span class="p">(</span><span class="il">2</span><span class="o">^</span><span class="il">8</span><span class="p">)</span><span class="il">-1</span><span class="w"> </span><span class="nl">bytes:</span>
+<span class="o">+--------+--------+========+</span>
+<span class="o">|</span><span class="w">  </span><span class="il">0</span><span class="vg">xc4</span><span class="w">  </span><span class="o">|</span><span class="vg">XXXXXXXX</span><span class="o">|</span><span class="w">  </span><span class="vg">data</span><span class="w">  </span><span class="o">|</span>
+<span class="o">+--------+--------+========+</span>
+
+<span class="vg">bin</span><span class="w"> </span><span class="il">16</span><span class="w"> </span><span class="vg">stores</span><span class="w"> </span><span class="vg">a</span><span class="w"> </span><span class="vg">byte</span><span class="w"> </span><span class="vg">array</span><span class="w"> </span><span class="vg">whose</span><span class="w"> </span><span class="vg">length</span><span class="w"> </span><span class="vg">is</span><span class="w"> </span><span class="vg">upto</span><span class="w"> </span><span class="p">(</span><span class="il">2</span><span class="o">^</span><span class="il">16</span><span class="p">)</span><span class="il">-1</span><span class="w"> </span><span class="nl">bytes:</span>
+<span class="o">+--------+--------+--------+========+</span>
+<span class="o">|</span><span class="w">  </span><span class="il">0</span><span class="vg">xc5</span><span class="w">  </span><span class="o">|</span><span class="vg">YYYYYYYY</span><span class="o">|</span><span class="vg">YYYYYYYY</span><span class="o">|</span><span class="w">  </span><span class="vg">data</span><span class="w">  </span><span class="o">|</span>
+<span class="o">+--------+--------+--------+========+</span>
+
+<span class="vg">bin</span><span class="w"> </span><span class="il">32</span><span class="w"> </span><span class="vg">stores</span><span class="w"> </span><span class="vg">a</span><span class="w"> </span><span class="vg">byte</span><span class="w"> </span><span class="vg">array</span><span class="w"> </span><span class="vg">whose</span><span class="w"> </span><span class="vg">length</span><span class="w"> </span><span class="vg">is</span><span class="w"> </span><span class="vg">upto</span><span class="w"> </span><span class="p">(</span><span class="il">2</span><span class="o">^</span><span class="il">32</span><span class="p">)</span><span class="il">-1</span><span class="w"> </span><span class="nl">bytes:</span>
+<span class="o">+--------+--------+--------+--------+--------+========+</span>
+<span class="o">|</span><span class="w">  </span><span class="il">0</span><span class="vg">xc6</span><span class="w">  </span><span class="o">|</span><span class="vg">ZZZZZZZZ</span><span class="o">|</span><span class="vg">ZZZZZZZZ</span><span class="o">|</span><span class="vg">ZZZZZZZZ</span><span class="o">|</span><span class="vg">ZZZZZZZZ</span><span class="o">|</span><span class="w">  </span><span class="vg">data</span><span class="w">  </span><span class="o">|</span>
+<span class="o">+--------+--------+--------+--------+--------+========+</span>
+
+<span class="vg">where</span>
+<span class="o">*</span><span class="w"> </span><span class="vg">XXXXXXXX</span><span class="w"> </span><span class="vg">is</span><span class="w"> </span><span class="vg">a</span><span class="w"> </span><span class="il">8</span><span class="o">-</span><span class="vg">bit</span><span class="w"> </span><span class="vg">unsigned</span><span class="w"> </span><span class="vg">integer</span><span class="w"> </span><span class="vg">which</span><span class="w"> </span><span class="vg">represents</span><span class="w"> </span><span class="vg">N</span>
+<span class="o">*</span><span class="w"> </span><span class="vg">YYYYYYYY_YYYYYYYY</span><span class="w"> </span><span class="vg">is</span><span class="w"> </span><span class="vg">a</span><span class="w"> </span><span class="il">16</span><span class="o">-</span><span class="vg">bit</span><span class="w"> </span><span class="vg">big</span><span class="o">-</span><span class="vg">endian</span><span class="w"> </span><span class="vg">unsigned</span><span class="w"> </span><span class="vg">integer</span><span class="w"> </span><span class="vg">which</span><span class="w"> </span><span class="vg">represents</span><span class="w"> </span><span class="vg">N</span>
+<span class="o">*</span><span class="w"> </span><span class="vg">ZZZZZZZZ_ZZZZZZZZ_ZZZZZZZZ_ZZZZZZZZ</span><span class="w"> </span><span class="vg">is</span><span class="w"> </span><span class="vg">a</span><span class="w"> </span><span class="il">32</span><span class="o">-</span><span class="vg">bit</span><span class="w"> </span><span class="vg">big</span><span class="o">-</span><span class="vg">endian</span><span class="w"> </span><span class="vg">unsigned</span><span class="w"> </span><span class="vg">integer</span><span class="w"> </span><span class="vg">which</span><span class="w"> </span><span class="vg">represents</span><span class="w"> </span><span class="vg">N</span>
+<span class="o">*</span><span class="w"> </span><span class="vg">N</span><span class="w"> </span><span class="vg">is</span><span class="w"> </span><span class="vg">the</span><span class="w"> </span><span class="vg">length</span><span class="w"> </span><span class="vg">of</span><span class="w"> </span><span class="vg">data</span>
+</pre></div>
+<p><a name="formats-array"></a></p>
+
+<h3>array format family</h3>
+
+<p>Array format family stores a sequence of elements in 1, 3, or 5 bytes of extra bytes in addition to the elements.</p>
+<div class="highlight"><pre><span class="vg">fixarray</span><span class="w"> </span><span class="vg">stores</span><span class="w"> </span><span class="vg">an</span><span class="w"> </span><span class="vg">array</span><span class="w"> </span><span class="vg">whose</span><span class="w"> </span><span class="vg">length</span><span class="w"> </span><span class="vg">is</span><span class="w"> </span><span class="vg">upto</span><span class="w"> </span><span class="il">15</span><span class="w"> </span><span class="nl">elements:</span>
+<span class="o">+--------+~~~~~~~~~~~~~~~~~+</span>
+<span class="o">|</span><span class="il">1001</span><span class="vg">XXXX</span><span class="o">|</span><span class="w">    </span><span class="vg">N</span><span class="w"> </span><span class="vg">objects</span><span class="w">    </span><span class="o">|</span>
+<span class="o">+--------+~~~~~~~~~~~~~~~~~+</span>
+
+<span class="vg">array</span><span class="w"> </span><span class="il">16</span><span class="w"> </span><span class="vg">stores</span><span class="w"> </span><span class="vg">an</span><span class="w"> </span><span class="vg">array</span><span class="w"> </span><span class="vg">whose</span><span class="w"> </span><span class="vg">length</span><span class="w"> </span><span class="vg">is</span><span class="w"> </span><span class="vg">upto</span><span class="w"> </span><span class="p">(</span><span class="il">2</span><span class="o">^</span><span class="il">16</span><span class="p">)</span><span class="il">-1</span><span class="w"> </span><span class="nl">elements:</span>
+<span class="o">+--------+--------+--------+~~~~~~~~~~~~~~~~~+</span>
+<span class="o">|</span><span class="w">  </span><span class="il">0</span><span class="vg">xdc</span><span class="w">  </span><span class="o">|</span><span class="vg">YYYYYYYY</span><span class="o">|</span><span class="vg">YYYYYYYY</span><span class="o">|</span><span class="w">    </span><span class="vg">N</span><span class="w"> </span><span class="vg">objects</span><span class="w">    </span><span class="o">|</span>
+<span class="o">+--------+--------+--------+~~~~~~~~~~~~~~~~~+</span>
+
+<span class="vg">array</span><span class="w"> </span><span class="il">32</span><span class="w"> </span><span class="vg">stores</span><span class="w"> </span><span class="vg">an</span><span class="w"> </span><span class="vg">array</span><span class="w"> </span><span class="vg">whose</span><span class="w"> </span><span class="vg">length</span><span class="w"> </span><span class="vg">is</span><span class="w"> </span><span class="vg">upto</span><span class="w"> </span><span class="p">(</span><span class="il">2</span><span class="o">^</span><span class="il">32</span><span class="p">)</span><span class="il">-1</span><span class="w"> </span><span class="nl">elements:</span>
+<span class="o">+--------+--------+--------+--------+--------+~~~~~~~~~~~~~~~~~+</span>
+<span class="o">|</span><span class="w">  </span><span class="il">0</span><span class="vg">xdd</span><span class="w">  </span><span class="o">|</span><span class="vg">ZZZZZZZZ</span><span class="o">|</span><span class="vg">ZZZZZZZZ</span><span class="o">|</span><span class="vg">ZZZZZZZZ</span><span class="o">|</span><span class="vg">ZZZZZZZZ</span><span class="o">|</span><span class="w">    </span><span class="vg">N</span><span class="w"> </span><span class="vg">objects</span><span class="w">    </span><span class="o">|</span>
+<span class="o">+--------+--------+--------+--------+--------+~~~~~~~~~~~~~~~~~+</span>
+
+<span class="vg">where</span>
+<span class="o">*</span><span class="w"> </span><span class="vg">XXXX</span><span class="w"> </span><span class="vg">is</span><span class="w"> </span><span class="vg">a</span><span class="w"> </span><span class="il">4</span><span class="o">-</span><span class="vg">bit</span><span class="w"> </span><span class="vg">unsigned</span><span class="w"> </span><span class="vg">integer</span><span class="w"> </span><span class="vg">which</span><span class="w"> </span><span class="vg">represents</span><span class="w"> </span><span class="vg">N</span>
+<span class="o">*</span><span class="w"> </span><span class="vg">YYYYYYYY_YYYYYYYY</span><span class="w"> </span><span class="vg">is</span><span class="w"> </span><span class="vg">a</span><span class="w"> </span><span class="il">16</span><span class="o">-</span><span class="vg">bit</span><span class="w"> </span><span class="vg">big</span><span class="o">-</span><span class="vg">endian</span><span class="w"> </span><span class="vg">unsigned</span><span class="w"> </span><span class="vg">integer</span><span class="w"> </span><span class="vg">which</span><span class="w"> </span><span class="vg">represents</span><span class="w"> </span><span class="vg">N</span>
+<span class="o">*</span><span class="w"> </span><span class="vg">ZZZZZZZZ_ZZZZZZZZ_ZZZZZZZZ_ZZZZZZZZ</span><span class="w"> </span><span class="vg">is</span><span class="w"> </span><span class="vg">a</span><span class="w"> </span><span class="il">32</span><span class="o">-</span><span class="vg">bit</span><span class="w"> </span><span class="vg">big</span><span class="o">-</span><span class="vg">endian</span><span class="w"> </span><span class="vg">unsigned</span><span class="w"> </span><span class="vg">integer</span><span class="w"> </span><span class="vg">which</span><span class="w"> </span><span class="vg">represents</span><span class="w"> </span><span class="vg">N</span>
+<span class="w">    </span><span class="vg">N</span><span class="w"> </span><span class="vg">is</span><span class="w"> </span><span class="vg">the</span><span class="w"> </span><span class="vg">size</span><span class="w"> </span><span class="vg">of</span><span class="w"> </span><span class="vg">a</span><span class="w"> </span><span class="vg">array</span>
+</pre></div>
+<p><a name="formats-map"></a></p>
+
+<h3>map format family</h3>
+
+<p>Map format family stores a sequence of key-value pairs in 1, 3, or 5 bytes of extra bytes in addition to the key-value pairs.</p>
+<div class="highlight"><pre><span class="vg">fixmap</span><span class="w"> </span><span class="vg">stores</span><span class="w"> </span><span class="vg">a</span><span class="w"> </span><span class="vg">map</span><span class="w"> </span><span class="vg">whose</span><span class="w"> </span><span class="vg">length</span><span class="w"> </span><span class="vg">is</span><span class="w"> </span><span class="vg">upto</span><span class="w"> </span><span class="il">15</span><span class="w"> </span><span class="vg">elements</span>
+<span class="o">+--------+~~~~~~~~~~~~~~~~~+</span>
+<span class="o">|</span><span class="il">1000</span><span class="vg">XXXX</span><span class="o">|</span><span class="w">   </span><span class="vg">N</span><span class="o">*</span><span class="il">2</span><span class="w"> </span><span class="vg">objects</span><span class="w">   </span><span class="o">|</span>
+<span class="o">+--------+~~~~~~~~~~~~~~~~~+</span>
+
+<span class="vg">map</span><span class="w"> </span><span class="il">16</span><span class="w"> </span><span class="vg">stores</span><span class="w"> </span><span class="vg">a</span><span class="w"> </span><span class="vg">map</span><span class="w"> </span><span class="vg">whose</span><span class="w"> </span><span class="vg">length</span><span class="w"> </span><span class="vg">is</span><span class="w"> </span><span class="vg">upto</span><span class="w"> </span><span class="p">(</span><span class="il">2</span><span class="o">^</span><span class="il">16</span><span class="p">)</span><span class="il">-1</span><span class="w"> </span><span class="vg">elements</span>
+<span class="o">+--------+--------+--------+~~~~~~~~~~~~~~~~~+</span>
+<span class="o">|</span><span class="w">  </span><span class="il">0</span><span class="vg">xde</span><span class="w">  </span><span class="o">|</span><span class="vg">YYYYYYYY</span><span class="o">|</span><span class="vg">YYYYYYYY</span><span class="o">|</span><span class="w">   </span><span class="vg">N</span><span class="o">*</span><span class="il">2</span><span class="w"> </span><span class="vg">objects</span><span class="w">   </span><span class="o">|</span>
+<span class="o">+--------+--------+--------+~~~~~~~~~~~~~~~~~+</span>
+
+<span class="vg">map</span><span class="w"> </span><span class="il">32</span><span class="w"> </span><span class="vg">stores</span><span class="w"> </span><span class="vg">a</span><span class="w"> </span><span class="vg">map</span><span class="w"> </span><span class="vg">whose</span><span class="w"> </span><span class="vg">length</span><span class="w"> </span><span class="vg">is</span><span class="w"> </span><span class="vg">upto</span><span class="w"> </span><span class="p">(</span><span class="il">2</span><span class="o">^</span><span class="il">32</span><span class="p">)</span><span class="il">-1</span><span class="w"> </span><span class="vg">elements</span>
+<span class="o">+--------+--------+--------+--------+--------+~~~~~~~~~~~~~~~~~+</span>
+<span class="o">|</span><span class="w">  </span><span class="il">0</span><span class="vg">xdf</span><span class="w">  </span><span class="o">|</span><span class="vg">ZZZZZZZZ</span><span class="o">|</span><span class="vg">ZZZZZZZZ</span><span class="o">|</span><span class="vg">ZZZZZZZZ</span><span class="o">|</span><span class="vg">ZZZZZZZZ</span><span class="o">|</span><span class="w">   </span><span class="vg">N</span><span class="o">*</span><span class="il">2</span><span class="w"> </span><span class="vg">objects</span><span class="w">   </span><span class="o">|</span>
+<span class="o">+--------+--------+--------+--------+--------+~~~~~~~~~~~~~~~~~+</span>
+
+<span class="vg">where</span>
+<span class="o">*</span><span class="w"> </span><span class="vg">XXXX</span><span class="w"> </span><span class="vg">is</span><span class="w"> </span><span class="vg">a</span><span class="w"> </span><span class="il">4</span><span class="o">-</span><span class="vg">bit</span><span class="w"> </span><span class="vg">unsigned</span><span class="w"> </span><span class="vg">integer</span><span class="w"> </span><span class="vg">which</span><span class="w"> </span><span class="vg">represents</span><span class="w"> </span><span class="vg">N</span>
+<span class="o">*</span><span class="w"> </span><span class="vg">YYYYYYYY_YYYYYYYY</span><span class="w"> </span><span class="vg">is</span><span class="w"> </span><span class="vg">a</span><span class="w"> </span><span class="il">16</span><span class="o">-</span><span class="vg">bit</span><span class="w"> </span><span class="vg">big</span><span class="o">-</span><span class="vg">endian</span><span class="w"> </span><span class="vg">unsigned</span><span class="w"> </span><span class="vg">integer</span><span class="w"> </span><span class="vg">which</span><span class="w"> </span><span class="vg">represents</span><span class="w"> </span><span class="vg">N</span>
+<span class="o">*</span><span class="w"> </span><span class="vg">ZZZZZZZZ_ZZZZZZZZ_ZZZZZZZZ_ZZZZZZZZ</span><span class="w"> </span><span class="vg">is</span><span class="w"> </span><span class="vg">a</span><span class="w"> </span><span class="il">32</span><span class="o">-</span><span class="vg">bit</span><span class="w"> </span><span class="vg">big</span><span class="o">-</span><span class="vg">endian</span><span class="w"> </span><span class="vg">unsigned</span><span class="w"> </span><span class="vg">integer</span><span class="w"> </span><span class="vg">which</span><span class="w"> </span><span class="vg">represents</span><span class="w"> </span><span class="vg">N</span>
+<span class="o">*</span><span class="w"> </span><span class="vg">N</span><span class="w"> </span><span class="vg">is</span><span class="w"> </span><span class="vg">the</span><span class="w"> </span><span class="vg">size</span><span class="w"> </span><span class="vg">of</span><span class="w"> </span><span class="vg">a</span><span class="w"> </span><span class="vg">map</span>
+<span class="o">*</span><span class="w"> </span><span class="vg">odd</span><span class="w"> </span><span class="vg">elements</span><span class="w"> </span><span class="vg">in</span><span class="w"> </span><span class="vg">objects</span><span class="w"> </span><span class="vg">are</span><span class="w"> </span><span class="vg">keys</span><span class="w"> </span><span class="vg">of</span><span class="w"> </span><span class="vg">a</span><span class="w"> </span><span class="vg">map</span>
+<span class="o">*</span><span class="w"> </span><span class="vg">the</span><span class="w"> </span><span class="vg">next</span><span class="w"> </span><span class="vg">element</span><span class="w"> </span><span class="vg">of</span><span class="w"> </span><span class="vg">a</span><span class="w"> </span><span class="vg">key</span><span class="w"> </span><span class="vg">is</span><span class="w"> </span><span class="vg">its</span><span class="w"> </span><span class="vg">associated</span><span class="w"> </span><span class="vg">value</span>
+</pre></div>
+<p><a name="formats-ext"></a></p>
+
+<h3>ext format family</h3>
+
+<p>Ext format family stores a tuple of an integer and a byte array.</p>
+<div class="highlight"><pre><span class="vg">fixext</span><span class="w"> </span><span class="il">1</span><span class="w"> </span><span class="vg">stores</span><span class="w"> </span><span class="vg">an</span><span class="w"> </span><span class="vg">integer</span><span class="w"> </span><span class="vg">and</span><span class="w"> </span><span class="vg">a</span><span class="w"> </span><span class="vg">byte</span><span class="w"> </span><span class="vg">array</span><span class="w"> </span><span class="vg">whose</span><span class="w"> </span><span class="vg">length</span><span class="w"> </span><span class="vg">is</span><span class="w"> </span><span class="il">1</span><span class="w"> </span><span class="vg">byte</span>
+<span class="o">+--------+--------+--------+</span>
+<span class="o">|</span><span class="w">  </span><span class="il">0</span><span class="vg">xd4</span><span class="w">  </span><span class="o">|</span><span class="w">  </span><span class="vg">type</span><span class="w">  </span><span class="o">|</span><span class="w">  </span><span class="vg">data</span><span class="w">  </span><span class="o">|</span>
+<span class="o">+--------+--------+--------+</span>
+
+<span class="vg">fixext</span><span class="w"> </span><span class="il">2</span><span class="w"> </span><span class="vg">stores</span><span class="w"> </span><span class="vg">an</span><span class="w"> </span><span class="vg">integer</span><span class="w"> </span><span class="vg">and</span><span class="w"> </span><span class="vg">a</span><span class="w"> </span><span class="vg">byte</span><span class="w"> </span><span class="vg">array</span><span class="w"> </span><span class="vg">whose</span><span class="w"> </span><span class="vg">length</span><span class="w"> </span><span class="vg">is</span><span class="w"> </span><span class="il">2</span><span class="w"> </span><span class="vg">bytes</span>
+<span class="o">+--------+--------+--------+--------+</span>
+<span class="o">|</span><span class="w">  </span><span class="il">0</span><span class="vg">xd5</span><span class="w">  </span><span class="o">|</span><span class="w">  </span><span class="vg">type</span><span class="w">  </span><span class="o">|</span><span class="w">       </span><span class="vg">data</span><span class="w">      </span><span class="o">|</span>
+<span class="o">+--------+--------+--------+--------+</span>
+
+<span class="vg">fixext</span><span class="w"> </span><span class="il">4</span><span class="w"> </span><span class="vg">stores</span><span class="w"> </span><span class="vg">an</span><span class="w"> </span><span class="vg">integer</span><span class="w"> </span><span class="vg">and</span><span class="w"> </span><span class="vg">a</span><span class="w"> </span><span class="vg">byte</span><span class="w"> </span><span class="vg">array</span><span class="w"> </span><span class="vg">whose</span><span class="w"> </span><span class="vg">length</span><span class="w"> </span><span class="vg">is</span><span class="w"> </span><span class="il">4</span><span class="w"> </span><span class="vg">bytes</span>
+<span class="o">+--------+--------+--------+--------+--------+--------+</span>
+<span class="o">|</span><span class="w">  </span><span class="il">0</span><span class="vg">xd6</span><span class="w">  </span><span class="o">|</span><span class="w">  </span><span class="vg">type</span><span class="w">  </span><span class="o">|</span><span class="w">                </span><span class="vg">data</span><span class="w">               </span><span class="o">|</span>
+<span class="o">+--------+--------+--------+--------+--------+--------+</span>
+
+<span class="vg">fixext</span><span class="w"> </span><span class="il">8</span><span class="w"> </span><span class="vg">stores</span><span class="w"> </span><span class="vg">an</span><span class="w"> </span><span class="vg">integer</span><span class="w"> </span><span class="vg">and</span><span class="w"> </span><span class="vg">a</span><span class="w"> </span><span class="vg">byte</span><span class="w"> </span><span class="vg">array</span><span class="w"> </span><span class="vg">whose</span><span class="w"> </span><span class="vg">length</span><span class="w"> </span><span class="vg">is</span><span class="w"> </span><span class="il">8</span><span class="w"> </span><span class="vg">bytes</span>
+<span class="o">+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+</span>
+<span class="o">|</span><span class="w">  </span><span class="il">0</span><span class="vg">xd7</span><span class="w">  </span><span class="o">|</span><span class="w">  </span><span class="vg">type</span><span class="w">  </span><span class="o">|</span><span class="w">                                  </span><span class="vg">data</span><span class="w">                                 </span><span class="o">|</span>
+<span class="o">+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+</span>
+
+<span class="vg">fixext</span><span class="w"> </span><span class="il">16</span><span class="w"> </span><span class="vg">stores</span><span class="w"> </span><span class="vg">an</span><span class="w"> </span><span class="vg">integer</span><span class="w"> </span><span class="vg">and</span><span class="w"> </span><span class="vg">a</span><span class="w"> </span><span class="vg">byte</span><span class="w"> </span><span class="vg">array</span><span class="w"> </span><span class="vg">whose</span><span class="w"> </span><span class="vg">length</span><span class="w"> </span><span class="vg">is</span><span class="w"> </span><span class="il">16</span><span class="w"> </span><span class="vg">bytes</span>
+<span class="o">+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+</span>
+<span class="o">|</span><span class="w">  </span><span class="il">0</span><span class="vg">xd8</span><span class="w">  </span><span class="o">|</span><span class="w">  </span><span class="vg">type</span><span class="w">  </span><span class="o">|</span><span class="w">                                  </span><span class="vg">data</span><span class="w">                                  </span>
+<span class="o">+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+</span>
+<span class="o">+--------+--------+--------+--------+--------+--------+--------+--------+</span>
+<span class="w">                              </span><span class="vg">data</span><span class="w"> </span><span class="p">(</span><span class="vg">cont</span><span class="o">.</span><span class="p">)</span><span class="w">                              </span><span class="o">|</span>
+<span class="o">+--------+--------+--------+--------+--------+--------+--------+--------+</span>
+
+<span class="vg">ext</span><span class="w"> </span><span class="il">8</span><span class="w"> </span><span class="vg">stores</span><span class="w"> </span><span class="vg">an</span><span class="w"> </span><span class="vg">integer</span><span class="w"> </span><span class="vg">and</span><span class="w"> </span><span class="vg">a</span><span class="w"> </span><span class="vg">byte</span><span class="w"> </span><span class="vg">array</span><span class="w"> </span><span class="vg">whose</span><span class="w"> </span><span class="vg">length</span><span class="w"> </span><span class="vg">is</span><span class="w"> </span><span class="vg">upto</span><span class="w"> </span><span class="p">(</span><span class="il">2</span><span class="o">^</span><span class="il">8</span><span class="p">)</span><span class="il">-1</span><span class="w"> </span><span class="nl">bytes:</span>
+<span class="o">+--------+--------+--------+========+</span>
+<span class="o">|</span><span class="w">  </span><span class="il">0</span><span class="vg">xc7</span><span class="w">  </span><span class="o">|</span><span class="vg">XXXXXXXX</span><span class="o">|</span><span class="w">  </span><span class="vg">type</span><span class="w">  </span><span class="o">|</span><span class="w">  </span><span class="vg">data</span><span class="w">  </span><span class="o">|</span>
+<span class="o">+--------+--------+--------+========+</span>
+
+<span class="vg">ext</span><span class="w"> </span><span class="il">16</span><span class="w"> </span><span class="vg">stores</span><span class="w"> </span><span class="vg">an</span><span class="w"> </span><span class="vg">integer</span><span class="w"> </span><span class="vg">and</span><span class="w"> </span><span class="vg">a</span><span class="w"> </span><span class="vg">byte</span><span class="w"> </span><span class="vg">array</span><span class="w"> </span><span class="vg">whose</span><span class="w"> </span><span class="vg">length</span><span class="w"> </span><span class="vg">is</span><span class="w"> </span><span class="vg">upto</span><span class="w"> </span><span class="p">(</span><span class="il">2</span><span class="o">^</span><span class="il">16</span><span class="p">)</span><span class="il">-1</span><span class="w"> </span><span class="nl">bytes:</span>
+<span class="o">+--------+--------+--------+--------+========+</span>
+<span class="o">|</span><span class="w">  </span><span class="il">0</span><span class="vg">xc8</span><span class="w">  </span><span class="o">|</span><span class="vg">YYYYYYYY</span><span class="o">|</span><span class="vg">YYYYYYYY</span><span class="o">|</span><span class="w">  </span><span class="vg">type</span><span class="w">  </span><span class="o">|</span><span class="w">  </span><span class="vg">data</span><span class="w">  </span><span class="o">|</span>
+<span class="o">+--------+--------+--------+--------+========+</span>
+
+<span class="vg">ext</span><span class="w"> </span><span class="il">32</span><span class="w"> </span><span class="vg">stores</span><span class="w"> </span><span class="vg">an</span><span class="w"> </span><span class="vg">integer</span><span class="w"> </span><span class="vg">and</span><span class="w"> </span><span class="vg">a</span><span class="w"> </span><span class="vg">byte</span><span class="w"> </span><span class="vg">array</span><span class="w"> </span><span class="vg">whose</span><span class="w"> </span><span class="vg">length</span><span class="w"> </span><span class="vg">is</span><span class="w"> </span><span class="vg">upto</span><span class="w"> </span><span class="p">(</span><span class="il">2</span><span class="o">^</span><span class="il">32</span><span class="p">)</span><span class="il">-1</span><span class="w"> </span><span class="nl">bytes:</span>
+<span class="o">+--------+--------+--------+--------+--------+--------+========+</span>
+<span class="o">|</span><span class="w">  </span><span class="il">0</span><span class="vg">xc9</span><span class="w">  </span><span class="o">|</span><span class="vg">ZZZZZZZZ</span><span class="o">|</span><span class="vg">ZZZZZZZZ</span><span class="o">|</span><span class="vg">ZZZZZZZZ</span><span class="o">|</span><span class="vg">ZZZZZZZZ</span><span class="o">|</span><span class="w">  </span><span class="vg">type</span><span class="w">  </span><span class="o">|</span><span class="w">  </span><span class="vg">data</span><span class="w">  </span><span class="o">|</span>
+<span class="o">+--------+--------+--------+--------+--------+--------+========+</span>
+
+<span class="vg">where</span>
+<span class="o">*</span><span class="w"> </span><span class="vg">XXXXXXXX</span><span class="w"> </span><span class="vg">is</span><span class="w"> </span><span class="vg">a</span><span class="w"> </span><span class="il">8</span><span class="o">-</span><span class="vg">bit</span><span class="w"> </span><span class="vg">unsigned</span><span class="w"> </span><span class="vg">integer</span><span class="w"> </span><span class="vg">which</span><span class="w"> </span><span class="vg">represents</span><span class="w"> </span><span class="vg">N</span>
+<span class="o">*</span><span class="w"> </span><span class="vg">YYYYYYYY_YYYYYYYY</span><span class="w"> </span><span class="vg">is</span><span class="w"> </span><span class="vg">a</span><span class="w"> </span><span class="il">16</span><span class="o">-</span><span class="vg">bit</span><span class="w"> </span><span class="vg">big</span><span class="o">-</span><span class="vg">endian</span><span class="w"> </span><span class="vg">unsigned</span><span class="w"> </span><span class="vg">integer</span><span class="w"> </span><span class="vg">which</span><span class="w"> </span><span class="vg">represents</span><span class="w"> </span><span class="vg">N</span>
+<span class="o">*</span><span class="w"> </span><span class="vg">ZZZZZZZZ_ZZZZZZZZ_ZZZZZZZZ_ZZZZZZZZ</span><span class="w"> </span><span class="vg">is</span><span class="w"> </span><span class="vg">a</span><span class="w"> </span><span class="vg">big</span><span class="o">-</span><span class="vg">endian</span><span class="w"> </span><span class="il">32</span><span class="o">-</span><span class="vg">bit</span><span class="w"> </span><span class="vg">unsigned</span><span class="w"> </span><span class="vg">integer</span><span class="w"> </span><span class="vg">which</span><span class="w"> </span><span class="vg">represents</span><span class="w"> </span><span class="vg">N</span>
+<span class="o">*</span><span class="w"> </span><span class="vg">N</span><span class="w"> </span><span class="vg">is</span><span class="w"> </span><span class="vg">a</span><span class="w"> </span><span class="vg">length</span><span class="w"> </span><span class="vg">of</span><span class="w"> </span><span class="vg">data</span>
+<span class="o">*</span><span class="w"> </span><span class="vg">type</span><span class="w"> </span><span class="vg">is</span><span class="w"> </span><span class="vg">a</span><span class="w"> </span><span class="vg">signed</span><span class="w"> </span><span class="il">8</span><span class="o">-</span><span class="vg">bit</span><span class="w"> </span><span class="vg">signed</span><span class="w"> </span><span class="vg">integer</span>
+<span class="o">*</span><span class="w"> </span><span class="vg">type</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="il">0</span><span class="w"> </span><span class="vg">is</span><span class="w"> </span><span class="vg">reserved</span><span class="w"> </span><span class="vg">for</span><span class="w"> </span><span class="vg">future</span><span class="w"> </span><span class="vg">extension</span><span class="w"> </span><span class="vg">including</span><span class="w"> </span><span class="il">2</span><span class="o">-</span><span class="vg">byte</span><span class="w"> </span><span class="vg">type</span><span class="w"> </span><span class="vg">information</span>
+</pre></div>
+<p><a name="serialization"></a></p>
+
+<h2>Serialization: type to format conversion</h2>
+
+<p>MessagePack serializers convert MessagePack types into formats as following:</p>
+
+<table>
+  <tr><th>source types</th><th>output format</th></tr>
+  <tr><td>Integer</td><td>int format family (positive fixint, negative fixint, int 8/16/32/64 or uint 8/16/32/64)</td></tr>
+  <tr><td>Nil</td><td>nil</td></tr>
+  <tr><td>Boolean</td><td>bool format family (false or true)</td></tr>
+  <tr><td>Float</td><td>float format family (float 32/64)</td></tr>
+  <tr><td>String</td><td>str format family (fixstr or str 8/16/32)</td></tr>
+  <tr><td>Binary</td><td>bin format family (bin 8/16/32)</td></tr>
+  <tr><td>Array</td><td>array format family (fixarray or array 16/32)</td></tr>
+  <tr><td>Map</td><td>map format family (fixmap or map 16/32)</td></tr>
+  <tr><td>Extended</td><td>ext format family (fixext or ext 8/16/32)</td></tr>
+</table>
+
+<p>If an object can be represented in multiple possible output formats, serializers SHOULD use the format which represents the data in the smallest number of bytes.</p>
+
+<p><a name="deserialization"></a></p>
+
+<h2>Deserialization: format to type conversion</h2>
+
+<p>MessagePack deserializers convert convert MessagePack formats into types as following:</p>
+
+<table>
+  <tr><th>source formats</th><th>output type</th></tr>
+  <tr><td>positive fixint, negative fixint, int 8/16/32/64 and uint 8/16/32/64</td><td>Integer</td></tr>
+  <tr><td>nil</td><td>Nil</td></tr>
+  <tr><td>false and true</td><td>Boolean</td></tr>
+  <tr><td>float 32/64</td><td>Float</td></tr>
+  <tr><td>fixstr and str 8/16/32</td><td>String</td></tr>
+  <tr><td>bin 8/16/32</td><td>Binary</td></tr>
+  <tr><td>fixarray and array 16/32</td><td>Array</td></tr>
+  <tr><td>fixmap map 16/32</td><td>Map</td></tr>
+  <tr><td>fixext and ext 8/16/32</td><td>Extended</td></tr>
+</table>
+
+<p><a name="future"></a></p>
+
+<h2>Future discussion</h2>
+
+<p><a name="future-profiles"></a></p>
+
+<h3>Profile</h3>
+
+<p>Profile is an idea that Applications restrict the semantics of MessagePack while sharing the same syntax to adapt MessagePack for certain use cases.</p>
+
+<p>For example, applications may remove Binary type, restrict keys of map objects to be String type, and put some restrictions to make the semantics compatible with JSON. Applications which use schema may remove String and Binary types and deal with byte arrays as Raw type. Applications which use hash (digest) of serialized data may sort keys of maps to make the serialized data deterministic.</p>
+
+<p><a name="impl"></a></p>
+
+<h2>implementation guidelines</h2>
+
+<p><a name="impl-upgrade"></a></p>
+
+<h3>Upgrading MessagePack specification</h3>
+
+<p>MessagePack specification is changed at this time.
+Here is a guideline to upgrade existent MessagePack implementations:</p>
+
+<ul>
+<li>In a minor release, deserializers support the bin format family and str 8 format. The type of deserialized objects should be same with raw 16 (== str 16) or raw 32 (== str 32)</li>
+<li>In a major release, serializers distinguish Binary type and String type using bin format family and str format family
+
+<ul>
+<li>At the same time, serializers should offer &quot;compatibility mode&quot; which doesn&#39;t use bin format family and str 8 format</li>
+</ul></li>
+</ul>
+
+<hr>
+<div class="highlight"><pre><span class="vg">MessagePack</span><span class="w"> </span><span class="vg">specification</span>
+<span class="vg">Last</span><span class="w"> </span><span class="vg">modified</span><span class="w"> </span><span class="vg">at</span><span class="w"> </span><span class="il">2013-04-21</span><span class="w"> </span><span class="il">21</span><span class="o">:</span><span class="il">52</span><span class="o">:</span><span class="il">33</span><span class="w"> </span><span class="il">-0700</span>
+<span class="vg">Sadayuki</span><span class="w"> </span><span class="vg">Furuhashi</span><span class="w"> </span><span class="err">©</span><span class="w"> </span><span class="il">2013-04-21</span><span class="w"> </span><span class="il">21</span><span class="o">:</span><span class="il">52</span><span class="o">:</span><span class="il">33</span><span class="w"> </span><span class="il">-0700</span>
+</pre></div>
+			          	</article>
+			        </div>
+					</div>
+	      </body>
+	    </html>
+			<script type="text/javascript" src="toc/js/jquery-1.4.4.min.js"></script>
+			<script type="text/javascript" src="toc/js/jquery.ztree.all-3.5.min.js"></script>
+			<script type="text/javascript" src="toc/js/ztree_toc.js"></script>
+      <script type="text/javascript" src="toc_conf.js"></script>
+      
+			<SCRIPT type="text/javascript" >
+			<!--
+			$(document).ready(function(){
+          var css_conf = eval(markdown_panel_style);
+          $('#readme').css(css_conf)
+          
+          var conf = eval(jquery_ztree_toc_opts);
+  				$('#tree').ztree_toc(conf);
+
+				
+			});
+			//-->
+			</SCRIPT>
+	  

@@ -45,7 +45,7 @@ This document describes the MessagePack type system, MessagePack formats and con
   * [Implementation guidelines](#impl)
     * [Upgrade MessagePack specification](#impl-upgrade)
 
-<a name="types"/>
+<a name="types"></a>
 ## Type system
 
 * Types
@@ -62,7 +62,7 @@ This document describes the MessagePack type system, MessagePack formats and con
 * Interfaces
   * **Extension** represents a tuple of an integer and a byte array where the integer represents type information and the byte array represents data. The format of the data is defined by concrete types
 
-<a name="types-limitation"/>
+<a name="types-limitation"></a>
 ### Limitation
 
 * a value of an Integer object is limited from `-(2^63)` upto `(2^64)-1`
@@ -74,7 +74,7 @@ This document describes the MessagePack type system, MessagePack formats and con
 * maximum number of elements of an Array object is `(2^32)-1`
 * maximum number of key-value associations of a Map object is `(2^32)-1`
 
-<a name="types-extension-type"/>
+<a name="types-extension-type"></a>
 ### Extension type
 
 MessagePack allows applications to define application-specific types using the Extended type.
@@ -88,10 +88,10 @@ MessagePack reserves `-1` to `-128` for future extension to add predefined types
     [-1, -128]: reserved for predefined types
 
 
-<a name="formats"/>
+<a name="formats"></a>
 ## Formats
 
-<a name="formats-overview"/>
+<a name="formats-overview"></a>
 ### Overview
 
 <table>
@@ -136,7 +136,7 @@ MessagePack reserves `-1` to `-128` for future extension to add predefined types
 </table>
 
 
-<a name="formats-notation"/>
+<a name="formats-notation"></a>
 ### Notation in diagrams
 
     one byte:
@@ -156,7 +156,7 @@ MessagePack reserves `-1` to `-128` for future extension to add predefined types
     
 `X`, `Y`, `Z` and `A` are the symbols that will be replaced by an actual bit.
 
-<a name="formats-nil"/>
+<a name="formats-nil"></a>
 ### nil format
 
 Nil format stores nil in 1 byte.
@@ -166,7 +166,7 @@ Nil format stores nil in 1 byte.
     |  0xc0  |
     +--------+
 
-<a name="formats-bool"/>
+<a name="formats-bool"></a>
 ### bool format family
 
 Bool format family stores false or true in 1 byte.
@@ -181,7 +181,7 @@ Bool format family stores false or true in 1 byte.
     |  0xc3  |
     +--------+
 
-<a name="formats-int"/>
+<a name="formats-int"></a>
 ### int format family
 
 Int format family stores an integer in 1, 2, 3, 5, or 9 bytes.
@@ -239,7 +239,7 @@ Int format family stores an integer in 1, 2, 3, 5, or 9 bytes.
     |  0xd3  |ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|
     +--------+--------+--------+--------+--------+--------+--------+--------+--------+
 
-<a name="formats-float"/>
+<a name="formats-float"></a>
 ### float format family
 
 Float format family stores a floating point number in 5 bytes or 9 bytes.
@@ -260,7 +260,7 @@ Float format family stores a floating point number in 5 bytes or 9 bytes.
       IEEE 754 double precision floating point number
 
 
-<a name="formats-str"/>
+<a name="formats-str"></a>
 ### str format family
 
 Str format family stores an byte array in 1, 2, 3, or 5 bytes of extra bytes in addition to the size of the byte array.
@@ -292,7 +292,7 @@ Str format family stores an byte array in 1, 2, 3, or 5 bytes of extra bytes in 
     * AAAAAAAA_AAAAAAAA_AAAAAAAA_AAAAAAAA is a 32-bit big-endian unsigned integer which represents N
     * N is the length of data
 
-<a name="formats-bin"/>
+<a name="formats-bin"></a>
 ### bin format family
 
 Bin format family stores an byte array in 2, 3, or 5 bytes of extra bytes in addition to the size of the byte array.
@@ -318,7 +318,7 @@ Bin format family stores an byte array in 2, 3, or 5 bytes of extra bytes in add
     * ZZZZZZZZ_ZZZZZZZZ_ZZZZZZZZ_ZZZZZZZZ is a 32-bit big-endian unsigned integer which represents N
     * N is the length of data
 
-<a name="formats-array"/>
+<a name="formats-array"></a>
 ### array format family
 
 Array format family stores a sequence of elements in 1, 3, or 5 bytes of extra bytes in addition to the elements.
@@ -344,7 +344,7 @@ Array format family stores a sequence of elements in 1, 3, or 5 bytes of extra b
     * ZZZZZZZZ_ZZZZZZZZ_ZZZZZZZZ_ZZZZZZZZ is a 32-bit big-endian unsigned integer which represents N
         N is the size of a array
 
-<a name="formats-map"/>
+<a name="formats-map"></a>
 ### map format family
 
 Map format family stores a sequence of key-value pairs in 1, 3, or 5 bytes of extra bytes in addition to the key-value pairs.
@@ -372,7 +372,7 @@ Map format family stores a sequence of key-value pairs in 1, 3, or 5 bytes of ex
     * odd elements in objects are keys of a map
     * the next element of a key is its associated value
 
-<a name="formats-ext"/>
+<a name="formats-ext"></a>
 ### ext format family
 
 Ext format family stores a tuple of an integer and a byte array.
@@ -429,7 +429,7 @@ Ext format family stores a tuple of an integer and a byte array.
     * type < 0 is reserved for future extension including 2-byte type information
 
 
-<a name="serialization"/>
+<a name="serialization"></a>
 ## Serialization: type to format conversion
 
 MessagePack serializers convert MessagePack types into formats as following:
@@ -450,7 +450,7 @@ MessagePack serializers convert MessagePack types into formats as following:
 If an object can be represented in multiple possible output formats, serializers SHOULD use the format which represents the data in the smallest number of bytes.
 
 
-<a name="deserialization"/>
+<a name="deserialization"></a>
 ## Deserialization: format to type conversion
 
 MessagePack deserializers convert convert MessagePack formats into types as following:
@@ -468,20 +468,20 @@ MessagePack deserializers convert convert MessagePack formats into types as foll
   <tr><td>fixext and ext 8/16/32</td><td>Extended</td></tr>
 </table>
 
-<a name="future"/>
+<a name="future"></a>
 ## Future discussion
 
-<a name="future-profiles"/>
+<a name="future-profiles"></a>
 ### Profile
 
 Profile is an idea that Applications restrict the semantics of MessagePack while sharing the same syntax to adapt MessagePack for certain use cases.
 
 For example, applications may remove Binary type, restrict keys of map objects to be String type, and put some restrictions to make the semantics compatible with JSON. Applications which use schema may remove String and Binary types and deal with byte arrays as Raw type. Applications which use hash (digest) of serialized data may sort keys of maps to make the serialized data deterministic.
 
-<a name="impl"/>
+<a name="impl"></a>
 ## implementation guidelines
 
-<a name="impl-upgrade"/>
+<a name="impl-upgrade"></a>
 ### Upgrading MessagePack specification
 
 MessagePack specification is changed at this time.
