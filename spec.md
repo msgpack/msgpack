@@ -453,7 +453,7 @@ If an object can be represented in multiple possible output formats, serializers
 <a name="deserialization"/>
 ## Deserialization: format to type conversion
 
-MessagePack deserializers convert convert MessagePack formats into types as following:
+MessagePack deserializers convert MessagePack formats into types as following:
 
 <table>
   <tr><th>source formats</th><th>output type</th></tr>
