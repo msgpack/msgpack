@@ -263,7 +263,7 @@ Float format family stores a floating point number in 5 bytes or 9 bytes.
 <a name="formats-str"/>
 ### str format family
 
-Str format family stores an byte array in 1, 2, 3, or 5 bytes of extra bytes in addition to the size of the byte array.
+Str format family stores a byte array in 1, 2, 3, or 5 bytes of extra bytes in addition to the size of the byte array.
 
     fixstr stores a byte array whose length is upto 31 bytes:
     +--------+========+
