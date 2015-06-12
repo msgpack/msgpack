@@ -58,9 +58,7 @@ This document describes the MessagePack type system, MessagePack formats and con
       * **Binary** extending Raw type represents a byte array
   * **Array** represents a sequence of objects
   * **Map** represents key-value pairs of objects
-  * **Extended** implements Extension interface: represents a tuple of type information and a byte array where type information is an integer whose meaning is defined by applications
-* Interfaces
-  * **Extension** represents a tuple of an integer and a byte array where the integer represents type information and the byte array represents data. The format of the data is defined by concrete types
+  * **Extension** represents a tuple of type information and a byte array where type information is an integer whose meaning is defined by applications
 
 <a name="types-limitation"/>
 ### Limitation
@@ -77,8 +75,8 @@ This document describes the MessagePack type system, MessagePack formats and con
 <a name="types-extension-type"/>
 ### Extension type
 
-MessagePack allows applications to define application-specific types using the Extended type.
-Extended type consists of an integer and a byte array where the integer represents a kind of types and the byte array represents data.
+MessagePack allows applications to define application-specific types using the Extension type.
+Extension type consists of an integer and a byte array where the integer represents a kind of types and the byte array represents data.
 
 Applications can assign `0` to `127` to store application-specific type information.
 
@@ -444,7 +442,7 @@ MessagePack serializers convert MessagePack types into formats as following:
   <tr><td>Binary</td><td>bin format family (bin 8/16/32)</td></tr>
   <tr><td>Array</td><td>array format family (fixarray or array 16/32)</td></tr>
   <tr><td>Map</td><td>map format family (fixmap or map 16/32)</td></tr>
-  <tr><td>Extended</td><td>ext format family (fixext or ext 8/16/32)</td></tr>
+  <tr><td>Extension</td><td>ext format family (fixext or ext 8/16/32)</td></tr>
 </table>
 
 If an object can be represented in multiple possible output formats, serializers SHOULD use the format which represents the data in the smallest number of bytes.
@@ -465,7 +463,7 @@ MessagePack deserializers convert MessagePack formats into types as following:
   <tr><td>bin 8/16/32</td><td>Binary</td></tr>
   <tr><td>fixarray and array 16/32</td><td>Array</td></tr>
   <tr><td>fixmap map 16/32</td><td>Map</td></tr>
-  <tr><td>fixext and ext 8/16/32</td><td>Extended</td></tr>
+  <tr><td>fixext and ext 8/16/32</td><td>Extension</td></tr>
 </table>
 
 <a name="future"/>
