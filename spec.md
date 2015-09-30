@@ -87,6 +87,12 @@ MessagePack reserves `-1` to `-128` for future extension to add predefined types
     [0, 127]: application-specific types
     [-1, -128]: reserved for predefined types
 
+<a name="types-extension-type-predefined">
+### Predefined types
+
+MessagePack has some types to define useful representations of various data. This is the list of such types. These ext types MAY NOT be implemented in some implementations of MessagePack.
+
+* **Timestamp** (`-1`): Time in nanosecond precision, without timezone, which is deserialized into any objects to represent Time in each programming languages
 
 <a name="formats"/>
 ## Formats
@@ -428,6 +434,11 @@ Ext format family stores a tuple of an integer and a byte array.
     * type is a signed 8-bit signed integer
     * type < 0 is reserved for future extension including 2-byte type information
 
+### Predefined ext types
+
+This section defines how to represent `data` payload of predefined ext types.
+
+* **Timestamp** (`-1`): Big-endian signed integer which represents nanoseconds from Epoch (1970-01-01 00:00:00 UTC)
 
 <a name="serialization"/>
 ## Serialization: type to format conversion
