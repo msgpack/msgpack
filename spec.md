@@ -83,7 +83,7 @@ Applications can assign `0` to `127` to store application-specific type informat
 MessagePack reserves `-1` to `-128` for future extension to add predefined types which will be described in separated documents.
 
     [0, 127]: application-specific types
-    [-1, -128]: reserved for predefined types
+    [-128, -1]: reserved for predefined types
 
 
 <a name="formats"/>
