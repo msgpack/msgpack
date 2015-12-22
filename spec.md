@@ -52,7 +52,7 @@ This document describes the MessagePack type system, MessagePack formats and con
   * **Integer** represents an integer
   * **Nil** represents nil
   * **Boolean** represents true or false
-  * **Float** represents a floating point number
+  * **Float** represents a IEEE 754 double precision floating point number including NaN and Infinity
   * **Raw**
       * **String** extending Raw type represents a UTF-8 string
       * **Binary** extending Raw type represents a byte array
@@ -64,7 +64,6 @@ This document describes the MessagePack type system, MessagePack formats and con
 ### Limitation
 
 * a value of an Integer object is limited from `-(2^63)` upto `(2^64)-1`
-* a value of a Float object is IEEE 754 single or double precision floating-point number
 * maximum length of a Binary object is `(2^32)-1`
 * maximum byte size of a String object is `(2^32)-1`
 * String objects may contain invalid byte sequence and the behavior of a deserializer depends on the actual implementation when it received invalid byte sequence
@@ -253,7 +252,8 @@ Float format family stores a floating point number in 5 bytes or 9 bytes.
     +--------+--------+--------+--------+--------+--------+--------+--------+--------+
     
     where
-    * XXXXXXXX_XXXXXXXX_XXXXXXXX_XXXXXXXX is a big-endian IEEE 754 single precision floating point number
+    * XXXXXXXX_XXXXXXXX_XXXXXXXX_XXXXXXXX is a big-endian IEEE 754 single precision floating point number.
+      Extension of precision from single-precision to double-precision does not lose precision.
     * YYYYYYYY_YYYYYYYY_YYYYYYYY_YYYYYYYY_YYYYYYYY_YYYYYYYY_YYYYYYYY_YYYYYYYY is a big-endian
       IEEE 754 double precision floating point number
 
