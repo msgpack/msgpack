@@ -25,7 +25,7 @@ This document describes the MessagePack type system, MessagePack formats and con
 * MessagePack specification
   * [Type system](#types)
       * [Limitation](#types-limitation)
-      * [Extension type](#types-extension-type)
+      * [Extension types](#types-extension-types)
   * [Formats](#formats)
       * [Overview](#formats-overview)
       * [Notation in diagrams](#formats-notation)
@@ -38,6 +38,7 @@ This document describes the MessagePack type system, MessagePack formats and con
       * [array format family](#formats-array)
       * [map format family](#formats-map)
       * [ext format family](#formats-ext)
+      * [Timestamp extension type](#formats-timestamp)
   * [Serialization: type to format conversion](#serialization)
   * [Deserialization: format to type conversion](#deserialization)
   * [Future discussion](#future)
@@ -58,7 +59,8 @@ This document describes the MessagePack type system, MessagePack formats and con
       * **Binary** extending Raw type represents a byte array
   * **Array** represents a sequence of objects
   * **Map** represents key-value pairs of objects
-  * **Extension** represents a tuple of type information and a byte array where type information is an integer whose meaning is defined by applications
+  * **Extension** represents a tuple of type information and a byte array where type information is an integer whose meaning is defined by applications or MessagePack specification
+      * **Timestamp** represents an instantaneous point on the time-line in the world that is independent from time zones or calendars. Maximum precision is nanoseconds.
 
 <a name="types-limitation"/>
 ### Limitation
@@ -71,19 +73,27 @@ This document describes the MessagePack type system, MessagePack formats and con
 * maximum number of elements of an Array object is `(2^32)-1`
 * maximum number of key-value associations of a Map object is `(2^32)-1`
 
-<a name="types-extension-type"/>
-### Extension type
+<a name="types-extension-types"/>
+### Extension types
 
 MessagePack allows applications to define application-specific types using the Extension type.
 Extension type consists of an integer and a byte array where the integer represents a kind of types and the byte array represents data.
 
-Applications can assign `0` to `127` to store application-specific type information.
+Applications can assign `0` to `127` to store application-specific type information. An example usage is that application defines `type = 0` as the application's unique type system, and stores name of a type and values of the type at the payload.
 
-MessagePack reserves `-1` to `-128` for future extension to add predefined types which will be described in separated documents.
+MessagePack reserves `-1` to `-128` for future extension to add predefined types. These types will be added to exchange more types without using pre-shared statically-typed schema across different programming environments.
 
     [0, 127]: application-specific types
     [-1, -128]: reserved for predefined types
 
+Because extension types are intended to be added, old applications may not implement all of them. However, they can still handle such type as one of Extension types. Therefore, applications can decide whether they reject unknown Extension types, accept as opaque data, or transfer to another application without touching payload of them.
+
+Here is the list of predefined extension types. Formats of the types are defined at [Formats](#formats-timestamp) section.
+
+<table>
+  <tr><th>Name</th><th>Type</th></tr>
+  <tr><td>Timestamp</td><td>-1</td></tr>
+</table>
 
 <a name="formats"/>
 ## Formats
@@ -425,6 +435,83 @@ Ext format family stores a tuple of an integer and a byte array.
     * N is a length of data
     * type is a signed 8-bit signed integer
     * type < 0 is reserved for future extension including 2-byte type information
+
+
+<a name="formats-timestamp"/>
+### Timestamp extension type
+
+Timestamp extension type is assigned to extension type `-1`. It defines 3 formats: 32-bit format, 64-bit format, and 96-bit format.
+
+    timestamp 32 stores the number of seconds that have elapsed since 1970-01-01 00:00:00 UTC
+    in an 32-bit unsigned integer:
+    +--------+--------+--------+--------+--------+--------+
+    |  0xd6  |   -1   |   seconds in 32-bit unsigned int  |
+    +--------+--------+--------+--------+--------+--------+
+
+    timestamp 64 stores the number of seconds and nanoseconds that have elapsed since 1970-01-01 00:00:00 UTC
+    in 2 32-bit unsigned integers:
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
+    |  0xd7  |   -1   |nanoseconds in 30-bit unsigned int|   seconds in 34-bit unsigned int   |
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
+
+    timestamp 96 stores the number of seconds and nanoseconds that have elapsed since 1970-01-01 00:00:00 UTC
+    in 64-bit signed integer and 32-bit unsigned integer:
+    +--------+--------+--------+--------+--------+--------+--------+
+    |  0xc7  |   12   |   -1   |nanoseconds in 32-bit unsigned int |
+    +--------+--------+--------+--------+--------+--------+--------+
+    +--------+--------+--------+--------+--------+--------+--------+--------+
+                        seconds in 64-bit signed int                        |
+    +--------+--------+--------+--------+--------+--------+--------+--------+
+
+* Timestamp 32 format can represent a timestamp in [1970-01-01 00:00:00 UTC, 2106-02-07 06:28:16 UTC) range. Nanoseconds part is 0.
+* Timestamp 64 format can represent a timestamp in [1970-01-01 00:00:00.000000000 UTC, 2514-05-30 01:53:04.000000000 UTC) range.
+* Timestamp 96 format can represent a timestamp in [-584554047284-02-23 16:59:44 UTC, 584554051223-11-09 07:00:16.000000000 UTC) range.
+* In timestamp 64 and timestamp 96 formats, nanoseconds must not be larger than 999999999.
+
+Pseudo code for serialization:
+
+    struct timespec {
+        long tv_sec;  // seconds
+        long tv_nsec; // nanoseconds
+    } time;
+    if ((time.tv_sec >> 34) == 0) {
+        uint64_t data64 = (time.tv_nsec << 34) | time.tv_sec;
+        if (data & 0xffffffff00000000L == 0) {
+            // timestamp 32
+            uint32_t data32 = data64;
+            serialize(0xd6, -1, data32)
+        }
+        else {
+            // timestamp 64
+            serialize(0xd7, -1, data64)
+        }
+    }
+    else {
+        // timestamp 96
+        serialize(0xc7, 12, -1, time.tv_nsec, time.tv_sec)
+    }
+
+Pseudo code for deserialization:
+
+     ExtensionValue value = deserialize_ext_type();
+     struct timespec result;
+     switch(value.length) {
+     case 4:
+         uint32_t data32 = value.payload;
+         result.tv_nsec = 0;
+         result.tv_sec = data32;
+     case 8:
+         uint64_t data64 = value.payload;
+         result.tv_nsec = data64 >> 34;
+         result.tv_sec = data64 & 0x00000003ffffffffL;
+     case 12:
+         uint32_t data32 = value.payload;
+         uint64_t data64 = value.payload + 4;
+         result.tv_nsec = data32;
+         result.tv_sec = data64;
+     default:
+         // error
+     }
 
 
 <a name="serialization"/>
