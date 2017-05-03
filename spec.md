@@ -46,6 +46,7 @@ This document describes the MessagePack type system, MessagePack formats and con
     * [Upgrade MessagePack specification](#impl-upgrade)
 
 <a name="types"/>
+
 ## Type system
 
 * Types
@@ -61,6 +62,7 @@ This document describes the MessagePack type system, MessagePack formats and con
   * **Extension** represents a tuple of type information and a byte array where type information is an integer whose meaning is defined by applications
 
 <a name="types-limitation"/>
+
 ### Limitation
 
 * a value of an Integer object is limited from `-(2^63)` upto `(2^64)-1`
@@ -72,6 +74,7 @@ This document describes the MessagePack type system, MessagePack formats and con
 * maximum number of key-value associations of a Map object is `(2^32)-1`
 
 <a name="types-extension-type"/>
+
 ### Extension type
 
 MessagePack allows applications to define application-specific types using the Extension type.
@@ -86,9 +89,11 @@ MessagePack reserves `-1` to `-128` for future extension to add predefined types
 
 
 <a name="formats"/>
+
 ## Formats
 
 <a name="formats-overview"/>
+
 ### Overview
 
 <table>
@@ -134,6 +139,7 @@ MessagePack reserves `-1` to `-128` for future extension to add predefined types
 
 
 <a name="formats-notation"/>
+
 ### Notation in diagrams
 
     one byte:
@@ -154,6 +160,7 @@ MessagePack reserves `-1` to `-128` for future extension to add predefined types
 `X`, `Y`, `Z` and `A` are the symbols that will be replaced by an actual bit.
 
 <a name="formats-nil"/>
+
 ### nil format
 
 Nil format stores nil in 1 byte.
@@ -164,6 +171,7 @@ Nil format stores nil in 1 byte.
     +--------+
 
 <a name="formats-bool"/>
+
 ### bool format family
 
 Bool format family stores false or true in 1 byte.
@@ -179,6 +187,7 @@ Bool format family stores false or true in 1 byte.
     +--------+
 
 <a name="formats-int"/>
+
 ### int format family
 
 Int format family stores an integer in 1, 2, 3, 5, or 9 bytes.
@@ -237,6 +246,7 @@ Int format family stores an integer in 1, 2, 3, 5, or 9 bytes.
     +--------+--------+--------+--------+--------+--------+--------+--------+--------+
 
 <a name="formats-float"/>
+
 ### float format family
 
 Float format family stores a floating point number in 5 bytes or 9 bytes.
@@ -259,6 +269,7 @@ Float format family stores a floating point number in 5 bytes or 9 bytes.
 
 
 <a name="formats-str"/>
+
 ### str format family
 
 Str format family stores a byte array in 1, 2, 3, or 5 bytes of extra bytes in addition to the size of the byte array.
@@ -291,6 +302,7 @@ Str format family stores a byte array in 1, 2, 3, or 5 bytes of extra bytes in a
     * N is the length of data
 
 <a name="formats-bin"/>
+
 ### bin format family
 
 Bin format family stores an byte array in 2, 3, or 5 bytes of extra bytes in addition to the size of the byte array.
@@ -317,6 +329,7 @@ Bin format family stores an byte array in 2, 3, or 5 bytes of extra bytes in add
     * N is the length of data
 
 <a name="formats-array"/>
+
 ### array format family
 
 Array format family stores a sequence of elements in 1, 3, or 5 bytes of extra bytes in addition to the elements.
@@ -343,6 +356,7 @@ Array format family stores a sequence of elements in 1, 3, or 5 bytes of extra b
         N is the size of a array
 
 <a name="formats-map"/>
+
 ### map format family
 
 Map format family stores a sequence of key-value pairs in 1, 3, or 5 bytes of extra bytes in addition to the key-value pairs.
@@ -371,6 +385,7 @@ Map format family stores a sequence of key-value pairs in 1, 3, or 5 bytes of ex
     * the next element of a key is its associated value
 
 <a name="formats-ext"/>
+
 ### ext format family
 
 Ext format family stores a tuple of an integer and a byte array.
@@ -428,6 +443,7 @@ Ext format family stores a tuple of an integer and a byte array.
 
 
 <a name="serialization"/>
+
 ## Serialization: type to format conversion
 
 MessagePack serializers convert MessagePack types into formats as following:
@@ -449,6 +465,7 @@ If an object can be represented in multiple possible output formats, serializers
 
 
 <a name="deserialization"/>
+
 ## Deserialization: format to type conversion
 
 MessagePack deserializers convert MessagePack formats into types as following:
@@ -467,9 +484,11 @@ MessagePack deserializers convert MessagePack formats into types as following:
 </table>
 
 <a name="future"/>
+
 ## Future discussion
 
 <a name="future-profiles"/>
+
 ### Profile
 
 Profile is an idea that Applications restrict the semantics of MessagePack while sharing the same syntax to adapt MessagePack for certain use cases.
@@ -477,9 +496,11 @@ Profile is an idea that Applications restrict the semantics of MessagePack while
 For example, applications may remove Binary type, restrict keys of map objects to be String type, and put some restrictions to make the semantics compatible with JSON. Applications which use schema may remove String and Binary types and deal with byte arrays as Raw type. Applications which use hash (digest) of serialized data may sort keys of maps to make the serialized data deterministic.
 
 <a name="impl"/>
+
 ## implementation guidelines
 
 <a name="impl-upgrade"/>
+
 ### Upgrading MessagePack specification
 
 MessagePack specification is changed at this time.
