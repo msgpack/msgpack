@@ -147,7 +147,7 @@ MessagePack reserves `-1` to `-128` for future extension to add predefined types
     
 `X`, `Y`, `Z` and `A` are the symbols that will be replaced by an actual bit.
 
-### nil format
+### nil format family
 
 Nil format stores nil in 1 byte.
 
