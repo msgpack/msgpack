@@ -36,10 +36,10 @@ This document describes the MessagePack type system, MessagePack formats and con
       * [str format family](#str-format-family)
       * [bin format family](#bin-format-family)
       * [array format family](#array-format-family)
-      * [map format family](#map-format-fomily)
-      * [ext format family](#ext-format-fomily)
-  * [Serialization: type to format conversion](#serialization)
-  * [Deserialization: format to type conversion](#deserialization)
+      * [map format family](#map-format-family)
+      * [ext format family](#ext-format-family)
+  * [Serialization: type to format conversion](#serialization:-type-to-format-conversion)
+  * [Deserialization: format to type conversion](#deserialization:-format-to-type-conversion)
   * [Future discussion](#future-discussion)
     * [Profile](#profile)
   * [Implementation guidelines](#implementation-guidelines)
@@ -412,7 +412,6 @@ Ext format family stores a tuple of an integer and a byte array.
     * type < 0 is reserved for future extension including 2-byte type information
 
 
-<a name="serialization"/>
 ## Serialization: type to format conversion
 
 MessagePack serializers convert MessagePack types into formats as following:
@@ -433,7 +432,6 @@ MessagePack serializers convert MessagePack types into formats as following:
 If an object can be represented in multiple possible output formats, serializers SHOULD use the format which represents the data in the smallest number of bytes.
 
 
-<a name="deserialization"/>
 ## Deserialization: format to type conversion
 
 MessagePack deserializers convert MessagePack formats into types as following:
