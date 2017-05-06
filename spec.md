@@ -23,13 +23,13 @@ This document describes the MessagePack type system, MessagePack formats and con
 ## Table of contents
 
 * MessagePack specification
-  * [Type system](#types-system)
+  * [Type system](#type-system)
       * [Limitation](#limitation)
       * [Extension type](#extension-type)
   * [Formats](#formats)
       * [Overview](#overview)
       * [Notation in diagrams](#notation-in-diagrams)
-      * [nil format family](#nil-formats)
+      * [nil format family](#nil-format-family)
       * [bool format family](#bool-format-family)
       * [int format family](#int-format-family)
       * [float format family](#float-format-family)
@@ -43,7 +43,7 @@ This document describes the MessagePack type system, MessagePack formats and con
   * [Future discussion](#future-discussion)
     * [Profile](#profile)
   * [Implementation guidelines](#implementation-guidelines)
-    * [Upgrade MessagePack specification](#upgrade-messagepack-specification)
+    * [Upgrade MessagePack specification](#upgrading-messagepack-specification)
 
 ## Type system
 
