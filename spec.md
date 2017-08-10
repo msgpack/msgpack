@@ -567,15 +567,18 @@ For example, applications may remove Binary type, restrict keys of map objects t
 ## implementation guidelines
 
 <a name="impl-upgrade"/>
-### Upgrading MessagePack specification
+### Migration plan for implementations
 
-MessagePack specification is changed at this time.
-Here is a guideline to upgrade existent MessagePack implementations:
+This document represents an updated version of the MessagePack specification, introducing a distinction between the bin format family and str format family. Previous versions of this specifiation did not make that distinction, both strings and binary data was encoded in the same way that this specification specifies the str format family.
 
-* In a minor release, deserializers support the bin format family and str 8 format. The type of deserialized objects should be same with raw 16 (== str 16) or raw 32 (== str 32)
-* In a major release, serializers distinguish Binary type and String type using bin format family and str format family
-  * At the same time, serializers should offer "compatibility mode" which doesn't use bin format family and str 8 format
+To facilitate interoperability between implmenetation and the ability to decode already encoded data, the following migration strategy is suggested for implmenters of this specification:
 
+* Initial, backwards compatible support for this specification can be introdudced in a minor version in the following way:
+  * Deserialization of data encoded with the newly introduced bin format family can be added as well as data encoded with the new str 8 format.
+  * Both string and byte array data should be serialized using the str format family, which is idential to the encoding specified in the previous specification.
+* Full compatibility with this specification whould be introduced in a major version upgrade of conforming implementations with the following considerations:
+  * Those implementations should encode string types using the str format family and binary data with the bin format family.
+  * A compatibility mode that serializes binary data using the str format family should be provided.
 
 ___
 
