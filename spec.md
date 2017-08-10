@@ -476,7 +476,7 @@ Pseudo code for serialization:
     } time;
     if ((time.tv_sec >> 34) == 0) {
         uint64_t data64 = (time.tv_nsec << 34) | time.tv_sec;
-        if (data & 0xffffffff00000000L == 0) {
+        if (data64 & 0xffffffff00000000L == 0) {
             // timestamp 32
             uint32_t data32 = data64;
             serialize(0xd6, -1, data32)
