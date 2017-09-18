@@ -538,7 +538,7 @@ Profile is an idea that Applications restrict the semantics of MessagePack while
 
 For example, applications may remove Binary type, restrict keys of map objects to be String type, and put some restrictions to make the semantics compatible with JSON. Applications which use schema may remove String and Binary types and deal with byte arrays as Raw type. Applications which use hash (digest) of serialized data may sort keys of maps to make the serialized data deterministic.
 
-## implementation guidelines
+## Implementation guidelines
 
 ### Upgrading MessagePack specification
 
