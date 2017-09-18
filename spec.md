@@ -553,5 +553,5 @@ Here is a guideline to upgrade existent MessagePack implementations:
 ___
 
     MessagePack specification
-    Last modified at 2013-04-21 21:52:33 -0700
+    Last modified at 2017-08-09 22:42:07 -0700
     Sadayuki Furuhashi © 2013-04-21 21:52:33 -0700
