@@ -143,17 +143,17 @@ Here is the list of predefined extension types. Formats of the types are defined
     +--------+
     |        |
     +--------+
-    
+
     a variable number of bytes:
     +========+
     |        |
     +========+
-    
+
     variable number of objects stored in MessagePack format:
     +~~~~~~~~~~~~~~~~~+
     |                 |
     +~~~~~~~~~~~~~~~~~+
-    
+
 `X`, `Y`, `Z` and `A` are the symbols that will be replaced by an actual bit.
 
 ### nil format
@@ -173,7 +173,7 @@ Bool format family stores false or true in 1 byte.
     +--------+
     |  0xc2  |
     +--------+
-    
+
     true:
     +--------+
     |  0xc3  |
@@ -187,12 +187,12 @@ Int format family stores an integer in 1, 2, 3, 5, or 9 bytes.
     +--------+
     |0XXXXXXX|
     +--------+
-    
+
     negative fixnum stores 5-bit negative integer
     +--------+
     |111YYYYY|
     +--------+
-    
+
     * 0XXXXXXX is 8-bit unsigned integer
     * 111YYYYY is 8-bit signed integer
 
@@ -200,17 +200,17 @@ Int format family stores an integer in 1, 2, 3, 5, or 9 bytes.
     +--------+--------+
     |  0xcc  |ZZZZZZZZ|
     +--------+--------+
-    
+
     uint 16 stores a 16-bit big-endian unsigned integer
     +--------+--------+--------+
     |  0xcd  |ZZZZZZZZ|ZZZZZZZZ|
     +--------+--------+--------+
-    
+
     uint 32 stores a 32-bit big-endian unsigned integer
     +--------+--------+--------+--------+--------+
     |  0xce  |ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|
     +--------+--------+--------+--------+--------+
-    
+
     uint 64 stores a 64-bit big-endian unsigned integer
     +--------+--------+--------+--------+--------+--------+--------+--------+--------+
     |  0xcf  |ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|
@@ -220,17 +220,17 @@ Int format family stores an integer in 1, 2, 3, 5, or 9 bytes.
     +--------+--------+
     |  0xd0  |ZZZZZZZZ|
     +--------+--------+
-    
+
     int 16 stores a 16-bit big-endian signed integer
     +--------+--------+--------+
     |  0xd1  |ZZZZZZZZ|ZZZZZZZZ|
     +--------+--------+--------+
-    
+
     int 32 stores a 32-bit big-endian signed integer
     +--------+--------+--------+--------+--------+
     |  0xd2  |ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|
     +--------+--------+--------+--------+--------+
-    
+
     int 64 stores a 64-bit big-endian signed integer
     +--------+--------+--------+--------+--------+--------+--------+--------+--------+
     |  0xd3  |ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|
@@ -244,12 +244,12 @@ Float format family stores a floating point number in 5 bytes or 9 bytes.
     +--------+--------+--------+--------+--------+
     |  0xca  |XXXXXXXX|XXXXXXXX|XXXXXXXX|XXXXXXXX|
     +--------+--------+--------+--------+--------+
-    
+
     float 64 stores a floating point number in IEEE 754 double precision floating point number format:
     +--------+--------+--------+--------+--------+--------+--------+--------+--------+
     |  0xcb  |YYYYYYYY|YYYYYYYY|YYYYYYYY|YYYYYYYY|YYYYYYYY|YYYYYYYY|YYYYYYYY|YYYYYYYY|
     +--------+--------+--------+--------+--------+--------+--------+--------+--------+
-    
+
     where
     * XXXXXXXX_XXXXXXXX_XXXXXXXX_XXXXXXXX is a big-endian IEEE 754 single precision floating point number.
       Extension of precision from single-precision to double-precision does not lose precision.
@@ -264,17 +264,17 @@ Str format family stores a byte array in 1, 2, 3, or 5 bytes of extra bytes in a
     +--------+========+
     |101XXXXX|  data  |
     +--------+========+
-    
+
     str 8 stores a byte array whose length is upto (2^8)-1 bytes:
     +--------+--------+========+
     |  0xd9  |YYYYYYYY|  data  |
     +--------+--------+========+
-    
+
     str 16 stores a byte array whose length is upto (2^16)-1 bytes:
     +--------+--------+--------+========+
     |  0xda  |ZZZZZZZZ|ZZZZZZZZ|  data  |
     +--------+--------+--------+========+
-    
+
     str 32 stores a byte array whose length is upto (2^32)-1 bytes:
     +--------+--------+--------+--------+--------+========+
     |  0xdb  |AAAAAAAA|AAAAAAAA|AAAAAAAA|AAAAAAAA|  data  |
@@ -295,12 +295,12 @@ Bin format family stores an byte array in 2, 3, or 5 bytes of extra bytes in add
     +--------+--------+========+
     |  0xc4  |XXXXXXXX|  data  |
     +--------+--------+========+
-    
+
     bin 16 stores a byte array whose length is upto (2^16)-1 bytes:
     +--------+--------+--------+========+
     |  0xc5  |YYYYYYYY|YYYYYYYY|  data  |
     +--------+--------+--------+========+
-    
+
     bin 32 stores a byte array whose length is upto (2^32)-1 bytes:
     +--------+--------+--------+--------+--------+========+
     |  0xc6  |ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|  data  |
@@ -320,17 +320,17 @@ Array format family stores a sequence of elements in 1, 3, or 5 bytes of extra b
     +--------+~~~~~~~~~~~~~~~~~+
     |1001XXXX|    N objects    |
     +--------+~~~~~~~~~~~~~~~~~+
-    
+
     array 16 stores an array whose length is upto (2^16)-1 elements:
     +--------+--------+--------+~~~~~~~~~~~~~~~~~+
     |  0xdc  |YYYYYYYY|YYYYYYYY|    N objects    |
     +--------+--------+--------+~~~~~~~~~~~~~~~~~+
-    
+
     array 32 stores an array whose length is upto (2^32)-1 elements:
     +--------+--------+--------+--------+--------+~~~~~~~~~~~~~~~~~+
     |  0xdd  |ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|    N objects    |
     +--------+--------+--------+--------+--------+~~~~~~~~~~~~~~~~~+
-    
+
     where
     * XXXX is a 4-bit unsigned integer which represents N
     * YYYYYYYY_YYYYYYYY is a 16-bit big-endian unsigned integer which represents N
@@ -345,17 +345,17 @@ Map format family stores a sequence of key-value pairs in 1, 3, or 5 bytes of ex
     +--------+~~~~~~~~~~~~~~~~~+
     |1000XXXX|   N*2 objects   |
     +--------+~~~~~~~~~~~~~~~~~+
-    
+
     map 16 stores a map whose length is upto (2^16)-1 elements
     +--------+--------+--------+~~~~~~~~~~~~~~~~~+
     |  0xde  |YYYYYYYY|YYYYYYYY|   N*2 objects   |
     +--------+--------+--------+~~~~~~~~~~~~~~~~~+
-    
+
     map 32 stores a map whose length is upto (2^32)-1 elements
     +--------+--------+--------+--------+--------+~~~~~~~~~~~~~~~~~+
     |  0xdf  |ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|   N*2 objects   |
     +--------+--------+--------+--------+--------+~~~~~~~~~~~~~~~~~+
-    
+
     where
     * XXXX is a 4-bit unsigned integer which represents N
     * YYYYYYYY_YYYYYYYY is a 16-bit big-endian unsigned integer which represents N
@@ -372,22 +372,22 @@ Ext format family stores a tuple of an integer and a byte array.
     +--------+--------+--------+
     |  0xd4  |  type  |  data  |
     +--------+--------+--------+
-    
+
     fixext 2 stores an integer and a byte array whose length is 2 bytes
     +--------+--------+--------+--------+
     |  0xd5  |  type  |       data      |
     +--------+--------+--------+--------+
-    
+
     fixext 4 stores an integer and a byte array whose length is 4 bytes
     +--------+--------+--------+--------+--------+--------+
     |  0xd6  |  type  |                data               |
     +--------+--------+--------+--------+--------+--------+
-    
+
     fixext 8 stores an integer and a byte array whose length is 8 bytes
     +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
     |  0xd7  |  type  |                                  data                                 |
     +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
-    
+
     fixext 16 stores an integer and a byte array whose length is 16 bytes
     +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
     |  0xd8  |  type  |                                  data                                  
@@ -400,12 +400,12 @@ Ext format family stores a tuple of an integer and a byte array.
     +--------+--------+--------+========+
     |  0xc7  |XXXXXXXX|  type  |  data  |
     +--------+--------+--------+========+
-    
+
     ext 16 stores an integer and a byte array whose length is upto (2^16)-1 bytes:
     +--------+--------+--------+--------+========+
     |  0xc8  |YYYYYYYY|YYYYYYYY|  type  |  data  |
     +--------+--------+--------+--------+========+
-    
+
     ext 32 stores an integer and a byte array whose length is upto (2^32)-1 bytes:
     +--------+--------+--------+--------+--------+--------+========+
     |  0xc9  |ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|  type  |  data  |
