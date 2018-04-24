@@ -59,7 +59,7 @@ This document describes the MessagePack type system, MessagePack formats and con
   * **Array** represents a sequence of objects
   * **Map** represents key-value pairs of objects
   * **Extension** represents a tuple of type information and a byte array where type information is an integer whose meaning is defined by applications or MessagePack specification
-      * **Timestamp** represents an instantaneous point on the time-line in the world that is independent from time zones or calendars. Maximum precision is nanoseconds.
+      * **Timestamp** represents a point in time identified by the actual number of seconds (or seconds and nanoseconds) since 1970-01-01 00:00:00.000000000 UTC. Maximum precision is nanoseconds.
 
 ### Limitation
 
@@ -429,8 +429,8 @@ Timestamp extension type is assigned to extension type `-1`. It defines 3 format
     |  0xd6  |   -1   |   seconds in 32-bit unsigned int  |
     +--------+--------+--------+--------+--------+--------+
 
-    timestamp 64 stores the number of seconds and nanoseconds that have elapsed since 1970-01-01 00:00:00 UTC
-    in 32-bit unsigned integers:
+    timestamp 64 stores the number of seconds and nanoseconds that have elapsed since 1970-01-01 00:00:00 UTC, the
+    nanoseconds stored as an unsigned integer in the upper 30 bits, and seconds in the lower 34 bits unsigned:
     +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
     |  0xd7  |   -1   |nanoseconds in 30-bit unsigned int |  seconds in 34-bit unsigned int   |
     +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
