@@ -59,7 +59,10 @@ This document describes the MessagePack type system, MessagePack formats and con
   * **Array** represents a sequence of objects
   * **Map** represents key-value pairs of objects
   * **Extension** represents a tuple of type information and a byte array where type information is an integer whose meaning is defined by applications or MessagePack specification
-      * **Timestamp** represents a point in time identified by the actual number of seconds (or seconds and nanoseconds) since 1970-01-01 00:00:00.000000000 UTC. Maximum precision is nanoseconds.
+      * **Timestamp** represents a point in time identified by the number of seconds (or seconds and nanoseconds), that
+      have elapsed since 1970-01-01 00:00:00.000000000 UTC, not counting leap seconds; this means that the civil time can
+      be identified by accounting only for the regular leap days that occur in the Gregorian calendar. (Thus, only actual
+      leap seconds are ambiguous but not any time between leap seconds.) Maximum precision is nanoseconds.
 
 ### Limitation
 
