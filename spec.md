@@ -494,6 +494,64 @@ Pseudo code for deserialization:
          // error
      }
 
+### BigInteger extension type
+
+BigInteger extension type is assigned to extension type `-2`. It defines 6 formats of variously sized "big integers". This format can be extended to hold additional formats, and was left with its current format so that it could hold a 128-bit integer without changing the underlying data.
+
+Anywhere you see `ZZZZZ`, it indicates the size of data.
+
+    int 128 stores a 128-bit big-endian signed integer
+    +--------+--------+--------+========+
+    |  0xc7  |   -2   |0000ZZZZ|  data  |
+    +--------+--------+--------+========+
+
+    uint 128 stores a 128-bit big-endian unsigned integer
+    +--------+--------+--------+========+
+    |  0xc7  |   -2   |0001ZZZZ|  data  |
+    +--------+--------+--------+========+
+
+    bigint 12 stores a (2^12)-byte (32,768-bit) big-endian signed integer
+    +--------+--------+--------+--------+========+
+    |  0xc7  |   -2   |0010ZZZZ|ZZZZZZZZ|  data  |
+    +--------+--------+--------+--------+========+
+
+    bigint 28 stores a (2^28)-byte big-endian signed integer
+    +--------+--------+--------+--------+--------+--------+========+
+    |  0xc7  |   -2   |0011ZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|  data  |
+    +--------+--------+--------+--------+--------+--------+========+
+
+    bigint 60 stores a (2^60)-byte big-endian signed integer
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+========+
+    |  0xc7  |   -2   |0100ZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|  data  |
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+========+
+
+    bigint exp stores a Y-byte big-endian signed integer, where Y is an unsigned,
+    Z-byte big-endian integer. This means bigint exp can store up to (2^131)-1 byte integers.
+    +--------+--------+--------+========+========+
+    |  0xc7  |   -2   |1111ZZZZ|YYYYYYYY|  data  |
+    +--------+--------+--------+========+========+
+
+### Rational extension type
+
+Rational extension type is assigned to extension type `-3`. Its goal is to enable support for fractions and floating point decimal types.
+
+    fractions can store any rational number. It does so by allowing num and denom
+    to be any of the defined integer classes.
+    +--------+--------+--------+========+========+
+    |  0xc7  |   -3   |00000000|  num   |  denom |
+    +--------+--------+--------+========+========+
+    
+    reciprocals allow a shorthand for storing reciprocals of any integer
+    +--------+--------+--------+========+
+    |  0xc7  |   -3   |00000001|  denom |
+    +--------+--------+--------+========+
+
+    decimals can store floating point decimals. It does so by allowing num and denom
+    to be any of the defined integer classes. denom is interpreted as a power of ten.
+    +--------+--------+--------+========+========+
+    |  0xc7  |   -3   |00000010|  num   |  denom |
+    +--------+--------+--------+========+========+
+
 ## Serialization: type to format conversion
 
 MessagePack serializers convert MessagePack types into formats as following:
