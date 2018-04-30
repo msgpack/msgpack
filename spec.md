@@ -90,6 +90,8 @@ Here is the list of predefined extension types. Formats of the types are defined
 <table>
   <tr><th>Name</th><th>Type</th></tr>
   <tr><td>Timestamp</td><td>-1</td></tr>
+  <tr><td>BigInteger</td><td>-2</td></tr>
+  <tr><td>Rational Numbers</td><td>-3</td></tr>
 </table>
 
 ## Formats
