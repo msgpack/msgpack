@@ -644,25 +644,29 @@ while Type -5 refers to the binary encoding, as defined in the IEEE 754-2008 sta
 
 The fractions extension is assigned to the type -6 and allows to store fractional values and decimal floating point values.
 Support for fractions is optional, but recommended for implementations whose language or standard library provide
-fractions data types. This extension the following formats as defined above for ext 8, ext 16 and ext 32, 
-with the payload being defined below.
+fractions data types. All payloads consist of 1 or 2 objects from the int or bigint families.
 
-    fraction 2 stores the type -6 and a bigint payload whose length is 2 bytes
+    fraction 1 stores the type -6 and a payload whose length is 1 byte
+    +--------+--------+--------+
+    |  0xd4  |   -6   |fraction|
+    +--------+--------+--------+
+
+    fraction 2 stores the type -6 and a payload whose length is 2 bytes
     +--------+--------+--------+--------+
     |  0xd5  |   -6   |     fraction    |
     +--------+--------+--------+--------+
 
-    fraction 4 stores the type -6 and a bigint payload whose length is 4 bytes
+    fraction 4 stores the type -6 and a payload whose length is 4 bytes
     +--------+--------+--------+--------+--------+--------+
     |  0xd6  |   -6   |              fraction             |
     +--------+--------+--------+--------+--------+--------+
 
-    fraction 8 stores the type -6 and a bigint payload whose length is 8 bytes
+    fraction 8 stores the type -6 and a payload whose length is 8 bytes
     +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
     |  0xd7  |   -6   |                               fraction                                |
     +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
 
-    fraction 16 stores the type -6 and a bigint payload whose length is 16 bytes
+    fraction 16 stores the type -6 and a payload whose length is 16 bytes
     +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
     |  0xd8  |   -6   |                                fraction                                  
     +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
@@ -670,17 +674,17 @@ with the payload being defined below.
                                 fraction (cont.)                            |
     +--------+--------+--------+--------+--------+--------+--------+--------+
 
-    bigfraction 8 stores an 8 bit signed integer with the payload size, the type -6 and a bigint payload whose length is upto (2^8)-1 bytes:
+    bigfraction 8 stores an 8 bit signed integer with the payload size, the type -6 and a payload whose length is upto (2^8)-1 bytes:
     +--------+--------+--------+========+
     |  0xc7  |XXXXXXXX|   -6   |fraction|
     +--------+--------+--------+========+
 
-    bigfraction 16 stores an 16 bit signed integer with the payload size, the type -6 and a bigint payload whose length is upto (2^16)-1 bytes:
+    bigfraction 16 stores an 16 bit signed integer with the payload size, the type -6 and a payload whose length is upto (2^16)-1 bytes:
     +--------+--------+--------+--------+========+
     |  0xc8  |YYYYYYYY|YYYYYYYY|   -6   |fraction|
     +--------+--------+--------+--------+========+
 
-    bigfraction 32 stores an 16 bit signed integer with the payload size, the type -6 and a bigint payload whose length is upto (2^32)-1 bytes:
+    bigfraction 32 stores an 16 bit signed integer with the payload size, the type -6 and a payload whose length is upto (2^32)-1 bytes:
     +--------+--------+--------+--------+--------+--------+========+
     |  0xc9  |ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|   -6   |fraction|
     +--------+--------+--------+--------+--------+--------+========+
