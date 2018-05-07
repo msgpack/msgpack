@@ -90,6 +90,11 @@ Here is the list of predefined extension types. Formats of the types are defined
 <table>
   <tr><th>Name</th><th>Type</th></tr>
   <tr><td>Timestamp</td><td>-1</td></tr>
+  <tr><td>Bigint</td><td>-2</td></tr>
+  <tr><td>Bigfloat</td><td>-3</td></tr>
+  <tr><td>Bigdecimal (decimal encoded)</td><td>-4</td></tr>
+  <tr><td>Bigdecimal (binary encoded)</td><td>-5</td></tr>
+  <tr><td>Fractions</td><td>-6</td></tr>
 </table>
 
 ## Formats
@@ -494,6 +499,214 @@ Pseudo code for deserialization:
          // error
      }
 
+### bigint extension type
+
+The bigint extension is assigned to the type -2 and allows to store large integers. Support for big integers
+is optional, but recommended for implementations whose language or standard library provide integer types
+larger than 64 bit (including variable size integers). This extension uses the following formats as defined above
+for fixext 16, ext 8, ext 16 and ext 32:
+
+    int 128 stores the type -2 and a 128 bit (16 byte) big endian signed integer
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
+    |  0xd8  |  -2    |                                 bigint                                  
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
+    +--------+--------+--------+--------+--------+--------+--------+--------+
+                                 bigint (cont.)                             |
+    +--------+--------+--------+--------+--------+--------+--------+--------+
+
+    bigint 8 stores an 8 bit signed integer with the payload size, the type -2 and a bigint payload whose length is upto (2^8)-1 bytes:
+    +--------+--------+--------+========+
+    |  0xc7  |XXXXXXXX|   -2   | bigint |
+    +--------+--------+--------+========+
+
+    bigint 16 stores an 16 bit signed integer with the payload size, the type -2 and a bigint payload whose length is upto (2^16)-1 bytes:
+    +--------+--------+--------+--------+========+
+    |  0xc8  |YYYYYYYY|YYYYYYYY|   -2   | bigint |
+    +--------+--------+--------+--------+========+
+
+    bigint 32 stores an 16 bit signed integer with the payload size, the type -2 and a bigint payload whose length is upto (2^32)-1 bytes:
+    +--------+--------+--------+--------+--------+--------+========+
+    |  0xc9  |ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|   -2   | bigint |
+    +--------+--------+--------+--------+--------+--------+========+
+
+    where
+    * XXXXXXXX is a 8-bit unsigned integer which represents N
+    * YYYYYYYY_YYYYYYYY is a 16-bit big-endian unsigned integer which represents N
+    * ZZZZZZZZ_ZZZZZZZZ_ZZZZZZZZ_ZZZZZZZZ is a big-endian 32-bit unsigned integer which represents N
+    * N is the length of the bigint payload size
+    * bigint is the bytes of an unsigned integer in big endian representation
+
+    Recommendations:
+    * Integer values which fit into 64 or less bits should be encoded using an appropriate non-extension integer type, as defined above in "int format family", to enhance backwards compatibility
+    * Leading 0x00 bytes for positive numbers should be omitted, producing the shortest possible representation of a given value
+    * Leading 0xff bytes of the values for negative numbers should be omitted if possible. (A single 0xff byte may be necessary if the most significant bit of the next byte is 0, to distinguish the negative number from positive numbers.)
+    
+### bigfloat extension type
+
+The bigfloat extension is assigned to the type -3 and allows to store large / high precision binary floating point values.
+Support for bigfloats is optional, but recommended for implementations whose language or standard library provide
+float types with higher range or precision than IEEE 64 bit. This extension the following formats as defined above for
+fixext 16, ext 8, ext 16 and ext 32, with the payload defined by the IEEE 754-2008 interchange format.
+
+    float 128 stores the type -3 and a 128 bit (16 byte) "quad" floating point number as defined in IEEE 754-2008
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
+    |  0xd8  |  -3    |                               bigfloat 128                                  
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
+    +--------+--------+--------+--------+--------+--------+--------+--------+
+                               bigfloat 128 (cont.)                         |
+    +--------+--------+--------+--------+--------+--------+--------+--------+
+
+    bigfloat 8 stores an 8 bit signed integer with the payload size, the type -2 and a payload in the IEEE 754-2008 interchange format whose length is upto (2^8)-1 bytes:
+    +--------+--------+--------+========+
+    |  0xc7  |XXXXXXXX|   -3   |bigfloat|
+    +--------+--------+--------+========+
+
+    bigfloat 16 stores an 16 bit signed integer with the payload size, the type -2 and a payload in the IEEE 754-2008 interchange format whose length is upto (2^16)-1 bytes:
+    +--------+--------+--------+--------+========+
+    |  0xc8  |YYYYYYYY|YYYYYYYY|   -3   |bigfloat|
+    +--------+--------+--------+--------+========+
+
+    bigfloat 32 stores an 16 bit signed integer with the payload size, the type -2 and a payload in the IEEE 754-2008 interchange format whose length is upto (2^32)-1 bytes:
+    +--------+--------+--------+--------+--------+--------+========+
+    |  0xc9  |ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|   -3   |bigfloat|
+    +--------+--------+--------+--------+--------+--------+========+
+
+    where
+    * XXXXXXXX is a 8-bit unsigned integer which represents N
+    * YYYYYYYY_YYYYYYYY is a 16-bit big-endian unsigned integer which represents N
+    * ZZZZZZZZ_ZZZZZZZZ_ZZZZZZZZ_ZZZZZZZZ is a big-endian 32-bit unsigned integer which represents N
+    * N is the length of the bigfloat payload size
+    * As required by the IEEE 754-2008 interchange format definition, N must be a multiple of 4 bytes (32 bit).
+    * N must be at least 20 (use "float 128" for 16 byte / 128 bit values)
+    
+    Recommendations for encoders and applications:
+    * Encoders should use the shortest possible exact representation of a given value, including float32 and float64 where appropriate. E. g. the value 10.5 will fit into an float32.
+    * Similarly, the values for "Infinity" and "Negative Infinity" can be encoded as float32.
+    * As the semantics of the payload bits of NaNs are implementation defined, applications should not rely on different NaN values, and just treat them as a single value.
+    * As signaling NaNs may lead to exceptions on some hardware just when reading the value, and be quietly converted to non-signaling NaNs on other hardware, applications should avoid signaling NaNs.
+    
+### Bigdecimal extension types
+
+The bigdecimal extension types are assigned to the type -4 and -5 and allow to store large / high precision decimal floating point values.
+Support for bigdecimals is optional, but recommended for implementations whose language or standard library provide
+decimal data types. This extension the following formats as defined above for fixext 4, fixext 8, fixext 16, ext 8, ext 16 and ext 32, 
+with the payload defined by the IEEE 754-2008 interchange format. Type -4 refers to numbers encoded using the decimal encoding, while
+while Type -5 refers to the binary encoding, as defined in the IEEE 754-2008 standard.
+
+
+    decimal 32 stores the type (-4 / -5) and a 32 bit decimal floating point number as defined in IEEE 754-2008
+    +--------+--------+--------+--------+--------+--------+
+    |  0xd6  | -4/-5  |             decimal 32            |
+    +--------+--------+--------+--------+--------+--------+
+
+    decimal 64 stores the type (-4 / -5) and a 64 bit "basic format" decimal number.
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
+    |  0xd7  | -4/-5  |                               decimal 64                              |
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
+
+    decimal 128 stores the type (-4 / -5) and a 128 bit "basic format" decimal floating point number as defined in IEEE 754-2008
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
+    |  0xd8  | -4/-5  |                               decimal 128                                  
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
+    +--------+--------+--------+--------+--------+--------+--------+--------+
+                                decimal 128 (cont.)                         |
+    +--------+--------+--------+--------+--------+--------+--------+--------+
+
+    bigdecimal 8 stores an 8 bit signed integer with the payload size, the type (-4 / -5) and a payload in the IEEE 754-2008 interchange format whose length is upto (2^8)-1 bytes:
+    +--------+--------+--------+========+
+    |  0xc7  |XXXXXXXX| -4/-5  |bigfloat|
+    +--------+--------+--------+========+
+
+    bigdecimal 16 stores an 16 bit signed integer with the payload size, the type (-4 / -5) and a payload in the IEEE 754-2008 interchange format whose length is upto (2^16)-1 bytes:
+    +--------+--------+--------+--------+========+
+    |  0xc8  |YYYYYYYY|YYYYYYYY| -4/-5  |bigfloat|
+    +--------+--------+--------+--------+========+
+
+    bigdecimal 32 stores an 16 bit signed integer with the payload size, the type (-4 / -5) and a payload in the IEEE 754-2008 interchange format whose length is upto (2^32)-1 bytes:
+    +--------+--------+--------+--------+--------+--------+========+
+    |  0xc9  |ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ| -4/-5  |bigfloat|
+    +--------+--------+--------+--------+--------+--------+========+
+
+    where
+    * XXXXXXXX is a 8-bit unsigned integer which represents N
+    * YYYYYYYY_YYYYYYYY is a 16-bit big-endian unsigned integer which represents N
+    * ZZZZZZZZ_ZZZZZZZZ_ZZZZZZZZ_ZZZZZZZZ is a big-endian 32-bit unsigned integer which represents N
+    * N is the length of the bigfloat payload size (expsize + bigfloat)
+    * As required by the IEEE 754-2008 interchange format definition, N must be a multiple of 4 bytes (32 bit).
+    * When possible, use the "fixext" formats: for N=32, use "decimal 4", for N=64, use "decimal 8" and for N=128, use "decimal 128" format.
+    
+    Recommendations for encoders and applications:
+    * A given application / profile should specify whether decimal or binar representation is to be used.
+    * Encoders should produce canonical encodings as defined in section 3.5.2 of IEEE 754-2008. 
+    
+    
+### fractions extension type
+
+The fractions extension is assigned to the type -6 and allows to store fractional values and decimal floating point values.
+Support for fractions is optional, but recommended for implementations whose language or standard library provide
+fractions data types. All payloads consist of 1 or 2 objects from the int or bigint families.
+
+    fraction 1 stores the type -6 and a payload whose length is 1 byte
+    +--------+--------+--------+
+    |  0xd4  |   -6   |fraction|
+    +--------+--------+--------+
+
+    fraction 2 stores the type -6 and a payload whose length is 2 bytes
+    +--------+--------+--------+--------+
+    |  0xd5  |   -6   |     fraction    |
+    +--------+--------+--------+--------+
+
+    fraction 4 stores the type -6 and a payload whose length is 4 bytes
+    +--------+--------+--------+--------+--------+--------+
+    |  0xd6  |   -6   |              fraction             |
+    +--------+--------+--------+--------+--------+--------+
+
+    fraction 8 stores the type -6 and a payload whose length is 8 bytes
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
+    |  0xd7  |   -6   |                               fraction                                |
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
+
+    fraction 16 stores the type -6 and a payload whose length is 16 bytes
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
+    |  0xd8  |   -6   |                                fraction                                  
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
+    +--------+--------+--------+--------+--------+--------+--------+--------+
+                                fraction (cont.)                            |
+    +--------+--------+--------+--------+--------+--------+--------+--------+
+
+    bigfraction 8 stores an 8 bit signed integer with the payload size, the type -6 and a payload whose length is upto (2^8)-1 bytes:
+    +--------+--------+--------+========+
+    |  0xc7  |XXXXXXXX|   -6   |fraction|
+    +--------+--------+--------+========+
+
+    bigfraction 16 stores an 16 bit signed integer with the payload size, the type -6 and a payload whose length is upto (2^16)-1 bytes:
+    +--------+--------+--------+--------+========+
+    |  0xc8  |YYYYYYYY|YYYYYYYY|   -6   |fraction|
+    +--------+--------+--------+--------+========+
+
+    bigfraction 32 stores an 16 bit signed integer with the payload size, the type -6 and a payload whose length is upto (2^32)-1 bytes:
+    +--------+--------+--------+--------+--------+--------+========+
+    |  0xc9  |ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|   -6   |fraction|
+    +--------+--------+--------+--------+--------+--------+========+
+
+    where
+    * XXXXXXXX is a 8-bit unsigned integer which represents N
+    * YYYYYYYY_YYYYYYYY is a 16-bit big-endian unsigned integer which represents N
+    * ZZZZZZZZ_ZZZZZZZZ_ZZZZZZZZ_ZZZZZZZZ is a big-endian 32-bit unsigned integer which represents N
+    * N is the length of the fraction payload size
+    * fraction is the concatenation of 1 to 2 integers, each of them encoded as defined in the "int format family" or "bigint extension type" sections above:
+    ** If there is only one number, it is considered the denominator, and the numerator is 1.
+    ** In all other cases, the numerator is the first given number, and the denominator is the second given number.
+    * Any possible payload after the fourth number is reserved for future extensions of the specification, and must not be produced by current encoders. Readers should signal an error when they encounter unknown content after the 4 numbers.
+    
+    Recommendations for encoders and applications:
+    * Encoders should prefer short representations, if possible.
+    * If the denominator is 1, the number should be encoded using the integer types, not as fraction.
+    * For denominator, prefer unsigned integer types (except if the base exceeds 64 bit).
+    * To encode NaN, Infinity and negative infinity, use the appropriate float 32 values.
+    * If the application does not have different requirements, encoders should reduce the fractions before writing them.
+
+
 ## Serialization: type to format conversion
 
 MessagePack serializers convert MessagePack types into formats as following:
@@ -537,6 +750,7 @@ MessagePack deserializers convert MessagePack formats into types as following:
 Profile is an idea that Applications restrict the semantics of MessagePack while sharing the same syntax to adapt MessagePack for certain use cases.
 
 For example, applications may remove Binary type, restrict keys of map objects to be String type, and put some restrictions to make the semantics compatible with JSON. Applications which use schema may remove String and Binary types and deal with byte arrays as Raw type. Applications which use hash (digest) of serialized data may sort keys of maps to make the serialized data deterministic.
+Profiles may also restrict floating point to one of 32 or 64 bit, and define which (sub-)set of extension types need to be supported.
 
 ## Implementation guidelines
 
