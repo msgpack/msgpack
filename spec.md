@@ -90,6 +90,9 @@ Here is the list of predefined extension types. Formats of the types are defined
 <table>
   <tr><th>Name</th><th>Type</th></tr>
   <tr><td>Timestamp</td><td>-1</td></tr>
+  <tr><td>BigInteger</td><td>-2</td></tr>
+  <tr><td>Fractions</td><td>-3</td></tr>
+  <tr><td>Decimals</td><td>-4</td></tr>
 </table>
 
 ## Formats
@@ -493,6 +496,65 @@ Pseudo code for deserialization:
      default:
          // error
      }
+
+### BigInteger extension type
+
+BigInteger extension type is assigned to extension type `-2`. It defines 4 formats of variously sized "big integers".
+
+    int 128 stores a 128-bit big-endian signed integer
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
+    |  0xd8  |   -2   |                                  data                                  
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
+    +--------+--------+--------+--------+--------+--------+--------+--------+
+                                  data (cont.)                              |
+    +--------+--------+--------+--------+--------+--------+--------+--------+
+
+    bigint 8 stores a (2^8)-byte big-endian signed integer
+    +--------+--------+--------+========+
+    |  0xc7  |XXXXXXXX|   -2   |  data  |
+    +--------+--------+--------+========+
+
+    bigint 16 stores a (2^16)-byte (32,768-bit) big-endian signed integer
+    +--------+--------+--------+--------+========+
+    |  0xc8  |XXXXXXXX|XXXXXXXX|   -2   |  data  |
+    +--------+--------+--------+--------+========+
+
+    bigint 32 stores a (2^32)-byte big-endian signed integer
+    +--------+--------+--------+--------+--------+--------+========+
+    |  0xc9  |XXXXXXXX|XXXXXXXX|XXXXXXXX|XXXXXXXX|   -2   |  data  |
+    +--------+--------+--------+--------+--------+--------+========+
+
+### Rational extension family
+
+Rational extension types are assigned to extension types `-3` and `-4`. Their goal is to enable support for fractions and floating point decimal types.
+
+    fractions can store any rational number. It does so by allowing num and denom
+    to be any of the defined integer classes.
+    +--------+--------+--------+========+========+
+    |  0xc7  |XXXXXXXX|   -3   |  num   |  denom |
+    +--------+--------+--------+========+========+
+    
+    +--------+--------+--------+--------+========+========+
+    |  0xc8  |XXXXXXXX|XXXXXXXX|   -3   |  num   |  denom |
+    +--------+--------+--------+--------+========+========+
+    
+    +--------+--------+--------+--------+--------+--------+========+========+
+    |  0xc9  |XXXXXXXX|XXXXXXXX|XXXXXXXX|XXXXXXXX|   -3   |  num   |  denom |
+    +--------+--------+--------+--------+--------+--------+========+========+
+
+    decimals can store floating point decimals. It does so by allowing num and denom
+    to be any of the defined integer classes. denom is interpreted as a power of ten.
+    +--------+--------+--------+========+========+
+    |  0xc7  |XXXXXXXX|   -4   |  num   |  denom |
+    +--------+--------+--------+========+========+
+    
+    +--------+--------+--------+--------+========+========+
+    |  0xc8  |XXXXXXXX|XXXXXXXX|   -4   |  num   |  denom |
+    +--------+--------+--------+--------+========+========+
+    
+    +--------+--------+--------+--------+--------+--------+========+========+
+    |  0xc9  |XXXXXXXX|XXXXXXXX|XXXXXXXX|XXXXXXXX|   -4   |  num   |  denom |
+    +--------+--------+--------+--------+--------+--------+========+========+
 
 ## Serialization: type to format conversion
 
