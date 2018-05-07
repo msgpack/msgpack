@@ -514,17 +514,17 @@ for fixext 16, ext 8, ext 16 and ext 32:
                                  bigint (cont.)                             |
     +--------+--------+--------+--------+--------+--------+--------+--------+
 
-    bignum 8 stores an 8 bit signed integer with the payload size, the type -2 and a bignum payload whose length is upto (2^8)-1 bytes:
+    bigint 8 stores an 8 bit signed integer with the payload size, the type -2 and a bigint payload whose length is upto (2^8)-1 bytes:
     +--------+--------+--------+========+
     |  0xc7  |XXXXXXXX|   -2   | bigint |
     +--------+--------+--------+========+
 
-    bignum 16 stores an 16 bit signed integer with the payload size, the type -2 and a bignum payload whose length is upto (2^16)-1 bytes:
+    bigint 16 stores an 16 bit signed integer with the payload size, the type -2 and a bigint payload whose length is upto (2^16)-1 bytes:
     +--------+--------+--------+--------+========+
     |  0xc8  |YYYYYYYY|YYYYYYYY|   -2   | bigint |
     +--------+--------+--------+--------+========+
 
-    bignum 32 stores an 16 bit signed integer with the payload size, the type -2 and a bignum payload whose length is upto (2^32)-1 bytes:
+    bigint 32 stores an 16 bit signed integer with the payload size, the type -2 and a bigint payload whose length is upto (2^32)-1 bytes:
     +--------+--------+--------+--------+--------+--------+========+
     |  0xc9  |ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|   -2   | bigint |
     +--------+--------+--------+--------+--------+--------+========+
@@ -540,7 +540,6 @@ for fixext 16, ext 8, ext 16 and ext 32:
     * Integer values which fit into 64 or less bits should be encoded using an appropriate non-extension integer type, as defined above in "int format family", to enhance backwards compatibility
     * Leading 0x00 bytes for positive numbers should be omitted, producing the shortest possible representation of a given value
     * Leading 0xff bytes of the values for negative numbers should be omitted if possible. (A single 0xff byte may be necessary if the most significant bit of the next byte is 0, to distinguish the negative number from positive numbers.)
-    * 
     
 ### bigfloat extension type
 
@@ -557,17 +556,17 @@ fixext 16, ext 8, ext 16 and ext 32, with the payload defined by the IEEE 754-20
                                bigfloat 128 (cont.)                         |
     +--------+--------+--------+--------+--------+--------+--------+--------+
 
-    bignum 8 stores an 8 bit signed integer with the payload size, the type -2 and a payload in the IEEE 754-2008 interchange format whose length is upto (2^8)-1 bytes:
+    bigfloat 8 stores an 8 bit signed integer with the payload size, the type -2 and a payload in the IEEE 754-2008 interchange format whose length is upto (2^8)-1 bytes:
     +--------+--------+--------+========+
     |  0xc7  |XXXXXXXX|   -3   |bigfloat|
     +--------+--------+--------+========+
 
-    bignum 16 stores an 16 bit signed integer with the payload size, the type -2 and a payload in the IEEE 754-2008 interchange format whose length is upto (2^16)-1 bytes:
+    bigfloat 16 stores an 16 bit signed integer with the payload size, the type -2 and a payload in the IEEE 754-2008 interchange format whose length is upto (2^16)-1 bytes:
     +--------+--------+--------+--------+========+
     |  0xc8  |YYYYYYYY|YYYYYYYY|   -3   |bigfloat|
     +--------+--------+--------+--------+========+
 
-    bignum 32 stores an 16 bit signed integer with the payload size, the type -2 and a payload in the IEEE 754-2008 interchange format whose length is upto (2^32)-1 bytes:
+    bigfloat 32 stores an 16 bit signed integer with the payload size, the type -2 and a payload in the IEEE 754-2008 interchange format whose length is upto (2^32)-1 bytes:
     +--------+--------+--------+--------+--------+--------+========+
     |  0xc9  |ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|   -3   |bigfloat|
     +--------+--------+--------+--------+--------+--------+========+
@@ -583,7 +582,7 @@ fixext 16, ext 8, ext 16 and ext 32, with the payload defined by the IEEE 754-20
     Recommendations for encoders and applications:
     * Encoders should use the shortest possible exact representation of a given value, including float32 and float64 where appropriate. E. g. the value 10.5 will fit into an float32.
     * Similarly, the values for "Infinity" and "Negative Infinity" can be encoded as float32.
-    * As the semantics of the payload bits of NaNs are implementation defined, applications should not reloy on different NaN values, and just treat them as a single value.
+    * As the semantics of the payload bits of NaNs are implementation defined, applications should not rely on different NaN values, and just treat them as a single value.
     * As signaling NaNs may lead to exceptions on some hardware just when reading the value, and be quietly converted to non-signaling NaNs on other hardware, applications should avoid signaling NaNs.
     
 ### Bigdecimal extension types
@@ -648,22 +647,22 @@ Support for fractions is optional, but recommended for implementations whose lan
 fractions data types. This extension the following formats as defined above for ext 8, ext 16 and ext 32, 
 with the payload being defined below.
 
-    fraction 2 stores the type -6 and a bignum payload whose length is 2 bytes
+    fraction 2 stores the type -6 and a bigint payload whose length is 2 bytes
     +--------+--------+--------+--------+
     |  0xd5  |   -6   |     fraction    |
     +--------+--------+--------+--------+
 
-    fraction 4 stores the type -6 and a bignum payload whose length is 4 bytes
+    fraction 4 stores the type -6 and a bigint payload whose length is 4 bytes
     +--------+--------+--------+--------+--------+--------+
     |  0xd6  |   -6   |              fraction             |
     +--------+--------+--------+--------+--------+--------+
 
-    fraction 8 stores the type -6 and a bignum payload whose length is 8 bytes
+    fraction 8 stores the type -6 and a bigint payload whose length is 8 bytes
     +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
     |  0xd7  |   -6   |                               fraction                                |
     +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
 
-    fraction 16 stores the type -6 and a bignum payload whose length is 16 bytes
+    fraction 16 stores the type -6 and a bigint payload whose length is 16 bytes
     +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
     |  0xd8  |   -6   |                                fraction                                  
     +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
@@ -671,17 +670,17 @@ with the payload being defined below.
                                 fraction (cont.)                            |
     +--------+--------+--------+--------+--------+--------+--------+--------+
 
-    bigfraction 8 stores an 8 bit signed integer with the payload size, the type -6 and a bignum payload whose length is upto (2^8)-1 bytes:
+    bigfraction 8 stores an 8 bit signed integer with the payload size, the type -6 and a bigint payload whose length is upto (2^8)-1 bytes:
     +--------+--------+--------+========+
     |  0xc7  |XXXXXXXX|   -6   |fraction|
     +--------+--------+--------+========+
 
-    bigfraction 16 stores an 16 bit signed integer with the payload size, the type -6 and a bignum payload whose length is upto (2^16)-1 bytes:
+    bigfraction 16 stores an 16 bit signed integer with the payload size, the type -6 and a bigint payload whose length is upto (2^16)-1 bytes:
     +--------+--------+--------+--------+========+
     |  0xc8  |YYYYYYYY|YYYYYYYY|   -6   |fraction|
     +--------+--------+--------+--------+========+
 
-    bigfraction 32 stores an 16 bit signed integer with the payload size, the type -6 and a bignum payload whose length is upto (2^32)-1 bytes:
+    bigfraction 32 stores an 16 bit signed integer with the payload size, the type -6 and a bigint payload whose length is upto (2^32)-1 bytes:
     +--------+--------+--------+--------+--------+--------+========+
     |  0xc9  |ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|   -6   |fraction|
     +--------+--------+--------+--------+--------+--------+========+
@@ -691,17 +690,15 @@ with the payload being defined below.
     * YYYYYYYY_YYYYYYYY is a 16-bit big-endian unsigned integer which represents N
     * ZZZZZZZZ_ZZZZZZZZ_ZZZZZZZZ_ZZZZZZZZ is a big-endian 32-bit unsigned integer which represents N
     * N is the length of the fraction payload size
-    * fraction is the concatenation of 2 to 4 integers, each of them encoded as defined in the "int format family" or "bigint extension type" sections above:
-    ** The first number is required and describes the numerator of the fraction.
-    ** The second number is required and describes the denominator of the fraction. It must be strictly positive (non-zero). The value 1 is valid an may be useful when an exponent is given.
-    ** The third number is optional and describes a signed exponent which is to be applied to the number, by multiplying the number with (base^exponent). The default base is 10, as used in finance mathematics.
-    ** The fourth number is optional and gives the base for the exponent which should be applied to the number. Use base 2 for semantics similar to IEEE floating point. It must be >=2.
+    * fraction is the concatenation of 1 to 2 integers, each of them encoded as defined in the "int format family" or "bigint extension type" sections above:
+    ** If there is only one number, it is considered the denominator, and the numerator is 1.
+    ** In all other cases, the numerator is the first given number, and the denominator is the second given number.
     * Any possible payload after the fourth number is reserved for future extensions of the specification, and must not be produced by current encoders. Readers should signal an error when they encounter unknown content after the 4 numbers.
     
     Recommendations for encoders and applications:
     * Encoders should prefer short representations, if possible.
-    * If the denominator is 1, and no exponent is given, the number should be encoded using the integer types, not as fraction.
-    * For denominator and base, prefer unsigned integer types (except if the base exceeds 64 bit).
+    * If the denominator is 1, the number should be encoded using the integer types, not as fraction.
+    * For denominator, prefer unsigned integer types (except if the base exceeds 64 bit).
     * To encode NaN, Infinity and negative infinity, use the appropriate float 32 values.
     * If the application does not have different requirements, encoders should reduce the fractions before writing them.
 
