@@ -87,55 +87,53 @@ Because extension types are intended to be added, old applications may not imple
 
 Here is the list of predefined extension types. Formats of the types are defined at [Formats](#formats-timestamp) section.
 
-<table>
-  <tr><th>Name</th><th>Type</th></tr>
-  <tr><td>Timestamp</td><td>-1</td></tr>
-</table>
+Name      | Type
+--------- | ----
+Timestamp | -1
 
 ## Formats
 
 ### Overview
 
-<table>
-  <tr><th>format name</th><th>first byte (in binary)</th><th>first byte (in hex)</th></th></tr>
-  <tr><td>positive fixint</td><td>0xxxxxxx</td><td>0x00 - 0x7f</td></tr>
-  <tr><td>fixmap</td><td>1000xxxx</td><td>0x80 - 0x8f</td></tr>
-  <tr><td>fixarray</td><td>1001xxxx</td><td>0x90 - 0x9f</td></tr>
-  <tr><td>fixstr</td><td>101xxxxx</td><td>0xa0 - 0xbf</td></tr>
-  <tr><td>nil</td><td>11000000</td><td>0xc0</td></tr>
-  <tr><td>(never used)</td><td>11000001</td><td>0xc1</td></tr>
-  <tr><td>false</td><td>11000010</td><td>0xc2</td></tr>
-  <tr><td>true</td><td>11000011</td><td>0xc3</td></tr>
-  <tr><td>bin 8</td><td>11000100</td><td>0xc4</td></tr>
-  <tr><td>bin 16</td><td>11000101</td><td>0xc5</td></tr>
-  <tr><td>bin 32</td><td>11000110</td><td>0xc6</td></tr>
-  <tr><td>ext 8</td><td>11000111</td><td>0xc7</td></tr>
-  <tr><td>ext 16</td><td>11001000</td><td>0xc8</td></tr>
-  <tr><td>ext 32</td><td>11001001</td><td>0xc9</td></tr>
-  <tr><td>float 32</td><td>11001010</td><td>0xca</td></tr>
-  <tr><td>float 64</td><td>11001011</td><td>0xcb</td></tr>
-  <tr><td>uint 8</td><td>11001100</td><td>0xcc</td></tr>
-  <tr><td>uint 16</td><td>11001101</td><td>0xcd</td></tr>
-  <tr><td>uint 32</td><td>11001110</td><td>0xce</td></tr>
-  <tr><td>uint 64</td><td>11001111</td><td>0xcf</td></tr>
-  <tr><td>int 8</td><td>11010000</td><td>0xd0</td></tr>
-  <tr><td>int 16</td><td>11010001</td><td>0xd1</td></tr>
-  <tr><td>int 32</td><td>11010010</td><td>0xd2</td></tr>
-  <tr><td>int 64</td><td>11010011</td><td>0xd3</td></tr>
-  <tr><td>fixext 1</td><td>11010100</td><td>0xd4</td></tr>
-  <tr><td>fixext 2</td><td>11010101</td><td>0xd5</td></tr>
-  <tr><td>fixext 4</td><td>11010110</td><td>0xd6</td></tr>
-  <tr><td>fixext 8</td><td>11010111</td><td>0xd7</td></tr>
-  <tr><td>fixext 16</td><td>11011000</td><td>0xd8</td></tr>
-  <tr><td>str 8</td><td>11011001</td><td>0xd9</td></tr>
-  <tr><td>str 16</td><td>11011010</td><td>0xda</td></tr>
-  <tr><td>str 32</td><td>11011011</td><td>0xdb</td></tr>
-  <tr><td>array 16</td><td>11011100</td><td>0xdc</td></tr>
-  <tr><td>array 32</td><td>11011101</td><td>0xdd</td></tr>
-  <tr><td>map 16</td><td>11011110</td><td>0xde</td></tr>
-  <tr><td>map 32</td><td>11011111</td><td>0xdf</td></tr>
-  <tr><td>negative fixint</td><td>111xxxxx</td><td>0xe0 - 0xff</td></tr>
-</table>
+format name     | first byte (in binary) | first byte (in hex)
+--------------- | ---------------------- | -------------------
+positive fixint | 0xxxxxxx               | 0x00 - 0x7f
+fixmap          | 1000xxxx               | 0x80 - 0x8f
+fixarray        | 1001xxxx               | 0x90 - 0x9f
+fixstr          | 101xxxxx               | 0xa0 - 0xbf
+nil             | 11000000               | 0xc0
+(never used)    | 11000001               | 0xc1
+false           | 11000010               | 0xc2
+true            | 11000011               | 0xc3
+bin 8           | 11000100               | 0xc4
+bin 16          | 11000101               | 0xc5
+bin 32          | 11000110               | 0xc6
+ext 8           | 11000111               | 0xc7
+ext 16          | 11001000               | 0xc8
+ext 32          | 11001001               | 0xc9
+float 32        | 11001010               | 0xca
+float 64        | 11001011               | 0xcb
+uint 8          | 11001100               | 0xcc
+uint 16         | 11001101               | 0xcd
+uint 32         | 11001110               | 0xce
+uint 64         | 11001111               | 0xcf
+int 8           | 11010000               | 0xd0
+int 16          | 11010001               | 0xd1
+int 32          | 11010010               | 0xd2
+int 64          | 11010011               | 0xd3
+fixext 1        | 11010100               | 0xd4
+fixext 2        | 11010101               | 0xd5
+fixext 4        | 11010110               | 0xd6
+fixext 8        | 11010111               | 0xd7
+fixext 16       | 11011000               | 0xd8
+str 8           | 11011001               | 0xd9
+str 16          | 11011010               | 0xda
+str 32          | 11011011               | 0xdb
+array 16        | 11011100               | 0xdc
+array 32        | 11011101               | 0xdd
+map 16          | 11011110               | 0xde
+map 32          | 11011111               | 0xdf
+negative fixint | 111xxxxx               | 0xe0 - 0xff
 
 ### Notation in diagrams
 
@@ -498,18 +496,17 @@ Pseudo code for deserialization:
 
 MessagePack serializers convert MessagePack types into formats as following:
 
-<table>
-  <tr><th>source types</th><th>output format</th></tr>
-  <tr><td>Integer</td><td>int format family (positive fixint, negative fixint, int 8/16/32/64 or uint 8/16/32/64)</td></tr>
-  <tr><td>Nil</td><td>nil</td></tr>
-  <tr><td>Boolean</td><td>bool format family (false or true)</td></tr>
-  <tr><td>Float</td><td>float format family (float 32/64)</td></tr>
-  <tr><td>String</td><td>str format family (fixstr or str 8/16/32)</td></tr>
-  <tr><td>Binary</td><td>bin format family (bin 8/16/32)</td></tr>
-  <tr><td>Array</td><td>array format family (fixarray or array 16/32)</td></tr>
-  <tr><td>Map</td><td>map format family (fixmap or map 16/32)</td></tr>
-  <tr><td>Extension</td><td>ext format family (fixext or ext 8/16/32)</td></tr>
-</table>
+source types | output format
+------------ | ---------------------------------------------------------------------------------------
+Integer      | int format family (positive fixint, negative fixint, int 8/16/32/64 or uint 8/16/32/64)
+Nil          | nil
+Boolean      | bool format family (false or true)
+Float        | float format family (float 32/64)
+String       | str format family (fixstr or str 8/16/32)
+Binary       | bin format family (bin 8/16/32)
+Array        | array format family (fixarray or array 16/32)
+Map          | map format family (fixmap or map 16/32)
+Extension    | ext format family (fixext or ext 8/16/32)
 
 If an object can be represented in multiple possible output formats, serializers SHOULD use the format which represents the data in the smallest number of bytes.
 
@@ -517,18 +514,17 @@ If an object can be represented in multiple possible output formats, serializers
 
 MessagePack deserializers convert MessagePack formats into types as following:
 
-<table>
-  <tr><th>source formats</th><th>output type</th></tr>
-  <tr><td>positive fixint, negative fixint, int 8/16/32/64 and uint 8/16/32/64</td><td>Integer</td></tr>
-  <tr><td>nil</td><td>Nil</td></tr>
-  <tr><td>false and true</td><td>Boolean</td></tr>
-  <tr><td>float 32/64</td><td>Float</td></tr>
-  <tr><td>fixstr and str 8/16/32</td><td>String</td></tr>
-  <tr><td>bin 8/16/32</td><td>Binary</td></tr>
-  <tr><td>fixarray and array 16/32</td><td>Array</td></tr>
-  <tr><td>fixmap map 16/32</td><td>Map</td></tr>
-  <tr><td>fixext and ext 8/16/32</td><td>Extension</td></tr>
-</table>
+source formats                                                       | output type
+-------------------------------------------------------------------- | -----------
+positive fixint, negative fixint, int 8/16/32/64 and uint 8/16/32/64 | Integer
+nil                                                                  | Nil
+false and true                                                       | Boolean
+float 32/64                                                          | Float
+fixstr and str 8/16/32                                               | String
+bin 8/16/32                                                          | Binary
+fixarray and array 16/32                                             | Array
+fixmap map 16/32                                                     | Map
+fixext and ext 8/16/32                                               | Extension
 
 ## Future discussion
 
