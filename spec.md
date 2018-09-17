@@ -333,7 +333,7 @@ Array format family stores a sequence of elements in 1, 3, or 5 bytes of extra b
     * XXXX is a 4-bit unsigned integer which represents N
     * YYYYYYYY_YYYYYYYY is a 16-bit big-endian unsigned integer which represents N
     * ZZZZZZZZ_ZZZZZZZZ_ZZZZZZZZ_ZZZZZZZZ is a 32-bit big-endian unsigned integer which represents N
-        N is the size of a array
+    * N is the size of an array
 
 ### map format family
 
