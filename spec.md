@@ -344,6 +344,7 @@ Array format family stores a sequence of elements in 1, 3, or 5 bytes of extra b
     * other type values are reserved for future extension of this specification
     * dim is a big-endian 8-bit unsigned integer, specifying the dimensions of the array
     * N1, N2, ..., ND are big-endian uint32 integers, specifying the length of the array along each of the D dimensions
+    * the binary data of the N-D array is serialized in the column-major order, i.e. the left-most index is the innermost
 
 ### map format family
 
