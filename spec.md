@@ -331,7 +331,7 @@ Array format family stores a sequence of elements in 1, 3, or 5 bytes of extra b
 
     typed N-D array stores an array with a specified data type and lengths in upto (2^8)-1 dimensions
     +--------+--------+--------+====================================+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+
-    |  0xc1  |  type  |  dim   | dim uint32 integers (N1,N2,...,ND) |    N1*N2*...*ND typed values  |
+    |  0xc1  |  type  |  dim   | dim uint32 integers (N1,N2,...,ND) |   N1*N2*...*ND values of type |
     +--------+--------+--------+====================================+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+
 
     where
