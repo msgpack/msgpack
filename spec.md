@@ -339,11 +339,11 @@ Array format family stores a sequence of elements in 1, 3, or 5 bytes of extra b
     * YYYYYYYY_YYYYYYYY is a 16-bit big-endian unsigned integer which represents N
     * ZZZZZZZZ_ZZZZZZZZ_ZZZZZZZZ_ZZZZZZZZ is a 32-bit big-endian unsigned integer which represents N
     * N is the size of an array
-    * type is an 8-bit big-endian unsigned integer, specifying the data type of the array
-    * if type is between 0xca and 0xd3, the specified type can be found in the Summary section;
-    * other type values are reserved for future extension of this specification.
-    * dim is an 8-bit big-endian unsigned integer, specifying the dimensions of the array
-    * N1, N2, ..., ND are big-endian uint32 integers, specifying the length of the array along each of the D dimension
+    * type is a big-endian 8-bit unsigned integer, specifying the data type of the array
+    * if type is between 0xca and 0xd3, the specified type can be found in the Summary section above
+    * other type values are reserved for future extension of this specification
+    * dim is a big-endian 8-bit unsigned integer, specifying the dimensions of the array
+    * N1, N2, ..., ND are big-endian uint32 integers, specifying the length of the array along each of the D dimensions
 
 ### map format family
 
