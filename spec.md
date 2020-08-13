@@ -179,7 +179,7 @@ Bool format family stores false or true in 1 byte.
 
 ### int format family
 
-Int format family stores an integer in 1, 2, 3, 5, or 9 bytes.
+Int format family stores an integer in 1, 2, 3, 5, or 9 bytes. The integer is represented in two's complement notation.
 
     positive fixnum stores 7-bit positive integer
     +--------+
