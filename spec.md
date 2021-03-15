@@ -429,9 +429,9 @@ Timestamp extension type is assigned to extension type `-1`. It defines 3 format
 
     timestamp 64 stores the number of seconds and nanoseconds that have elapsed since 1970-01-01 00:00:00 UTC
     in 32-bit unsigned integers:
-    +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
-    |  0xd7  |   -1   |nanoseconds in 30-bit unsigned int |  seconds in 34-bit unsigned int   |
-    +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
+    +--------+--------+--------+--------+--------+------|-+--------+--------+--------+--------+
+    |  0xd7  |   -1   | nanosec. in 30-bit unsigned int |   seconds in 34-bit unsigned int    |
+    +--------+--------+--------+--------+--------+------^-+--------+--------+--------+--------+
 
     timestamp 96 stores the number of seconds and nanoseconds that have elapsed since 1970-01-01 00:00:00 UTC
     in 64-bit signed integer and 32-bit unsigned integer:
