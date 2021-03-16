@@ -39,6 +39,7 @@ This document describes the MessagePack type system, MessagePack formats and con
       * [map format family](#map-format-family)
       * [ext format family](#ext-format-family)
       * [Timestamp extension type](#timestamp-extension-type)
+      * [Geographic coordinates extension type](#geographic-coordinates-extension-type)
   * [Serialization: type to format conversion](#serialization-type-to-format-conversion)
   * [Deserialization: format to type conversion](#deserialization-format-to-type-conversion)
   * [Future discussion](#future-discussion)
@@ -491,6 +492,94 @@ Pseudo code for deserialization:
      default:
          // error
      }
+     
+### Geographic Coordinates extension type
+
+Geographic Coordinates extension type is assigned to extension type `-2`. It defines 11 formats with different accuracies and data sets with payload sizes varying from 3 to 16 bytes.
+Latitude and Longitude are expressed as degrees with valid ranges [-90, 90] and [-180, 180]. They are represented as integers with a spread factor of `((2^<INT_BITWIDTH-1>)-1)/180`. Invalid values are expressed as `-(2^<INT_BITWIDTH-1>)`.
+Elevation is expressed as meters above the WGS 84 reference ellipsoid in 16-bit signed integer. Negative numbers mean, that the position is under the WGS 84 reference ellipsoid. Invalid values are expressed as `-(2^15)`.
+
+    gps 3 stores latitude and longitude with reduced accuracy (~5000m)
+    in 12-bit signed integers:
+    +--------+--------+--------+--------+----|----+--------+
+    |  0xc7  |   3    |   -2   |  Latitude   |  Longitude  |
+    +--------+--------+--------+--------+----^----+--------+
+    
+    gps 4 stores latitude and longitude with coarse accuracy (~300m)
+    in 16-bit signed integers:
+    +--------+--------+--------+--------+--------+--------+
+    |  0xd6  |   -2   |    Latitude     |    Longitude    |
+    +--------+--------+--------+--------+--------+--------+
+    
+    gps 5 stores latitude and longitude with medium accuracy (~20m)
+    in 20-bit signed integers:
+    +--------+--------+--------+--------+--------+----|----+--------+--------+
+    |  0xc7  |   5    |   -2   |       Latitude       |      Longitude       |
+    +--------+--------+--------+--------+--------+----^----+--------+--------+
+    
+    gps 7 stores latitude and longitude with medium accuracy (~20m) in 20-bit signed integers and
+    elevation as meters above the WGS 84 reference ellipsoid in 16-bit signed integer:
+    +--------+--------+--------+--------+--------+----|----+--------+--------+--------+--------+
+    |  0xc7  |   7    |   -2   |       Latitude       |      Longitude       |    Elevation    |
+    +--------+--------+--------+--------+--------+----^----+--------+--------+--------+--------+
+    
+    gps 9 stores latitude and longitude with medium accuracy (~20m) in 20-bit signed integers and
+    timestamp as number of seconds that have elapsed since 1970-01-01 00:00:00 UTC in 32-bit unsigned integer:
+    +--------+--------+--------+--------+--------+----|----+--------+--------+--------+--------+--------+--------+
+    |  0xc7  |   9    |   -2   |       Latitude       |      Longitude       |   seconds in 32-bit unsigned int  |
+    +--------+--------+--------+--------+--------+----^----+--------+--------+--------+--------+--------+--------+
+    
+    gps 11 stores latitude and longitude with medium accuracy (~20m) in 20-bit signed integers and
+    elevation as meters above the WGS 84 reference ellipsoid in 16-bit signed integer and
+    timestamp as number of seconds that have elapsed since 1970-01-01 00:00:00 UTC in 32-bit unsigned integer:
+    +--------+--------+--------+--------+--------+----|----+--------+--------+--------+--------+--------+--------+--------+--------+
+    |  0xc7  |   11   |   -2   |       Latitude       |      Longitude       |    Elevation    |   seconds in 32-bit unsigned int  |
+    +--------+--------+--------+--------+--------+----^----+--------+--------+--------+--------+--------+--------+--------+--------+
+    
+    gps 6 stores latitude and longitude with fine accuracy (~1.2m)
+    in 24-bit signed integers:
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+
+    |  0xc7  |   6    |   -2   |         Latitude         |        Longitude         |
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+
+    
+    gps 8 stores latitude and longitude with fine accuracy (~1.2m) in 24-bit signed integers and
+    elevation as meters above the WGS 84 reference ellipsoid in 16-bit signed integer:
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
+    |  0xd7  |   -2   |         Latitude         |        Longitude         |    Elevation    |
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
+    
+    gps 10 stores latitude and longitude with fine accuracy (~1.2m) in 24-bit signed integers and
+    timestamp as number of seconds that have elapsed since 1970-01-01 00:00:00 UTC in 32-bit unsigned integer:
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
+    |  0xc7  |   10   |   -2   |         Latitude         |        Longitude         |   seconds in 32-bit unsigned int  |
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
+    
+    gps 12 stores latitude and longitude with fine accuracy (~1.2m) in 24-bit signed integers and
+    elevation as meters above the WGS 84 reference ellipsoid in 16-bit signed integer and
+    timestamp as number of seconds that have elapsed since 1970-01-01 00:00:00 UTC in 32-bit unsigned integer:
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
+    |  0xc7  |   12   |   -2   |         Latitude         |        Longitude         |    Elevation    |   seconds in 32-bit unsigned int  |
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
+    
+    gps 16 stores latitude and longitude with fine accuracy (~1.2m) in 24-bit signed integers and
+    elevation as meters above the WGS 84 reference ellipsoid in 16-bit signed integer and
+    timestamp as number of seconds that have elapsed since 1970-01-01 00:00:00 UTC and
+    horizontal and vertical accuracies as meters in 16-bit unsigned integers:
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
+    |  0xd8  |   -2   |         Latitude         |        Longitude         |    Elevation    |   seconds in 32-bit unsigned int  | Horiz. Accuracy | Vert. Accuracy  |
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
+    
+* GPS 3 format can represent a geographic coordinate with latitude and longitude in `180/((2^11)-1)` degrees using the WGS 84 datum.
+* GPS 4 format can represent a geographic coordinate with latitude and longitude in `180/((2^15)-1)` degrees using the WGS 84 datum.
+* GPS 5 format can represent a geographic coordinate with latitude and longitude in `180/((2^19)-1)` degrees using the WGS 84 datum.
+* GPS 7 format is GPS 5 with elevation in meters above the WGS 84 reference ellipsoid.
+* GPS 9 format is GPS 5 with timestamp of its recording.
+* GPS 11 format is GPS 5 with elevation in meters above the WGS 84 reference ellipsoid and timestamp of its recording.
+* GPS 6 format can represent a geopgraphic coordinate with latitude and longitude in `180/((2^23)-1)` degrees using the WGS 84 datum.
+* GPS 8 format is GPS 6 with elevation in meters above the WGS 84 reference ellipsoid.
+* GPS 10 format is GPS 6 with timestamp of its recording.
+* GPS 12 format is GPS 6 with elevation in meters above the WGS 84 reference ellipsoid and timestamp of its recording.
+* GPS 16 format is GPS 12 with horizontal and vertical accuracies.
 
 ## Serialization: type to format conversion
 
