@@ -39,6 +39,7 @@ This document describes the MessagePack type system, MessagePack formats and con
       * [map format family](#map-format-family)
       * [ext format family](#ext-format-family)
       * [Timestamp extension type](#timestamp-extension-type)
+      * [Geographic Coordinate extension type](#geographic-coordinate-extension-type)
   * [Serialization: type to format conversion](#serialization-type-to-format-conversion)
   * [Deserialization: format to type conversion](#deserialization-format-to-type-conversion)
   * [Future discussion](#future-discussion)
@@ -60,6 +61,7 @@ This document describes the MessagePack type system, MessagePack formats and con
   * **Map** represents key-value pairs of objects
   * **Extension** represents a tuple of type information and a byte array where type information is an integer whose meaning is defined by applications or MessagePack specification
       * **Timestamp** represents an instantaneous point on the time-line in the world that is independent from time zones or calendars. Maximum precision is nanoseconds.
+      * **Geographic Coordinate** represents an unique location referenced to Earth.
 
 ### Limitation
 
@@ -90,6 +92,7 @@ Here is the list of predefined extension types. Formats of the types are defined
 Name      | Type
 --------- | ----
 Timestamp | -1
+Geographic Coordinate | -2
 
 ## Formats
 
@@ -491,6 +494,110 @@ Pseudo code for deserialization:
      default:
          // error
      }
+
+### Geographic Coordinate extension type
+
+Geographic Coordinate extension type is assigned to extension type `-2`. It defines 11 fixed size formats with different accuracies and elements with payload sizes varying from 3 to 16 bytes. The fixed size formats are optimized for space saving. See the `variadicgps` type for increased flexibility.
+
+Latitude is expressed as degrees in [-90, 90] range and Longitude is expressed as degrees in [-180, 180] range. When represented as integers they are multiplied by a scale factor of `INT_MAX/180` to gain the best possible accuracy out of the integer representation. Invalid values are expressed as `INT_MIN`. `INT_MAX` and `INT_MIN` are defined by the underlying integer type (12, 16, 20, 24 or 32 bits).
+
+Elevation is expressed as meters above the WGS 84 reference ellipsoid in 16-bit signed integer. Negative numbers mean that the position is under the WGS 84 reference ellipsoid. Invalid values are expressed as `INT_MIN`.
+
+Additionally, there is the `variadicgps` type which offers arbitrary accuracies and elements with payload sizes upto 97 bytes.
+
+    gps 3 stores latitude and longitude with reduced accuracy (~5000m)
+    in 12-bit signed integers:
+    +--------+--------+--------+--------+----|----+--------+
+    |  0xc7  |   3    |   -2   |  Latitude   |  Longitude  |
+    +--------+--------+--------+--------+----^----+--------+
+    
+    gps 4 stores latitude and longitude with coarse accuracy (~300m)
+    in 16-bit signed integers:
+    +--------+--------+--------+--------+--------+--------+
+    |  0xd6  |   -2   |    Latitude     |    Longitude    |
+    +--------+--------+--------+--------+--------+--------+
+    
+    gps 5 stores latitude and longitude with medium accuracy (~20m)
+    in 20-bit signed integers:
+    +--------+--------+--------+--------+--------+----|----+--------+--------+
+    |  0xc7  |   5    |   -2   |       Latitude       |      Longitude       |
+    +--------+--------+--------+--------+--------+----^----+--------+--------+
+    
+    gps 7 stores latitude and longitude with medium accuracy (~20m) in 20-bit signed integers and
+    elevation as meters above the WGS 84 reference ellipsoid in 16-bit signed integer:
+    +--------+--------+--------+--------+--------+----|----+--------+--------+--------+--------+
+    |  0xc7  |   7    |   -2   |       Latitude       |      Longitude       |    Elevation    |
+    +--------+--------+--------+--------+--------+----^----+--------+--------+--------+--------+
+    
+    gps 9 stores latitude and longitude with medium accuracy (~20m) in 20-bit signed integers and
+    timestamp as number of seconds that have elapsed since 1970-01-01 00:00:00 UTC in 32-bit unsigned integer:
+    +--------+--------+--------+--------+--------+----|----+--------+--------+--------+--------+--------+--------+
+    |  0xc7  |   9    |   -2   |       Latitude       |      Longitude       |   seconds in 32-bit unsigned int  |
+    +--------+--------+--------+--------+--------+----^----+--------+--------+--------+--------+--------+--------+
+    
+    gps 11 stores latitude and longitude with medium accuracy (~20m) in 20-bit signed integers and
+    elevation as meters above the WGS 84 reference ellipsoid in 16-bit signed integer and
+    timestamp as number of seconds that have elapsed since 1970-01-01 00:00:00 UTC in 32-bit unsigned integer:
+    +--------+--------+--------+--------+--------+----|----+--------+--------+--------+--------+--------+--------+--------+--------+
+    |  0xc7  |   11   |   -2   |       Latitude       |      Longitude       |    Elevation    |   seconds in 32-bit unsigned int  |
+    +--------+--------+--------+--------+--------+----^----+--------+--------+--------+--------+--------+--------+--------+--------+
+    
+    gps 6 stores latitude and longitude with fine accuracy (~1.2m)
+    in 24-bit signed integers:
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+
+    |  0xc7  |   6    |   -2   |         Latitude         |        Longitude         |
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+
+    
+    gps 8 stores latitude and longitude with fine accuracy (~1.2m) in 24-bit signed integers and
+    elevation as meters above the WGS 84 reference ellipsoid in 16-bit signed integer:
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
+    |  0xd7  |   -2   |         Latitude         |        Longitude         |    Elevation    |
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
+    
+    gps 10 stores latitude and longitude with fine accuracy (~1.2m) in 24-bit signed integers and
+    timestamp as number of seconds that have elapsed since 1970-01-01 00:00:00 UTC in 32-bit unsigned integer:
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
+    |  0xc7  |   10   |   -2   |         Latitude         |        Longitude         |   seconds in 32-bit unsigned int  |
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
+    
+    gps 12 stores latitude and longitude with fine accuracy (~1.2m) in 24-bit signed integers and
+    elevation as meters above the WGS 84 reference ellipsoid in 16-bit signed integer and
+    timestamp as number of seconds that have elapsed since 1970-01-01 00:00:00 UTC in 32-bit unsigned integer:
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
+    |  0xc7  |   12   |   -2   |         Latitude         |        Longitude         |    Elevation    |   seconds in 32-bit unsigned int  |
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
+    
+    gps 16 stores latitude and longitude with fine accuracy (~1.2m) in 24-bit signed integers and
+    elevation as meters above the WGS 84 reference ellipsoid in 16-bit signed integer and
+    timestamp as number of seconds that have elapsed since 1970-01-01 00:00:00 UTC in 32-bit unsigned integer and
+    horizontal and vertical accuracies as meters in 16-bit unsigned integers:
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
+    |  0xd8  |   -2   |         Latitude         |        Longitude         |    Elevation    |   seconds in 32-bit unsigned int  | Horiz. Accuracy | Vert. Accuracy  |
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
+    
+    variadicgps stores an array whose length is 2 to 10 elements.
+    Latitude is represented by the first element of the array with degrees in 32-bit signed integer (0xd2 only), 32-bit float or 64-bit float.
+    Longitude is represented by the second element of the array with degrees in 32-bit signed integer (0xd2 only), 32-bit float or 64-bit float.
+    Elevation is optionally represented by the third element of the array with meters in any number format available.
+    Timestamp is optionally represented by the fourth element of the array in any timestamp format available.
+    Horizontal accuracy is optionally represented by the fifth element of the array with meters in any number format available.
+    Vertical accuracy is optionally represented by the sixth element of the array with meters in any number format available.
+    Bearing is optionally represented by the seventh element of the array with degrees in any number format available.
+    Bearing accuracy is optionally represented by the eighth element of the array with degrees in any number format available.
+    Speed is optionally represented by the ninth element of the array with metre per second in any number format available.
+    Speed accuracy is optionally represented by the tenth element of the array with metre per second in any number format available.
+    Optional elements can be set to nil (0xc0) to omit them.
+    +--------+--------+--------+--------+~~~~~~~~~~~~~~~~~+
+    |  0xc7  |XXXXXXXX|   -2   |1001YYYY|    O objects    |
+    +--------+--------+--------+--------+~~~~~~~~~~~~~~~~~+
+    
+    where
+    * XXXXXXXX is a 8-bit unsigned integer which represents N
+    * YYYY is a 4-bit unsigned integer which represents O
+    * N is the length of data
+    * O is the size of the array
+    
+* In variadicgps format, the length of data must be larger than 12 bytes to prevent ambiguity with fixed size types. To achieve this one can add padding to the object array by adding `nils` to the end of the array.
 
 ## Serialization: type to format conversion
 
