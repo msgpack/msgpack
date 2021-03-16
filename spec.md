@@ -421,6 +421,18 @@ Ext format family stores a tuple of an integer and a byte array.
 
 Timestamp extension type is assigned to extension type `-1`. It defines 3 formats: 32-bit format, 64-bit format, and 96-bit format.
 
+    timestamp 8 stores the number of years that have elapsed since 1970
+    in an 8-bit unsigned integer:
+    +--------+--------+--------+
+    |  0xd4  |   -1   | years  |
+    +--------+--------+--------+
+
+    timestamp 16 stores the number of days that have elapsed since 1970-01-01
+    in an 16-bit unsigned integer:
+    +--------+--------+--------+--------+
+    |  0xd5  |   -1   |      days       |
+    +--------+--------+--------+--------+
+    
     timestamp 32 stores the number of seconds that have elapsed since 1970-01-01 00:00:00 UTC
     in an 32-bit unsigned integer:
     +--------+--------+--------+--------+--------+--------+
@@ -442,6 +454,8 @@ Timestamp extension type is assigned to extension type `-1`. It defines 3 format
                         seconds in 64-bit signed int                        |
     +--------+--------+--------+--------+--------+--------+--------+--------+
 
+* Timestamp 8 format can represent a timestamp in [1970, 2225) range.
+* Timestamp 16 format can represent a timestamp in [1970-01-01, 2149-06-06) range.
 * Timestamp 32 format can represent a timestamp in [1970-01-01 00:00:00 UTC, 2106-02-07 06:28:16 UTC) range. Nanoseconds part is 0.
 * Timestamp 64 format can represent a timestamp in [1970-01-01 00:00:00.000000000 UTC, 2514-05-30 01:53:04.000000000 UTC) range.
 * Timestamp 96 format can represent a timestamp in [-584554047284-02-23 16:59:44 UTC, 584554051223-11-09 07:00:16.000000000 UTC) range.
