@@ -181,12 +181,12 @@ Bool format family stores false or true in 1 byte.
 
 Int format family stores an integer in 1, 2, 3, 5, or 9 bytes.
 
-    positive fixnum stores 7-bit positive integer
+    positive fixint stores 7-bit positive integer
     +--------+
     |0XXXXXXX|
     +--------+
 
-    negative fixnum stores 5-bit negative integer
+    negative fixnint stores 5-bit negative integer
     +--------+
     |111YYYYY|
     +--------+
@@ -388,7 +388,7 @@ Ext format family stores a tuple of an integer and a byte array.
 
     fixext 16 stores an integer and a byte array whose length is 16 bytes
     +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
-    |  0xd8  |  type  |                                  data                                  
+    |  0xd8  |  type  |                                  data
     +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
     +--------+--------+--------+--------+--------+--------+--------+--------+
                                   data (cont.)                              |
