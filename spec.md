@@ -538,12 +538,12 @@ For example, applications may remove Binary type, restrict keys of map objects t
 
 ### Upgrading MessagePack specification
 
-MessagePack specification is changed at this time.
-Here is a guideline to upgrade existent MessagePack implementations:
+This is the current and stable version of the spec, established in 2013. There is one [older version](spec-old.md) from 2011.
+Here is a guideline for upgrading older MessagePack implementations to be compatible with the current spec:
 
-* In a minor release, deserializers support the bin format family and str 8 format. The type of deserialized objects should be same with raw 16 (== str 16) or raw 32 (== str 32)
-* In a major release, serializers distinguish Binary type and String type using bin format family and str format family
-  * At the same time, serializers should offer "compatibility mode" which doesn't use bin format family and str 8 format
+1. In a minor release, deserializers add support for the bin format family and str 8 format. The type of deserialized objects should be same with raw 16 (== str 16) or raw 32 (== str 32)
+2. In a major release, serializers distinguish Binary type and String type using bin format family and str format family
+  * At the same time, serializers should offer "compatibility mode" for the older spec version which doesn't use bin format family and str 8 format
 
 
 ___
