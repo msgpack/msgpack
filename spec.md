@@ -181,12 +181,12 @@ Bool format family stores false or true in 1 byte.
 
 Int format family stores an integer in 1, 2, 3, 5, or 9 bytes.
 
-    positive fixnum stores 7-bit positive integer
+    positive fixint stores 7-bit positive integer
     +--------+
     |0XXXXXXX|
     +--------+
 
-    negative fixnum stores 5-bit negative integer
+    negative fixint stores 5-bit negative integer
     +--------+
     |111YYYYY|
     +--------+
