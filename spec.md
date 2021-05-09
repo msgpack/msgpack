@@ -102,7 +102,7 @@ fixmap          | 1000xxxx               | 0x80 - 0x8f
 fixarray        | 1001xxxx               | 0x90 - 0x9f
 fixstr          | 101xxxxx               | 0xa0 - 0xbf
 nil             | 11000000               | 0xc0
-(never used)    | 11000001               | 0xc1
+typed N-D array | 11000001               | 0xc1
 false           | 11000010               | 0xc2
 true            | 11000011               | 0xc3
 bin 8           | 11000100               | 0xc4
@@ -329,11 +329,22 @@ Array format family stores a sequence of elements in 1, 3, or 5 bytes of extra b
     |  0xdd  |ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|    N objects    |
     +--------+--------+--------+--------+--------+~~~~~~~~~~~~~~~~~+
 
+    typed N-D array stores an array with a specified data type and lengths in upto (2^8)-1 dimensions
+    +--------+--------+--------+====================================+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+
+    |  0xc1  |  type  |  dim   | dim uint32 integers (N1,N2,...,ND) |   N1*N2*...*ND values of type |
+    +--------+--------+--------+====================================+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+
+
     where
     * XXXX is a 4-bit unsigned integer which represents N
     * YYYYYYYY_YYYYYYYY is a 16-bit big-endian unsigned integer which represents N
     * ZZZZZZZZ_ZZZZZZZZ_ZZZZZZZZ_ZZZZZZZZ is a 32-bit big-endian unsigned integer which represents N
     * N is the size of an array
+    * type is a big-endian 8-bit unsigned integer, specifying the data type of the array
+    * if type is between 0xca and 0xd3, the specified type can be found in the Summary section above
+    * other type values are reserved for future extension of this specification
+    * dim is a big-endian 8-bit unsigned integer, specifying the number of dimensions of the array
+    * Ni (N1, N2, ..., ND) are big-endian uint32 integers, specifying the length of the array along the i-th dimension
+    * the binary data of the N-D array is serialized in the row-major order, i.e. the right-most index is the innermost
 
 ### map format family
 
