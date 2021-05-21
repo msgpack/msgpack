@@ -446,6 +446,7 @@ Timestamp extension type is assigned to extension type `-1`. It defines 3 format
 * Timestamp 64 format can represent a timestamp in [1970-01-01 00:00:00.000000000 UTC, 2514-05-30 01:53:04.000000000 UTC) range.
 * Timestamp 96 format can represent a timestamp in [-292277022657-01-27 08:29:52 UTC, 292277026596-12-04 15:30:08.000000000 UTC) range.
 * In timestamp 64 and timestamp 96 formats, nanoseconds must not be larger than 999999999.
+* Nanoseconds are always added to seconds, so -1.13 seconds is represented as (-2, 870000000).
 
 Pseudo code for serialization:
 
