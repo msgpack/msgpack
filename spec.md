@@ -680,7 +680,7 @@ Typed Array extension type is assigned to extension type `-10`, It defines a fam
 
     typed ndarray 8 stores a N-dimensional array with a unified value type, its total serialized length is upto (2^8)-1 bytes
     +--------+--------+--------+--------+--------+================================+
-    |  0xc7  |XXXXXXXX|  -10   |  tval  |  dim   |  dim uint8 integers (N1 ~ ND)  |
+    |  0xc7  |XXXXXXXX|  -11   |  tval  |  dim   |  dim uint8 integers (N1 ~ ND)  |
     +--------+--------+--------+--------+--------+================================+
     +================================+
         packed N1*N2*...*ND values   |
@@ -688,7 +688,7 @@ Typed Array extension type is assigned to extension type `-10`, It defines a fam
 
     typed ndarray 16 stores a N-dimensional array with a unified value type, its total serialized length is upto (2^16)-1 bytes
     +--------+--------+--------+--------+--------+--------+================================+
-    |  0xc8  |YYYYYYYY|YYYYYYYY|  -10   |  tval  |  dim   | dim uint16 integers (N1 ~ ND)  |
+    |  0xc8  |YYYYYYYY|YYYYYYYY|  -11   |  tval  |  dim   | dim uint16 integers (N1 ~ ND)  |
     +--------+--------+--------+--------+--------+--------+================================+
     +================================+
         packed N1*N2*...*ND values   |
@@ -696,7 +696,7 @@ Typed Array extension type is assigned to extension type `-10`, It defines a fam
 
     typed ndarray 32 stores a N-dimensional array with a unified value type, its total serialized length is upto (2^32)-1 bytes
     +--------+--------+--------+--------+--------+--------+--------+--------+
-    |  0xc9  |ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|  -10   |  tval  |  dim   |
+    |  0xc9  |ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|  -11   |  tval  |  dim   |
     +--------+--------+--------+--------+--------+--------+--------+--------+
     +================================+================================+
       dim uint32 integers (N1 ~ ND)  |   packed N1*N2*...*ND values   |
@@ -707,7 +707,7 @@ Typed Array extension type is assigned to extension type `-10`, It defines a fam
     |  0xd7  |AAAAAAAA|AAAAAAAA|AAAAAAAA|AAAAAAAA|AAAAAAAA|AAAAAAAA|AAAAAAAA|AAAAAAAA|
     +--------+--------+--------+--------+--------+--------+--------+--------+--------+
     +--------+--------+--------+================================+================================+
-       -10   |  tval  |  dim   | dim uint64 integers (N1 ~ ND)  |   packed N1*N2*...*ND values   |
+       -11   |  tval  |  dim   | dim uint64 integers (N1 ~ ND)  |   packed N1*N2*...*ND values   |
     +--------+--------+--------+================================+================================+
 
     where
