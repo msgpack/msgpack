@@ -1,6 +1,6 @@
 # MessagePack specification
 
-MessagePack is an object serialization specification like JSON.
+MessagePack is an object serialization specification like JSON. This page is a draft for a improved version based on MessagePack v2.0
 
 MessagePack has two concepts: **type system** and **formats**.
 
@@ -53,6 +53,7 @@ This document describes the MessagePack type system, MessagePack formats and con
   * **Nil** represents nil
   * **Boolean** represents true or false
   * **Float** represents a IEEE 754 double precision floating point number including NaN and Infinity
+  * **Complex** represents a complex number holding two elements in cartesian coordinate
   * **Raw**
       * **String** extending Raw type represents a UTF-8 string
       * **Binary** extending Raw type represents a byte array
@@ -64,7 +65,7 @@ This document describes the MessagePack type system, MessagePack formats and con
 ### Limitation
 
 * a value of an Integer object is limited from `-(2^63)` upto `(2^64)-1`
-* maximum length of a Binary object is `(2^32)-1`
+* maximum length of a Binary object is `(2^64)-1`
 * maximum byte size of a String object is `(2^32)-1`
 * String objects may contain invalid byte sequence and the behavior of a deserializer depends on the actual implementation when it received invalid byte sequence
     * Deserializers should provide functionality to get the original byte array so that applications can decide how to handle the object
@@ -90,50 +91,56 @@ Here is the list of predefined extension types. Formats of the types are defined
 Name      | Type
 --------- | ----
 Timestamp | -1
+BigInt    | -2
+BigFloat  | -3
+UUID      | -4
+Typed Array  | -9
+Typed Map | -10
+Typed N-D Array | -11
 
 ## Formats
 
 ### Overview
 
-format name     | first byte (in binary) | first byte (in hex)
---------------- | ---------------------- | -------------------
-positive fixint | 0xxxxxxx               | 0x00 - 0x7f
-fixmap          | 1000xxxx               | 0x80 - 0x8f
-fixarray        | 1001xxxx               | 0x90 - 0x9f
-fixstr          | 101xxxxx               | 0xa0 - 0xbf
-nil             | 11000000               | 0xc0
-(never used)    | 11000001               | 0xc1
-false           | 11000010               | 0xc2
-true            | 11000011               | 0xc3
-bin 8           | 11000100               | 0xc4
-bin 16          | 11000101               | 0xc5
-bin 32          | 11000110               | 0xc6
-ext 8           | 11000111               | 0xc7
-ext 16          | 11001000               | 0xc8
-ext 32          | 11001001               | 0xc9
-float 32        | 11001010               | 0xca
-float 64        | 11001011               | 0xcb
-uint 8          | 11001100               | 0xcc
-uint 16         | 11001101               | 0xcd
-uint 32         | 11001110               | 0xce
-uint 64         | 11001111               | 0xcf
-int 8           | 11010000               | 0xd0
-int 16          | 11010001               | 0xd1
-int 32          | 11010010               | 0xd2
-int 64          | 11010011               | 0xd3
-fixext 1        | 11010100               | 0xd4
-fixext 2        | 11010101               | 0xd5
-fixext 4        | 11010110               | 0xd6
-fixext 8        | 11010111               | 0xd7
-fixext 16       | 11011000               | 0xd8
-str 8           | 11011001               | 0xd9
-str 16          | 11011010               | 0xda
-str 32          | 11011011               | 0xdb
-array 16        | 11011100               | 0xdc
-array 32        | 11011101               | 0xdd
-map 16          | 11011110               | 0xde
-map 32          | 11011111               | 0xdf
-negative fixint | 111xxxxx               | 0xe0 - 0xff
+format name     | first byte (in binary) | first byte (in hex) | old v2 format |
+--------------- | ---------------------- | ------------------- | ------------- |
+positive fixint | 0xxxxxxx               | 0x00 - 0x7f         |               |
+fixmap          | 1000xxxx               | 0x80 - 0x8f         |               |
+fixarray        | 1001xxxx               | 0x90 - 0x9f         |               |
+fixstr          | 101xxxxx               | 0xa0 - 0xbf         |               |
+nil             | 11000000               | 0xc0                |               |
+(never used)    | 11000001               | 0xc1                |               |
+false           | 11000010               | 0xc2                |               |
+true            | 11000011               | 0xc3                |               |
+bin 8           | 11000100               | 0xc4                |               |
+bin 16          | 11000101               | 0xc5                |               |
+bin 32          | 11000110               | 0xc6                |               |
+ext 8           | 11000111               | 0xc7                |               |
+ext 16          | 11001000               | 0xc8                |               |
+ext 32          | 11001001               | 0xc9                |               |
+float 32        | 11001010               | 0xca                |               |
+float 64        | 11001011               | 0xcb                |               |
+uint 8          | 11001100               | 0xcc                |               |
+uint 16         | 11001101               | 0xcd                |               |
+uint 32         | 11001110               | 0xce                |               |
+uint 64         | 11001111               | 0xcf                |               |
+int 8           | 11010000               | 0xd0                |               |
+int 16          | 11010001               | 0xd1                |               |
+int 32          | 11010010               | 0xd2                |               |
+int 64          | 11010011               | 0xd3                |               |
+complex 64      | 11010100               | 0xd4                | fixext 1      |
+complex 128     | 11010101               | 0xd5                | fixext 2      |
+bin 64          | 11010110               | 0xd6                | fixext 4      |
+ext 64          | 11010111               | 0xd7                | fixext 8      |
+fixext          | 11011000               | 0xd8                | fixext 16     |
+str 8           | 11011001               | 0xd9                |               |
+str 16          | 11011010               | 0xda                |               |
+str 32          | 11011011               | 0xdb                |               |
+array 16        | 11011100               | 0xdc                |               |
+array 32        | 11011101               | 0xdd                |               |
+map 16          | 11011110               | 0xde                |               |
+map 32          | 11011111               | 0xdf                |               |
+negative fixint | 111xxxxx               | 0xe0 - 0xff         |               |
 
 ### Notation in diagrams
 
@@ -254,6 +261,33 @@ Float format family stores a floating point number in 5 bytes or 9 bytes.
     * YYYYYYYY_YYYYYYYY_YYYYYYYY_YYYYYYYY_YYYYYYYY_YYYYYYYY_YYYYYYYY_YYYYYYYY is a big-endian
       IEEE 754 double precision floating point number
 
+### complex format family
+
+Complex format family stores a complex number with two floating point elements in 9 or 17 bytes
+
+    complex 64 stores a complex number with two single precision floating point numbers
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+
+    |  0xd4  |XXXXXXXX|XXXXXXXX|XXXXXXXX|XXXXXXXX|YYYYYYYY|YYYYYYYY|YYYYYYYY|YYYYYYYY|
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+
+
+    complex 128 stores a complex number with two double precision floating point numbers
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+
+    |  0xd5  |ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+
+    +--------+--------+--------+--------+--------+--------+--------+--------+
+     AAAAAAAA|AAAAAAAA|AAAAAAAA|AAAAAAAA|AAAAAAAA|AAAAAAAA|AAAAAAAA|AAAAAAAA|
+    +--------+--------+--------+--------+--------+--------+--------+--------+
+
+    where
+    * XXXXXXXX_XXXXXXXX_XXXXXXXX_XXXXXXXX is a big-endian IEEE 754 single precision
+      floating point number to represent real part.
+    * YYYYYYYY_YYYYYYYY_YYYYYYYY_YYYYYYYY is a big-endian IEEE 754 single precision
+      floating point number to represent imaginary real part.
+    * ZZZZZZZZ_ZZZZZZZZ_ZZZZZZZZ_ZZZZZZZZ_ZZZZZZZZ_ZZZZZZZZ_ZZZZZZZZ_ZZZZZZZZ is a big-endian
+      IEEE 754 double precision floating point number to represent real part.
+    * AAAAAAAA_AAAAAAAA_AAAAAAAA_AAAAAAAA_AAAAAAAA_AAAAAAAA_AAAAAAAA_AAAAAAAA is a big-endian
+      IEEE 754 double precision floating point number to represent imaginary part.
+
 ### str format family
 
 Str format family stores a byte array in 1, 2, 3, or 5 bytes of extra bytes in addition to the size of the byte array.
@@ -304,10 +338,17 @@ Bin format family stores an byte array in 2, 3, or 5 bytes of extra bytes in add
     |  0xc6  |ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|  data  |
     +--------+--------+--------+--------+--------+========+
 
+    bin 64 stores an integer and a byte array whose length is upto (2^64)-1 bytes:
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+========+
+    |  0xd6  |AAAAAAAA|AAAAAAAA|AAAAAAAA|AAAAAAAA|AAAAAAAA|AAAAAAAA|AAAAAAAA|AAAAAAAA|  data  |
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+========+
+
     where
     * XXXXXXXX is a 8-bit unsigned integer which represents N
     * YYYYYYYY_YYYYYYYY is a 16-bit big-endian unsigned integer which represents N
     * ZZZZZZZZ_ZZZZZZZZ_ZZZZZZZZ_ZZZZZZZZ is a 32-bit big-endian unsigned integer which represents N
+    * AAAAAAAA_AAAAAAAA_AAAAAAAA_AAAAAAAA_AAAAAAAA_AAAAAAAA_AAAAAAAA_AAAAAAAA is a big-endian
+      64-bit unsigned integer which represents N
     * N is the length of data
 
 ### array format family
@@ -366,33 +407,10 @@ Map format family stores a sequence of key-value pairs in 1, 3, or 5 bytes of ex
 
 Ext format family stores a tuple of an integer and a byte array.
 
-    fixext 1 stores an integer and a byte array whose length is 1 byte
-    +--------+--------+--------+
-    |  0xd4  |  type  |  data  |
-    +--------+--------+--------+
-
-    fixext 2 stores an integer and a byte array whose length is 2 bytes
-    +--------+--------+--------+--------+
-    |  0xd5  |  type  |       data      |
-    +--------+--------+--------+--------+
-
-    fixext 4 stores an integer and a byte array whose length is 4 bytes
-    +--------+--------+--------+--------+--------+--------+
-    |  0xd6  |  type  |                data               |
-    +--------+--------+--------+--------+--------+--------+
-
-    fixext 8 stores an integer and a byte array whose length is 8 bytes
-    +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
-    |  0xd7  |  type  |                                  data                                 |
-    +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
-
-    fixext 16 stores an integer and a byte array whose length is 16 bytes
-    +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
-    |  0xd8  |  type  |                                  data                                  
-    +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
-    +--------+--------+--------+--------+--------+--------+--------+--------+
-                                  data (cont.)                              |
-    +--------+--------+--------+--------+--------+--------+--------+--------+
+    fixext stores an integer and a byte array whose length is up to 15 bytes
+    +--------+--------+========+
+    |  0xd8  |AAAABBBB|  data  |
+    +--------+--------+========+
 
     ext 8 stores an integer and a byte array whose length is upto (2^8)-1 bytes:
     +--------+--------+--------+========+
@@ -409,12 +427,22 @@ Ext format family stores a tuple of an integer and a byte array.
     |  0xc9  |ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|  type  |  data  |
     +--------+--------+--------+--------+--------+--------+========+
 
+    ext 64 stores an integer and a byte array whose length is upto (2^64)-1 bytes:
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+========+
+    |  0xd7  |AAAAAAAA|AAAAAAAA|AAAAAAAA|AAAAAAAA|AAAAAAAA|AAAAAAAA|AAAAAAAA|AAAAAAAA|  type  |  data  |
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+========+
+
     where
+    * AAAA is a 4-bit unsigned integer which represents N
+    * BBBB is a 4-bit signed integer which represents the ext type
     * XXXXXXXX is a 8-bit unsigned integer which represents N
     * YYYYYYYY_YYYYYYYY is a 16-bit big-endian unsigned integer which represents N
     * ZZZZZZZZ_ZZZZZZZZ_ZZZZZZZZ_ZZZZZZZZ is a big-endian 32-bit unsigned integer which represents N
+    * AAAAAAAA_AAAAAAAA_AAAAAAAA_AAAAAAAA_AAAAAAAA_AAAAAAAA_AAAAAAAA_AAAAAAAA is a big-endian
+      64-bit unsigned integer which represents N
     * N is a length of data
-    * type is a signed 8-bit signed integer
+    * type is a signed 8-bit signed integer for ext 8, ext 16 and ext 32
+    * type is limited in range [-8, 7] for fixext
     * type < 0 is reserved for future extension including 2-byte type information
 
 ### Timestamp extension type
@@ -424,20 +452,20 @@ Timestamp extension type is assigned to extension type `-1`. It defines 3 format
     timestamp 32 stores the number of seconds that have elapsed since 1970-01-01 00:00:00 UTC
     in an 32-bit unsigned integer:
     +--------+--------+--------+--------+--------+--------+
-    |  0xd6  |   -1   |   seconds in 32-bit unsigned int  |
+    |  0xd8  |00101111|   seconds in 32-bit unsigned int  |
     +--------+--------+--------+--------+--------+--------+
 
     timestamp 64 stores the number of seconds and nanoseconds that have elapsed since 1970-01-01 00:00:00 UTC
     in 32-bit unsigned integers:
     +--------+--------+--------+--------+--------+------|-+--------+--------+--------+--------+
-    |  0xd7  |   -1   | nanosec. in 30-bit unsigned int |   seconds in 34-bit unsigned int    |
+    |  0xd8  |01001111| nanosec. in 30-bit unsigned int |   seconds in 34-bit unsigned int    |
     +--------+--------+--------+--------+--------+------^-+--------+--------+--------+--------+
 
     timestamp 96 stores the number of seconds and nanoseconds that have elapsed since 1970-01-01 00:00:00 UTC
     in 64-bit signed integer and 32-bit unsigned integer:
-    +--------+--------+--------+--------+--------+--------+--------+
-    |  0xc7  |   12   |   -1   |nanoseconds in 32-bit unsigned int |
-    +--------+--------+--------+--------+--------+--------+--------+
+    +--------+--------+--------+--------+--------+--------+
+    |  0xd8  |11001111|nanoseconds in 32-bit unsigned int |
+    +--------+--------+--------+--------+--------+--------+
     +--------+--------+--------+--------+--------+--------+--------+--------+
                         seconds in 64-bit signed int                        |
     +--------+--------+--------+--------+--------+--------+--------+--------+
@@ -491,6 +519,208 @@ Pseudo code for deserialization:
      default:
          // error
      }
+
+### BigInt extension type
+
+BigInt extension type is assigned to extension type `-2`. It defines a family of formats to represent large (signed) integers.
+
+    int 128 stores a 128-bit big-endian signed integer
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
+    |  0xd8  |10001101|                                 bigint                                |
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
+    --------+--------+--------+--------+--------+--------+--------+--------+
+                                 bigint (cont.)                            |
+    --------+--------+--------+--------+--------+--------+--------+--------+
+
+    bigint 8 stores a big-endian signed integer that occupies at most (2^8)-1 bytes
+    +--------+--------+--------+========+
+    |  0xc7  |XXXXXXXX|   -2   | bigint |
+    +--------+--------+--------+========+
+
+    bigint 16 stores a big-endian signed integer that occupies at most (2^16)-1 bytes
+    +--------+--------+--------+--------+========+
+    |  0xc8  |YYYYYYYY|YYYYYYYY|   -2   | bigint |
+    +--------+--------+--------+--------+========+
+
+    bigint 32 stores a big-endian signed integer that occupies at most (2^32)-1 bytes
+    +--------+--------+--------+--------+--------+--------+========+
+    |  0xc9  |ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|   -2   | bigint |
+    +--------+--------+--------+--------+--------+--------+========+
+
+    where
+    * XXXXXXXX is a 8-bit unsigned integer which represents N
+    * YYYYYYYY_YYYYYYYY is a 16-bit big-endian unsigned integer which represents N
+    * ZZZZZZZZ_ZZZZZZZZ_ZZZZZZZZ_ZZZZZZZZ is a big-endian 32-bit unsigned integer which represents N
+    * N is the length of the bigint payload size
+    * bigint is the bytes of the signed integer in big endian representation
+
+### BigFloat extension type
+
+BigFloat extension type is assigned to extension type `-3`. It defines a family of formats to represent large / high precision binary floating point values following IEEE 754 interchange format.
+
+    float 16 stores a floating point number in IEEE 754 half precision floating point number format:
+    +--------+--------+--------+--------+
+    |  0xd8  |00101100|AAAAAAAA|AAAAAAAA|
+    +--------+--------+--------+--------+
+
+    float 128 stores a floating point number in IEEE 754 quadruple precision floating point number format:
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
+    |  0xd8  |10001100|                               bigfloat                                |
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
+    --------+--------+--------+--------+--------+--------+--------+--------+
+                                bigfloat (cont.)                           |
+    --------+--------+--------+--------+--------+--------+--------+--------+
+
+    bigfloat 8 stores a IEEE 754 floating point number that occupies at most (2^8)-1 bytes
+    +--------+--------+--------+========+
+    |  0xc7  |XXXXXXXX|   -3   |bigfloat|
+    +--------+--------+--------+========+
+
+    bigfloat 16 stores a IEEE 754 floating point number that occupies at most (2^16)-1 bytes
+    +--------+--------+--------+--------+========+
+    |  0xc8  |YYYYYYYY|YYYYYYYY|   -3   |bigfloat|
+    +--------+--------+--------+--------+========+
+
+    bigfloat 32 stores a IEEE 754 floating point number that occupies at most (2^32)-1 bytes
+    +--------+--------+--------+--------+--------+--------+========+
+    |  0xc9  |ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|   -3   |bigfloat|
+    +--------+--------+--------+--------+--------+--------+========+
+
+    where
+    * AAAAAAAA_AAAAAAAA is a 16-bit half precision floating point value
+    * XXXXXXXX is a 8-bit unsigned integer which represents N
+    * YYYYYYYY_YYYYYYYY is a 16-bit big-endian unsigned integer which represents N
+    * ZZZZZZZZ_ZZZZZZZZ_ZZZZZZZZ_ZZZZZZZZ is a big-endian 32-bit unsigned integer which represents N
+    * N is the length of the bigfloat payload size
+    * bigfloat is the bytes of the float in IEEE 754 interchange format
+
+### UUID extension type
+
+Universal Unique Identifier (UUID) type is assigned to extension type `-4` with a 128-bit payload
+
+    uuid stores a 128-bit universal unique identifier
+    +--------+--------+========+
+    |  0xd8  |10001011|  uuid  |
+    +--------+--------+========+
+
+    where
+    * uuid is the 128-bit big-endian binary representation of the UUID
+
+### Typed Array extension type
+
+Typed Array extension type is assigned to extension type `-9`, It defines a family of format storing a sequence of elements with the same type.
+
+    typed array 8 stores an array with unified value type, its total serialized length is upto (2^8)-1 bytes:
+    +--------+--------+--------+--------+========+
+    |  0xc7  |XXXXXXXX|   -9   |  tval  |  data  |
+    +--------+--------+--------+--------+========+
+
+    typed array 16 stores an array with unified value type, its total serialized length is upto (2^16)-1 bytes:
+    +--------+--------+--------+--------+--------+========+
+    |  0xc8  |YYYYYYYY|YYYYYYYY|   -9   |  tval  |  data  |
+    +--------+--------+--------+--------+--------+========+
+
+    typed array 32 stores an array with unified value type, its total serialized length is upto (2^32)-1 bytes:
+    +--------+--------+--------+--------+--------+--------+--------+========+
+    |  0xc8  |ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|   -9   |  tval  |  data  |
+    +--------+--------+--------+--------+--------+--------+--------+========+
+
+    typed array 64 stores an array with unified value type, its total serialized length is upto (2^64)-1 bytes:
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+========+
+    |  0xc8  |AAAAAAAA|AAAAAAAA|AAAAAAAA|AAAAAAAA|AAAAAAAA|AAAAAAAA|AAAAAAAA|AAAAAAAA|   -9   |  tval  |  data  |
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+========+
+
+    where
+    * XXXXXXXX is a 8-bit unsigned integer which represents N
+    * YYYYYYYY_YYYYYYYY is a 16-bit big-endian unsigned integer which represents N
+    * ZZZZZZZZ_ZZZZZZZZ_ZZZZZZZZ_ZZZZZZZZ is a big-endian 32-bit unsigned integer which represents N
+    * AAAAAAAA_AAAAAAAA_AAAAAAAA_AAAAAAAA_AAAAAAAA_AAAAAAAA_AAAAAAAA_AAAAAAAA is a big-endian 64-bit
+      unsigned integer which represents N
+    * N = size of payload data + 1
+    * tval is a big-endian 8-bit unsigned integer, specifying the value type of the array
+    * if tval is 0xc2/0xc3 or between 0xcc and 0xd7, the specified type can be found in the Summary section above
+    * other type values are reserved for future extension of this specification
+    * the payload data stores the packed elements following the MessagePack specs, but without the first byte type code
+
+### Typed Map extension type
+
+Typed Array extension type is assigned to extension type `-10`, It defines a family of format storing a sequence of key-value pairs with the same type.
+
+    typed map 8 stores a map with a unified key type and a unified value type, its total serialized length is upto (2^8)-1 bytes:
+    +--------+--------+--------+--------+--------+========+
+    |  0xc7  |XXXXXXXX|  -10   |  tkey  |  tval  |  data  |
+    +--------+--------+--------+--------+--------+========+
+
+    typed map 16 stores a map with a unified key type and a unified value type, its total serialized length is upto (2^16)-1 bytes:
+    +--------+--------+--------+--------+--------+--------+========+
+    |  0xc8  |YYYYYYYY|YYYYYYYY|  -10   |  tkey  |  tval  |  data  |
+    +--------+--------+--------+--------+--------+--------+========+
+
+    typed map 32 stores a map with a unified key type and a unified value type, its total serialized length is upto (2^32)-1 bytes:
+    +--------+--------+--------+--------+--------+--------+--------+--------+========+
+    |  0xc8  |ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|  -10   |  tkey  |  tval  |  data  |
+    +--------+--------+--------+--------+--------+--------+--------+--------+========+
+
+    typed map 64 stores a map with a unified key type and a unified value type, its total serialized length is upto (2^16)-1 bytes:
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+========+
+    |  0xc8  |AAAAAAAA|AAAAAAAA|AAAAAAAA|AAAAAAAA|AAAAAAAA|AAAAAAAA|AAAAAAAA|AAAAAAAA|  -10   |  tkey  |  tval  |  data  |
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+========+
+
+    where
+    * XXXXXXXX is a 8-bit unsigned integer which represents N
+    * YYYYYYYY_YYYYYYYY is a 16-bit big-endian unsigned integer which represents N
+    * ZZZZZZZZ_ZZZZZZZZ_ZZZZZZZZ_ZZZZZZZZ is a big-endian 32-bit unsigned integer which represents N
+    * AAAAAAAA_AAAAAAAA_AAAAAAAA_AAAAAAAA_AAAAAAAA_AAAAAAAA_AAAAAAAA_AAAAAAAA is a big-endian 64-bit
+      unsigned integer which represents N
+    * N = size of payload data + 2
+    * tkey specifies the type of key elements. tkey, tval is defined in the same way as typed array.
+    * the payload data stores the packed elements following the MessagePack specs, but without the first byte type code
+
+### Typed N-D Array extension type
+
+    typed ndarray 8 stores a N-dimensional array with a unified value type, its total serialized length is upto (2^8)-1 bytes
+    +--------+--------+--------+--------+--------+================================+
+    |  0xc7  |XXXXXXXX|  -10   |  tval  |  dim   |  dim uint8 integers (N1 ~ ND)  |
+    +--------+--------+--------+--------+--------+================================+
+    +================================+
+        packed N1*N2*...*ND values   |
+    +================================+
+
+    typed ndarray 16 stores a N-dimensional array with a unified value type, its total serialized length is upto (2^16)-1 bytes
+    +--------+--------+--------+--------+--------+--------+================================+
+    |  0xc8  |YYYYYYYY|YYYYYYYY|  -10   |  tval  |  dim   | dim uint16 integers (N1 ~ ND)  |
+    +--------+--------+--------+--------+--------+--------+================================+
+    +================================+
+        packed N1*N2*...*ND values   |
+    +================================+
+
+    typed ndarray 32 stores a N-dimensional array with a unified value type, its total serialized length is upto (2^32)-1 bytes
+    +--------+--------+--------+--------+--------+--------+--------+--------+
+    |  0xc9  |ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|  -10   |  tval  |  dim   |
+    +--------+--------+--------+--------+--------+--------+--------+--------+
+    +================================+================================+
+      dim uint32 integers (N1 ~ ND)  |   packed N1*N2*...*ND values   |
+    +================================+================================+
+
+    typed ndarray 64 stores a N-dimensional array with a unified value type, its total serialized length is upto (2^64)-1 bytes
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+
+    |  0xd7  |AAAAAAAA|AAAAAAAA|AAAAAAAA|AAAAAAAA|AAAAAAAA|AAAAAAAA|AAAAAAAA|AAAAAAAA|
+    +--------+--------+--------+--------+--------+--------+--------+--------+--------+
+    +--------+--------+--------+================================+================================+
+       -10   |  tval  |  dim   | dim uint64 integers (N1 ~ ND)  |   packed N1*N2*...*ND values   |
+    +--------+--------+--------+================================+================================+
+
+    where
+    * XXXXXXXX is a 8-bit unsigned integer which represents M
+    * YYYYYYYY_YYYYYYYY is a 16-bit big-endian unsigned integer which represents M
+    * ZZZZZZZZ_ZZZZZZZZ_ZZZZZZZZ_ZZZZZZZZ is a big-endian 32-bit unsigned integer which represents M
+    * AAAAAAAA_AAAAAAAA_AAAAAAAA_AAAAAAAA_AAAAAAAA_AAAAAAAA_AAAAAAAA_AAAAAAAA is a big-endian 64-bit
+      unsigned integer which represents M
+    * tval is defined in the same way as typed array
+    * M is the total serialized length of the binary payload starting from the `tval` byte
+    * dim is a big-endian 8-bit unsigned integer, specifying the number of dimensions of the array
+    * Ni (N1, N2, ..., ND) are big-endian integers, specifying the length of the array along the i-th dimension
+    * the payload data of the N-D array contains serialized elements in the row-major order, i.e. the right-most index is the innermost
 
 ## Serialization: type to format conversion
 
