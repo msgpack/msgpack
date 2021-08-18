@@ -96,7 +96,7 @@ BigFloat  | -3
 UUID      | -4
 Typed Array  | -9
 Typed Map | -10
-Typed N-D Array | -11
+Typed N-D Array | -11~-14
 
 ## Formats
 
@@ -721,6 +721,12 @@ Typed Array extension type is assigned to extension type `-10`, It defines a fam
     * dim is a big-endian 8-bit unsigned integer, specifying the number of dimensions of the array
     * Ni (N1, N2, ..., ND) are big-endian integers, specifying the length of the array along the i-th dimension
     * the payload data of the N-D array contains serialized elements in the row-major order, i.e. the right-most index is the innermost
+    
+Here ext type number could be varying from `-11` to `-14`, with different dimension order and byte-order:
+- ext type `-11`: row-major big-endian array
+- ext type `-12`: row-major little-endian array
+- ext type `-13`: column-major big-endian array
+- ext type `-14`: column-major little-endian array
 
 ## Serialization: type to format conversion
 
