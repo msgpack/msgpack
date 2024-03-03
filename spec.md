@@ -41,6 +41,11 @@ This document describes the MessagePack type system, MessagePack formats and con
       * [Timestamp extension type](#timestamp-extension-type)
   * [Serialization: type to format conversion](#serialization-type-to-format-conversion)
   * [Deserialization: format to type conversion](#deserialization-format-to-type-conversion)
+  * [Complex types](#Complex-types)
+      * [Option 1 (default): using MsgPack Map](#Option-1-(default)-using-MsgPack-Map)
+      * [Option 2: Alphabetically sorted MsgPack Array](#Option-2-Alphabetically-sorted-MsgPack-Array)
+      * [Polymorphic complex types](#Polymorphic-complex-types)
+      * [Compatibility levels](#Compatibility-levels)
   * [Future discussion](#future-discussion)
     * [Profile](#profile)
   * [Implementation guidelines](#implementation-guidelines)
@@ -525,6 +530,65 @@ bin 8/16/32                                                          | Binary
 fixarray and array 16/32                                             | Array
 fixmap map 16/32                                                     | Map
 fixext and ext 8/16/32                                               | Extension
+
+## Complex types
+
+A complex type is a compound object containing multiple members which can be either complex types or primitive types. Primitive types are those defined above. For the sake of argument we will speak of an "Object" where class, struct, record, row and tuple could also apply. Likewise we will use "Property" where the words member, field or column could be used.
+
+### Option 1 (default): using MsgPack Map
+
+Key              | Value          
+-----------------|----------------
+Property Id (*1) | Property Value
+Property Id (*1) | Property Value
+Property Id (*1) | Property Value
+etc...           |
+
+*1 The Id would typically be the name of the property but it can optionally be altered by middleware (for example by adding an attribute or annotation to a property). Keeping Id's small (or short) will produce smaller payloads.
+
+### Option 2: Alphabetically sorted MsgPack Array
+
+All property values are serialized to an array in the alphabetical sequential order of the property names.
+This approach should only be used when all future senders/writers and receivers/readers are guaranteed to always be deployed and updated at once without any compatibility between versions (this typically means downtime).
+
+The advantage is a significantly smaller payload.
+
+Off course in some cases it is possible to figure out what version of a complex type was serialized based on the number of items in the array, or the types of those items, however the added complexity and development time to support this should be taken into consideration. It would be advisable to give objects a version number using a property name that would always be sorted as first for this purpose.
+
+### Polymorphic complex types
+
+Serializing objects assigned to a property declared as an interface or a base-type:
+
+While serializing a property of a complex object:
+  - when the value of the property is not NULL
+  - and the type of the value is different than the type of the declaring property
+
+In this case the property will either be a base type or an interface and it is needful to store the type Id of the serialized object in order to deserialize it correctly.
+
+The first element of the Map should have an empty string (hex A0) as key and the type-ID of the object as value. The rest is the same as regular complex types. (This feature can only be supported for Option 1, since there is no way to distinguish the type other than using an extension).
+
+Key                | Value
+-------------------|----------------
+fixstr (0xA0)      | Type Id (*2)
+Property Name (*1) | Property Value
+Property Name (*1) | Property Value
+etc...             |
+
+*2 Just like property names, Type names can be manipulated by middleware.
+
+### Compatibility levels
+In order to standardize all options we'll have to specify what compatibility level:
+  - a MsgPack serializer can handle
+  - the level that a certain MsgPack based format requires
+
+Level | Description
+------|----------------------------------------------------------
+0     | Complex types stored in non-standardized way
+1     | Complex types stored in arrays (option 2)
+2     | Complex types stored in Map with string keys (option 1)
+2+    | Complex types stored in Map with any type of key
+3     | Level 2 + support for polymorphic types using string ID
+3+    | Level 3 + support for polymorphic types using any type ID
 
 ## Future discussion
 
