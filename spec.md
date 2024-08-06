@@ -63,7 +63,7 @@ This document describes the MessagePack type system, MessagePack formats and con
 
 ### Limitation
 
-* a value of an Integer object is limited from `-(2^63)` upto `(2^64)-1`
+* a value of an Integer object is limited from `-(2^63)` up to `(2^64)-1`
 * maximum length of a Binary object is `(2^32)-1`
 * maximum byte size of a String object is `(2^32)-1`
 * String objects may contain invalid byte sequence and the behavior of a deserializer depends on the actual implementation when it received invalid byte sequence
@@ -76,14 +76,14 @@ This document describes the MessagePack type system, MessagePack formats and con
 MessagePack allows applications to define application-specific types using the Extension type.
 Extension type consists of an integer and a byte array where the integer represents a kind of types and the byte array represents data.
 
-Applications can assign `0` to `127` to store application-specific type information. An example usage is that application defines `type = 0` as the application's unique type system, and stores name of a type and values of the type at the payload.
+Applications can assign `0` to `127` to store application-specific type information. An example usage is that the application defines `type = 0` as the application's unique type system, and stores the name of a type and values of the type at the payload.
 
 MessagePack reserves `-1` to `-128` for future extension to add predefined types. These types will be added to exchange more types without using pre-shared statically-typed schema across different programming environments.
 
     [0, 127]: application-specific types
     [-128, -1]: reserved for predefined types
 
-Because extension types are intended to be added, old applications may not implement all of them. However, they can still handle such type as one of Extension types. Therefore, applications can decide whether they reject unknown Extension types, accept as opaque data, or transfer to another application without touching payload of them.
+Because extension types are intended to be added, old applications may not implement all of them. However, they can still handle such type as one of the Extension types. Therefore, applications can decide whether they reject unknown Extension types, accept as opaque data, or transfer to another application without touching their payload.
 
 Here is the list of predefined extension types. Formats of the types are defined at [Formats](#formats-timestamp) section.
 
@@ -258,22 +258,22 @@ Float format family stores a floating point number in 5 bytes or 9 bytes.
 
 Str format family stores a byte array in 1, 2, 3, or 5 bytes of extra bytes in addition to the size of the byte array.
 
-    fixstr stores a byte array whose length is upto 31 bytes:
+    fixstr stores a byte array whose length is up to 31 bytes:
     +--------+========+
     |101XXXXX|  data  |
     +--------+========+
 
-    str 8 stores a byte array whose length is upto (2^8)-1 bytes:
+    str 8 stores a byte array whose length is up to (2^8)-1 bytes:
     +--------+--------+========+
     |  0xd9  |YYYYYYYY|  data  |
     +--------+--------+========+
 
-    str 16 stores a byte array whose length is upto (2^16)-1 bytes:
+    str 16 stores a byte array whose length is up to (2^16)-1 bytes:
     +--------+--------+--------+========+
     |  0xda  |ZZZZZZZZ|ZZZZZZZZ|  data  |
     +--------+--------+--------+========+
 
-    str 32 stores a byte array whose length is upto (2^32)-1 bytes:
+    str 32 stores a byte array whose length is up to (2^32)-1 bytes:
     +--------+--------+--------+--------+--------+========+
     |  0xdb  |AAAAAAAA|AAAAAAAA|AAAAAAAA|AAAAAAAA|  data  |
     +--------+--------+--------+--------+--------+========+
@@ -287,19 +287,19 @@ Str format family stores a byte array in 1, 2, 3, or 5 bytes of extra bytes in a
 
 ### bin format family
 
-Bin format family stores an byte array in 2, 3, or 5 bytes of extra bytes in addition to the size of the byte array.
+Bin format family stores a byte array in 2, 3, or 5 bytes of extra bytes in addition to the size of the byte array.
 
-    bin 8 stores a byte array whose length is upto (2^8)-1 bytes:
+    bin 8 stores a byte array whose length is up to (2^8)-1 bytes:
     +--------+--------+========+
     |  0xc4  |XXXXXXXX|  data  |
     +--------+--------+========+
 
-    bin 16 stores a byte array whose length is upto (2^16)-1 bytes:
+    bin 16 stores a byte array whose length is up to (2^16)-1 bytes:
     +--------+--------+--------+========+
     |  0xc5  |YYYYYYYY|YYYYYYYY|  data  |
     +--------+--------+--------+========+
 
-    bin 32 stores a byte array whose length is upto (2^32)-1 bytes:
+    bin 32 stores a byte array whose length is up to (2^32)-1 bytes:
     +--------+--------+--------+--------+--------+========+
     |  0xc6  |ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|  data  |
     +--------+--------+--------+--------+--------+========+
@@ -314,17 +314,17 @@ Bin format family stores an byte array in 2, 3, or 5 bytes of extra bytes in add
 
 Array format family stores a sequence of elements in 1, 3, or 5 bytes of extra bytes in addition to the elements.
 
-    fixarray stores an array whose length is upto 15 elements:
+    fixarray stores an array whose length is up to 15 elements:
     +--------+~~~~~~~~~~~~~~~~~+
     |1001XXXX|    N objects    |
     +--------+~~~~~~~~~~~~~~~~~+
 
-    array 16 stores an array whose length is upto (2^16)-1 elements:
+    array 16 stores an array whose length is up to (2^16)-1 elements:
     +--------+--------+--------+~~~~~~~~~~~~~~~~~+
     |  0xdc  |YYYYYYYY|YYYYYYYY|    N objects    |
     +--------+--------+--------+~~~~~~~~~~~~~~~~~+
 
-    array 32 stores an array whose length is upto (2^32)-1 elements:
+    array 32 stores an array whose length is up to (2^32)-1 elements:
     +--------+--------+--------+--------+--------+~~~~~~~~~~~~~~~~~+
     |  0xdd  |ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|    N objects    |
     +--------+--------+--------+--------+--------+~~~~~~~~~~~~~~~~~+
@@ -339,17 +339,17 @@ Array format family stores a sequence of elements in 1, 3, or 5 bytes of extra b
 
 Map format family stores a sequence of key-value pairs in 1, 3, or 5 bytes of extra bytes in addition to the key-value pairs.
 
-    fixmap stores a map whose length is upto 15 elements
+    fixmap stores a map whose length is up to 15 elements
     +--------+~~~~~~~~~~~~~~~~~+
     |1000XXXX|   N*2 objects   |
     +--------+~~~~~~~~~~~~~~~~~+
 
-    map 16 stores a map whose length is upto (2^16)-1 elements
+    map 16 stores a map whose length is up to (2^16)-1 elements
     +--------+--------+--------+~~~~~~~~~~~~~~~~~+
     |  0xde  |YYYYYYYY|YYYYYYYY|   N*2 objects   |
     +--------+--------+--------+~~~~~~~~~~~~~~~~~+
 
-    map 32 stores a map whose length is upto (2^32)-1 elements
+    map 32 stores a map whose length is up to (2^32)-1 elements
     +--------+--------+--------+--------+--------+~~~~~~~~~~~~~~~~~+
     |  0xdf  |ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|   N*2 objects   |
     +--------+--------+--------+--------+--------+~~~~~~~~~~~~~~~~~+
@@ -394,17 +394,17 @@ Ext format family stores a tuple of an integer and a byte array.
                                   data (cont.)                              |
     +--------+--------+--------+--------+--------+--------+--------+--------+
 
-    ext 8 stores an integer and a byte array whose length is upto (2^8)-1 bytes:
+    ext 8 stores an integer and a byte array whose length is up to (2^8)-1 bytes:
     +--------+--------+--------+========+
     |  0xc7  |XXXXXXXX|  type  |  data  |
     +--------+--------+--------+========+
 
-    ext 16 stores an integer and a byte array whose length is upto (2^16)-1 bytes:
+    ext 16 stores an integer and a byte array whose length is up to (2^16)-1 bytes:
     +--------+--------+--------+--------+========+
     |  0xc8  |YYYYYYYY|YYYYYYYY|  type  |  data  |
     +--------+--------+--------+--------+========+
 
-    ext 32 stores an integer and a byte array whose length is upto (2^32)-1 bytes:
+    ext 32 stores an integer and a byte array whose length is up to (2^32)-1 bytes:
     +--------+--------+--------+--------+--------+--------+========+
     |  0xc9  |ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|ZZZZZZZZ|  type  |  data  |
     +--------+--------+--------+--------+--------+--------+========+
@@ -422,7 +422,7 @@ Ext format family stores a tuple of an integer and a byte array.
 Timestamp extension type is assigned to extension type `-1`. It defines 3 formats: 32-bit format, 64-bit format, and 96-bit format.
 
     timestamp 32 stores the number of seconds that have elapsed since 1970-01-01 00:00:00 UTC
-    in an 32-bit unsigned integer:
+    in a 32-bit unsigned integer:
     +--------+--------+--------+--------+--------+--------+
     |  0xd6  |   -1   |   seconds in 32-bit unsigned int  |
     +--------+--------+--------+--------+--------+--------+
@@ -530,7 +530,7 @@ fixext and ext 8/16/32                                               | Extension
 
 ### Profile
 
-Profile is an idea that Applications restrict the semantics of MessagePack while sharing the same syntax to adapt MessagePack for certain use cases.
+Profile is an idea that applications restrict the semantics of MessagePack while sharing the same syntax to adapt MessagePack for certain use cases.
 
 For example, applications may remove Binary type, restrict keys of map objects to be String type, and put some restrictions to make the semantics compatible with JSON. Applications which use schema may remove String and Binary types and deal with byte arrays as Raw type. Applications which use hash (digest) of serialized data may sort keys of maps to make the serialized data deterministic.
 
