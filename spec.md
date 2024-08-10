@@ -492,6 +492,28 @@ Pseudo code for deserialization:
          // error
      }
 
+### Length encoding extension type
+
+Wrapping maps and arrays in extension type `-2` benefits partial decoders that want to skip over values.
+
+Encoders MAY wrap arrays and maps by prefixing their msgdata data with an ext / fixext header with the type `-2`. Encoders MAY NOT wrap any other types.
+
+When encountering extension data of type `-2`, decoders can simply skip 2 bytes ahead for fixext data and skip 2, 3, 4 or 6 bytes ahead for ext.
+
+Decoders wanting to skip an entire value can skip ahead as they would for any extension type.
+
+Two examples:
+
+    Using a fixext 2 to store an array of one 1 byte element.
+    +--------+--------+--------+--------+
+    |  0xd5  |   -2   |  0x91  |  data  |
+    +--------+--------+--------+--------+
+
+    Using a fixext 4 to store a map with {"x": true}.
+    +--------+--------+--------+--------+--------+--------+
+    |  0xd6  |   -2   |  0x81  |  0xa1  |  0x78  |  0xc3  |
+    +--------+--------+--------+--------+--------+--------+
+
 ## Serialization: type to format conversion
 
 MessagePack serializers convert MessagePack types into formats as following:
