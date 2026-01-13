@@ -422,13 +422,13 @@ Ext format family stores a tuple of an integer and a byte array.
 Timestamp extension type is assigned to extension type `-1`. It defines 3 formats: 32-bit format, 64-bit format, and 96-bit format.
 
     timestamp 32 stores the number of seconds that have elapsed since 1970-01-01 00:00:00 UTC
-    in an 32-bit unsigned integer:
+    in a 32-bit unsigned integer:
     +--------+--------+--------+--------+--------+--------+
     |  0xd6  |   -1   |   seconds in 32-bit unsigned int  |
     +--------+--------+--------+--------+--------+--------+
 
     timestamp 64 stores the number of seconds and nanoseconds that have elapsed since 1970-01-01 00:00:00 UTC
-    in 32-bit unsigned integers:
+    in 30- and 34-bit unsigned integers:
     +--------+--------+--------+--------+--------+------|-+--------+--------+--------+--------+
     |  0xd7  |   -1   | nanosec. in 30-bit unsigned int |   seconds in 34-bit unsigned int    |
     +--------+--------+--------+--------+--------+------^-+--------+--------+--------+--------+
