@@ -39,6 +39,7 @@ This document describes the MessagePack type system, MessagePack formats and con
       * [map format family](#map-format-family)
       * [ext format family](#ext-format-family)
       * [Timestamp extension type](#timestamp-extension-type)
+      * [IP address extension type](#ip-address-extension-type)
   * [Serialization: type to format conversion](#serialization-type-to-format-conversion)
   * [Deserialization: format to type conversion](#deserialization-format-to-type-conversion)
   * [Future discussion](#future-discussion)
@@ -60,6 +61,7 @@ This document describes the MessagePack type system, MessagePack formats and con
   * **Map** represents key-value pairs of objects
   * **Extension** represents a tuple of type information and a byte array where type information is an integer whose meaning is defined by applications or MessagePack specification
       * **Timestamp** represents an instantaneous point on the time-line in the world that is independent from time zones or calendars. Maximum precision is nanoseconds.
+      * **IP address** represents an IPv4 or IPv6 address stored in network byte order.
 
 ### Limitation
 
@@ -87,9 +89,10 @@ Because extension types are intended to be added, old applications may not imple
 
 Here is the list of predefined extension types. Formats of the types are defined at [Formats](#formats-timestamp) section.
 
-Name      | Type
---------- | ----
-Timestamp | -1
+Name       | Type
+---------- | ----
+Timestamp  | -1
+IP address | -7
 
 ## Formats
 
@@ -491,6 +494,25 @@ Pseudo code for deserialization:
      default:
          // error
      }
+
+### IP address extension type
+
+IP address extension type is assigned to extension type `-7`. It defines 2 formats: a 4-byte format for IPv4 addresses and a 16-byte format for IPv6 addresses. The address is stored in network byte order (big-endian), which is the same layout as the `s_addr` field of `struct in_addr` and the `s6_addr` field of `struct in6_addr`.
+
+    IPv4 stores a 32-bit IPv4 address in network byte order:
+    +--------+--------+--------+--------+--------+--------+
+    |  0xd6  |   -7   |       IPv4 address (4 bytes)      |
+    +--------+--------+--------+--------+--------+--------+
+
+    IPv6 stores a 128-bit IPv6 address in network byte order:
+    +--------+--------+========================+
+    |  0xd8  |   -7   | IPv6 address (16 bytes)|
+    +--------+--------+========================+
+
+* The address family is determined solely by the payload length: 4 bytes is an IPv4 address and 16 bytes is an IPv6 address. No other payload lengths are valid for this extension type.
+* The address is stored in network byte order (big-endian), so serialization and deserialization are a direct byte copy to and from the platform's native address structures; no textual parsing or formatting is required.
+* This type stores an address only. It does not carry a port number, a prefix length / netmask, or an IPv6 zone (scope) identifier. A zone identifier is a host-local artifact (typically an interface index or name) that is not meaningful to a remote peer, so it is intentionally excluded; link-local IPv6 addresses therefore lose their zone when encoded. Applications needing any of these SHOULD encode them alongside the address in an application-defined structure.
+* An IPv4 address SHOULD be encoded using the 4-byte format. Encoders SHOULD NOT emit an IPv4-mapped IPv6 address (`::ffff:0:0/96`) using the 16-byte format when a 4-byte encoding is possible, so that a given address has a single canonical encoding.
 
 ## Serialization: type to format conversion
 
