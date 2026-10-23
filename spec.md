@@ -37,6 +37,7 @@ This document describes the MessagePack type system, MessagePack formats and con
       * [bin format family](#bin-format-family)
       * [array format family](#array-format-family)
       * [map format family](#map-format-family)
+      * [escape format family](#escape-format-family)
       * [ext format family](#ext-format-family)
       * [Timestamp extension type](#timestamp-extension-type)
   * [Serialization: type to format conversion](#serialization-type-to-format-conversion)
@@ -45,6 +46,7 @@ This document describes the MessagePack type system, MessagePack formats and con
     * [Profile](#profile)
   * [Implementation guidelines](#implementation-guidelines)
     * [Upgrading MessagePack specification](#upgrading-messagepack-specification)
+    * [Supporting the escape format family](#supporting-the-escape-format-family)
 
 ## Type system
 
@@ -70,6 +72,7 @@ This document describes the MessagePack type system, MessagePack formats and con
     * Deserializers should provide functionality to get the original byte array so that applications can decide how to handle the object
 * maximum number of elements of an Array object is `(2^32)-1`
 * maximum number of key-value associations of a Map object is `(2^32)-1`
+* these limits also apply to objects whose length is not known when they are serialized (see [escape format family](#escape-format-family))
 
 ### Extension types
 
@@ -102,7 +105,7 @@ fixmap          | 1000xxxx               | 0x80 - 0x8f
 fixarray        | 1001xxxx               | 0x90 - 0x9f
 fixstr          | 101xxxxx               | 0xa0 - 0xbf
 nil             | 11000000               | 0xc0
-(never used)    | 11000001               | 0xc1
+escape          | 11000001               | 0xc1
 false           | 11000010               | 0xc2
 true            | 11000011               | 0xc3
 bin 8           | 11000100               | 0xc4
@@ -362,6 +365,83 @@ Map format family stores a sequence of key-value pairs in 1, 3, or 5 bytes of ex
     * odd elements in objects are keys of a map
     * the next element of a key is its associated value
 
+### escape format family
+
+Escape format family stores arrays and maps whose length is not known when the serializer writes their first element, for example when it streams its output. Their end is marked instead of their length being stored up front.
+
+The byte `0xc1` is the escape byte. It is always followed by one code byte, and the two bytes form an escape sequence. Each start code is the first byte of an empty object of the same format family and the end code is nil, so an escape sequence can be recognized in a hex dump:
+
+escape sequence | meaning
+--------------- | ---------------------------------------------------------------
+`0xc1 0x90`     | start of an array of unknown length
+`0xc1 0x80`     | start of a map of unknown length
+`0xc1 0xa0`     | start of a str of unknown length (optional, see below)
+`0xc1 0xc4`     | start of a bin of unknown length (optional, see below)
+`0xc1 0xc0`     | end of the innermost open object of unknown length
+other codes     | reserved for future extension of this specification
+
+    array of unknown length stores an array whose length is upto (2^32)-1 elements:
+    +--------+--------+~~~~~~~~~~~~~~~~~+--------+--------+
+    |  0xc1  |  0x90  |    N objects    |  0xc1  |  0xc0  |
+    +--------+--------+~~~~~~~~~~~~~~~~~+--------+--------+
+
+    map of unknown length stores a map whose length is upto (2^32)-1 elements:
+    +--------+--------+~~~~~~~~~~~~~~~~~+--------+--------+
+    |  0xc1  |  0x80  |   N*2 objects   |  0xc1  |  0xc0  |
+    +--------+--------+~~~~~~~~~~~~~~~~~+--------+--------+
+
+    where
+    * N is the size of an array or a map, which is the number of elements before the end sequence
+    * odd elements in objects of a map are keys of a map, the next element of a key is its associated value
+    * the end sequence of a map comes where a key would come
+    * elements may be objects of any format, including arrays and maps of unknown length
+
+An array or a map of unknown length is one object: it can be an element of an array or a map of any length, or a key or a value of a map.
+
+The end sequence `0xc1 0xc0` closes the innermost array, map, str or bin of unknown length that is open. It is only valid where the next element of that array, the next key of that map or the next chunk of that str or bin would start. An end sequence anywhere else (outside of any object of unknown length, directly inside an array or map of known length, or where a value of a map would come) is an error.
+
+An escape sequence with a reserved code is an error, and so is an escape byte at the end of the data. Deserializers MUST report it as an error. They MUST NOT treat it as incomplete data and wait for more bytes. Applications MUST NOT assign meanings to the reserved codes.
+
+Serializers MUST NOT write more than (2^32)-1 elements into an array or a map of unknown length.
+
+#### str and bin of unknown length
+
+Support for str and bin of unknown length is optional. A deserializer which doesn't support them reports `0xc1 0xa0` and `0xc1 0xc4` as reserved codes.
+
+    str of unknown length stores a byte array whose length is upto (2^32)-1 bytes in chunks:
+    +--------+--------+~~~~~~~~~~~~~~~~~+--------+--------+
+    |  0xc1  |  0xa0  |    N chunks     |  0xc1  |  0xc0  |
+    +--------+--------+~~~~~~~~~~~~~~~~~+--------+--------+
+
+    bin of unknown length stores a byte array whose length is upto (2^32)-1 bytes in chunks:
+    +--------+--------+~~~~~~~~~~~~~~~~~+--------+--------+
+    |  0xc1  |  0xc4  |    N chunks     |  0xc1  |  0xc0  |
+    +--------+--------+~~~~~~~~~~~~~~~~~+--------+--------+
+
+    where
+    * each chunk of a str is an object of str format family (fixstr or str 8/16/32)
+    * each chunk of a bin is an object of bin format family (bin 8/16/32)
+    * the data is the concatenation of the data of the chunks
+    * a chunk of a str contains whole UTF-8 sequences: a character is never split between two chunks
+    * N may be zero and chunks may be empty
+
+#### Examples
+
+    [1, "a", [true]] as an array of unknown length holding an array of known length:
+    c1 90  01  a1 61  91 c3  c1 c0
+
+    {"a": 1} as a map of unknown length:
+    c1 80  a1 61  01  c1 c0
+
+    [[1]] where both arrays are of unknown length:
+    c1 90  c1 90  01  c1 c0  c1 c0
+
+    {"rows": [1, 2], "total": 2} where the length of "rows" is not known up front:
+    82  a4 72 6f 77 73  c1 90  01  02  c1 c0  a5 74 6f 74 61 6c  02
+
+    "abc" as a str of unknown length in two chunks:
+    c1 a0  a2 61 62  a1 63  c1 c0
+
 ### ext format family
 
 Ext format family stores a tuple of an integer and a byte array.
@@ -502,13 +582,15 @@ Integer      | int format family (positive fixint, negative fixint, int 8/16/32/
 Nil          | nil
 Boolean      | bool format family (false or true)
 Float        | float format family (float 32/64)
-String       | str format family (fixstr or str 8/16/32)
-Binary       | bin format family (bin 8/16/32)
-Array        | array format family (fixarray or array 16/32)
-Map          | map format family (fixmap or map 16/32)
+String       | str format family (fixstr or str 8/16/32), or str of unknown length
+Binary       | bin format family (bin 8/16/32), or bin of unknown length
+Array        | array format family (fixarray or array 16/32), or array of unknown length
+Map          | map format family (fixmap or map 16/32), or map of unknown length
 Extension    | ext format family (fixext or ext 8/16/32)
 
 If an object can be represented in multiple possible output formats, serializers SHOULD use the format which represents the data in the smallest number of bytes.
+
+Serializers SHOULD use the formats of unknown length (see [escape format family](#escape-format-family)) only for objects whose length is not known when they start writing them, and only when the deserializer is known to support them (see [Supporting the escape format family](#supporting-the-escape-format-family)).
 
 ## Deserialization: format to type conversion
 
@@ -520,10 +602,10 @@ positive fixint, negative fixint, int 8/16/32/64 and uint 8/16/32/64 | Integer
 nil                                                                  | Nil
 false and true                                                       | Boolean
 float 32/64                                                          | Float
-fixstr and str 8/16/32                                               | String
-bin 8/16/32                                                          | Binary
-fixarray and array 16/32                                             | Array
-fixmap map 16/32                                                     | Map
+fixstr, str 8/16/32 and str of unknown length                        | String
+bin 8/16/32 and bin of unknown length                                | Binary
+fixarray, array 16/32 and array of unknown length                    | Array
+fixmap, map 16/32 and map of unknown length                          | Map
 fixext and ext 8/16/32                                               | Extension
 
 ## Future discussion
@@ -532,7 +614,7 @@ fixext and ext 8/16/32                                               | Extension
 
 Profile is an idea that Applications restrict the semantics of MessagePack while sharing the same syntax to adapt MessagePack for certain use cases.
 
-For example, applications may remove Binary type, restrict keys of map objects to be String type, and put some restrictions to make the semantics compatible with JSON. Applications which use schema may remove String and Binary types and deal with byte arrays as Raw type. Applications which use hash (digest) of serialized data may sort keys of maps to make the serialized data deterministic.
+For example, applications may remove Binary type, restrict keys of map objects to be String type, and put some restrictions to make the semantics compatible with JSON. Applications which use schema may remove String and Binary types and deal with byte arrays as Raw type. Applications which use hash (digest) of serialized data may sort keys of maps and use only formats of known length to make the serialized data deterministic.
 
 ## Implementation guidelines
 
@@ -544,6 +626,15 @@ Here is a guideline to upgrade existent MessagePack implementations:
 * In a minor release, deserializers support the bin format family and str 8 format. The type of deserialized objects should be same with raw 16 (== str 16) or raw 32 (== str 32)
 * In a major release, serializers distinguish Binary type and String type using bin format family and str format family
   * At the same time, serializers should offer "compatibility mode" which doesn't use bin format family and str 8 format
+
+### Supporting the escape format family
+
+The escape format family was added after the formats above. Existing deserializers reject the byte `0xc1`, so data with escape sequences fails at the first escape sequence instead of being read as other data. Here is a guideline to add it to existing MessagePack implementations:
+
+* Deserializers support arrays and maps of unknown length (and optionally str and bin of unknown length). They report every escape sequence they don't support as an error
+* Serializers write formats of unknown length only when the application asks for them, for example by an option or by writing the start and the end of an array or map itself
+  * Applications use them only when the receiving side is known to support them, for example by a parameter of the media type or a version in their protocol
+* A serializer which can seek in its output may instead write an array 32 or map 32 header, and write the number of elements into it when the object ends. That needs no escape sequences, but the output is limited to seekable destinations
 
 
 ___
